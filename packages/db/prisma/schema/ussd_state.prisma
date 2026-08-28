@@ -1,0 +1,7 @@
+model UssdState {
+  sessionId       String   @id @map("session_id")
+  accumulatedPath String   @map("accumulated_path")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("ussd_states")
+}

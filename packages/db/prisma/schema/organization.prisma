@@ -1,0 +1,108 @@
+model Organization {
+  id                    String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String
+  slug                  String                   @unique
+  description           String?
+  logoUrl               String?                  @map("logo_url")
+  bannerUrl             String?                  @map("banner_url")
+  primaryColor          String                   @default("#02a605ff") @map("primary_color")
+  secondaryColor        String                   @default("#ffe100ff") @map("secondary_color")
+  faviconUrl            String?                  @map("favicon_url")
+  websiteUrl            String?                  @map("website_url")
+  contactEmail          String?                  @map("contact_email")
+  createdBy             String?                  @map("created_by")
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  phone                 String?
+  paystackAccountName   String?                  @map("paystack_account_name")
+  paystackAccountNumber String?                  @map("paystack_account_number")
+  paystackBankCode      String?                  @map("paystack_bank_code")
+  subaccountCode        String?                  @map("subaccount_code")
+  tertiaryColor         String                   @default("#dc2626") @map("tertiary_color")
+  allowJoinRequests     Boolean                  @default(false) @map("allow_join_requests")
+  autoPayout            Boolean                  @default(true) @map("auto_payout")
+  events                Event[]
+  requests              MembershipRequest[]
+  invitations           OrganizationInvitation[]
+  team                  TeamMember[]
+  socialLinks           OrganizationSocialLink[]
+  creator               Profile?                 @relation("CreatedOrganizations", fields: [createdBy], references: [id])
+  wallets               Wallet[]
+  activityLogs          ActivityLog[]
+
+  @@index([slug], map: "idx_organizations_slug")
+  @@index([createdBy], map: "idx_organizations_created_by")
+  @@map("organizations")
+}
+
+model TeamMember {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  userId         String           @map("user_id")
+  role           OrganizationRole @default(member)
+  joinedAt       DateTime         @default(now()) @map("joined_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId], map: "idx_org_members_organization")
+  @@index([userId], map: "idx_org_members_user")
+  @@index([role], map: "idx_org_members_role")
+  @@map("organization_members")
+}
+
+model OrganizationInvitation {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  inviterId      String?          @map("inviter_id")
+  email          String
+  role           OrganizationRole @default(member)
+  status         InvitationStatus @default(pending)
+  token          String?          @unique
+  expiresAt      DateTime?        @default(dbgenerated("(now() + '7 days'::interval)")) @map("expires_at") @db.Timestamptz(6)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  respondedAt    DateTime?        @map("responded_at") @db.Timestamptz(6)
+  inviter        Profile?         @relation("InviterInvitations", fields: [inviterId], references: [id])
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email, status])
+  @@index([organizationId], map: "idx_org_invitations_organization")
+  @@index([email], map: "idx_org_invitations_email")
+  @@index([token], map: "idx_org_invitations_token")
+  @@index([status], map: "idx_org_invitations_status")
+  @@map("organization_invitations")
+}
+
+model MembershipRequest {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  userId         String         @map("user_id")
+  message        String?
+  status         ApprovalStatus @default(pending)
+  resolvedAt     DateTime?      @map("resolved_at") @db.Timestamptz(6)
+  resolvedBy     String?        @map("resolved_by")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  resolver       Profile?       @relation("MembershipRequestResolver", fields: [resolvedBy], references: [id])
+  user           Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, status])
+  @@index([organizationId], map: "idx_membership_req_organization")
+  @@index([userId], map: "idx_membership_req_user")
+  @@index([status], map: "idx_membership_req_status")
+  @@map("membership_requests")
+}
+
+model OrganizationSocialLink {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  url            String
+  organizationId String       @map("organization_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId], map: "idx_organization_social_org")
+  @@map("organization_social_links")
+}

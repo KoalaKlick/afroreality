@@ -1,0 +1,81 @@
+model TicketType {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId        String       @map("event_id") @db.Uuid
+  name           String
+  description    String?
+  price          Decimal      @default(0) @db.Decimal(10, 2)
+  currency       String       @default("GHS")
+  quantityTotal  Int?         @map("quantity_total")
+  quantitySold   Int          @default(0) @map("quantity_sold")
+  salesStart     DateTime?    @map("sales_start") @db.Timestamptz(6)
+  salesEnd       DateTime?    @map("sales_end") @db.Timestamptz(6)
+  maxPerOrder    Int          @default(10) @map("max_per_order")
+  minPerOrder    Int          @default(1) @map("min_per_order")
+  status         TicketStatus @default(available)
+  orderIdx       Int          @default(0) @map("order_idx")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  color          String?      @default("")
+  primaryColor   String?      @default("") @map("primary_color")
+  secondaryColor String?      @default("") @map("secondary_color")
+  designVariant  String?      @default("classic") @map("design_variant")
+  event          Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets        Ticket[]
+
+  @@index([eventId], map: "idx_ticket_types_event")
+  @@index([status], map: "idx_ticket_types_status")
+  @@map("ticket_types")
+}
+
+model TicketOrder {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId        String      @map("event_id") @db.Uuid
+  orderNumber    String      @unique @map("order_number")
+  buyerName      String?     @map("buyer_name")
+  buyerPhone     String?     @map("buyer_phone")
+  subtotal       Decimal     @db.Decimal(10, 2)
+  discountAmount Decimal     @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  fees           Decimal     @default(0) @db.Decimal(10, 2)
+  status         OrderStatus @default(pending)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  paymentId      String?     @map("payment_id") @db.Uuid
+  buyerId        String?     @map("user_id")
+  event          Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payment        Payment?    @relation(fields: [paymentId], references: [id])
+  buyer          Profile?    @relation(fields: [buyerId], references: [id])
+  tickets        Ticket[]
+
+  @@index([eventId], map: "idx_ticket_orders_event")
+  @@index([buyerId], map: "idx_ticket_orders_buyer")
+  @@index([status], map: "idx_ticket_orders_status")
+  @@index([orderNumber], map: "idx_ticket_orders_number")
+  @@map("ticket_orders")
+}
+
+model Ticket {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId       String              @map("order_id") @db.Uuid
+  eventId       String              @map("event_id") @db.Uuid
+  ticketTypeId  String              @map("ticket_type_id") @db.Uuid
+  ticketCode    String              @unique @map("ticket_code")
+  attendeeName  String?             @map("attendee_name")
+  attendeeEmail String?             @map("attendee_email")
+  checkInStatus TicketCheckInStatus @default(not_checked_in) @map("check_in_status")
+  checkedInAt   DateTime?           @map("checked_in_at") @db.Timestamptz(6)
+  checkedInBy   String?             @map("checked_in_by") @db.Uuid
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  smsSent       Boolean             @default(false) @map("sms_sent")
+  whatsappSent  Boolean             @default(false) @map("whatsapp_sent")
+  event         Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  order         TicketOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketType    TicketType          @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], map: "idx_tickets_order")
+  @@index([eventId], map: "idx_tickets_event")
+  @@index([ticketTypeId], map: "idx_tickets_type")
+  @@index([ticketCode], map: "idx_tickets_code")
+  @@index([checkInStatus], map: "idx_tickets_check_in")
+  @@map("tickets")
+}

@@ -1,0 +1,78 @@
+model Promoter {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String         @unique @map("user_id")
+  referralCode      String         @unique @map("referral_code")
+  status            PromoterStatus @default(pending)
+  commissionRate    Decimal        @default(5.00) @map("commission_rate") @db.Decimal(5, 2)
+  tier              Int            @default(1)
+  bankName          String?        @map("bank_name")
+  bankAccountNumber String?        @map("bank_account_number")
+  bankAccountName   String?        @map("bank_account_name")
+  approvedAt        DateTime?      @map("approved_at") @db.Timestamptz(6)
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  commissions       Commission[]
+  referredUsers     Profile[]      @relation("ReferredUsers")
+  user              Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referrals         Referral[]
+
+  @@index([userId], map: "idx_promoters_user")
+  @@index([referralCode], map: "idx_promoters_code")
+  @@index([status], map: "idx_promoters_status")
+  @@map("promoters")
+}
+
+model Referral {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  promoterId       String         @map("promoter_id") @db.Uuid
+  referredUserId   String?        @map("referred_user_id")
+  referredEmail    String?        @map("referred_email")
+  referralCodeUsed String         @map("referral_code_used")
+  status           ReferralStatus @default(pending)
+  source           String?
+  campaign         String?
+  landingPage      String?        @map("landing_page")
+  ipAddress        String?        @map("ip_address") @db.Inet
+  userAgent        String?        @map("user_agent")
+  convertedAt      DateTime?      @map("converted_at") @db.Timestamptz(6)
+  firstPurchaseAt  DateTime?      @map("first_purchase_at") @db.Timestamptz(6)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  commissions      Commission[]
+  promoter         Promoter       @relation(fields: [promoterId], references: [id], onDelete: Cascade)
+  referredUser     Profile?       @relation("ReferredUser", fields: [referredUserId], references: [id])
+
+  @@index([promoterId], map: "idx_referrals_promoter")
+  @@index([referredUserId], map: "idx_referrals_user")
+  @@index([referralCodeUsed], map: "idx_referrals_code")
+  @@index([status], map: "idx_referrals_status")
+  @@map("referrals")
+}
+
+model Commission {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  promoterId       String           @map("promoter_id") @db.Uuid
+  referralId       String?          @map("referral_id") @db.Uuid
+  type             CommissionType
+  status           CommissionStatus @default(pending)
+  amount           Decimal          @db.Decimal(12, 2)
+  sourceType       String?          @map("source_type")
+  sourceId         String?          @map("source_id") @db.Uuid
+  baseAmount       Decimal?         @map("base_amount") @db.Decimal(12, 2)
+  commissionRate   Decimal?         @map("commission_rate") @db.Decimal(5, 2)
+  description      String?
+  processedAt      DateTime?        @map("processed_at") @db.Timestamptz(6)
+  paidAt           DateTime?        @map("paid_at") @db.Timestamptz(6)
+  paymentReference String?          @map("payment_reference")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  currency         CurrencyCode     @default(GHS)
+  promoter         Promoter         @relation(fields: [promoterId], references: [id], onDelete: Cascade)
+  referral         Referral?        @relation(fields: [referralId], references: [id])
+
+  @@index([promoterId], map: "idx_commissions_promoter")
+  @@index([referralId], map: "idx_commissions_referral")
+  @@index([status], map: "idx_commissions_status")
+  @@index([type], map: "idx_commissions_type")
+  @@map("commissions")
+}

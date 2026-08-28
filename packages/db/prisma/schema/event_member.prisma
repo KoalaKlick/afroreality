@@ -1,0 +1,37 @@
+model EventMember {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId    String            @map("event_id") @db.Uuid
+  name       String
+  email      String?
+  phone      String?
+  uniqueCode String            @unique @map("unique_code")
+  status     EventMemberStatus @default(invited)
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  responses  Json?
+  event      Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  votes      Vote[]
+
+  @@unique([eventId, email])
+  @@unique([eventId, phone])
+  @@index([eventId], map: "idx_event_members_event")
+  @@index([uniqueCode], map: "idx_event_members_code")
+  @@map("event_members")
+}
+
+model EventRegistrationField {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId     String   @map("event_id") @db.Uuid
+  label       String
+  type        String   @default("text")
+  placeholder String?
+  options     String[]
+  isRequired  Boolean  @default(false) @map("is_required")
+  orderIdx    Int      @default(0) @map("order_idx")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("event_registration_fields")
+}

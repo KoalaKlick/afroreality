@@ -1,0 +1,17 @@
+model UssdSession {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference   String            @unique
+  phoneNumber String            @map("phone_number")
+  eventId     String            @map("event_id") @db.Uuid
+  optionId    String?           @map("option_id") @db.Uuid
+  quantity    Int               @default(1)
+  amount      Decimal           @db.Decimal(12, 2)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  status      UssdSessionStatus @default(pending)
+
+  @@index([reference], map: "idx_ussd_sessions_reference")
+  @@index([phoneNumber], map: "idx_ussd_sessions_phone_number")
+  @@index([status], map: "idx_ussd_sessions_status")
+  @@map("ussd_sessions")
+}

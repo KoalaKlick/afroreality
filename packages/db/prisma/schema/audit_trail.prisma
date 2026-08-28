@@ -1,0 +1,23 @@
+model ActivityLog {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String?       @map("organization_id") @db.Uuid
+  userId         String?       @map("user_id")
+  action         String
+  entityType     String        @map("entity_type")
+  entityId       String?       @map("entity_id")
+  description    String
+  metadata       Json?
+  ipAddress      String?       @map("ip_address")
+  userAgent      String?       @map("user_agent")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           Profile?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId], map: "idx_activity_logs_org")
+  @@index([userId], map: "idx_activity_logs_user")
+  @@index([action], map: "idx_activity_logs_action")
+  @@index([entityType], map: "idx_activity_logs_entity")
+  @@index([createdAt], map: "idx_activity_logs_created_at")
+  @@map("activity_logs")
+}

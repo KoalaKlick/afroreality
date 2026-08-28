@@ -1,0 +1,40 @@
+model Profile {
+  id                      String                   @id
+  email                   String                   @unique
+  passwordHash            String?                  @map("password_hash")
+  username                String                   @unique
+  fullName                String                   @map("full_name")
+  avatarUrl               String?                  @map("avatar_url")
+  onboardingCompleted     Boolean                  @default(false) @map("onboarding_completed")
+  onboardingStep          Int                      @default(0) @map("onboarding_step")
+  referredBy              String?                  @map("referred_by") @db.Uuid
+  currentOrganizationId   String?                  @map("current_organization_id") @db.Uuid
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  phone                   String?                  @unique
+  whatsappOptIn           Boolean                  @default(false) @map("whatsapp_opt_in")
+  communicationCredits    Decimal                  @default(0) @map("communication_credits") @db.Decimal(10, 2)
+  isVerifiedPartner       Boolean                  @default(false) @map("is_verified_partner")
+  pricingPlan             PricingPlan              @default(essential) @map("pricing_plan")
+  createdEvents           Event[]                  @relation("CreatedEvents")
+  resolvedRequests        MembershipRequest[]      @relation("MembershipRequestResolver")
+  membershipRequests      MembershipRequest[]
+  organizationInvitations OrganizationInvitation[] @relation("InviterInvitations")
+  teamMemberships         TeamMember[]
+  createdOrganizations    Organization[]           @relation("CreatedOrganizations")
+  payments                Payment[]
+  approvedPayouts         Payout[]                 @relation("ApprovedPayouts")
+  referrer                Promoter?                @relation("ReferredUsers", fields: [referredBy], references: [id])
+  promoter                Promoter?
+  referrals               Referral[]               @relation("ReferredUser")
+  ticketOrders            TicketOrder[]
+  votes                   Vote[]
+  nominatedOptions        VotingOption[]           @relation("NominatedOptions")
+  wallets                 Wallet[]
+  activityLogs            ActivityLog[]
+
+  @@index([email], map: "idx_profiles_email")
+  @@index([username], map: "idx_profiles_username")
+  @@index([referredBy], map: "idx_profiles_referred_by")
+  @@map("profiles")
+}

@@ -1,0 +1,180 @@
+enum OrganizationRole {
+  owner
+  admin
+  member
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  declined
+  expired
+  cancelled
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  rejected
+  cancelled
+
+  @@map("approval_status")
+}
+
+enum EventType {
+  voting
+  ticketed
+  standard
+  hybrid
+}
+
+enum EventStatus {
+  draft
+  published
+  ongoing
+  ended
+  cancelled
+}
+
+enum TicketStatus {
+  available
+  sold_out
+  hidden
+  expired
+}
+
+enum OrderStatus {
+  pending
+  completed
+  cancelled
+  refunded
+}
+
+enum TicketCheckInStatus {
+  not_checked_in
+  checked_in
+}
+
+enum PromoterStatus {
+  pending
+  active
+  suspended
+  inactive
+}
+
+enum ReferralStatus {
+  pending
+  verified
+  converted
+  expired
+}
+
+enum CommissionStatus {
+  pending
+  approved
+  paid
+  rejected
+  cancelled
+}
+
+enum CommissionType {
+  signup
+  ticket_purchase
+  vote_purchase
+  subscription
+  bonus
+}
+
+enum CurrencyCode {
+  NGN
+  USD
+  GHS
+  KES
+  ZAR
+  GBP
+  EUR
+}
+
+enum PaymentProvider {
+  paystack
+  flutterwave
+  stripe
+  bank_transfer
+  wallet
+  cash
+  free
+}
+
+enum PaymentPurpose {
+  ticket_purchase
+  vote_purchase
+  nomination
+  wallet_topup
+}
+
+enum TransactionType {
+  credit
+  debit
+}
+
+enum TransactionCategory {
+  ticket_purchase
+  vote_purchase
+  subscription
+  refund
+  commission_payout
+  wallet_topup
+  wallet_withdrawal
+  transfer
+  fee
+  bonus
+  adjustment
+}
+
+enum FinancialStatus {
+  pending
+  processing
+  completed
+  failed
+  cancelled
+  reversed
+
+  @@map("financial_status")
+}
+
+enum AuthProvider {
+  google
+  facebook
+  microsoft
+}
+
+enum AuthVerificationPurpose {
+  email_verification
+  phone_verification
+  password_reset_verification
+}
+
+enum EventMemberStatus {
+  invited
+  attended
+  voted
+
+  @@map("event_member_status")
+}
+
+enum PricingPlan {
+  essential
+  pro
+  enterprise
+
+  @@map("pricing_plan")
+}
+
+enum UssdSessionStatus {
+  pending
+  completed
+  success
+  cancelled
+
+  @@map("ussd_session_status")
+}
