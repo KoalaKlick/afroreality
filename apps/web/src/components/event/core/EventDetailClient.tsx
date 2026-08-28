@@ -41,23 +41,30 @@ export function EventDetailClient({
 	const isStandard = event.type === "standard";
 	const showMembers = isStandard || event.votingMode === "internal";
 
+	const isVotingStarted =
+		(event.type === "voting" || event.type === "hybrid") &&
+		(String(event.status) === "live" ||
+			String(event.status) === "ongoing" ||
+			String(event.status) === "published" ||
+			(event.startDate ? new Date(event.startDate) <= new Date() : false));
+
 	return (
 		<div className="space-y-6 @container">
 			{/* Event Header with Banner, Flier, Inline Title Edit & Status */}
 			<EventDetailHeader
 				event={event}
-			onRefresh={() => void router.refresh()}
-			canEdit={canEdit}
-			activeTab={activeTab}
-			onTabChange={setActiveTab}
-			isTicketed={isTicketed}
-			isVoting={isVoting}
-			ticketCount={ticketTypes.length}
-			votingCount={votingCategories.length}
-			onAddTicket={() => setIsTicketSheetOpen(true)}
-			onAddCategory={() => setIsCategorySheetOpen(true)}
-			showMembers={showMembers}
-		/>
+				onRefresh={() => void router.refresh()}
+				canEdit={canEdit}
+				activeTab={activeTab}
+				onTabChange={setActiveTab}
+				isTicketed={isTicketed}
+				isVoting={isVoting}
+				ticketCount={ticketTypes.length}
+				votingCount={votingCategories.length}
+				onAddTicket={() => setIsTicketSheetOpen(true)}
+				onAddCategory={() => setIsCategorySheetOpen(true)}
+				showMembers={showMembers}
+			/>
 
 			{/* Tab Contents */}
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -100,7 +107,11 @@ export function EventDetailClient({
 
 				{showMembers && (
 					<TabsContent value="members" className="outline-none">
-						<MemberManager eventId={event.id} canEdit={canEdit} />
+						<MemberManager
+							eventId={event.id}
+							canEdit={canEdit}
+							isVotingStarted={isVotingStarted}
+						/>
 					</TabsContent>
 				)}
 

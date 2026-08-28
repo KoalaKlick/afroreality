@@ -170,9 +170,11 @@ export async function removeEventMember({
 		where: { eventId: member.eventId },
 	});
 
+	const statusStr = String(member.event.status);
 	const isVotingLive =
-		member.event.status === "live" ||
-		member.event.status === "ongoing" ||
+		statusStr === "live" ||
+		statusStr === "ongoing" ||
+		statusStr === "published" ||
 		(member.event.startDate && new Date(member.event.startDate) <= new Date());
 
 	if (votesCount > 0 || (isVotingLive && member.event.type === "voting")) {
@@ -216,9 +218,11 @@ export async function bulkRemoveEventMembers({
 		const votesCount = await prisma.vote.count({
 			where: { eventId: firstMember.eventId },
 		});
+		const statusStr = String(firstMember.event.status);
 		const isVotingLive =
-			firstMember.event.status === "live" ||
-			firstMember.event.status === "ongoing" ||
+			statusStr === "live" ||
+			statusStr === "ongoing" ||
+			statusStr === "published" ||
 			(firstMember.event.startDate &&
 				new Date(firstMember.event.startDate) <= new Date());
 

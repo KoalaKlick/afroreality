@@ -35,6 +35,7 @@ const statusBadgeStyles: Record<string, string> = {
 interface CategoryListProps {
 	readonly eventId: string;
 	readonly categories: CategoryItem[];
+	readonly votingMode?: string | null;
 	readonly onRefresh?: () => void;
 	readonly canEdit?: boolean;
 	readonly isSheetOpen?: boolean;
@@ -44,6 +45,7 @@ interface CategoryListProps {
 export function CategoryList({
 	eventId,
 	categories,
+	votingMode,
 	onRefresh,
 	canEdit = true,
 	isSheetOpen,
@@ -98,7 +100,6 @@ export function CategoryList({
 	}
 
 	function handleRejectOption(optionId: string) {
-		if (!confirm("Reject this nomination?")) return;
 		startTransition(async () => {
 			try {
 				await rejectNomination({ data: { optionId } });
@@ -139,51 +140,80 @@ export function CategoryList({
 	}
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-4">
+			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+				<div>
+					<h3 className="text-lg font-bold text-foreground">
+						Voting Categories &amp; Nominees
+					</h3>
+					<p className="text-xs text-muted-foreground">
+						{categories.length} {categories.length === 1 ? "category" : "categories"} configured
+						{votingMode === "internal" ? " · Internal membership voting" : " · General voting"}
+					</p>
+				</div>
+				{canEdit && (
+					<Button
+						onClick={() => {
+							setEditingCat(null);
+							onSheetOpenChange?.(true);
+						}}
+						size="sm"
+						className="gap-1.5 font-semibold text-xs"
+					>
+						<Plus className="size-3.5" />
+						Add Category
+					</Button>
+				)}
+			</div>
+
 			{categories.length === 0 ? (
-				<Card className="flex flex-col items-center space-y-0 justify-center text-center">
-					<NoCategoryIllustration className="w-56 h-auto opacity-90" />
-					<h3 className="text-lg font-semibold">No categories yet</h3>
-					<p className="text-sm text-muted-foreground max-w-sm">
-						Create categories and add nominees for audience voting.
+				<Card className="p-8 text-center border-dashed">
+					<NoCategoryIllustration className="w-48 h-auto mx-auto mb-4 opacity-80" />
+					<h4 className="font-semibold text-base">No voting categories yet</h4>
+					<p className="text-sm text-muted-foreground mt-1 mb-4 max-w-sm mx-auto">
+						Create categories for people to vote on. For example: "Best Artist",
+						"Member of the Year".
 					</p>
 					{canEdit && (
 						<Button
-							size="sm"
 							onClick={() => {
 								setEditingCat(null);
 								onSheetOpenChange?.(true);
 							}}
-							className=" gap-2"
+							className="gap-1.5"
 						>
 							<Plus className="size-4" />
-							Add Category
+							Create First Category
 						</Button>
 					)}
 				</Card>
 			) : (
-				<div className="space-y-6">
+				<div className="space-y-4">
 					{categories.map((cat) => (
 						<div
 							key={cat.id}
-							className="rounded-xl border bg-card overflow-hidden shadow-xs"
+							className="border rounded-xl bg-card overflow-hidden"
 						>
 							{/* Category Header */}
-							<div className="p-4 sm:p-5 bg-muted/20 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+							<div className="p-4 sm:p-5 border-b bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 								<div className="flex items-center gap-3">
-									{cat.templateImage ? (
+									{cat.templateImage && (
 										<img
 											src={getEventImageUrl(cat.templateImage) ?? ""}
-											alt={cat.name}
-											className="size-12 rounded-lg object-cover border shrink-0 bg-background"
+											alt=""
+											className="size-10 rounded-lg object-cover border shrink-0"
 										/>
-									) : null}
-									<div className="space-y-1">
+									)}
+									<div>
 										<div className="flex items-center gap-2">
-											<h4 className="font-bold text-lg">{cat.name}</h4>
-											<Badge variant="outline" className="text-xs">
-												{formatAmount(cat.votePrice ?? 1)} / vote
-											</Badge>
+											<h4 className="font-bold text-base">{cat.name}</h4>
+											{votingMode !== "internal" && (
+												<Badge variant="outline" className="text-[10px]">
+													{cat.votePrice && cat.votePrice > 0
+														? `GHS ${formatAmount(cat.votePrice)} / vote`
+														: "Free Voting"}
+												</Badge>
+											)}
 										</div>
 										{cat.description && (
 											<RichTextDisplay
@@ -367,6 +397,7 @@ export function CategoryList({
 				open={isSheetOpen ?? false}
 				onOpenChange={onSheetOpenChange ?? (() => {})}
 				editingCategory={editingCat}
+				votingMode={votingMode}
 				onSaved={() => {
 					onRefresh?.();
 				}}

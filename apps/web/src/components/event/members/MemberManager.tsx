@@ -43,7 +43,6 @@ import { StatusBadge } from "@/components/common/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { AddMemberDialog } from "./AddMemberDialog";
 import { MarkAttendanceDialog } from "./MarkAttendanceDialog";
-import { RegistrationFieldManager } from "./RegistrationFieldManager";
 
 export interface EventMember {
 	id: string;
@@ -560,15 +559,26 @@ export function MemberManager({
 						</div>
 					)}
 
-					<DataTable
-						table={table}
-						columns={columns}
-						searchKey="name"
-						searchPlaceholder="Search members by name..."
-						onSearch={(q) => setSearchQuery(q)}
-					/>
+					<div className="rounded-md border bg-card mb-4">
+						<DataTable
+							table={table}
+							columnsCount={columns.length}
+							emptyState={
+								<EmptyState
+									variant="users"
+									title="No members yet"
+									description="Add members to this event to track attendance and participation."
+								/>
+							}
+						/>
+					</div>
 
-					{total > 0 && <DataTablePagination table={table} totalCount={total} />}
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-muted-foreground">
+							{table.getPaginationRowModel().rows.length} of {total} member(s)
+						</p>
+						<DataTablePagination table={table} />
+					</div>
 				</CardContent>
 			</Card>
 
@@ -576,8 +586,8 @@ export function MemberManager({
 			<AddMemberDialog
 				open={isAddDialogOpen}
 				onOpenChange={setIsAddDialogOpen}
-				onAddSingle={handleAddMember}
-				onAddBulk={handleBulkAdd}
+				onAdd={handleAddMember}
+				onBulkAdd={handleBulkAdd}
 			/>
 
 			<MarkAttendanceDialog
@@ -589,9 +599,9 @@ export function MemberManager({
 			<ConfirmDialog
 				open={!!memberToDelete}
 				onOpenChange={(open) => !open && setMemberToDelete(null)}
-				title="Remove Member"
+				title="Remove Member?"
 				description={`Are you sure you want to remove ${memberToDelete?.name}? This action cannot be undone.`}
-				confirmLabel="Remove"
+				confirmText="Remove"
 				variant="destructive"
 				onConfirm={() => {
 					if (memberToDelete) {
@@ -604,9 +614,9 @@ export function MemberManager({
 			<ConfirmDialog
 				open={isBulkDeleteConfirmOpen}
 				onOpenChange={setIsBulkDeleteConfirmOpen}
-				title="Delete Selected Members"
-				description={`Are you sure you want to remove ${selectedCount} selected members?`}
-				confirmLabel="Delete"
+				title={`Remove ${selectedCount} participant(s)?`}
+				description="This will revoke access codes and delete all registration data for all selected participants. This action cannot be undone."
+				confirmText="Delete"
 				variant="destructive"
 				onConfirm={handleBulkRemove}
 			/>
@@ -614,9 +624,10 @@ export function MemberManager({
 			<ConfirmDialog
 				open={isBulkMarkConfirmOpen}
 				onOpenChange={setIsBulkMarkConfirmOpen}
-				title="Mark Attendance"
-				description={`Mark attendance for ${selectedCount} selected members?`}
-				confirmLabel="Confirm"
+				title={`Mark ${selectedCount} participant(s) as attended?`}
+				description="This will update the status of all selected participants to attended."
+				confirmText="Mark Attended"
+				variant="primary"
 				onConfirm={handleBulkAttendance}
 			/>
 
@@ -625,7 +636,7 @@ export function MemberManager({
 				onOpenChange={setIsSendCodesConfirmOpen}
 				title="Send Voting Keys via Email"
 				description="This will send an official email with the organization banner and confidential voting key to all registered members with email addresses. Continue?"
-				confirmLabel="Send Keys"
+				confirmText="Send Keys"
 				onConfirm={handleSendBulkCodes}
 			/>
 		</div>
