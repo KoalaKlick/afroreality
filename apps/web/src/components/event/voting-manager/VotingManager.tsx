@@ -28,6 +28,7 @@ export function VotingManager({
 			<CategoryList
 				eventId={event.id}
 				categories={categories}
+				votingMode={event.votingMode}
 				onRefresh={onRefresh}
 				canEdit={canEdit}
 				isSheetOpen={isSheetOpen}

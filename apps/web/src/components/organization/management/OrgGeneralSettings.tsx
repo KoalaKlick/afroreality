@@ -1,17 +1,15 @@
 "use client";
 // src/components/organization/management/OrgGeneralSettings.tsx
 
-
 import { Loader2, Settings } from "lucide-react";
-import { useState, useTransition, useMemo, useEffect } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { usePermissions } from "@/hooks/use-permissions";
-import {
-	UnsavedChangesGuard,
-} from "@/hooks/use-unsaved-changes-guard";
+import { UnsavedChangesGuard } from "@/hooks/use-unsaved-changes-guard";
 import { updateOrganizationSettings } from "@/lib/server-functions/organization";
 import { getErrorMessage } from "@/lib/utils";
 
@@ -45,23 +43,44 @@ interface OrgGeneralSettingsProps {
 	readonly organization: OrgManageOrganization;
 }
 
+function normalizeHtml(html: string | null | undefined): string {
+	if (!html) return "";
+	const trimmed = html.trim();
+	if (
+		trimmed === "<p></p>" ||
+		trimmed === "<p><br></p>" ||
+		trimmed === "<p><br/></p>" ||
+		trimmed === "<p></br></p>"
+	) {
+		return "";
+	}
+	return trimmed;
+}
+
+function normalizeArray(
+	arr: (string | null | undefined)[] | undefined,
+): string[] {
+	if (!arr) return [];
+	return arr.map((s) => (s || "").trim()).filter(Boolean);
+}
+
 export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 	const router = useRouter();
 	const { canManageSettings } = usePermissions();
 	const [isPending, startTransition] = useTransition();
 
 	const [lastSaved, setLastSaved] = useState(() => ({
-		name: organization.name,
-		description: organization.description ?? "",
+		name: organization.name ?? "",
+		description: normalizeHtml(organization.description),
 		logoUrl: organization.logoUrl ?? "",
 		bannerUrl: organization.bannerUrl ?? "",
-		primaryColor: organization.primaryColor,
-		secondaryColor: organization.secondaryColor,
+		primaryColor: organization.primaryColor ?? "#10b981",
+		secondaryColor: organization.secondaryColor ?? "#047857",
 		tertiaryColor: organization.tertiaryColor ?? "#dc2626",
 		websiteUrl: organization.websiteUrl ?? "",
 		contactEmail: organization.contactEmail ?? "",
 		phone: organization.phone ?? "",
-		socialLinks: organization.socialLinks?.map((l) => l.url) ?? [],
+		socialLinks: normalizeArray(organization.socialLinks?.map((l) => l.url)),
 	}));
 
 	const logoUpload: UseImageUploadResult = useImageUpload({
@@ -78,7 +97,9 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 	const [bannerUrl, setBannerUrl] = useState(lastSaved.bannerUrl);
 
 	const [primaryColor, setPrimaryColor] = useState(lastSaved.primaryColor);
-	const [secondaryColor, setSecondaryColor] = useState(lastSaved.secondaryColor);
+	const [secondaryColor, setSecondaryColor] = useState(
+		lastSaved.secondaryColor,
+	);
 	const [tertiaryColor, setTertiaryColor] = useState(lastSaved.tertiaryColor);
 
 	const [websiteUrl, setWebsiteUrl] = useState(lastSaved.websiteUrl);
@@ -92,17 +113,17 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 	// Sync state when organization prop updates or changes
 	useEffect(() => {
 		const newSaved = {
-			name: organization.name,
-			description: organization.description ?? "",
+			name: organization.name ?? "",
+			description: normalizeHtml(organization.description),
 			logoUrl: organization.logoUrl ?? "",
 			bannerUrl: organization.bannerUrl ?? "",
-			primaryColor: organization.primaryColor,
-			secondaryColor: organization.secondaryColor,
+			primaryColor: organization.primaryColor ?? "#10b981",
+			secondaryColor: organization.secondaryColor ?? "#047857",
 			tertiaryColor: organization.tertiaryColor ?? "#dc2626",
 			websiteUrl: organization.websiteUrl ?? "",
 			contactEmail: organization.contactEmail ?? "",
 			phone: organization.phone ?? "",
-			socialLinks: organization.socialLinks?.map((l) => l.url) ?? [],
+			socialLinks: normalizeArray(organization.socialLinks?.map((l) => l.url)),
 		};
 		setLastSaved(newSaved);
 		setName(newSaved.name);
@@ -118,35 +139,61 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 		setSocialLinks(newSaved.socialLinks);
 	}, [organization]);
 
-	const isDirty = useMemo(
-		() =>
-			name !== lastSaved.name ||
-			description !== lastSaved.description ||
-			logoUrl !== lastSaved.logoUrl ||
-			bannerUrl !== lastSaved.bannerUrl ||
-			primaryColor !== lastSaved.primaryColor ||
-			secondaryColor !== lastSaved.secondaryColor ||
-			tertiaryColor !== lastSaved.tertiaryColor ||
-			websiteUrl !== lastSaved.websiteUrl ||
-			contactEmail !== lastSaved.contactEmail ||
-			phone !== lastSaved.phone ||
-			JSON.stringify(socialLinks) !==
-				JSON.stringify(lastSaved.socialLinks),
-		[
-			name,
-			description,
-			logoUrl,
-			bannerUrl,
-			primaryColor,
-			secondaryColor,
-			tertiaryColor,
-			websiteUrl,
-			contactEmail,
-			phone,
-			socialLinks,
-			lastSaved,
-		],
-	);
+	const isDirty = useMemo(() => {
+		const nameChanged = (name || "").trim() !== (lastSaved.name || "").trim();
+		const descChanged =
+			normalizeHtml(description) !== normalizeHtml(lastSaved.description);
+		const logoChanged =
+			(logoUrl || "").trim() !== (lastSaved.logoUrl || "").trim();
+		const bannerChanged =
+			(bannerUrl || "").trim() !== (lastSaved.bannerUrl || "").trim();
+		const primaryChanged =
+			(primaryColor || "").toLowerCase() !==
+			(lastSaved.primaryColor || "").toLowerCase();
+		const secondaryChanged =
+			(secondaryColor || "").toLowerCase() !==
+			(lastSaved.secondaryColor || "").toLowerCase();
+		const tertiaryChanged =
+			(tertiaryColor || "").toLowerCase() !==
+			(lastSaved.tertiaryColor || "").toLowerCase();
+		const websiteChanged =
+			(websiteUrl || "").trim() !== (lastSaved.websiteUrl || "").trim();
+		const emailChanged =
+			(contactEmail || "").trim().toLowerCase() !==
+			(lastSaved.contactEmail || "").trim().toLowerCase();
+		const phoneChanged =
+			(phone || "").trim() !== (lastSaved.phone || "").trim();
+		const socialLinksChanged =
+			JSON.stringify(normalizeArray(socialLinks)) !==
+			JSON.stringify(normalizeArray(lastSaved.socialLinks));
+
+		return (
+			nameChanged ||
+			descChanged ||
+			logoChanged ||
+			bannerChanged ||
+			primaryChanged ||
+			secondaryChanged ||
+			tertiaryChanged ||
+			websiteChanged ||
+			emailChanged ||
+			phoneChanged ||
+			socialLinksChanged
+		);
+	}, [
+		name,
+		description,
+		logoUrl,
+		bannerUrl,
+		primaryColor,
+		secondaryColor,
+		tertiaryColor,
+		websiteUrl,
+		contactEmail,
+		phone,
+		socialLinks,
+		lastSaved,
+	]);
 
 	function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -164,7 +211,9 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 		const validSocialLinks = socialLinks.filter((l) => l.trim() !== "");
 		for (const link of validSocialLinks) {
 			if (!/^https?:\/\/.+/.test(link)) {
-				toast.error(`Invalid social URL: ${link}`);
+				toast.error(
+					`Invalid social link: "${link}". Must start with http:// or https://`,
+				);
 				return;
 			}
 		}
@@ -174,37 +223,38 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 				await updateOrganizationSettings({
 					data: {
 						id: organization.id,
-						name,
-						slug: organization.slug,
-						description: description || undefined,
-						logoUrl: logoUrl || undefined,
-						bannerUrl: bannerUrl || undefined,
+						name: name.trim(),
+						description: description ? description.trim() : null,
+						logoUrl: logoUrl || null,
+						bannerUrl: bannerUrl || null,
 						primaryColor,
 						secondaryColor,
 						tertiaryColor,
-						websiteUrl: websiteUrl || undefined,
-						contactEmail: contactEmail || undefined,
-						phone: phone || undefined,
+						websiteUrl: websiteUrl ? websiteUrl.trim() : null,
+						contactEmail: contactEmail ? contactEmail.trim() : null,
+						phone: phone ? phone.trim() : null,
 						socialLinks: validSocialLinks,
 					},
 				});
-				toast.success("Organization settings updated!");
+
 				setLastSaved({
-					name,
-					description,
-					logoUrl,
-					bannerUrl,
+					name: name.trim(),
+					description: normalizeHtml(description),
+					logoUrl: logoUrl || "",
+					bannerUrl: bannerUrl || "",
 					primaryColor,
 					secondaryColor,
 					tertiaryColor,
-					websiteUrl,
-					contactEmail,
-					phone,
+					websiteUrl: websiteUrl ? websiteUrl.trim() : "",
+					contactEmail: contactEmail ? contactEmail.trim() : "",
+					phone: phone ? phone.trim() : "",
 					socialLinks: validSocialLinks,
 				});
+
+				toast.success("Organization settings updated!");
 				await router.refresh();
-			} catch (err) {
-				toast.error(getErrorMessage(err));
+			} catch (error) {
+				toast.error(getErrorMessage(error));
 			}
 		});
 	}
@@ -212,86 +262,67 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 	return (
 		<>
 			<UnsavedChangesGuard
-				isDirty={isDirty && canManageSettings}
+				isDirty={isDirty}
 				isSaving={isPending}
-				cancelGotoId="save-all-changes"
+				cancelGotoId="save-org-settings-btn"
 			/>
-			{!canManageSettings && (
-				<div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300">
-					<p className="font-semibold">View-Only Access</p>
-					<p className="mt-0.5 text-xs text-muted-foreground">
-						You are viewing these organization settings as a team member. Only organization owners and admins can make changes.
-					</p>
-				</div>
-			)}
+
 			<form onSubmit={handleSubmit} className="space-y-6">
-			<fieldset disabled={!canManageSettings} className="space-y-6">
-			<OrgBrandIdentity
-				name={name}
-				setName={setName}
-				slug={organization.slug}
-				description={description}
-				setDescription={setDescription}
-				logoUrl={logoUrl}
-				setLogoUrl={setLogoUrl}
-				bannerUrl={bannerUrl}
-				setBannerUrl={setBannerUrl}
-				logoUpload={logoUpload}
-				bannerUpload={bannerUpload}
-				disabled={!canManageSettings}
-			/>
+				<OrgBrandIdentity
+					name={name}
+					setName={setName}
+					slug={organization.slug}
+					description={description}
+					setDescription={setDescription}
+					logoUrl={logoUrl}
+					setLogoUrl={setLogoUrl}
+					bannerUrl={bannerUrl}
+					setBannerUrl={setBannerUrl}
+					logoUpload={logoUpload}
+					bannerUpload={bannerUpload}
+					disabled={!canManageSettings}
+				/>
 
-			<OrgThemeColors
-				primaryColor={primaryColor}
-				setPrimaryColor={setPrimaryColor}
-				secondaryColor={secondaryColor}
-				setSecondaryColor={setSecondaryColor}
-				tertiaryColor={tertiaryColor}
-				setTertiaryColor={setTertiaryColor}
-				logoUrl={logoUrl}
-				orgName={name}
-			/>
+				<OrgThemeColors
+					primaryColor={primaryColor}
+					setPrimaryColor={setPrimaryColor}
+					secondaryColor={secondaryColor}
+					setSecondaryColor={setSecondaryColor}
+					tertiaryColor={tertiaryColor}
+					setTertiaryColor={setTertiaryColor}
+					logoUrl={logoUrl}
+					orgName={name}
+				/>
 
-			<OrgContactSocials
-				websiteUrl={websiteUrl}
-				setWebsiteUrl={setWebsiteUrl}
-				contactEmail={contactEmail}
-				setContactEmail={setContactEmail}
-				phone={phone}
-				setPhone={setPhone}
-				socialLinks={socialLinks}
-				setSocialLinks={setSocialLinks}
-			/>
-			</fieldset>
+				<OrgContactSocials
+					websiteUrl={websiteUrl}
+					setWebsiteUrl={setWebsiteUrl}
+					contactEmail={contactEmail}
+					setContactEmail={setContactEmail}
+					phone={phone}
+					setPhone={setPhone}
+					socialLinks={socialLinks}
+					setSocialLinks={setSocialLinks}
+				/>
 
-			{canManageSettings && (
-				<>
-					<Separator />
-					<div className="flex justify-end">
-						<button
-							id="save-all-changes"
+				{canManageSettings && (
+					<div className="flex justify-end pt-4">
+						<Button
+							id="save-org-settings-btn"
 							type="submit"
-							disabled={
-								isPending || logoUpload.isUploading || bannerUpload.isUploading
-							}
-							className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none"
+							disabled={isPending || !isDirty}
+							className="gap-2"
 						>
 							{isPending ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Saving...
-								</>
+								<Loader2 className="size-4 animate-spin" />
 							) : (
-								<>
-									<Settings className="mr-2 h-4 w-4" />
-									Save All Changes
-								</>
+								<Settings className="size-4" />
 							)}
-						</button>
+							Save Changes
+						</Button>
 					</div>
-				</>
-			)}
-		</form>
+				)}
+			</form>
 		</>
 	);
 }

@@ -4,7 +4,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Building2, Check, ChevronDown, ChevronUp, Loader2, Mail, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Loader2, Mail, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Sheet,
@@ -120,6 +120,12 @@ export function InvitationsDrawer({
 							const isExpanded = expandedId === inv.id;
 							const logoUrl = getOrgImageUrl(inv.organization.logoUrl);
 							const isActionPending = isPending && activeId === inv.id;
+							const initials = inv.organization.name
+								.split(" ")
+								.map((w) => w[0])
+								.join("")
+								.slice(0, 2)
+								.toUpperCase();
 
 							return (
 								<div
@@ -140,7 +146,9 @@ export function InvitationsDrawer({
 													className="size-full object-cover rounded-xl"
 												/>
 											) : (
-												<Building2 className="size-5 text-primary" />
+												<span className="text-xs font-bold text-primary">
+													{initials}
+												</span>
 											)}
 										</div>
 										<div className="flex-1 min-w-0">

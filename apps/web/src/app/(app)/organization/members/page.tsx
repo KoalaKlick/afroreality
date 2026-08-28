@@ -25,6 +25,12 @@ export default async function OrgMembersPage({
     notFound();
   }
 
+  const userMembership = organization.team?.find((m: any) => m.userId === session.userId);
+  const isOwnerOrAdmin =
+    organization.createdBy === session.userId ||
+    userMembership?.role === 'owner' ||
+    userMembership?.role === 'admin';
+
   return (
     <OrgMembersClient
       organizationId={organization.id}
@@ -32,9 +38,10 @@ export default async function OrgMembersPage({
       allowJoinRequests={organization.allowJoinRequests ?? false}
       totalMembers={organization.team?.length || 0}
       currentUserId={session.userId}
+      canManageMembers={isOwnerOrAdmin}
       members={organization.team || []}
       invitations={organization.invitations || []}
-      joinRequests={organization.membershipRequests || []}
+      joinRequests={organization.requests || organization.membershipRequests || []}
     />
   );
 }

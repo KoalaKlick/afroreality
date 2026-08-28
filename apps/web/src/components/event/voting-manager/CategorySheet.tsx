@@ -15,7 +15,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, ImageIcon } from "lucide-react";
+import { Loader2, X, ImageIcon, Info, Lock } from "lucide-react";
 import { toast } from "sonner";
 import {
 	createVotingCategory,
@@ -24,12 +24,6 @@ import {
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { getErrorMessage } from "@/lib/utils";
-import {
-	DEFAULT_NOMINATION_PRICE,
-	DEFAULT_VOTE_PRICE,
-	MIN_NOMINATION_PRICE,
-	MIN_VOTE_PRICE,
-} from "@/lib/constants/pricing";
 
 export interface CategoryItem {
 	id: string;
@@ -62,6 +56,7 @@ interface CategorySheetProps {
 	readonly open: boolean;
 	readonly onOpenChange: (open: boolean) => void;
 	readonly editingCategory: CategoryItem | null;
+	readonly votingMode?: string | null;
 	readonly onSaved?: () => void;
 }
 
@@ -70,8 +65,10 @@ export function CategorySheet({
 	open,
 	onOpenChange,
 	editingCategory,
+	votingMode = "general",
 	onSaved,
 }: CategorySheetProps) {
+	const isInternal = votingMode === "internal";
 	const [isPending, startTransition] = useTransition();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,10 +86,10 @@ export function CategorySheet({
 		name: "",
 		description: "",
 		templateImage: "" as string | null,
-		votePrice: DEFAULT_VOTE_PRICE,
-		nominationPrice: DEFAULT_NOMINATION_PRICE,
-		maxVotesPerUser: 10,
-		allowMultiple: true,
+		votePrice: isInternal ? 0 : 0, // General can be free (0) or paid
+		nominationPrice: 0,
+		maxVotesPerUser: isInternal ? 1 : 10,
+		allowMultiple: isInternal ? false : true,
 		allowPublicNomination: false,
 		requireApproval: true,
 		showTotalVotesPublicly: true,
@@ -116,11 +113,14 @@ export function CategorySheet({
 				name: editingCategory.name,
 				description: editingCategory.description ?? "",
 				templateImage: editingCategory.templateImage ?? null,
-				votePrice: editingCategory.votePrice ?? DEFAULT_VOTE_PRICE,
-				nominationPrice:
-					editingCategory.nominationPrice ?? DEFAULT_NOMINATION_PRICE,
-				maxVotesPerUser: 10,
-				allowMultiple: editingCategory.allowMultiple ?? true,
+				votePrice: isInternal ? 0 : Number(editingCategory.votePrice ?? 0),
+				nominationPrice: isInternal
+					? 0
+					: Number(editingCategory.nominationPrice ?? 0),
+				maxVotesPerUser: isInternal ? 1 : 10,
+				allowMultiple: isInternal
+					? false
+					: (editingCategory.allowMultiple ?? true),
 				allowPublicNomination: editingCategory.allowPublicNomination ?? false,
 				requireApproval: editingCategory.requireApproval ?? true,
 				showTotalVotesPublicly:
@@ -133,10 +133,10 @@ export function CategorySheet({
 				name: "",
 				description: "",
 				templateImage: null,
-				votePrice: DEFAULT_VOTE_PRICE,
-				nominationPrice: DEFAULT_NOMINATION_PRICE,
-				maxVotesPerUser: 10,
-				allowMultiple: true,
+				votePrice: 0,
+				nominationPrice: 0,
+				maxVotesPerUser: isInternal ? 1 : 10,
+				allowMultiple: !isInternal,
 				allowPublicNomination: false,
 				requireApproval: true,
 				showTotalVotesPublicly: true,
@@ -144,7 +144,7 @@ export function CategorySheet({
 				nominationDeadline: "",
 			});
 		}
-	}, [editingCategory, open]);
+	}, [editingCategory, open, isInternal]);
 
 	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -163,17 +163,8 @@ export function CategorySheet({
 			return;
 		}
 
-		const votePriceNum = Number(formData.votePrice);
-		if (Number.isNaN(votePriceNum) || votePriceNum < 0) {
-			toast.error("Vote price cannot be negative");
-			return;
-		}
-
-		const nomPriceNum = Number(formData.nominationPrice);
-		if (Number.isNaN(nomPriceNum) || nomPriceNum < 0) {
-			toast.error("Nomination fee cannot be negative");
-			return;
-		}
+		const votePriceNum = isInternal ? 0 : Math.max(0, Number(formData.votePrice) || 0);
+		const nomPriceNum = isInternal ? 0 : Math.max(0, Number(formData.nominationPrice) || 0);
 
 		startTransition(async () => {
 			try {
@@ -184,9 +175,9 @@ export function CategorySheet({
 							name: formData.name,
 							description: formData.description || undefined,
 							templateImage: formData.templateImage || null,
-							votePrice: Number(formData.votePrice) || 1,
-							nominationPrice: Number(formData.nominationPrice) || 0,
-							allowMultiple: formData.allowMultiple,
+							votePrice: votePriceNum,
+							nominationPrice: nomPriceNum,
+							allowMultiple: isInternal ? false : formData.allowMultiple,
 							allowPublicNomination: formData.allowPublicNomination,
 							requireApproval: formData.requireApproval,
 							showTotalVotesPublicly: formData.showTotalVotesPublicly,
@@ -202,9 +193,9 @@ export function CategorySheet({
 							name: formData.name,
 							description: formData.description || undefined,
 							templateImage: formData.templateImage || undefined,
-							votePrice: Number(formData.votePrice) || 1,
-							nominationPrice: Number(formData.nominationPrice) || 0,
-							allowMultiple: formData.allowMultiple,
+							votePrice: votePriceNum,
+							nominationPrice: nomPriceNum,
+							allowMultiple: isInternal ? false : formData.allowMultiple,
 							allowPublicNomination: formData.allowPublicNomination,
 							requireApproval: formData.requireApproval,
 							showTotalVotesPublicly: formData.showTotalVotesPublicly,
@@ -235,19 +226,35 @@ export function CategorySheet({
 						{editingCategory ? "Edit Voting Category" : "Add Voting Category"}
 					</SheetTitle>
 					<SheetDescription>
-						Configure category rules, nominee poster template, and pricing.
+						{isInternal
+							? "Configure category rules for internal membership voting."
+							: "Configure category rules, nominee poster template, and pricing."}
 					</SheetDescription>
 				</SheetHeader>
 
-				<form onSubmit={handleSubmit} className="space-y-4 py-4 flex-1 flex flex-col">
+				<form
+					onSubmit={handleSubmit}
+					className="space-y-4 py-4 flex-1 flex flex-col"
+				>
 					<Tabs defaultValue="basic" className="w-full flex-1">
-						<TabsList variant="afro" className="grid w-full grid-cols-3 mb-4">
-							<TabsTrigger variant="afro" value="basic">Basic Info</TabsTrigger>
-							<TabsTrigger variant="afro" value="nominations">Nominations</TabsTrigger>
-							<TabsTrigger variant="afro" value="pricing">Pricing</TabsTrigger>
+						<TabsList
+							variant="afro"
+							className={`grid w-full mb-4 ${isInternal ? "grid-cols-2" : "grid-cols-3"}`}
+						>
+							<TabsTrigger variant="afro" value="basic">
+								Basic Info
+							</TabsTrigger>
+							<TabsTrigger variant="afro" value="nominations">
+								Nominations
+							</TabsTrigger>
+							{!isInternal && (
+								<TabsTrigger variant="afro" value="pricing">
+									Pricing
+								</TabsTrigger>
+							)}
 						</TabsList>
 
-						{/* ── 1. Basic Tab ── */}
+						{/* 1. Basic Tab */}
 						<TabsContent value="basic" className="space-y-4">
 							{/* Category Template Image Upload */}
 							<div className="space-y-2">
@@ -338,13 +345,9 @@ export function CategorySheet({
 								<RichTextEditor
 									value={formData.description}
 									onChange={(val) =>
-										setFormData((prev) => ({
-											...prev,
-											description: val,
-										}))
+										setFormData((prev) => ({ ...prev, description: val }))
 									}
-									placeholder="Criteria or rules for this category..."
-									minimal
+									placeholder="Provide extra context or criteria for this category..."
 								/>
 							</div>
 
@@ -367,7 +370,7 @@ export function CategorySheet({
 							</div>
 						</TabsContent>
 
-						{/* ── 2. Nominations Tab ── */}
+						{/* 2. Nominations Tab */}
 						<TabsContent value="nominations" className="space-y-4">
 							<div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
 								<div className="space-y-0.5">
@@ -426,92 +429,105 @@ export function CategorySheet({
 								</>
 							)}
 
-							<div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
-								<div className="space-y-0.5">
-									<Label>Multiple Nominee Selections</Label>
-									<p className="text-xs text-muted-foreground">
-										Allow voters to vote for multiple nominees in this category
-									</p>
-								</div>
-								<Switch
-									checked={formData.allowMultiple}
-									onCheckedChange={(checked) =>
-										setFormData((prev) => ({
-											...prev,
-											allowMultiple: checked,
-										}))
-									}
-								/>
-							</div>
-						</TabsContent>
-
-						{/* ── 3. Pricing Tab ── */}
-						<TabsContent value="pricing" className="space-y-4">
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-2">
-									<Label htmlFor="vote-price">Price Per Vote (GHS)</Label>
-									<Input
-										id="vote-price"
-										type="number"
-										min={MIN_VOTE_PRICE}
-										step="0.1"
-										value={formData.votePrice}
-										onChange={(e) =>
+							{!isInternal && (
+								<div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
+									<div className="space-y-0.5">
+										<Label>Multiple Nominee Selections</Label>
+										<p className="text-xs text-muted-foreground">
+											Allow voters to vote for multiple nominees in this category
+										</p>
+									</div>
+									<Switch
+										checked={formData.allowMultiple}
+										onCheckedChange={(checked) =>
 											setFormData((prev) => ({
 												...prev,
-												votePrice: parseFloat(e.target.value) || 0,
-											}))
-										}
-										required
-									/>
-									<p className="text-[10px] text-muted-foreground">
-										Cost charged per single vote cast (min GHS {MIN_VOTE_PRICE}).
-									</p>
-								</div>
-
-								<div className="space-y-2">
-									<Label htmlFor="nom-price">Nomination Fee (GHS)</Label>
-									<Input
-										id="nom-price"
-										type="number"
-										min={MIN_NOMINATION_PRICE}
-										step="0.1"
-										value={formData.nominationPrice}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												nominationPrice: parseFloat(e.target.value) || 0,
+												allowMultiple: checked,
 											}))
 										}
 									/>
-									<p className="text-[10px] text-muted-foreground">
-										Fee for public nomination submissions (min GHS {MIN_NOMINATION_PRICE}).
-									</p>
 								</div>
-							</div>
+							)}
+
+							{isInternal && (
+								<div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 flex items-center gap-2.5 text-xs text-primary">
+									<Lock className="size-4 shrink-0" />
+									<span>
+										<strong>Internal Voting Rules:</strong> Each member receives 1
+										vote per category with their confidential voting key.
+									</span>
+								</div>
+							)}
 						</TabsContent>
+
+						{/* 3. Pricing Tab (General Voting only) */}
+						{!isInternal && (
+							<TabsContent value="pricing" className="space-y-4">
+								<div className="p-3 rounded-xl border border-border/80 bg-muted/30 text-xs text-muted-foreground">
+									<p className="font-semibold text-foreground mb-0.5">
+										Flexible Voting Pricing
+									</p>
+									Set Price Per Vote to <strong>0 GHS</strong> to host completely
+									free public voting, or set an amount for paid fundraising votes.
+								</div>
+
+								<div className="grid grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="vote-price">Price Per Vote (GHS)</Label>
+										<Input
+											id="vote-price"
+											type="number"
+											min="0"
+											step="0.1"
+											value={formData.votePrice}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													votePrice: parseFloat(e.target.value) || 0,
+												}))
+											}
+										/>
+										<p className="text-[10px] text-muted-foreground">
+											Set to 0 for free voting, or enter cost per vote.
+										</p>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="nom-price">Nomination Fee (GHS)</Label>
+										<Input
+											id="nom-price"
+											type="number"
+											min="0"
+											step="0.1"
+											value={formData.nominationPrice}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													nominationPrice: parseFloat(e.target.value) || 0,
+												}))
+											}
+										/>
+										<p className="text-[10px] text-muted-foreground">
+											Fee for public nomination submissions (0 for free).
+										</p>
+									</div>
+								</div>
+							</TabsContent>
+						)}
 					</Tabs>
 
-					<SheetFooter className="pt-6 border-t mt-auto">
+					<SheetFooter className="pt-4 border-t mt-auto">
 						<Button
 							type="button"
 							variant="outline"
 							onClick={() => onOpenChange(false)}
-							disabled={isPending || isUploading}
+							disabled={isPending}
 						>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isPending || isUploading}>
-							{isPending ? (
-								<>
-									<Loader2 className="mr-2 size-4 animate-spin" />
-									Saving...
-								</>
-							) : editingCategory ? (
-								"Save Changes"
-							) : (
-								"Create Category"
-							)}
+							{isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
+							{editingCategory ? "Save Changes" : "Create Category"}
 						</Button>
 					</SheetFooter>
 				</form>

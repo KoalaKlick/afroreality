@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { prisma } from "@repo/db";
 import { getProfile } from "@/lib/server-functions/profile";
 import { getPendingInvitationsForEmail } from "@/lib/server-functions/organization-join";
 import { OnboardingClient } from "@/components/onboarding/OnboardingClient";
@@ -15,8 +16,15 @@ export default async function OnboardingPage() {
     redirect("/login?redirectTo=/onboarding");
   }
 
-  const profile = await getProfile().catch(() => null);
-  if (profile?.onboardingCompleted) {
+  const [profile, memberCount] = await Promise.all([
+    getProfile().catch(() => null),
+    prisma.teamMember.count({
+      where: { userId: session.userId },
+    }).catch(() => 0),
+  ]);
+
+  // If user already completed onboarding or belongs to an organization, go to dashboard
+  if (profile?.onboardingCompleted || memberCount > 0) {
     redirect("/dashboard");
   }
 

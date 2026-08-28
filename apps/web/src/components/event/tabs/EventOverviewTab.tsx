@@ -7,21 +7,27 @@ import {
 import { BarChart, type VotingChartCategory } from "../charts/voting/BarChart";
 import { TrendChart, type VoteTrendPoint } from "../charts/voting/TrendChart";
 import { PieChart } from "../charts/voting/PieChart";
-import { TypeBarChart, type TicketTypeSales } from "../charts/ticket/TypeBarChart";
-import { TrendChart as TicketTrendChard, type TicketTrendPoint } from "../charts/ticket/TrendChart";
+import {
+	TypeBarChart,
+	type TicketTypeSales,
+} from "../charts/ticket/TypeBarChart";
+import {
+	TrendChart as TicketTrendChard,
+	type TicketTrendPoint,
+} from "../charts/ticket/TrendChart";
 import { formatAmount } from "@/lib/utils";
 
 interface EventOverviewTabProps {
 	readonly event: any;
-	readonly eventStats: {
-		revenue: number;
-		ticketRevenue: number;
-		voteRevenue: number;
-		nominationRevenue: number;
-		ticketsSold: number;
+	readonly eventStats?: {
+		revenue?: number;
+		ticketRevenue?: number;
+		voteRevenue?: number;
+		nominationRevenue?: number;
+		ticketsSold?: number;
 		capacity?: number | null;
-		checkIns: number;
-		totalVotes: number;
+		checkIns?: number;
+		totalVotes?: number;
 		totalCategories?: number;
 		totalOrders?: number;
 	};
@@ -39,44 +45,55 @@ export function EventOverviewTab({
 	ticketTrend = [],
 	ticketTypeSales = [],
 }: EventOverviewTabProps) {
-  const sponsors = event.sponsors ?? [];
-  const socialLinks = event.socialLinks ?? [];
-  const galleryLinks = event.galleryLinks ?? [];
-  const eventType = event.type;
-  const votingMode = event.votingMode;
-  const isVotingType = eventType === "voting" || eventType === "hybrid";
+	const stats = {
+		revenue: eventStats?.revenue ?? 0,
+		ticketRevenue: eventStats?.ticketRevenue ?? 0,
+		voteRevenue: eventStats?.voteRevenue ?? 0,
+		nominationRevenue: eventStats?.nominationRevenue ?? 0,
+		ticketsSold: eventStats?.ticketsSold ?? 0,
+		capacity: eventStats?.capacity ?? null,
+		checkIns: eventStats?.checkIns ?? 0,
+		totalVotes: eventStats?.totalVotes ?? 0,
+		totalCategories: eventStats?.totalCategories ?? votingCategories.length,
+		totalOrders: eventStats?.totalOrders ?? 0,
+	};
 
-  return (
-    <div className="space-y-6 @container">
+	const sponsors = event.sponsors ?? [];
+	const socialLinks = event.socialLinks ?? [];
+	const galleryLinks = event.galleryLinks ?? [];
+	const eventType = event.type;
+	const votingMode = event.votingMode;
+	const isVotingType = eventType === "voting" || eventType === "hybrid";
+
+	return (
+		<div className="space-y-6 @container">
 			{/* Event Overview Stats */}
 			<StatsGrid columns={4}>
 				<StatCard
 					label="Gross Revenue"
-					value={formatAmount(eventStats.revenue)}
+					value={formatAmount(stats.revenue)}
 					iconSrc={statIcons.cedi}
 					description={
 						[
-							eventStats.ticketRevenue > 0 &&
-								`Tickets ${formatAmount(eventStats.ticketRevenue)}`,
-							eventStats.voteRevenue > 0 &&
-								`Votes ${formatAmount(eventStats.voteRevenue)}`,
-							eventStats.nominationRevenue > 0 &&
-								`Nominations ${formatAmount(eventStats.nominationRevenue)}`,
+							stats.ticketRevenue > 0 &&
+								`Tickets ${formatAmount(stats.ticketRevenue)}`,
+							stats.voteRevenue > 0 &&
+								`Votes ${formatAmount(stats.voteRevenue)}`,
+							stats.nominationRevenue > 0 &&
+								`Nominations ${formatAmount(stats.nominationRevenue)}`,
 						]
 							.filter(Boolean)
-							.join(" · ") || "Revenue to date"
+							.join(" • ") || "Revenue to date"
 					}
 				/>
 
 				{(eventType === "ticketed" || eventType === "hybrid") && (
 					<StatCard
 						label="Tickets Sold"
-						value={eventStats.ticketsSold}
+						value={stats.ticketsSold}
 						iconSrc={statIcons.ticket}
 						description={
-							eventStats.capacity
-								? `/ ${eventStats.capacity} capacity`
-								: undefined
+							stats.capacity ? `/ ${stats.capacity} capacity` : undefined
 						}
 					/>
 				)}
@@ -84,7 +101,7 @@ export function EventOverviewTab({
 				{(eventType === "voting" || eventType === "hybrid") && (
 					<StatCard
 						label="Total Votes"
-						value={eventStats.totalVotes}
+						value={stats.totalVotes}
 						iconSrc={statIcons.vote}
 					/>
 				)}
@@ -92,11 +109,11 @@ export function EventOverviewTab({
 				{(eventType === "ticketed" || eventType === "hybrid") && (
 					<StatCard
 						label="Check-ins"
-						value={eventStats.checkIns}
+						value={stats.checkIns}
 						iconSrc={statIcons.user}
 						description={
-							eventStats.ticketsSold > 0
-								? `${Math.round((eventStats.checkIns / eventStats.ticketsSold) * 100)}% of sold`
+							stats.ticketsSold > 0
+								? `${Math.round((stats.checkIns / stats.ticketsSold) * 100)}% of sold`
 								: undefined
 						}
 					/>
@@ -105,7 +122,7 @@ export function EventOverviewTab({
 				{eventType === "voting" && (
 					<StatCard
 						label="Categories"
-						value={eventStats.totalCategories || votingCategories.length}
+						value={stats.totalCategories}
 						iconSrc={statIcons.analytics}
 					/>
 				)}
@@ -113,7 +130,7 @@ export function EventOverviewTab({
 				{eventType === "ticketed" && (
 					<StatCard
 						label="Orders"
-						value={eventStats.totalOrders || 0}
+						value={stats.totalOrders}
 						iconSrc={statIcons.analytics}
 					/>
 				)}

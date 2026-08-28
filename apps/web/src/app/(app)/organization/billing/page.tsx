@@ -1,48 +1,83 @@
 export const dynamic = "force-dynamic";
-import React from 'react';
-import { notFound } from 'next/navigation';
-import { requireSession } from '@/lib/session';
-import { getUserOrganizations, getOrganizationById } from '@/lib/dal/organization';
-import { BillingSummary } from '@/components/organization/billing/BillingSummary';
-import { PlatformFeesCard } from '@/components/organization/billing/PlatformFeesCard';
-import { FeeCalculator } from '@/components/organization/billing/FeeCalculator';
-import { CommunicationCreditsCard } from '@/components/organization/billing/CommunicationCreditsCard';
-import { PageHeader } from '@/components/shared/page-header';
+
+import React from "react";
+import { notFound } from "next/navigation";
+import { CreditCard } from "lucide-react";
+import { requireSession } from "@/lib/session";
+import { getUserOrganizations, getOrganizationById } from "@/lib/dal/organization";
+import {
+	BillingSummary,
+	CommunicationCreditsCard,
+	FeeCalculator,
+	PlatformFeesCard,
+} from "@/components/organization/billing";
+import { PageHeader } from "@/components/shared/page-header";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 
 export default async function OrgBillingPage({
-  searchParams,
+	searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const session = await requireSession();
-  const params = await searchParams;
-  const orgs = await getUserOrganizations(session.userId);
+	const session = await requireSession();
+	const params = await searchParams;
+	const orgs = await getUserOrganizations(session.userId);
 
-  if (orgs.length === 0) {
-    notFound();
-  }
+	if (orgs.length === 0) {
+		notFound();
+	}
 
-  const activeOrgId = typeof params.org === 'string' ? params.org : orgs[0]?.id;
-  const organization = await getOrganizationById(activeOrgId, session.userId);
+	const activeOrgId =
+		typeof params.org === "string" ? params.org : orgs[0]?.id;
+	const organization = await getOrganizationById(activeOrgId, session.userId);
 
-  if (!organization) {
-    notFound();
-  }
+	if (!organization) {
+		notFound();
+	}
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Billing & Platform Fees"
-        description="View pricing structure, estimate platform fees, and manage SMS credits."
-      />
-      <div className="grid gap-6 md:grid-cols-2">
-        <BillingSummary currentPlan="essential" communicationCredits={0} />
-        <PlatformFeesCard />
-      </div>
-      <div className="grid gap-6 md:grid-cols-2">
-        <FeeCalculator />
-        <CommunicationCreditsCard balance={0} />
-      </div>
-    </div>
-  );
+	const currentPlan = "essential";
+	const communicationCredits = 0;
+	const isVerifiedPartner = false;
+
+	return (
+		<>
+			<PageHeader
+				breadcrumbs={[
+					{ label: "Organization", href: "/organization/manage" },
+					{ label: "Billing" },
+				]}
+			/>
+
+			<div className="flex-1 flex-col space-y-6 mx-auto w-full">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-2xl font-bold tracking-tight flex items-center gap-2">
+							<CreditCard className="h-6 w-6 text-primary" />
+							Billing & Plans
+						</CardTitle>
+						<CardDescription>
+							Manage your subscription, view fees, and track communication
+							credits.
+						</CardDescription>
+					</CardHeader>
+				</Card>
+
+				<BillingSummary
+					currentPlan={currentPlan}
+					communicationCredits={communicationCredits}
+				/>
+
+				<PlatformFeesCard isVerifiedPartner={isVerifiedPartner} />
+
+				<FeeCalculator />
+
+				<CommunicationCreditsCard balance={communicationCredits} />
+			</div>
+		</>
+	);
 }

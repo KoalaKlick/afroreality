@@ -7,29 +7,30 @@ import { MyEventsClient } from "@/components/event/core/MyEventsClient";
 import { serializeJsonSafe } from "@/lib/utils";
 
 export const metadata = {
-  title: "My Events - AfroReality",
-  description: "Manage, monitor, and create events for your organizations.",
+	title: "My Events - AfroReality",
+	description: "Manage, monitor, and create events for your organizations.",
 };
 
 export default async function MyEventsPage({
-  searchParams,
+	searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const session = await requireSession();
-  const params = await searchParams;
-  const status = typeof params.status === "string" ? params.status : undefined;
-  const search = typeof params.search === "string" ? params.search : undefined;
+	const session = await requireSession();
+	const params = await searchParams;
+	const status = typeof params.status === "string" ? params.status : undefined;
+	const search = typeof params.search === "string" ? params.search : undefined;
+	const org = typeof params.org === "string" ? params.org : undefined;
 
-  const [events, stats] = await Promise.all([
-    getEventsList(session.userId, { status, search }),
-    getEventStats(session.userId),
-  ]);
+	const [events, stats] = await Promise.all([
+		getEventsList(session.userId, { status, search, orgId: org }),
+		getEventStats(session.userId, org),
+	]);
 
-  return (
-    <MyEventsClient
-      events={serializeJsonSafe(events) as any}
-      stats={serializeJsonSafe(stats) as any}
-    />
-  );
+	return (
+		<MyEventsClient
+			events={serializeJsonSafe(events) as any}
+			stats={serializeJsonSafe(stats) as any}
+		/>
+	);
 }

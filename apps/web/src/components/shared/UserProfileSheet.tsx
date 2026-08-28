@@ -1,9 +1,8 @@
 "use client";
-// src/components/shared/UserProfileSheet.tsx
 
-import { useRouter } from "next/navigation";
 import { Loader2, Pencil, User } from "lucide-react";
-import { useRef, useState, useTransition, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/image/Image";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
@@ -30,7 +29,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { useImageUpload } from "@/hooks/use-image-upload";
-import { getAvatarUrl } from "@/lib/image-url-utils";
+import { cleanStorageKey, getAvatarUrl } from "@/lib/image-url-utils";
 import { updateProfileSettings } from "@/lib/server-functions/profile";
 
 interface UserProfileSheetProps {
@@ -61,19 +60,22 @@ export function UserProfileSheet({
 
 	const [fullName, setFullName] = useState(user.name);
 	const [username, setUsername] = useState(user.username ?? "");
-	const [avatarPath, setAvatarPath] = useState(user.avatar ?? "");
+	const [avatarPath, setAvatarPath] = useState(
+		cleanStorageKey(user.avatar ?? ""),
+	);
 	const [avatarPreview, setAvatarPreview] = useState(
-		user.avatar ? (getAvatarUrl(user.avatar) ?? "") : "",
+		user.avatar ? getAvatarUrl(user.avatar) : "",
 	);
 
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+	const initialCleanAvatar = cleanStorageKey(user.avatar ?? "");
 	const isDirty = useMemo(
 		() =>
 			fullName !== user.name ||
 			username !== (user.username ?? "") ||
-			avatarPath !== (user.avatar ?? ""),
-		[fullName, username, avatarPath, user],
+			avatarPath !== initialCleanAvatar,
+		[fullName, username, avatarPath, user, initialCleanAvatar],
 	);
 
 	const handleOpenChange = (nextOpen: boolean) => {
@@ -99,8 +101,9 @@ export function UserProfileSheet({
 
 		const res = await uploadAvatar(file, avatarPath || undefined);
 		if (res) {
-			setAvatarPath(res.url);
-			setAvatarPreview(getAvatarUrl(res.url) ?? res.url);
+			const relativeKey = cleanStorageKey(res.key || res.url);
+			setAvatarPath(relativeKey);
+			setAvatarPreview(res.url || getAvatarUrl(relativeKey));
 		}
 	}
 
@@ -113,7 +116,7 @@ export function UserProfileSheet({
 					data: {
 						fullName: fullName.trim() || undefined,
 						username: username.trim() || undefined,
-						avatarUrl: avatarPath || undefined,
+						avatarUrl: cleanStorageKey(avatarPath) || undefined,
 					},
 				});
 				toast.success("Profile updated!");
@@ -129,189 +132,166 @@ export function UserProfileSheet({
 
 	return (
 		<>
-		<Sheet open={open} onOpenChange={handleOpenChange}>
-			<SheetContent
-				side="right"
-				className="w-full sm:max-w-md flex flex-col h-full"
-			>
-				<SheetHeader className="shrink-0">
-					<SheetTitle className="flex items-center gap-2">
-						<User className="h-5 w-5" />
-						Account Settings
-					</SheetTitle>
-					<SheetDescription>
-						Update your personal profile details.
-					</SheetDescription>
-				</SheetHeader>
+			<Sheet open={open} onOpenChange={handleOpenChange}>
+				<SheetContent
+					side="right"
+					className="w-full sm:max-w-md flex flex-col h-full"
+				>
+					<SheetHeader className="shrink-0">
+						<SheetTitle className="flex items-center gap-2">
+							<User className="h-5 w-5" />
+							Account Settings
+						</SheetTitle>
+						<SheetDescription>
+							Update your personal profile details.
+						</SheetDescription>
+					</SheetHeader>
 
-				<PanAfricanDivider className="h-1 shrink-0" />
+					<PanAfricanDivider className="h-1 shrink-0" />
 
-				<SheetBody className="flex-1 overflow-y-auto py-4 pr-2">
-					<form id="profile-form" onSubmit={handleSubmit} className="space-y-6">
-						{/* Avatar */}
-						<div className="flex flex-col items-center gap-3">
-							<input
-								ref={fileInputRef}
-								type="file"
-								accept="image/*"
-								onChange={handleAvatarChange}
-								className="hidden"
-							/>
-							<button
-								type="button"
-								className="relative group cursor-pointer"
-								onClick={() => fileInputRef.current?.click()}
-								aria-label="Change profile photo"
-							>
-								<div className="relative h-20 w-20 rounded-full overflow-hidden ring-2 ring-border">
-									{avatarPreview ? (
-										<Avatar
-											src={avatarPreview}
-											alt={fullName}
-											width={80}
-											height={80}
-											className="h-20 w-20 rounded-full object-cover"
-										/>
-									) : (
-										<div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
-											{fullName?.[0] || <User className="h-8 w-8" />}
-										</div>
-									)}
-									<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
-										{isUploadingAvatar ? (
-											<Loader2 className="h-5 w-5 text-white animate-spin" />
+					<SheetBody className="flex-1 overflow-y-auto py-4 pr-2">
+						<form
+							id="profile-form"
+							onSubmit={handleSubmit}
+							className="space-y-6"
+						>
+							{/* Avatar */}
+							<div className="flex flex-col items-center gap-3">
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept="image/*"
+									onChange={handleAvatarChange}
+									className="hidden"
+								/>
+								<button
+									type="button"
+									className="relative group cursor-pointer"
+									onClick={() => fileInputRef.current?.click()}
+									aria-label="Change profile photo"
+								>
+									<div className="relative h-20 w-20 rounded-full overflow-hidden ring-2 ring-border">
+										{avatarPreview ? (
+											<Avatar
+												src={avatarPreview}
+												alt={fullName}
+												width={80}
+												height={80}
+												className="h-20 w-20 rounded-full object-cover"
+											/>
 										) : (
-											<Pencil className="h-5 w-5 text-white" />
+											<div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
+												{fullName?.[0] || <User className="h-8 w-8" />}
+											</div>
 										)}
+										<div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+											{isUploadingAvatar ? (
+												<Loader2 className="h-5 w-5 text-white animate-spin" />
+											) : (
+												<Pencil className="h-5 w-5 text-white" />
+											)}
+										</div>
 									</div>
-								</div>
-							</button>
-							<p className="text-xs text-muted-foreground">
-								Click to change photo
-							</p>
-						</div>
-
-						{/* Read-only email */}
-						<div className="space-y-1.5">
-							<Label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-								Email
-							</Label>
-							<Input value={user.email} disabled className="bg-muted/40" />
-						</div>
-
-						{/* Full name */}
-						<div className="space-y-1.5">
-							<Label
-								htmlFor="profile-fullname"
-								className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
-							>
-								Full Name
-							</Label>
-							<Input
-								id="profile-fullname"
-								value={fullName}
-								onChange={(e) => setFullName(e.target.value)}
-								placeholder="Your full name"
-							/>
-						</div>
-
-						{/* Username */}
-						<div className="space-y-1.5">
-							<Label
-								htmlFor="profile-username"
-								className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
-							>
-								Username
-							</Label>
-							<Input
-								id="profile-username"
-								value={username}
-								onChange={(e) => setUsername(e.target.value.toLowerCase())}
-								placeholder="your_username"
-							/>
-							<p className="text-xs text-muted-foreground">
-								3–30 lowercase letters, numbers or underscores.
-							</p>
-						</div>
-
-						{/* MoMo details */}
-						{/* 
-						<div className="space-y-4 rounded-lg border p-4">
-							<p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Mobile Money (MoMo)</p>
-							<div className="space-y-1.5">
-								<Label htmlFor="profile-momo-network" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Network</Label>
-								<Select value={momoNetwork} onValueChange={setMomoNetwork}>
-									<SelectTrigger id="profile-momo-network">
-										<SelectValue placeholder="Select network" />
-									</SelectTrigger>
-									<SelectContent>
-										{MOMO_NETWORKS.map((n) => (
-											<SelectItem key={n.code} value={n.code}>{n.label}</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
+								</button>
+								<p className="text-xs text-muted-foreground">
+									Click to change photo
+								</p>
 							</div>
+
+							{/* Read-only email */}
 							<div className="space-y-1.5">
-								<Label htmlFor="profile-momo-number" className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">MoMo Number</Label>
+								<Label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+									Email
+								</Label>
+								<Input value={user.email} disabled className="bg-muted/40" />
+							</div>
+
+							{/* Full name */}
+							<div className="space-y-1.5">
+								<Label
+									htmlFor="profile-fullname"
+									className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+								>
+									Full Name
+								</Label>
 								<Input
-									id="profile-momo-number"
-									value={momoNumber}
-									onChange={(e) => setMomoNumber(e.target.value)}
-									placeholder="e.g. 0241234567"
-									type="tel"
+									id="profile-fullname"
+									value={fullName}
+									onChange={(e) => setFullName(e.target.value)}
+									placeholder="Your full name"
 								/>
 							</div>
-						</div>
-						 */}
-					</form>
-				</SheetBody>
 
-				<SheetFooter className="shrink-0 pt-2">
-					<Button variant="outline" onClick={() => onOpenChange(false)}>
-						Cancel
-					</Button>
-					<Button
-						variant="default"
-						type="submit"
-						form="profile-form"
-						disabled={isPending || isUploadingAvatar}
-					>
-						{isPending ? (
-							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Saving…
-							</>
-						) : (
-							"Save Changes"
-						)}
-					</Button>
-				</SheetFooter>
-			</SheetContent>
-		</Sheet>
+							{/* Username */}
+							<div className="space-y-1.5">
+								<Label
+									htmlFor="profile-username"
+									className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+								>
+									Username
+								</Label>
+								<Input
+									id="profile-username"
+									value={username}
+									onChange={(e) => setUsername(e.target.value.toLowerCase())}
+									placeholder="your_username"
+								/>
+								<p className="text-xs text-muted-foreground">
+									3 to 30 lowercase letters, numbers or underscores.
+								</p>
+							</div>
+						</form>
+					</SheetBody>
 
-		<AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
-					<AlertDialogDescription>
-						You have unsaved changes that haven't been saved yet. Are you
-						sure you want to close? Your changes will be lost.
-					</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Continue Editing</AlertDialogCancel>
-					<AlertDialogAction
-						onClick={() => {
-							setShowConfirmDialog(false);
-							onOpenChange(false);
-						}}
-						className="bg-destructive text-white hover:bg-destructive/90"
-					>
-						Discard Changes
-					</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+					<SheetFooter className="shrink-0 pt-2">
+						<Button variant="outline" onClick={() => onOpenChange(false)}>
+							Cancel
+						</Button>
+						<Button
+							variant="default"
+							type="submit"
+							form="profile-form"
+							disabled={isPending || isUploadingAvatar}
+						>
+							{isPending ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Saving...
+								</>
+							) : (
+								"Save Changes"
+							)}
+						</Button>
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>
+
+			<AlertDialog
+				open={showConfirmDialog}
+				onOpenChange={setShowConfirmDialog}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+						<AlertDialogDescription>
+							You have unsaved changes that haven't been saved yet. Are you
+							sure you want to close? Your changes will be lost.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Continue Editing</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								setShowConfirmDialog(false);
+								onOpenChange(false);
+							}}
+							className="bg-destructive text-white hover:bg-destructive/90"
+						>
+							Discard Changes
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }

@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { AUTH_COOKIE_NAME, AUTH_TOKEN_MAX_AGE_SECONDS } from './constants/config';
 import type { SessionPayload } from './types/auth';
 
@@ -50,7 +51,7 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function requireSession(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) {
-    throw new Error('Unauthorized');
+    redirect('/login');
   }
   return session;
 }

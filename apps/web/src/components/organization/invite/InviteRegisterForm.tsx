@@ -1,55 +1,146 @@
 "use client";
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/components/providers/auth-provider';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+// src/components/organization/invite/InviteRegisterForm.tsx
 
-export function InviteRegisterForm({ token }: { token: string }) {
-  const { signUp } = useAuth();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+import React, { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { UserPlus, Loader2, Mail, Lock, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
+import { acceptOrgInvitation } from "@/lib/server-functions/organization-join";
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      
-    const res = await signUp({ email, password, fullName });
-    if (res.error) {
-      toast.error(res.error.message || "Registration failed");
+interface InviteRegisterFormProps {
+	readonly token: string;
+	readonly email: string;
+	readonly organizationName: string;
+}
 
-      } else {
-        toast.success('Account created!');
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+export function InviteRegisterForm({
+	token,
+	email,
+	organizationName,
+}: InviteRegisterFormProps) {
+	const router = useRouter();
+	const { signUp } = useAuth();
+	const [fullName, setFullName] = useState("");
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [isPending, startTransition] = useTransition();
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="reg-name">Full Name</Label>
-        <Input id="reg-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-      </div>
-      <div>
-        <Label htmlFor="reg-email">Email</Label>
-        <Input id="reg-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </div>
-      <div>
-        <Label htmlFor="reg-pw">Password</Label>
-        <Input id="reg-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-      </div>
-      <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
-        {loading ? 'Creating...' : 'Create Account & Accept'}
-      </Button>
-    </form>
-  );
+	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+
+		if (password !== confirmPassword) {
+			toast.error("Passwords do not match");
+			return;
+		}
+
+		setLoading(true);
+
+		try {
+			const res = await signUp({
+				email,
+				password,
+				fullName,
+			});
+
+			if (res.error) {
+				toast.error(res.error.message || "Registration failed");
+				setLoading(false);
+				return;
+			}
+
+			startTransition(async () => {
+				try {
+					await acceptOrgInvitation({ data: { token } });
+					toast.success(`Account created! Welcome to ${organizationName}!`);
+					router.push("/dashboard");
+					router.refresh();
+				} catch (err: any) {
+					toast.error(err.message || "Failed to accept invitation");
+				}
+			});
+		} catch (err: any) {
+			toast.error(err.message || "Registration failed");
+			setLoading(false);
+		}
+	}
+
+	return (
+		<div className="space-y-4">
+			<p className="text-sm text-muted-foreground">
+				Create an AfroReality account to join{" "}
+				<span className="font-medium text-foreground">
+					{organizationName}
+				</span>
+				.
+			</p>
+			<form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+				<div className="relative">
+					<User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+					<Input
+						id="reg-name"
+						type="text"
+						value={fullName}
+						onChange={(e) => setFullName(e.target.value)}
+						placeholder="Full Name"
+						className="pl-10 text-sm"
+						required
+						autoFocus
+					/>
+				</div>
+				<div className="relative">
+					<Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+					<Input
+						id="reg-email"
+						type="email"
+						value={email}
+						readOnly
+						placeholder="Email Address"
+						className="pl-10 bg-muted/50 cursor-not-allowed text-sm"
+					/>
+				</div>
+				<div className="relative">
+					<Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+					<Input
+						id="reg-password"
+						type="password"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						placeholder="Password (Min 6 characters)"
+						className="pl-10 text-sm"
+						minLength={6}
+						required
+					/>
+				</div>
+				<div className="relative">
+					<Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+					<Input
+						id="reg-confirm-password"
+						type="password"
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+						placeholder="Confirm Password"
+						className="pl-10 text-sm"
+						minLength={6}
+						required
+					/>
+				</div>
+				<Button
+					type="submit"
+					className="w-full font-semibold gap-2"
+					disabled={loading || isPending}
+				>
+					{loading || isPending ? (
+						<Loader2 className="size-4 animate-spin" />
+					) : (
+						<UserPlus className="size-4" />
+					)}
+					Create Account & Accept
+				</Button>
+			</form>
+		</div>
+	);
 }

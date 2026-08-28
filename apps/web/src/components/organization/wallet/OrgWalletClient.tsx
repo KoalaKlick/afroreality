@@ -1,11 +1,43 @@
 "use client";
 // src/components/organization/wallet/OrgWalletClient.tsx
 
-
-import { ArrowLeftRight, Banknote, Wallet as WalletIcon } from "lucide-react";
+import {
+	ArrowDownToLine,
+	ArrowLeftRight,
+	DollarSign,
+	CheckCircle2,
+	Landmark,
+	Search,
+	Wallet as WalletIcon,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmPasswordDialog } from "@/components/shared/ConfirmPasswordDialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePermissions } from "@/hooks/use-permissions";
+import { requestWalletWithdrawal } from "@/lib/server-functions/wallet";
 import type { Transaction, Wallet } from "@/lib/types/payment";
 import { OrgPayoutSettings } from "./OrgPayoutSettings";
 import { TransactionsTable } from "./TransactionsTable";
@@ -31,6 +63,144 @@ export function OrgWalletClient({
 	transactions,
 	totalTransactions,
 }: OrgWalletClientProps) {
+	const router = useRouter();
+	const { canWithdraw } = usePermissions();
+
+	// Search filter state
+	const [searchQuery, setSearchQuery] = useState("");
+
+	// Payout drawer state
+	const [isPayoutDrawerOpen, setIsPayoutDrawerOpen] = useState(false);
+
+	// Withdrawal dialog states
+	const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+	const [withdrawalAmount, setWithdrawalAmount] = useState("");
+	const [withdrawalMemo, setWithdrawalMemo] = useState("");
+	const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState(false);
+
+	const availableBalance = wallet?.balance ?? 0;
+	const pendingBalance =
+		(wallet?.pendingCredits ?? 0) - (wallet?.pendingDebits ?? 0);
+	const currency = wallet?.currency ?? "GHS";
+
+	const hasPayoutAccount = !!(
+		organization.paystackAccountNumber &&
+		organization.paystackBankCode &&
+		organization.paystackAccountName
+	);
+
+	// Split transactions into accounting categories
+	const inflows = useMemo(
+		() => transactions.filter((t) => t.type === "ticket" || t.type === "vote"),
+		[transactions],
+	);
+
+	const outflows = useMemo(
+		() =>
+			transactions.filter(
+				(t) => t.type === "payout" || t.type === "withdrawal",
+			),
+		[transactions],
+	);
+
+	const totalInflowAmount = useMemo(
+		() =>
+			inflows
+				.filter((t) => t.status === "success")
+				.reduce((sum, t) => sum + Number(t.amount || 0), 0),
+		[inflows],
+	);
+
+	const totalOutflowAmount = useMemo(
+		() =>
+			outflows
+				.filter((t) => t.status === "success")
+				.reduce((sum, t) => sum + Number(t.amount || 0), 0),
+		[outflows],
+	);
+
+	// Filter by search query
+	const filterTransactions = (list: Transaction[]) => {
+		if (!searchQuery.trim()) return list;
+		const query = searchQuery.toLowerCase().trim();
+		return list.filter((t) => {
+			const refMatch = t.reference?.toLowerCase().includes(query);
+			const descMatch = t.description?.toLowerCase().includes(query);
+			const typeMatch = t.type?.toLowerCase().includes(query);
+			const amountMatch = t.amount?.toString().includes(query);
+			const statusMatch = t.status?.toLowerCase().includes(query);
+			return refMatch || descMatch || typeMatch || amountMatch || statusMatch;
+		});
+	};
+
+	const filteredAll = useMemo(
+		() => filterTransactions(transactions),
+		[transactions, searchQuery],
+	);
+	const filteredInflows = useMemo(
+		() => filterTransactions(inflows),
+		[inflows, searchQuery],
+	);
+	const filteredOutflows = useMemo(
+		() => filterTransactions(outflows),
+		[outflows, searchQuery],
+	);
+
+	const parsedAmount = Number.parseFloat(withdrawalAmount);
+	const isValidWithdrawalAmount =
+		!Number.isNaN(parsedAmount) &&
+		parsedAmount > 0 &&
+		parsedAmount <= availableBalance;
+
+	function handleOpenWithdrawal() {
+		if (!hasPayoutAccount) {
+			toast.error("Please configure your payout account before requesting a withdrawal.");
+			setIsPayoutDrawerOpen(true);
+			return;
+		}
+		setWithdrawalAmount("");
+		setWithdrawalMemo("");
+		setIsWithdrawOpen(true);
+	}
+
+	function handleProceedToConfirm() {
+		if (!isValidWithdrawalAmount) {
+			toast.error(
+				parsedAmount > availableBalance
+					? `Amount exceeds available balance (${currency} ${availableBalance.toFixed(2)})`
+					: "Please enter a valid withdrawal amount.",
+			);
+			return;
+		}
+		setIsWithdrawOpen(false);
+		setIsConfirmOpen(true);
+	}
+
+	async function handleConfirmedWithdraw() {
+		setIsSubmittingWithdrawal(true);
+		try {
+			const result = await requestWalletWithdrawal({
+				data: {
+					organizationId: organization.id,
+					amount: parsedAmount,
+					description: withdrawalMemo || undefined,
+				},
+			});
+			toast.success(result.message ?? "Withdrawal request submitted successfully!");
+			setWithdrawalAmount("");
+			setWithdrawalMemo("");
+			setIsConfirmOpen(false);
+			router.refresh();
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Failed to request withdrawal",
+			);
+		} finally {
+			setIsSubmittingWithdrawal(false);
+		}
+	}
+
 	return (
 		<>
 			<PageHeader
@@ -40,53 +210,315 @@ export function OrgWalletClient({
 				]}
 			/>
 
-		<div className="flex flex-1 flex-col gap-6 p-6">
-			<Tabs defaultValue="payout" className="space-y-6">
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-2xl font-bold tracking-tight flex items-center gap-2">
+			<div className="flex flex-1 flex-col gap-6 p-6">
+				{/* Top Header Card with Actions */}
+				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<div>
+						<h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
 							<WalletIcon className="h-6 w-6" />
 							Wallet & Payouts
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<TabsList variant="afro" className="flex overflow-x-auto w-full">
-							<TabsTrigger variant="afro" value="payout" className="gap-1.5">
-								<Banknote className="h-4 w-4" />
-								<span>Payout Account</span>
-							</TabsTrigger>
-							<TabsTrigger variant="afro" value="transactions" className="gap-1.5">
-								<ArrowLeftRight className="h-4 w-4" />
-								<span>Transactions</span>
-							</TabsTrigger>
-						</TabsList>
-					</CardContent>
+						</h1>
+						<p className="text-sm text-muted-foreground mt-0.5">
+							Track revenue, settlements, and manage disbursement accounts.
+						</p>
+					</div>
+
+					{/* Action Buttons in Head */}
+					<div className="flex flex-wrap items-center gap-2.5 shrink-0">
+						{/* Payout Settings Drawer Trigger */}
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setIsPayoutDrawerOpen(true)}
+							className="gap-2 bg-background hover:bg-accent"
+						>
+							<Landmark className="size-4 text-muted-foreground" />
+							<span>Payout Account</span>
+							{hasPayoutAccount ? (
+								<span className="size-2 rounded-full bg-emerald-500" />
+							) : (
+								<span className="size-2 rounded-full bg-amber-500" />
+							)}
+						</Button>
+
+						{/* Request Withdrawal Button */}
+						{canWithdraw && (
+							<Button
+								size="sm"
+								onClick={handleOpenWithdrawal}
+								disabled={availableBalance <= 0}
+								className="gap-1.5 shadow-xs"
+							>
+								<ArrowDownToLine className="size-4" />
+								Request Withdrawal
+							</Button>
+						)}
+					</div>
+				</div>
+
+				{/* 1. Stats at the Top (Outside Tabs) */}
+				<WalletBalanceSummary
+					organizationId={organization.id}
+					availableBalance={availableBalance}
+					pendingBalance={pendingBalance}
+					totalRevenue={
+						totalInflowAmount > 0
+							? totalInflowAmount
+							: availableBalance + (wallet?.pendingCredits ?? 0)
+					}
+					totalWithdrawn={totalOutflowAmount}
+					currency={currency}
+				/>
+
+				{/* 2. Unified Card with Standard Tabs & Search Bar */}
+				<Card>
+					<Tabs defaultValue="all" className="w-full">
+						<CardHeader className="pb-4">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+								{/* Standard Tabs */}
+								<TabsList
+									variant="afro"
+									className="flex overflow-x-auto w-full sm:w-auto"
+								>
+									<TabsTrigger
+										variant="afro"
+										value="all"
+										className="gap-1.5"
+									>
+										<ArrowLeftRight className="h-4 w-4" />
+										<span>All Activity</span>
+									</TabsTrigger>
+
+									<TabsTrigger
+										variant="afro"
+										value="received"
+										className="gap-1.5"
+									>
+										<DollarSign className="h-4 w-4" />
+										<span>Revenue (Inflows)</span>
+									</TabsTrigger>
+
+									<TabsTrigger
+										variant="afro"
+										value="withdrawals"
+										className="gap-1.5"
+									>
+										<ArrowDownToLine className="h-4 w-4" />
+										<span>Payouts (Outflows)</span>
+									</TabsTrigger>
+								</TabsList>
+
+								{/* Search Bar */}
+								<div className="relative w-full sm:w-72">
+									<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+									<Input
+										type="search"
+										placeholder="Search transactions..."
+										value={searchQuery}
+										onChange={(e) => setSearchQuery(e.target.value)}
+										className="pl-8 text-sm h-9 bg-background"
+									/>
+								</div>
+							</div>
+						</CardHeader>
+
+						<CardContent className="space-y-4">
+							{/* Tab 1: All Activity */}
+							<TabsContent value="all" className="m-0 space-y-4">
+								<TransactionsTable
+									transactions={filteredAll}
+									total={filteredAll.length}
+									emptyTitle="No transactions found"
+									emptyDescription={
+										searchQuery
+											? "No transactions match your search query."
+											: "There are no transactions recorded in this wallet yet."
+									}
+									emptyVariant="money"
+								/>
+							</TabsContent>
+
+							{/* Tab 2: Revenue Received */}
+							<TabsContent value="received" className="m-0 space-y-4">
+								<TransactionsTable
+									transactions={filteredInflows}
+									total={filteredInflows.length}
+									emptyTitle="No revenue records found"
+									emptyDescription={
+										searchQuery
+											? "No revenue records match your search."
+											: "Ticket sales and vote payments will appear here as revenue."
+									}
+									emptyVariant="money"
+								/>
+							</TabsContent>
+
+							{/* Tab 3: Withdrawals / Payouts */}
+							<TabsContent value="withdrawals" className="m-0 space-y-4">
+								<TransactionsTable
+									transactions={filteredOutflows}
+									total={filteredOutflows.length}
+									emptyTitle="No payout records found"
+									emptyDescription={
+										searchQuery
+											? "No payout records match your search."
+											: "Disbursements and withdrawals to your payout account will appear here."
+									}
+									emptyVariant="payment"
+								/>
+							</TabsContent>
+						</CardContent>
+					</Tabs>
 				</Card>
+			</div>
 
-				<TabsContent value="payout" className="space-y-6">
-					{wallet && (
-						<WalletBalanceSummary
+			{/* Payout Settings Drawer (Slide-out Sheet) */}
+			<Sheet open={isPayoutDrawerOpen} onOpenChange={setIsPayoutDrawerOpen}>
+				<SheetContent
+					side="right"
+					variant="afro"
+					className="w-full sm:max-w-xl overflow-y-auto p-6"
+				>
+					<SheetHeader className="pb-4 border-b border-border/60">
+						<div className="flex items-center gap-2.5">
+							<div className="size-9 rounded-lg bg-primary-100 dark:bg-primary-950/50 text-primary flex items-center justify-center shrink-0">
+								<Landmark className="size-5" />
+							</div>
+							<div>
+								<SheetTitle className="text-lg font-bold">
+									Payout Account Settings
+								</SheetTitle>
+								<SheetDescription className="text-xs">
+									Configure your Mobile Money or Bank Account to receive automatic revenue settlements.
+								</SheetDescription>
+							</div>
+						</div>
+					</SheetHeader>
+
+					<div className="pt-6">
+						<OrgPayoutSettings
 							key={organization.id}
-							organizationId={organization.id}
-							availableBalance={wallet.balance}
-							pendingBalance={(wallet.pendingCredits ?? 0) - (wallet.pendingDebits ?? 0)}
-							totalPayouts={wallet.balance + (wallet.pendingCredits ?? 0)}
-							currency={wallet.currency}
+							organization={organization}
 						/>
-					)}
+					</div>
+				</SheetContent>
+			</Sheet>
 
-					<OrgPayoutSettings key={organization.id} organization={organization} />
-				</TabsContent>
+			{/* Withdrawal Modal Dialog */}
+			<Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<ArrowDownToLine className="size-5 text-primary" />
+							Request Withdrawal
+						</DialogTitle>
+						<DialogDescription>
+							Transfer available funds directly to your verified payout account.
+						</DialogDescription>
+					</DialogHeader>
 
-				<TabsContent value="transactions" className="space-y-6">
-					<TransactionsTable
-						key={organization.id}
-						transactions={transactions}
-						total={totalTransactions}
-					/>
-				</TabsContent>
-			</Tabs>
-		</div>
+					<div className="space-y-4 py-2">
+						{/* Available Balance Quick Banner */}
+						<div className="bg-primary-50/70 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50 rounded-lg p-3 flex items-center justify-between">
+							<div className="text-xs text-muted-foreground">Available to Withdraw:</div>
+							<div className="font-mono font-bold text-sm text-foreground">
+								{currency} {availableBalance.toFixed(2)}
+							</div>
+						</div>
+
+						{/* Destination Account Summary */}
+						{hasPayoutAccount && (
+							<div className="rounded-lg border border-border bg-card p-3 space-y-1 text-xs">
+								<div className="font-semibold text-muted-foreground flex items-center gap-1.5">
+									<CheckCircle2 className="size-3.5 text-emerald-500" />
+									Disbursing To:
+								</div>
+								<div className="font-medium text-foreground">
+									{organization.paystackAccountName}
+								</div>
+								<div className="font-mono text-muted-foreground">
+									{organization.paystackAccountNumber} ({organization.paystackBankCode})
+								</div>
+							</div>
+						)}
+
+						{/* Amount Input */}
+						<div className="space-y-1.5">
+							<div className="flex items-center justify-between">
+								<Label htmlFor="withdraw-amount" className="text-xs font-semibold">
+									Withdrawal Amount ({currency}) <span className="text-destructive">*</span>
+								</Label>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className="h-6 px-2 text-[11px] text-primary hover:text-primary font-medium"
+									onClick={() => setWithdrawalAmount(availableBalance.toString())}
+								>
+									Withdraw Max
+								</Button>
+							</div>
+							<Input
+								id="withdraw-amount"
+								type="number"
+								min="1"
+								max={availableBalance}
+								step="0.01"
+								value={withdrawalAmount}
+								onChange={(e) => setWithdrawalAmount(e.target.value)}
+								placeholder={`0.00`}
+								className="font-mono"
+								autoFocus
+							/>
+							{parsedAmount > availableBalance && (
+								<p className="text-[11px] text-destructive font-medium">
+									Amount exceeds available balance ({currency} {availableBalance.toFixed(2)})
+								</p>
+							)}
+						</div>
+
+						{/* Memo Input */}
+						<div className="space-y-1.5">
+							<Label htmlFor="withdraw-memo" className="text-xs font-semibold">
+								Memo / Reference (Optional)
+							</Label>
+							<Input
+								id="withdraw-memo"
+								value={withdrawalMemo}
+								onChange={(e) => setWithdrawalMemo(e.target.value)}
+								placeholder="e.g. Event ticket sales payout"
+							/>
+						</div>
+					</div>
+
+					<DialogFooter>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setIsWithdrawOpen(false)}
+						>
+							Cancel
+						</Button>
+						<Button
+							size="sm"
+							onClick={handleProceedToConfirm}
+							disabled={!isValidWithdrawalAmount}
+						>
+							Continue to Confirm
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Confirm Password Before Withdrawal */}
+			<ConfirmPasswordDialog
+				open={isConfirmOpen}
+				onOpenChange={setIsConfirmOpen}
+				title="Confirm Withdrawal Request"
+				description={`You are about to transfer ${currency} ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"} to your verified payout account (${organization.paystackAccountNumber || "MoMo/Bank"}). Please enter your password to authorize this transaction.`}
+				confirmLabel="Authorize & Submit"
+				onConfirm={handleConfirmedWithdraw}
+			/>
 		</>
 	);
 }

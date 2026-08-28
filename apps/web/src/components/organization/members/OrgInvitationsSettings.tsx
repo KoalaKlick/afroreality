@@ -1,17 +1,30 @@
 "use client";
 // src/components/organization/members/OrgInvitationsSettings.tsx
 
-
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Loader2, MailCheck, X } from "lucide-react";
-import { useCallback, useMemo, useTransition } from "react";
+import {
+	getPaginationRowModel,
+	getSortedRowModel,
+} from "@tanstack/react-table";
+import { Loader2, MailCheck, Search, X } from "lucide-react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { DataTableColumnHeader } from "@/components/common/data-table-column-header";
+import { DataTablePagination } from "@/components/common/data-table-pagination";
 import { StatusBadge } from "@/components/common/status-badge";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { DataTable } from "@/components/ui/table";
 import { useDataTable } from "@/hooks/use-data-table";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -57,6 +70,10 @@ export function OrgInvitationsSettings({
 	const { canManageMembers } = usePermissions();
 	const [isPending, startTransition] = useTransition();
 
+	// Search and status filter
+	const [searchQuery, setSearchQuery] = useState("");
+	const [statusFilter, setStatusFilter] = useState<string>("all");
+
 	const handleCancel = useCallback(
 		(invitationId: string) => {
 			startTransition(async () => {
@@ -95,11 +112,34 @@ export function OrgInvitationsSettings({
 		[router],
 	);
 
+	// Filtered list
+	const filteredInvitations = useMemo(() => {
+		return invitations.filter((inv) => {
+			const effective = getEffectiveStatus(inv.status, inv.expiresAt);
+
+			if (statusFilter !== "all" && effective !== statusFilter) {
+				return false;
+			}
+
+			if (searchQuery.trim()) {
+				const query = searchQuery.toLowerCase().trim();
+				const emailMatch = inv.email?.toLowerCase().includes(query);
+				const roleMatch = inv.role?.toLowerCase().includes(query);
+				const inviterMatch = inv.inviter?.fullName?.toLowerCase().includes(query);
+				return emailMatch || roleMatch || inviterMatch;
+			}
+
+			return true;
+		});
+	}, [invitations, searchQuery, statusFilter]);
+
 	const columns = useMemo<ColumnDef<SentInvitation>[]>(
 		() => [
 			{
 				accessorKey: "email",
-				header: () => <div>Invitee</div>,
+				header: ({ column }) => (
+					<DataTableColumnHeader column={column} title="Invitee" />
+				),
 				cell: ({ row }) => {
 					const inv = row.original;
 					return (
@@ -114,10 +154,10 @@ export function OrgInvitationsSettings({
 								</AvatarFallback>
 							</Avatar>
 							<div>
-								<p className="font-medium text-sm truncate">{inv.email}</p>
+								<p className="text-sm font-semibold">{inv.email}</p>
 								{inv.inviter && (
 									<p className="text-xs text-muted-foreground">
-										Invited by {inv.inviter.fullName ?? "Unknown"}
+										by {inv.inviter.fullName || "Admin"}
 									</p>
 								)}
 							</div>
@@ -128,29 +168,38 @@ export function OrgInvitationsSettings({
 			},
 			{
 				accessorKey: "role",
-				header: () => <div>Role</div>,
+				header: ({ column }) => (
+					<DataTableColumnHeader column={column} title="Role" />
+				),
 				cell: ({ row }) => {
 					const role = row.getValue("role") as string;
-					return (
-						<StatusBadge variant={role} />
-					);
+					return <StatusBadge variant={role} />;
 				},
 			},
 			{
 				accessorKey: "status",
-				header: () => <div>Status</div>,
+				header: ({ column }) => (
+					<DataTableColumnHeader column={column} title="Status" />
+				),
 				cell: ({ row }) => {
 					const inv = row.original;
 					const effective = getEffectiveStatus(inv.status, inv.expiresAt);
-					const variant = effective === "accepted" ? "approved" : effective === "declined" ? "rejected" : effective === "expired" ? "closed" : effective;
-					return (
-						<StatusBadge variant={variant} />
-					);
+					const variant =
+						effective === "accepted"
+							? "approved"
+							: effective === "declined"
+								? "rejected"
+								: effective === "expired"
+									? "closed"
+									: effective;
+					return <StatusBadge variant={variant} />;
 				},
 			},
 			{
 				accessorKey: "createdAt",
-				header: () => <div>Date</div>,
+				header: ({ column }) => (
+					<DataTableColumnHeader column={column} title="Date" />
+				),
 				cell: ({ row }) => {
 					const inv = row.original;
 					const date = inv.respondedAt ?? inv.createdAt;
@@ -171,7 +220,6 @@ export function OrgInvitationsSettings({
 					const inv = row.original;
 					const effective = getEffectiveStatus(inv.status, inv.expiresAt);
 
-					// Show resend for pending & expired, cancel only for pending
 					const canResend =
 						effective === "pending" || effective === "expired";
 					const canCancel = effective === "pending";
@@ -184,7 +232,6 @@ export function OrgInvitationsSettings({
 								<Button
 									size="sm"
 									variant="ghost"
-									className="text-primary hover:text-primary"
 									onClick={() => handleResend(inv.id)}
 									disabled={isPending}
 									title="Resend Invitation"
@@ -217,33 +264,75 @@ export function OrgInvitationsSettings({
 				},
 			},
 		],
-		[isPending, handleCancel, handleResend, canManageMembers],
+		[canManageMembers, handleCancel, handleResend, isPending],
 	);
 
-	const table = useDataTable(invitations, columns, {
+	const table = useDataTable(filteredInvitations, columns, {
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
 		enableRowSelection: false,
 	});
 
 	return (
 		<Card>
-			<CardContent className="pt-6">
-				<div className="rounded-md border bg-card mb-4">
+			<CardContent className="pt-6 space-y-4">
+				{/* Search & Filter Toolbar */}
+				<div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+					<div className="relative w-full sm:w-72">
+						<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+						<Input
+							type="search"
+							placeholder="Search invitations by email..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="pl-8 text-sm h-9 bg-background"
+						/>
+					</div>
+
+					<div className="flex items-center gap-2 w-full sm:w-auto">
+						<Select value={statusFilter} onValueChange={setStatusFilter}>
+							<SelectTrigger className="h-9 w-full sm:w-36 text-xs bg-background">
+								<SelectValue placeholder="All Statuses" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Statuses</SelectItem>
+								<SelectItem value="pending">Pending</SelectItem>
+								<SelectItem value="accepted">Accepted</SelectItem>
+								<SelectItem value="declined">Declined</SelectItem>
+								<SelectItem value="expired">Expired</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+
+				{/* Table Container */}
+				<div className="rounded-md border bg-card overflow-hidden">
 					<DataTable
 						table={table}
 						columnsCount={columns.length}
 						emptyState={
 							<EmptyState
-								variant="users"
-								title="No invitations sent"
-								description="Invite team members from the Members tab."
+								variant="message"
+								title={
+									searchQuery || statusFilter !== "all"
+										? "No matching invitations"
+										: "No invitations"
+								}
+								description={
+									searchQuery || statusFilter !== "all"
+										? "No sent invitations matched your search or status filter."
+										: "No pending or past invitations for this organization."
+								}
 							/>
 						}
 					/>
 				</div>
-				<div className="flex items-center justify-between">
-					<p className="text-sm text-muted-foreground">
-						{table.getRowModel().rows.length} of {invitations.length} invitation(s)
+
+				<div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+					<p className="text-xs text-muted-foreground">
+						Showing {table.getPaginationRowModel().rows.length} of {invitations.length} invitation(s)
 					</p>
+					<DataTablePagination table={table} />
 				</div>
 			</CardContent>
 		</Card>

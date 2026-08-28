@@ -1,7 +1,6 @@
 "use client";
 // src/components/event/members/MemberManager.tsx
 
-
 import { useRouter } from "next/navigation";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -10,8 +9,10 @@ import {
 } from "@tanstack/react-table";
 import {
 	ClipboardCheck,
+	Lock,
 	Mail,
 	QrCode,
+	Send,
 	Trash2,
 	UserPlus,
 } from "lucide-react";
@@ -39,6 +40,7 @@ import {
 } from "@/lib/server-functions/event-member";
 import { formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/common/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { AddMemberDialog } from "./AddMemberDialog";
 import { MarkAttendanceDialog } from "./MarkAttendanceDialog";
 import { RegistrationFieldManager } from "./RegistrationFieldManager";
@@ -59,6 +61,7 @@ export interface EventMember {
 interface MemberManagerProps {
 	readonly eventId: string;
 	readonly canEdit?: boolean;
+	readonly isVotingStarted?: boolean;
 }
 
 const statusVariantMap: Record<string, "info" | "success" | "completed"> = {
@@ -67,7 +70,11 @@ const statusVariantMap: Record<string, "info" | "success" | "completed"> = {
 	voted: "completed",
 };
 
-export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
+export function MemberManager({
+	eventId,
+	canEdit = true,
+	isVotingStarted = false,
+}: MemberManagerProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -78,7 +85,10 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 	const [page, setPage] = useState(1);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-	const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
+	const [memberToDelete, setMemberToDelete] = useState<{
+		id: string;
+		name: string;
+	} | null>(null);
 	const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = useState(false);
 	const [isBulkMarkConfirmOpen, setIsBulkMarkConfirmOpen] = useState(false);
 
@@ -112,7 +122,7 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 	const handleAddMember = useCallback(
 		async (data: { name: string; email: string; phone: string }) => {
 			try {
-				const result = await addEventMember({
+				await addEventMember({
 					data: {
 						eventId,
 						name: data.name,
@@ -120,13 +130,12 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 						phone: data.phone || undefined,
 					},
 				});
-				console.log("[DEBUG] addEventMember result:", result);
-				toast.success("Member added successfully!");
+				toast.success("Member added! Voting key sent to their email.");
 				await fetchMembers(page, searchQuery);
 				router.refresh();
 			} catch (error) {
-				console.error("[DEBUG] addEventMember error:", error);
-				const message = error instanceof Error ? error.message : "Failed to add member";
+				const message =
+					error instanceof Error ? error.message : "Failed to add member";
 				toast.error(`Failed to add member: ${message}`);
 			}
 		},
@@ -148,13 +157,14 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 						})),
 					},
 				});
-				console.log("[DEBUG] bulkAddEventMembers result:", result);
-				toast.success(`${result.added} members added successfully!`);
+				toast.success(
+					`${result.added} members added! Voting keys sent to their emails.`,
+				);
 				await fetchMembers(1, searchQuery);
 				router.refresh();
 			} catch (error) {
-				console.error("[DEBUG] bulkAddEventMembers error:", error);
-				const message = error instanceof Error ? error.message : "Failed to bulk add members";
+				const message =
+					error instanceof Error ? error.message : "Failed to bulk add members";
 				toast.error(`Failed to bulk add: ${message}`);
 			}
 		},
@@ -163,12 +173,19 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 
 	const handleRemove = useCallback(
 		(memberId: string) => {
+			if (isVotingStarted) {
+				toast.error(
+					"Cannot remove members once voting has started to maintain election integrity.",
+				);
+				return;
+			}
+
 			startTransition(async () => {
 				try {
 					await removeEventMember({ data: { memberId } });
 					toast.success("Member removed.");
 					await fetchMembers(page, searchQuery);
-					await router.refresh();
+					router.refresh();
 				} catch (error) {
 					toast.error(
 						error instanceof Error ? error.message : "Failed to remove member",
@@ -176,7 +193,7 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 				}
 			});
 		},
-		[fetchMembers, page, searchQuery, router],
+		[isVotingStarted, fetchMembers, page, searchQuery, router],
 	);
 
 	const handleMarkAttendance = useCallback(
@@ -186,7 +203,7 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 				toast.success("Attendance marked!");
 				setIsAttendanceDialogOpen(false);
 				await fetchMembers(page, searchQuery);
-				await router.refresh();
+				router.refresh();
 			} catch (error) {
 				toast.error(
 					error instanceof Error ? error.message : "Failed to mark attendance",
@@ -196,43 +213,44 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 		[eventId, fetchMembers, page, searchQuery, router],
 	);
 
-	const handleCopyCode = useCallback((code: string) => {
-		navigator.clipboard.writeText(code);
-		toast.success("Code copied to clipboard!");
-	}, []);
-
 	const handleSendSingleCode = useCallback(
 		async (memberId: string) => {
-			try {
-				const result = await sendSingleCode({ data: { memberId } });
-				if (result.success) {
-					toast.success("Code sent successfully");
-				} else {
-					toast.error("Failed to send code");
+			startTransition(async () => {
+				try {
+					const result = await sendSingleCode({ data: { memberId } });
+					if (result.success) {
+						toast.success("Voting key sent to member's email!");
+					} else {
+						toast.error(result.error || "Failed to send voting key");
+					}
+				} catch (error) {
+					toast.error(
+						error instanceof Error ? error.message : "Failed to send voting key",
+					);
 				}
-			} catch (error) {
-				toast.error(
-					error instanceof Error ? error.message : "Failed to send code",
-				);
-			}
+			});
 		},
 		[],
 	);
 
 	const handleSendBulkCodes = useCallback(async () => {
-		try {
-			const result = await sendCodes({ data: { eventId } });
-			if (result.sent === 0 && result.total === 0) {
-				toast.error("No members with email addresses found");
-				return;
+		startTransition(async () => {
+			try {
+				const result = await sendCodes({ data: { eventId } });
+				if (result.sent === 0 && result.total === 0) {
+					toast.error("No members with email addresses found");
+					return;
+				}
+				toast.success(
+					`Voting keys sent to ${result.sent} of ${result.total} members!`,
+				);
+				setIsSendCodesConfirmOpen(false);
+			} catch (error) {
+				toast.error(
+					error instanceof Error ? error.message : "Failed to send keys",
+				);
 			}
-			toast.success(`Codes sent to ${result.sent} of ${result.total} members`);
-			setIsSendCodesConfirmOpen(false);
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to send codes",
-			);
-		}
+		});
 	}, [eventId]);
 
 	const columns = useMemo<ColumnDef<EventMember>[]>(
@@ -245,7 +263,9 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 							table.getIsAllPageRowsSelected() ||
 							(table.getIsSomePageRowsSelected() && false)
 						}
-						onCheckedChange={(value: any) => table.toggleAllPageRowsSelected(!!value)}
+						onCheckedChange={(value: any) =>
+							table.toggleAllPageRowsSelected(!!value)
+						}
 						aria-label="Select all"
 					/>
 				),
@@ -262,7 +282,7 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 			{
 				accessorKey: "name",
 				header: ({ column }) => (
-					<DataTableColumnHeader column={column} title="Name" />
+					<DataTableColumnHeader column={column} title="Member / Voter" />
 				),
 				cell: ({ row }) => {
 					const member = row.original;
@@ -280,27 +300,24 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 			{
 				accessorKey: "uniqueCode",
 				header: ({ column }) => (
-					<DataTableColumnHeader column={column} title="Code" />
+					<DataTableColumnHeader column={column} title="Voter Key" />
 				),
-				cell: ({ row }) => {
-					const code = row.getValue("uniqueCode") as string;
+				cell: () => {
 					return (
 						<div className="flex items-center gap-2">
-							<code className="px-2 py-1 bg-muted rounded text-sm font-mono">
-								{code}
-							</code>
-							<Button
-								size="icon"
-								variant="ghost"
-								className="size-6"
-								onClick={() => handleCopyCode(code)}
-								title="Copy code"
+							<span className="text-xs font-mono text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-md border border-border/50 select-none">
+								••••••••••••
+							</span>
+							<Badge
+								variant="outline"
+								className="text-[10px] text-muted-foreground font-normal gap-1"
 							>
-								<ClipboardCheck className="size-3" />
-							</Button>
+								<Lock className="size-2.5" /> Confidential
+							</Badge>
 						</div>
 					);
 				},
+				enableSorting: false,
 			},
 			{
 				accessorKey: "status",
@@ -309,194 +326,258 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 				),
 				cell: ({ row }) => {
 					const status = row.getValue("status") as string;
-					const variant = statusVariantMap[status] || "info";
 					return (
 						<StatusBadge
-							variant={variant}
+							variant={statusVariantMap[status] ?? "info"}
 							text={status}
-							size="sm"
 						/>
 					);
 				},
+				enableSorting: true,
 			},
 			{
 				accessorKey: "createdAt",
 				header: ({ column }) => (
 					<DataTableColumnHeader column={column} title="Added" />
 				),
-				cell: ({ row }) => {
-					const date = row.getValue("createdAt") as string;
-					return (
-						<span className="text-sm text-muted-foreground">
-							{formatDate(date)}
-						</span>
-					);
-				},
+				cell: ({ row }) => (
+					<span className="text-xs text-muted-foreground">
+						{formatDate(row.getValue("createdAt") as string)}
+					</span>
+				),
+				enableSorting: true,
 			},
 			{
 				id: "actions",
-				header: () => <div className="text-right">Actions</div>,
-				enableHiding: false,
-				enableSorting: false,
+				header: () => <span className="text-xs font-semibold">Actions</span>,
 				cell: ({ row }) => {
-					if (!canEdit) return null;
 					const member = row.original;
 					return (
-						<div className="flex items-center justify-end gap-1">
+						<div className="flex items-center gap-1.5 justify-end">
 							{member.email && (
 								<Button
+									variant="outline"
 									size="sm"
-									variant="ghost"
+									className="h-8 px-2 text-xs gap-1"
 									onClick={() => handleSendSingleCode(member.id)}
 									disabled={isPending}
-									title="Send access code via email"
+									title="Email private voting key to this member"
 								>
-									<Mail className="size-4" />
+									<Send className="size-3" />
+									Send Key
 								</Button>
 							)}
-							<Button
-								size="sm"
-								variant="ghost"
-								className="text-destructive hover:text-destructive"
-								onClick={() => setMemberToDelete({ id: member.id, name: member.name })}
-								disabled={isPending}
-								title="Remove member"
-							>
-								<Trash2 className="size-4" />
-							</Button>
+
+							{canEdit && (
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+									disabled={isPending || isVotingStarted}
+									onClick={() =>
+										setMemberToDelete({ id: member.id, name: member.name })
+									}
+									title={
+										isVotingStarted
+											? "Members locked: voting is live"
+											: "Remove member"
+									}
+								>
+									<Trash2 className="size-4" />
+								</Button>
+							)}
 						</div>
 					);
 				},
+				enableSorting: false,
 			},
 		],
-		[canEdit, setMemberToDelete, isPending, handleCopyCode, handleSendSingleCode],
+		[canEdit, handleSendSingleCode, isPending, isVotingStarted],
 	);
 
-	const table = useDataTable(members, columns, {
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		enableRowSelection: true,
-		onRowSelectionChange: setRowSelection,
+	const table = useDataTable({
+		data: members,
+		columns,
+		pageCount: Math.ceil(total / 20),
 		state: {
+			pagination: { pageIndex: page - 1, pageSize: 20 },
 			rowSelection,
 		},
+		onRowSelectionChange: setRowSelection,
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		manualPagination: true,
 	});
 
-	const selectedRows = table.getSelectedRowModel().flatRows;
-	const selectedCount = selectedRows.length;
+	const selectedCount = Object.keys(rowSelection).filter(
+		(k) => rowSelection[k],
+	).length;
 
-	const handleBulkDelete = useCallback(async () => {
-		const memberIds = selectedRows.map((r) => r.original.id);
-		if (memberIds.length === 0) return;
+	const handleBulkRemove = () => {
+		if (isVotingStarted) {
+			toast.error(
+				"Cannot remove members once voting has started to maintain election integrity.",
+			);
+			return;
+		}
+
+		const selectedMemberIds = Object.keys(rowSelection)
+			.filter((k) => rowSelection[k])
+			.map((idx) => members[parseInt(idx, 10)]?.id)
+			.filter(Boolean) as string[];
+
+		if (selectedMemberIds.length === 0) return;
+
 		startTransition(async () => {
 			try {
-				await bulkRemoveEventMembers({ data: { memberIds } });
-				toast.success("Selected members removed.");
+				await bulkRemoveEventMembers({ data: { memberIds: selectedMemberIds } });
+				toast.success(`${selectedMemberIds.length} members removed.`);
 				setRowSelection({});
 				setIsBulkDeleteConfirmOpen(false);
 				await fetchMembers(page, searchQuery);
-				await router.refresh();
+				router.refresh();
 			} catch (error) {
 				toast.error(
-					error instanceof Error ? error.message : "Failed to remove selected members",
+					error instanceof Error
+						? error.message
+						: "Failed to remove selected members",
 				);
 			}
 		});
-	}, [selectedRows, fetchMembers, page, searchQuery, router]);
+	};
 
-	const handleBulkMarkAttendance = useCallback(async () => {
-		const memberIds = selectedRows.map((r) => r.original.id);
-		if (memberIds.length === 0) return;
+	const handleBulkAttendance = () => {
+		const selectedMemberIds = Object.keys(rowSelection)
+			.filter((k) => rowSelection[k])
+			.map((idx) => members[parseInt(idx, 10)]?.id)
+			.filter(Boolean) as string[];
+
+		if (selectedMemberIds.length === 0) return;
+
 		startTransition(async () => {
 			try {
-				await bulkMarkAttendance({ data: { eventId, memberIds } });
-				toast.success("Attendance marked for selected members.");
+				await bulkMarkAttendance({ data: { memberIds: selectedMemberIds } });
+				toast.success(
+					`Attendance marked for ${selectedMemberIds.length} members.`,
+				);
 				setRowSelection({});
 				setIsBulkMarkConfirmOpen(false);
 				await fetchMembers(page, searchQuery);
-				await router.refresh();
+				router.refresh();
 			} catch (error) {
 				toast.error(
 					error instanceof Error ? error.message : "Failed to mark attendance",
 				);
 			}
 		});
-	}, [eventId, selectedRows, fetchMembers, page, searchQuery, router]);
+	};
 
 	return (
-		<div className="space-y-4">
-			<Card>
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between gap-4 mb-4">
-						<input
-							type="search"
-							placeholder="Search members..."
-							value={searchQuery}
-							onChange={(e) => {
-								setSearchQuery(e.target.value);
-								fetchMembers(1, e.target.value);
-							}}
-							className="flex h-9 w-full max-w-sm rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-						/>
+		<div className="space-y-6">
+			{/* Voting Started Lock Warning Banner */}
+			{isVotingStarted && (
+				<div className="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30 p-3.5 flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
+					<div className="flex items-center gap-2.5">
+						<Lock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+						<span>
+							<strong>Electoral Member Lock Active:</strong> Voting has started
+							for this event. In accordance with ballot integrity rules, registered
+							voter members cannot be deleted from the system.
+						</span>
+					</div>
+				</div>
+			)}
+
+			<Card className="border-border/80 shadow-xs">
+				<CardContent className="p-6 space-y-6">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+						<div>
+							<h3 className="text-lg font-bold text-foreground">
+								Registered Members &amp; Voters
+							</h3>
+							<p className="text-xs text-muted-foreground">
+								{total} total members registered · Keys are private &amp; confidential
+							</p>
+						</div>
+
 						{canEdit && (
-							<div className="flex items-center gap-2 flex-shrink-0">
-								<RegistrationFieldManager eventId={eventId} canEdit={canEdit} />
+							<div className="flex flex-wrap items-center gap-2">
 								<Button
-									size="sm"
 									variant="outline"
-									onClick={() => setIsSendCodesConfirmOpen(true)}
-									className="gap-1.5"
-								>
-									<Mail className="size-4" />
-									Send Codes
-								</Button>
-								<Button
 									size="sm"
-									variant="outline"
+									className="gap-1.5 text-xs"
 									onClick={() => setIsAttendanceDialogOpen(true)}
-									className="gap-1.5"
 								>
-									<QrCode className="size-4" />
-									Attendance
+									<QrCode className="size-3.5" /> Mark Attendance
 								</Button>
+
+								<Button
+									variant="outline"
+									size="sm"
+									className="gap-1.5 text-xs"
+									onClick={() => setIsSendCodesConfirmOpen(true)}
+									disabled={isPending || members.length === 0}
+								>
+									<Mail className="size-3.5" /> Email All Keys
+								</Button>
+
 								<Button
 									size="sm"
+									className="gap-1.5 text-xs font-semibold"
 									onClick={() => setIsAddDialogOpen(true)}
-									className="gap-1.5"
 								>
-									<UserPlus className="size-4" />
-									Add Member
+									<UserPlus className="size-3.5" /> Add Members
 								</Button>
 							</div>
 						)}
 					</div>
-					<div className="rounded-md border bg-card mb-4">
-						<DataTable
-							table={table}
-							columnsCount={columns.length}
-							emptyState={
-								<EmptyState
-									variant="users"
-									title="No members yet"
-									description="Add members to this event to track attendance and participation."
-								/>
-							}
-						/>
-					</div>
-					<div className="flex items-center justify-between">
-						<p className="text-sm text-muted-foreground">
-							{table.getPaginationRowModel().rows.length} of {total} member(s)
-						</p>
-						<DataTablePagination table={table} />
-					</div>
+
+					{selectedCount > 0 && canEdit && (
+						<div className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs">
+							<span className="font-semibold text-primary">
+								{selectedCount} members selected
+							</span>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									className="h-7 text-xs gap-1"
+									onClick={() => setIsBulkMarkConfirmOpen(true)}
+									disabled={isPending}
+								>
+									<ClipboardCheck className="size-3" /> Mark Attended
+								</Button>
+								<Button
+									variant="destructive"
+									size="sm"
+									className="h-7 text-xs gap-1"
+									disabled={isPending || isVotingStarted}
+									onClick={() => setIsBulkDeleteConfirmOpen(true)}
+								>
+									<Trash2 className="size-3" /> Delete Selected
+								</Button>
+							</div>
+						</div>
+					)}
+
+					<DataTable
+						table={table}
+						columns={columns}
+						searchKey="name"
+						searchPlaceholder="Search members by name..."
+						onSearch={(q) => setSearchQuery(q)}
+					/>
+
+					{total > 0 && <DataTablePagination table={table} totalCount={total} />}
 				</CardContent>
 			</Card>
 
+			{/* Dialogs */}
 			<AddMemberDialog
 				open={isAddDialogOpen}
 				onOpenChange={setIsAddDialogOpen}
-				onAdd={handleAddMember}
-				onBulkAdd={handleBulkAdd}
+				onAddSingle={handleAddMember}
+				onAddBulk={handleBulkAdd}
 			/>
 
 			<MarkAttendanceDialog
@@ -505,123 +586,48 @@ export function MemberManager({ eventId, canEdit = true }: MemberManagerProps) {
 				onMark={handleMarkAttendance}
 			/>
 
-			<SendCodesConfirmDialog
-				open={isSendCodesConfirmOpen}
-				onOpenChange={setIsSendCodesConfirmOpen}
-				onConfirm={handleSendBulkCodes}
-				memberCount={total}
-			/>
-
-			{selectedCount > 0 && (
-				<div className="fixed bottom-6 right-6 z-50 bg-background border rounded-xl shadow-xl p-4 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4 border-primary/20">
-					<div className="text-sm font-medium">
-						<span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold mr-2">
-							{selectedCount}
-						</span>
-						selected
-					</div>
-					<div className="h-4 w-[1px] bg-border" />
-					<div className="flex items-center gap-2">
-						<Button
-							size="sm"
-							variant="outline"
-							className="gap-1.5"
-							onClick={() => setIsBulkMarkConfirmOpen(true)}
-							disabled={isPending}
-						>
-							<QrCode className="size-4" />
-							Mark Attended
-						</Button>
-						<Button
-							size="sm"
-							variant="destructive"
-							className="gap-1.5"
-							onClick={() => setIsBulkDeleteConfirmOpen(true)}
-							disabled={isPending}
-						>
-							<Trash2 className="size-4" />
-							Delete
-						</Button>
-					</div>
-				</div>
-			)}
-
 			<ConfirmDialog
-				open={memberToDelete !== null}
+				open={!!memberToDelete}
 				onOpenChange={(open) => !open && setMemberToDelete(null)}
+				title="Remove Member"
+				description={`Are you sure you want to remove ${memberToDelete?.name}? This action cannot be undone.`}
+				confirmLabel="Remove"
+				variant="destructive"
 				onConfirm={() => {
 					if (memberToDelete) {
 						handleRemove(memberToDelete.id);
 						setMemberToDelete(null);
 					}
 				}}
-				title="Remove Member?"
-				description={`Are you sure you want to remove ${memberToDelete?.name}? This action cannot be undone.`}
-				confirmText="Remove"
-				variant="destructive"
 			/>
 
 			<ConfirmDialog
 				open={isBulkDeleteConfirmOpen}
 				onOpenChange={setIsBulkDeleteConfirmOpen}
-				onConfirm={handleBulkDelete}
-				title={`Remove ${selectedCount} participant(s)?`}
-				description="This will revoke access codes and delete all registration data for all selected participants. This action cannot be undone."
-				confirmText="Delete"
+				title="Delete Selected Members"
+				description={`Are you sure you want to remove ${selectedCount} selected members?`}
+				confirmLabel="Delete"
 				variant="destructive"
+				onConfirm={handleBulkRemove}
 			/>
 
 			<ConfirmDialog
 				open={isBulkMarkConfirmOpen}
 				onOpenChange={setIsBulkMarkConfirmOpen}
-				onConfirm={handleBulkMarkAttendance}
-				title={`Mark ${selectedCount} participant(s) as attended?`}
-				description="This will update the status of all selected participants to attended."
-				confirmText="Mark Attended"
-				variant="primary"
+				title="Mark Attendance"
+				description={`Mark attendance for ${selectedCount} selected members?`}
+				confirmLabel="Confirm"
+				onConfirm={handleBulkAttendance}
 			/>
-		</div>
-	);
-}
 
-function SendCodesConfirmDialog({
-	open,
-	onOpenChange,
-	onConfirm,
-	memberCount,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	onConfirm: () => void;
-	memberCount: number;
-}) {
-	const [isPending, startTransition] = useTransition();
-
-	return (
-		<div
-			role="dialog"
-			aria-modal="true"
-			className={open ? "fixed inset-0 z-50 flex items-center justify-center bg-black/50" : "hidden"}
-			onClick={() => onOpenChange(false)}
-		>
-			<div
-				className="bg-background rounded-lg shadow-lg p-6 max-w-md w-full mx-4"
-				onClick={(e) => e.stopPropagation()}
-			>
-				<h3 className="text-lg font-semibold mb-2">Send Bulk Codes?</h3>
-				<p className="text-sm text-muted-foreground mb-4">
-					This will send access codes to ALL {memberCount} participants who have an
-					email address. This action cannot be undone.
-				</p>
-				<div className="flex justify-end gap-2">
-					<Button variant="outline" onClick={() => onOpenChange(false)}>
-						Cancel
-					</Button>
-					<Button onClick={() => startTransition(onConfirm)} disabled={isPending}>
-						{isPending ? "Sending..." : "Send Codes"}
-					</Button>
-				</div>
-			</div>
+			<ConfirmDialog
+				open={isSendCodesConfirmOpen}
+				onOpenChange={setIsSendCodesConfirmOpen}
+				title="Send Voting Keys via Email"
+				description="This will send an official email with the organization banner and confidential voting key to all registered members with email addresses. Continue?"
+				confirmLabel="Send Keys"
+				onConfirm={handleSendBulkCodes}
+			/>
 		</div>
 	);
 }

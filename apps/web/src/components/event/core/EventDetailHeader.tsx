@@ -4,23 +4,26 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+	Calendar,
 	Check,
 	ChevronDown,
 	ExternalLink,
 	EyeOff,
+	LayoutDashboard,
 	Loader2,
+	MapPin,
 	Pencil,
 	Plus,
+	Settings,
+	Share2,
 	Ticket,
 	Users,
 	Vote,
 	X,
-	LayoutDashboard,
-	Settings,
 } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
-import AddFilesIcon from "@/assets/add-files.svg";
 import { toast } from "sonner";
+import AddFilesIcon from "@/assets/add-files.svg";
 import { StatusBadge } from "@/components/common/status-badge";
 import {
 	AlertDialog,
@@ -43,10 +46,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useImageUpload } from "@/hooks/use-image-upload";
-import { getEventLifecycleStatus } from "@/lib/event-status";
-import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
+import { cleanStorageKey, getEventImageUrl } from "@/lib/image-url-utils";
 import { updateExistingEvent } from "@/lib/server-functions/event-mgmt";
-import { cn, getErrorMessage } from "@/lib/utils";
+import { cn, formatDate, getErrorMessage } from "@/lib/utils";
 
 interface EventDetailHeaderProps {
 	readonly event: any;
@@ -63,14 +65,25 @@ interface EventDetailHeaderProps {
 	readonly showMembers?: boolean;
 }
 
-const statusBadgeVariants: Record<string, "draft" | "upcoming" | "ongoing" | "ended"> = {
+const statusBadgeVariants: Record<string, "draft" | "published" | "ongoing" | "ended" | "upcoming" | "cancelled"> = {
 	draft: "draft",
-	upcoming: "upcoming",
+	published: "published",
 	ongoing: "ongoing",
 	ended: "ended",
+	upcoming: "upcoming",
+	cancelled: "cancelled",
 };
 
-
+function getEventLifecycle(event: any): "draft" | "ongoing" | "ended" | "upcoming" | "published" {
+	if (event.status === "draft") return "draft";
+	const now = new Date();
+	const start = event.startDate ? new Date(event.startDate) : null;
+	const end = event.endDate ? new Date(event.endDate) : null;
+	if (start && start > now) return "upcoming";
+	if (start && (!end || end >= now)) return "ongoing";
+	if (end && end < now) return "ended";
+	return "published";
+}
 
 export function EventDetailHeader({
 	event,
@@ -89,39 +102,44 @@ export function EventDetailHeader({
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
 	const [isStatusChanging, startStatusTransition] = useTransition();
-	const [editingTitle, setEditingTitle] = useState(false);
-	const [titleValue, setTitleValue] = useState(event.title ?? "");
-	const bannerImage = event.bannerImage ?? "";
-	const [flierImage, setFlierImage] = useState(event.flierImage ?? "");
 	const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
 
+	// Editable state
+	const [editingTitle, setEditingTitle] = useState(false);
+	const [titleValue, setTitleValue] = useState(event.title || "");
+	const [flierImage, setFlierImage] = useState(
+		cleanStorageKey(event.flierImage || ""),
+	);
+
+	// File input ref
 	const flierInputRef = useRef<HTMLInputElement>(null);
 
-	const { isUploading: isUploadingFlier, upload: uploadFlier } = useImageUpload({
-		folder: "events",
-		convertOptions: { quality: 0.9, maxWidth: 800, maxHeight: 800 },
-	});
+	// Image upload hook
+	const { upload: uploadFlier, isUploading: isUploadingFlier } = useImageUpload(
+		{
+			folder: "events",
+			convertOptions: { quality: 0.9, maxWidth: 1200, maxHeight: 1200 },
+		},
+	);
 
-	const lifecycleStatus = getEventLifecycleStatus(event);
-
-	// The pill badge always shows the date-based lifecycle status
-	// (Ongoing, Ended, Upcoming). Publication status (Draft/Published)
-	// is handled by the separate dropdown button in the header actions.
+	const lifecycleStatus = getEventLifecycle(event);
 	const activeStatusKey = lifecycleStatus;
 	const activeStatusLabel =
 		lifecycleStatus === "ongoing"
 			? "Ongoing"
 			: lifecycleStatus === "ended"
 				? "Ended"
-				: "Upcoming";
+				: lifecycleStatus === "upcoming"
+					? "Upcoming"
+					: lifecycleStatus === "draft"
+						? "Draft"
+						: "Published";
 
- 	const organization = event?.organization;
- 	const orgBannerUrl = organization?.bannerUrl ? getOrgImageUrl(organization.bannerUrl) : null;
- 	const bannerDisplayUrl = orgBannerUrl || (bannerImage ? getEventImageUrl(bannerImage) : null);
- 	const flierDisplayUrl = getEventImageUrl(flierImage);
- 	const hasPaymentAccount = !!organization?.paystackAccountNumber;
+	const organization = event?.organization;
+	const flierDisplayUrl = flierImage ? getEventImageUrl(flierImage) : null;
+	const hasPaymentAccount = !!organization?.paystackAccountNumber;
 
- 	// Save single field
+	// Save single field
 	async function saveField(fieldName: string, value: any) {
 		startTransition(async () => {
 			try {
@@ -180,8 +198,9 @@ export function EventDetailHeader({
 		if (file) {
 			const res = await uploadFlier(file);
 			if (res) {
-				setFlierImage(res.url);
-				await saveField("flierImage", res.url);
+				const relativeKey = cleanStorageKey(res.key || res.url);
+				setFlierImage(relativeKey);
+				await saveField("flierImage", relativeKey);
 			}
 		}
 	};
@@ -201,43 +220,42 @@ export function EventDetailHeader({
 		setEditingTitle(false);
 	};
 
+	const handleShare = () => {
+		const url = `${window.location.origin}/events/${event.slug || event.id}`;
+		navigator.clipboard.writeText(url);
+		toast.success("Event link copied to clipboard!");
+	};
+
+	const dateStr = event.startDate
+		? event.endDate
+			? `${formatDate(event.startDate)} – ${formatDate(event.endDate)}`
+			: formatDate(event.startDate)
+		: null;
+
 	return (
 		<>
-			<div className="bg-card border rounded-2xl rounded-t-none overflow-hidden">
+			<div className="space-y-4">
 				{/* Hidden file input */}
-			<input
-				ref={flierInputRef}
-				type="file"
-				accept="image/*"
-				onChange={handleFlierUpload}
-				className="hidden"
-			/>
+				<input
+					ref={flierInputRef}
+					type="file"
+					accept="image/*"
+					onChange={handleFlierUpload}
+					className="hidden"
+				/>
 
-			{/* Banner Container (Inherits Organization Banner) */}
-			<div className="relative h-36 sm:h-36 md:h-48 bg-linear-to-r from-primary/20 via-primary/10 to-primary/5 overflow-hidden">
-				{bannerDisplayUrl ? (
-					<img
-						src={bannerDisplayUrl}
-						alt={organization?.name || event.title || "Header Banner"}
-						className="size-full object-cover"
-					/>
-				) : (
-					<div className="size-full bg-linear-to-r from-primary/15 via-primary/5 to-accent/15" />
-				)}
-			</div>
-
-			{/* Lower Info Section (Clean White/Card Background) */}
-			<div className="px-6 pb-6 pt-0 relative">
-				<div className="flex flex-col sm:flex-row gap-5 sm:items-end">
-					{/* Flier Image (Overlaps Banner Only) */}
-					<div className="relative shrink-0 -mt-14 sm:-mt-16 z-10">
-						<div className="size-28 sm:size-36 rounded-2xl border-4 border-card bg-card  overflow-hidden group/flier relative">
-							{flierImage && flierDisplayUrl ? (
+				{/* Unified Hero Card with Clean Light Primary-50 Background, No Shadow, No Border Bottom */}
+				<div className="relative rounded-t-2xl rounded-b-none border-t border-x border-b-0 border-border bg-primary-50/70 dark:bg-primary-950/20 overflow-hidden shadow-none">
+					{/* Card Content: Flier sits flush at bottom, details beside */}
+					<div className="flex flex-col md:flex-row items-stretch md:items-end gap-6 pl-5 pt-5 sm:pl-7 sm:pt-7 pr-5 sm:pr-7 pb-5 sm:pb-7 md:pb-0">
+						{/* Event Flier (Flush with bottom, rounded top, no bottom roundness, border-background) */}
+						<div className="relative shrink-0 w-36 sm:w-44 md:w-52 h-36 sm:h-44 md:h-56 rounded-t-2xl rounded-b-none border-t border-x border-b-0 border-background bg-background overflow-hidden shadow-none group/flier self-start md:self-end">
+							{flierDisplayUrl ? (
 								<>
 									<img
 										src={flierDisplayUrl}
 										alt={event.title}
-										className="size-full object-cover"
+										className="size-full object-cover rounded-t-2xl rounded-b-none"
 									/>
 									{canEdit && (
 										<>
@@ -245,20 +263,27 @@ export function EventDetailHeader({
 												type="button"
 												onClick={() => flierInputRef.current?.click()}
 												disabled={isUploadingFlier}
-												className="absolute inset-0 bg-black/50 opacity-0 group-hover/flier:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+												className="absolute inset-0 bg-black/50 opacity-0 group-hover/flier:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-t-2xl rounded-b-none"
+												aria-label="Change flier"
 											>
 												{isUploadingFlier ? (
-													<Loader2 className="size-5 text-white animate-spin" />
+													<Loader2 className="size-6 text-white animate-spin" />
 												) : (
-													<Pencil className="size-5 text-white" />
+													<div className="flex flex-col items-center text-white">
+														<Pencil className="size-5 mb-1" />
+														<span className="text-xs font-semibold">
+															Change Flier
+														</span>
+													</div>
 												)}
 											</button>
 											<button
 												type="button"
 												onClick={handleRemoveFlier}
-												className="absolute top-1.5 right-1.5 rounded-full bg-destructive p-1 text-destructive-foreground shadow-sm hover:bg-destructive/90 z-10 opacity-0 group-hover/flier:opacity-100 transition-opacity"
+												className="absolute top-2 right-2 rounded-full bg-destructive p-1 text-destructive-foreground shadow-sm hover:bg-destructive/90 z-10 opacity-0 group-hover/flier:opacity-100 transition-opacity"
+												aria-label="Remove flier"
 											>
-												<X className="size-3" />
+												<X className="size-3.5" />
 											</button>
 										</>
 									)}
@@ -266,194 +291,251 @@ export function EventDetailHeader({
 							) : canEdit ? (
 								<button
 									type="button"
-									className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors bg-background hover:bg-muted/50 "
+									className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-primary-100/50 dark:hover:bg-primary-900/30 transition-colors p-3 rounded-t-2xl rounded-b-none"
 									onClick={() => flierInputRef.current?.click()}
 									disabled={isUploadingFlier}
 								>
 									{isUploadingFlier ? (
-										<Loader2 className="size-6 animate-spin text-muted-foreground" />
+										<Loader2 className="size-6 animate-spin text-primary" />
 									) : (
 										<>
-											<AddFilesIcon className="size-12 mb-1" />
-											<span className="text-[10px] text-muted-foreground">
+											<AddFilesIcon className="size-12 mb-1.5 text-primary/80" />
+											<span className="text-xs font-medium text-foreground">
 												Upload Flier
+											</span>
+											<span className="text-[10px] text-muted-foreground mt-0.5">
+												PNG, JPG or WebP
 											</span>
 										</>
 									)}
 								</button>
 							) : (
-								<div className="w-full h-full flex items-center justify-center bg-muted p-3">
-									<AddFilesIcon className="size-16" />
+								<div className="w-full h-full flex items-center justify-center p-3 rounded-t-2xl rounded-b-none">
+									<AddFilesIcon className="size-14 text-muted-foreground/60" />
 								</div>
 							)}
 						</div>
-					</div>
 
-					{/* Title, Badges & Meta (Completely in the Lower White Section) */}
-					<div className="flex-1 min-w-0 pt-3 sm:pt-4">
-						{/* Badges Row */}
-						<div className="flex flex-wrap items-center gap-2 mb-2">
-							{/* Main Status Pill: Draft, Ongoing, Ended, or Upcoming */}
+						{/* Event Details */}
+						<div className="flex-1 min-w-0 flex flex-col justify-center space-y-3 pb-0 md:pb-6">
+
+							{/* Title with inline edit */}
+							{editingTitle ? (
+								<div className="flex items-center gap-2 max-w-xl">
+									<Input
+										value={titleValue}
+										onChange={(e) => setTitleValue(e.target.value)}
+										className="text-xl sm:text-2xl font-bold bg-background"
+										autoFocus
+									/>
+									<Button
+										size="icon"
+										variant="ghost"
+										onClick={handleSaveTitle}
+										disabled={isPending}
+									>
+										<Check className="size-4 text-emerald-600" />
+									</Button>
+									<Button
+										size="icon"
+										variant="ghost"
+										onClick={() => {
+											setTitleValue(event.title);
+											setEditingTitle(false);
+										}}
+									>
+										<X className="size-4" />
+									</Button>
+								</div>
+							) : (
+								<div className="flex items-center gap-2.5">
+									<button
+										type="button"
+										className={cn(
+											"text-2xl sm:text-3xl font-black tracking-tight text-left text-foreground flex items-center gap-2 group",
+											canEdit && "cursor-pointer hover:text-primary transition-colors",
+										)}
+										onClick={() => canEdit && setEditingTitle(true)}
+									>
+										<span>{event.title}</span>
+										{canEdit && (
+											<Pencil className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+										)}
+									</button>
+								</div>
+							)}
+
+							{/* Organization & Slug */}
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+								{organization?.name && (
+									<span className="font-semibold text-foreground/80">
+										{organization.name}
+									</span>
+								)}
+								{event.slug && (
+									<span className="font-mono text-muted-foreground">
+										/{event.slug}
+									</span>
+								)}
+							</div>
+
+							{/* Date & Location Rows */}
+							<div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground pt-0.5">
+								{dateStr && (
+									<div className="flex items-center gap-1.5 font-medium">
+										<Calendar className="size-3.5 text-primary shrink-0" />
+										<span>{dateStr}</span>
+									</div>
+								)}
+
+								{(event.venueName || event.location) && (
+									<div className="flex items-center gap-1.5 font-medium">
+										<MapPin className="size-3.5 text-primary shrink-0" />
+										<span>
+											{[event.venueName, event.location]
+												.filter(Boolean)
+												.join(", ")}
+										</span>
+									</div>
+								)}
+							</div>
+
+							{/* Action Buttons & Status Badges Row */}
+							<div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
+								{/* Left: Action Buttons */}
+								<div className="flex flex-wrap items-center gap-2.5">
+								{/* Primary Add Actions */}
+								{canEdit && isTicketed && onAddTicket && (
+									<Button
+										size="sm"
+										onClick={onAddTicket}
+										className="gap-1.5 shadow-xs"
+									>
+										<Plus className="size-4" />
+										Add Ticket Tier
+									</Button>
+								)}
+								{canEdit && isVoting && onAddCategory && (
+									<Button
+										size="sm"
+										onClick={onAddCategory}
+										className="gap-1.5 shadow-xs"
+									>
+										<Plus className="size-4" />
+										Add Category
+									</Button>
+								)}
+
+								{/* Share Button */}
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleShare}
+									className="gap-1.5 bg-background/80 hover:bg-background"
+								>
+									<Share2 className="size-3.5" />
+									Share
+								</Button>
+
+								{/* Publication Status Selector Dropdown */}
+								{canEdit && (
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button
+												variant="outline"
+												size="sm"
+												className="gap-2 capitalize bg-background/80 hover:bg-background"
+												disabled={isStatusChanging}
+											>
+												{isStatusChanging ? (
+													<Loader2 className="size-3.5 animate-spin" />
+												) : (
+													<>
+														<span
+															className={cn(
+																"size-2 rounded-full",
+																event.status === "published"
+																	? "bg-green-500"
+																	: "bg-yellow-500",
+															)}
+														/>
+														{event.status === "published"
+															? "Published"
+															: "Draft"}
+														<ChevronDown className="size-3.5 text-muted-foreground" />
+													</>
+												)}
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="end">
+											<DropdownMenuItem
+												onClick={() =>
+													handlePublicationStatusChange("draft")
+												}
+												className="gap-2 cursor-pointer"
+											>
+												<span className="size-2 rounded-full bg-yellow-500" />
+												Draft
+											</DropdownMenuItem>
+											<DropdownMenuItem
+												onClick={() =>
+													handlePublicationStatusChange("published")
+												}
+												className="gap-2 cursor-pointer"
+											>
+												<span className="size-2 rounded-full bg-green-500" />
+												Published
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								)}
+
+								{/* Public Link */}
+								{event.slug && (
+									<Button
+										asChild
+										variant="ghost"
+										size="sm"
+										className="gap-1.5 text-muted-foreground hover:text-foreground"
+									>
+										<Link
+											href={`/events/${event.slug}` as any}
+											target="_blank"
+										>
+											<ExternalLink className="size-3.5" />
+											Public Page
+										</Link>
+									</Button>
+								)}
+							</div>
+
+						{/* Right: Status Badges */}
+						<div className="flex flex-wrap items-center gap-2">
 							<StatusBadge
 								variant={statusBadgeVariants[activeStatusKey] || "default"}
 								text={activeStatusLabel}
 							/>
-
-							{/* Event Type Badge */}
 							<StatusBadge variant={event.type} text={event.type} />
-
-							
-
-							{/* Private Badge (if not public) */}
 							{!event.isPublic && (
-								<Badge variant="secondary" className="gap-1 text-xs">
+								<Badge variant="secondary" className="gap-1 text-xs font-medium">
 									<EyeOff className="size-3" />
 									Private
 								</Badge>
 							)}
 						</div>
-
-						{/* Editable Title */}
-						{editingTitle ? (
-							<div className="flex items-center gap-2 max-w-lg mt-1">
-								<Input
-									value={titleValue}
-									onChange={(e) => setTitleValue(e.target.value)}
-									className="text-lg sm:text-xl font-bold"
-									autoFocus
-								/>
-								<Button
-									size="icon"
-									variant="ghost"
-									onClick={handleSaveTitle}
-									disabled={isPending}
-								>
-									<Check className="size-4 text-emerald-600" />
-								</Button>
-								<Button
-									size="icon"
-									variant="ghost"
-									onClick={() => {
-										setTitleValue(event.title);
-										setEditingTitle(false);
-									}}
-								>
-									<X className="size-4" />
-								</Button>
-							</div>
-						) : (
-							<button
-								type="button"
-								className={cn(
-									"text-xl sm:text-2xl font-black tracking-tight text-left truncate max-w-2xl flex items-center gap-2 group",
-									canEdit && "cursor-pointer hover:text-primary transition-colors",
-								)}
-								onClick={() => canEdit && setEditingTitle(true)}
-							>
-								<span className="truncate">{event.title}</span>
-								{canEdit && (
-									<Pencil className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-								)}
-							</button>
-						)}
-
-						<p className="text-xs font-mono text-muted-foreground mt-1">
-							/{event.slug}
-						</p>
-						<p className="text-xs text-muted-foreground mt-0.5">
-							Created {new Date(event.createdAt).toLocaleDateString()}
-							{" · "}
-							Updated {new Date(event.updatedAt).toLocaleDateString()}
-						</p>
-					</div>
-
-					{/* Header Actions */}
-					<div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 sm:pt-0">
-						{/* Add buttons */}
-						{canEdit && isTicketed && onAddTicket && (
-							<Button
-								size="sm"
-								onClick={onAddTicket}
-								className="gap-1.5"
-							>
-								<Plus className="size-4" />
-								Add Ticket Tier
-							</Button>
-						)}
-						{canEdit && isVoting && onAddCategory && (
-							<Button
-								size="sm"
-								onClick={onAddCategory}
-								className="gap-1.5"
-							>
-								<Plus className="size-4" />
-								Add Category
-							</Button>
-						)}
-
-						{/* Publication Status Selector Dropdown */}
-						{canEdit && (
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="outline"
-										size="sm"
-										className="gap-2 capitalize"
-										disabled={isStatusChanging}
-									>
-										{isStatusChanging ? (
-											<Loader2 className="size-4 animate-spin" />
-										) : (
-											<>
-												<span
-													className={cn(
-														"size-2 rounded-full",
-														event.status === "published"
-															? "bg-green-500"
-															: "bg-yellow-500",
-													)}
-												/>
-												{event.status === "published" ? "Published" : "Draft"}
-												<ChevronDown className="size-3.5 text-muted-foreground" />
-											</>
-										)}
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
-									<DropdownMenuItem
-										onClick={() => handlePublicationStatusChange("draft")}
-										className="gap-2 cursor-pointer"
-									>
-										<span className="size-2 rounded-full bg-yellow-500" />
-										Draft
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => handlePublicationStatusChange("published")}
-										className="gap-2 cursor-pointer"
-									>
-										<span className="size-2 rounded-full bg-green-500" />
-										Published
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						)}
-
-						{event.slug && (
-							<Button asChild variant="outline" size="sm" className="gap-1.5">
-								<Link href={`/events/${event.slug}` as any} target="_blank">
-									<ExternalLink className="size-4" />
-									Public Page
-								</Link>
-							</Button>
-						)}
+						</div>
 					</div>
 				</div>
+			</div>
 
-				{/* Navigation Tabs */}
+				{/* Navigation Tabs Bar */}
 				{onTabChange && (
-					<div className="mt-6">
+					<div className="pt-1">
 						<Tabs value={activeTab} onValueChange={onTabChange}>
-							<TabsList variant="afro" className="grid grid-cols-2 sm:flex sm:inline-flex w-full sm:w-auto">
+							<TabsList
+								variant="afro"
+								className="grid grid-cols-2 sm:flex sm:inline-flex w-full sm:w-auto"
+							>
 								<TabsTrigger
 									variant="afro"
 									value="overview"
@@ -474,70 +556,72 @@ export function EventDetailHeader({
 									</TabsTrigger>
 								)}
 
-							{isVoting && (
+								{isVoting && (
+									<TabsTrigger
+										variant="afro"
+										value="voting"
+										className="gap-2 rounded"
+									>
+										<Vote className="size-4" />
+										Voting ({votingCount})
+									</TabsTrigger>
+								)}
+
+								{showMembers && (
+									<TabsTrigger
+										variant="afro"
+										value="members"
+										className="gap-2 rounded"
+									>
+										<Users className="size-4" />
+										Members
+									</TabsTrigger>
+								)}
+
 								<TabsTrigger
 									variant="afro"
-									value="voting"
+									value="settings"
 									className="gap-2 rounded"
 								>
-									<Vote className="size-4" />
-									Voting ({votingCount})
+									<Settings className="size-4" />
+									Settings
 								</TabsTrigger>
-							)}
-
-						{showMembers && (
-							<TabsTrigger
-								variant="afro"
-								value="members"
-								className="gap-2 rounded"
-							>
-								<Users className="size-4" />
-								Members
-							</TabsTrigger>
-						)}
-
-						<TabsTrigger
-								variant="afro"
-								value="settings"
-								className="gap-2 rounded"
-							>
-								<Settings className="size-4" />
-								Settings
-							</TabsTrigger>
 							</TabsList>
 						</Tabs>
 					</div>
 				)}
 			</div>
-		</div>
 
-		<AlertDialog open={showPaymentPrompt} onOpenChange={setShowPaymentPrompt}>
-			<AlertDialogContent variant="afro">
-				<AlertDialogHeader>
-					<AlertDialogTitle>Payout Account Required</AlertDialogTitle>
-					<AlertDialogDescription>
-						You need to set up an organization payout method (Mobile Money
-						or Bank Account) before you can publish a paid event. This
-						ensures you can receive earnings from ticket sales or votes.
-						<em className="block text-center bg-secondary-100/50 mt-2">
-							<br />
-							Note: No amount is charged from your account.
-						</em>
-					</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel>Cancel</AlertDialogCancel>
-					<AlertDialogAction
-						onClick={() => {
-							setShowPaymentPrompt(false);
-							void router.push("/organization/wallet");
-						}}
-					>
-						Set up Payout Account
-					</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+			{/* Payout Prompt Dialog */}
+			<AlertDialog
+				open={showPaymentPrompt}
+				onOpenChange={setShowPaymentPrompt}
+			>
+				<AlertDialogContent variant="afro">
+					<AlertDialogHeader>
+						<AlertDialogTitle>Payout Account Required</AlertDialogTitle>
+						<AlertDialogDescription>
+							You need to set up an organization payout method (Mobile Money
+							or Bank Account) before you can publish a paid event. This ensures
+							you can receive earnings from ticket sales or votes.
+							<em className="block text-center bg-secondary-100/50 mt-2 p-2 rounded">
+								Note: No amount is charged from your account.
+							</em>
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								setShowPaymentPrompt(false);
+								void router.push("/organization/wallet");
+							}}
+						>
+							Set up Payout Account
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }

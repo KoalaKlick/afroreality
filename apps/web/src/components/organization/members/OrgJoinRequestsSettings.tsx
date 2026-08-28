@@ -1,17 +1,17 @@
 "use client";
 // src/components/organization/members/OrgJoinRequestsSettings.tsx
 
-
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import {
 	Clock,
 	Loader2,
 	MessageSquare,
+	Search,
 	UserCheck,
 	Users,
 	UserX,
 } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +24,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -62,6 +63,7 @@ export function OrgJoinRequestsSettings({
 	const [isPending, startTransition] = useTransition();
 	const [isTogglingJoin, startToggleTransition] = useTransition();
 	const [joinEnabled, setJoinEnabled] = useState(allowJoinRequests);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	const handleToggleJoinRequests = (checked: boolean) => {
 		setJoinEnabled(checked);
@@ -100,6 +102,17 @@ export function OrgJoinRequestsSettings({
 			}
 		});
 	};
+
+	const filteredRequests = useMemo(() => {
+		if (!searchQuery.trim()) return requests;
+		const query = searchQuery.toLowerCase().trim();
+		return requests.filter((req) => {
+			const nameMatch = req.user?.fullName?.toLowerCase().includes(query);
+			const emailMatch = req.user?.email?.toLowerCase().includes(query);
+			const messageMatch = req.message?.toLowerCase().includes(query);
+			return nameMatch || emailMatch || messageMatch;
+		});
+	}, [requests, searchQuery]);
 
 	return (
 		<div className="space-y-4">
@@ -143,27 +156,46 @@ export function OrgJoinRequestsSettings({
 
 			<Card>
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Clock className="h-5 w-5" />
-						Join Requests
+					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+						<CardTitle className="flex items-center gap-2">
+							<Clock className="h-5 w-5" />
+							Join Requests
+							{requests.length > 0 && (
+								<Badge variant="outline" className="ml-1">
+									{requests.length}
+								</Badge>
+							)}
+						</CardTitle>
+
 						{requests.length > 0 && (
-							<Badge variant="outline" className="ml-1">
-								{requests.length}
-							</Badge>
+							<div className="relative w-full sm:w-64">
+								<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+								<Input
+									type="search"
+									placeholder="Search requests..."
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									className="pl-8 text-sm h-8 bg-background"
+								/>
+							</div>
 						)}
-					</CardTitle>
+					</div>
 				</CardHeader>
 				<CardContent>
-					{requests.length === 0 ? (
+					{filteredRequests.length === 0 ? (
 						<EmptyState
 							variant="users"
-							title="No pending requests"
-							description="New join requests will appear here."
+							title={searchQuery ? "No matching requests" : "No pending requests"}
+							description={
+								searchQuery
+									? "No join requests matched your search query."
+									: "New join requests will appear here."
+							}
 							className="py-12"
 						/>
 					) : (
 						<div className="space-y-3">
-							{requests.map((req) => (
+							{filteredRequests.map((req) => (
 								<div
 									key={req.id}
 									className="flex items-start gap-4 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"

@@ -1,28 +1,28 @@
 "use client";
-// src/components/organization/management/OrgBrandIdentity.tsx
 
 import { Building2, Globe, ImagePlus, Loader2, Pencil, X } from "lucide-react";
 import { useRef } from "react";
+import AddFilesIcon from "@/assets/add-files.svg";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import type { useImageUpload } from "@/hooks/use-image-upload";
 import { DOMAIN_NAME } from "@/lib/constants/branding";
-import { getOrgImageUrl } from "@/lib/image-url-utils";
-import type { UseImageUploadResult } from "./types";
+import { cleanStorageKey, getOrgImageUrl } from "@/lib/image-url-utils";
 
-export interface OrgBrandIdentityProps {
+interface OrgBrandIdentityProps {
 	readonly name: string;
-	readonly setName: (value: string) => void;
+	readonly setName: (name: string) => void;
 	readonly slug: string;
 	readonly description: string;
-	readonly setDescription: (value: string) => void;
+	readonly setDescription: (desc: string) => void;
 	readonly logoUrl: string;
-	readonly setLogoUrl: (value: string) => void;
+	readonly setLogoUrl: (url: string) => void;
 	readonly bannerUrl: string;
-	readonly setBannerUrl: (value: string) => void;
-	readonly logoUpload: UseImageUploadResult;
-	readonly bannerUpload: UseImageUploadResult;
+	readonly setBannerUrl: (url: string) => void;
+	readonly logoUpload: ReturnType<typeof useImageUpload>;
+	readonly bannerUpload: ReturnType<typeof useImageUpload>;
 	readonly disabled?: boolean;
 }
 
@@ -50,14 +50,20 @@ export function OrgBrandIdentity({
 		const file = e.target.files?.[0];
 		if (!file) return;
 		const res = await logoUpload.upload(file, logoUrl || undefined);
-		if (res) setLogoUrl(res.url);
+		if (res) {
+			const relativeKey = cleanStorageKey(res.key || res.url);
+			setLogoUrl(relativeKey);
+		}
 	}
 
 	async function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0];
 		if (!file) return;
 		const res = await bannerUpload.upload(file, bannerUrl || undefined);
-		if (res) setBannerUrl(res.url);
+		if (res) {
+			const relativeKey = cleanStorageKey(res.key || res.url);
+			setBannerUrl(relativeKey);
+		}
 	}
 
 	function handleRemoveLogo() {
@@ -76,8 +82,8 @@ export function OrgBrandIdentity({
 
 	return (
 		<>
-			{/* Brand Header Card - Shared design with Event Details Header */}
-			<div className="bg-card rounded-xl shadow-xs overflow-hidden mb-6">
+			{/* Brand Header Card with Clean Light Primary-50 Background */}
+			<div className="bg-card rounded-2xl border border-primary-100/80 dark:border-primary-900/40 shadow-xs overflow-hidden mb-6">
 				<input
 					ref={bannerInputRef}
 					type="file"
@@ -95,14 +101,14 @@ export function OrgBrandIdentity({
 					id="logo-upload"
 				/>
 
-				{/* Banner Container - Same height & styling as EventDetailHeader */}
-				<div className="relative h-36 sm:h-36 md:h-48 bg-linear-to-r from-primary/20 via-primary/10 to-primary/5 group/banner overflow-hidden">
+				{/* Banner Container */}
+				<div className="relative h-36 sm:h-40 md:h-48 bg-primary-50/70 dark:bg-primary-950/20 group/banner overflow-hidden border-b border-primary-100/80 dark:border-primary-900/40">
 					{bannerDisplayUrl ? (
 						<>
 							<img
 								src={bannerDisplayUrl}
 								alt="Organization banner"
-								className="size-full object-cover"
+								className="size-full object-cover relative z-10"
 							/>
 							{!disabled && (
 								<>
@@ -110,7 +116,7 @@ export function OrgBrandIdentity({
 										type="button"
 										onClick={() => bannerInputRef.current?.click()}
 										disabled={bannerUpload.isUploading}
-										className="absolute inset-0 bg-black/50 opacity-0 group-hover/banner:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+										className="absolute inset-0 bg-black/50 opacity-0 group-hover/banner:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-20"
 									>
 										{bannerUpload.isUploading ? (
 											<Loader2 className="size-8 text-white animate-spin" />
@@ -126,7 +132,7 @@ export function OrgBrandIdentity({
 									<button
 										type="button"
 										onClick={handleRemoveBanner}
-										className="absolute top-3 right-3 rounded-full bg-destructive p-1.5 text-destructive-foreground shadow-sm hover:bg-destructive/90 z-10 opacity-0 group-hover/banner:opacity-100 transition-opacity"
+										className="absolute top-3 right-3 rounded-full bg-destructive p-1.5 text-destructive-foreground shadow-sm hover:bg-destructive/90 z-30 opacity-0 group-hover/banner:opacity-100 transition-opacity"
 									>
 										<X className="size-4" />
 									</button>
@@ -136,26 +142,26 @@ export function OrgBrandIdentity({
 					) : !disabled ? (
 						<button
 							type="button"
-							className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-primary/10 transition-colors"
+							className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-primary-100/50 dark:hover:bg-primary-900/30 transition-colors relative z-10 p-4"
 							onClick={() => bannerInputRef.current?.click()}
 							disabled={bannerUpload.isUploading}
 						>
 							{bannerUpload.isUploading ? (
-								<Loader2 className="size-8 text-muted-foreground animate-spin" />
+								<Loader2 className="size-8 text-primary animate-spin" />
 							) : (
 								<>
-									<ImagePlus className="size-10 text-primary/70 mb-1" />
-									<p className="text-sm font-medium text-foreground">
+									<ImagePlus className="size-9 text-primary/80 mb-1.5" />
+									<p className="text-sm font-semibold text-foreground">
 										Click to upload banner
 									</p>
 									<p className="text-xs text-muted-foreground">
-										Recommended 1920x600px
+										Recommended 1920x600px • PNG, JPG or WebP
 									</p>
 								</>
 							)}
 						</button>
 					) : (
-						<div className="size-full flex items-center justify-center bg-linear-to-r from-primary/15 via-primary/5 to-accent/15" />
+						<div className="size-full flex items-center justify-center relative z-10" />
 					)}
 				</div>
 
@@ -163,14 +169,14 @@ export function OrgBrandIdentity({
 				<div className="px-6 pb-6 pt-0 relative">
 					<div className="flex flex-col sm:flex-row gap-5 sm:items-end">
 						{/* Logo Image (Overlaps Banner Only) */}
-						<div className="relative shrink-0 -mt-14 sm:-mt-16 z-10">
-							<div className="size-28 sm:size-36 rounded-2xl border-4 border-card bg-card  overflow-hidden group/logo relative">
+						<div className="relative shrink-0 -mt-14 sm:-mt-16 z-20">
+							<div className="size-28 sm:size-36 rounded-2xl border-4 border-card bg-background overflow-hidden group/logo relative shadow-sm border-primary-200/80 dark:border-primary-800/40">
 								{logoDisplayUrl ? (
 									<>
 										<img
 											src={logoDisplayUrl}
 											alt={name}
-											className="size-full object-cover"
+											className="size-full object-cover rounded-2xl"
 										/>
 										{!disabled && (
 											<>
@@ -178,7 +184,7 @@ export function OrgBrandIdentity({
 													type="button"
 													onClick={() => logoInputRef.current?.click()}
 													disabled={logoUpload.isUploading}
-													className="absolute inset-0 bg-black/50 opacity-0 group-hover/logo:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+													className="absolute inset-0 bg-black/50 opacity-0 group-hover/logo:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-2xl"
 												>
 													{logoUpload.isUploading ? (
 														<Loader2 className="size-5 text-white animate-spin" />
@@ -199,24 +205,24 @@ export function OrgBrandIdentity({
 								) : !disabled ? (
 									<button
 										type="button"
-										className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors bg-muted"
+										className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-primary-100/50 dark:hover:bg-primary-900/30 transition-colors bg-primary-50/70 dark:bg-primary-950/20 relative overflow-hidden"
 										onClick={() => logoInputRef.current?.click()}
 										disabled={logoUpload.isUploading}
 									>
 										{logoUpload.isUploading ? (
-											<Loader2 className="size-6 animate-spin text-muted-foreground" />
+											<Loader2 className="size-6 animate-spin text-primary relative z-10" />
 										) : (
-											<>
-												<Building2 className="size-10 text-muted-foreground mb-1" />
-												<span className="text-[10px] text-muted-foreground font-medium">
+											<div className="flex flex-col items-center relative z-10">
+												<AddFilesIcon className="size-8 text-primary/80 mb-1" />
+												<span className="text-[10px] text-foreground font-semibold">
 													Upload Logo
 												</span>
-											</>
+											</div>
 										)}
 									</button>
 								) : (
-									<div className="w-full h-full flex items-center justify-center bg-muted p-3">
-										<Building2 className="size-12 text-muted-foreground" />
+									<div className="w-full h-full flex items-center justify-center bg-primary-50/70 p-3 relative overflow-hidden">
+										<Building2 className="size-10 text-primary/60 relative z-10" />
 									</div>
 								)}
 							</div>
@@ -254,6 +260,7 @@ export function OrgBrandIdentity({
 								onChange={(e) => setName(e.target.value)}
 								placeholder="Your Organization"
 								required
+								disabled={disabled}
 							/>
 						</div>
 						<div className="space-y-2">

@@ -1,7 +1,7 @@
 "use client";
 // src/components/onboarding/PendingInvitationsStep.tsx
 import { useState, useTransition } from "react";
-import { CheckCircle, XCircle, Building2, Loader2, Mail } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -57,7 +57,7 @@ export function PendingInvitationsStep({
 							invite.id.slice(0, 4)
 						: "user_" + invite.id.slice(0, 6));
 
-				// Mark profile onboarding complete if needed
+				// Mark profile onboarding complete
 				await completeOnboardingFlow({
 					data: {
 						username: fallbackUsername,
@@ -119,6 +119,12 @@ export function PendingInvitationsStep({
 				{activeInvites.map((invite) => {
 					const logoUrl = getOrgImageUrl(invite.organization.logoUrl);
 					const isProcessing = processingId === invite.id;
+					const initials = invite.organization.name
+						.split(" ")
+						.map((w) => w[0])
+						.join("")
+						.slice(0, 2)
+						.toUpperCase();
 
 					return (
 						<div
@@ -133,8 +139,8 @@ export function PendingInvitationsStep({
 										className="size-11 rounded-lg object-cover border shrink-0"
 									/>
 								) : (
-									<div className="size-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-										<Building2 className="size-5" />
+									<div className="size-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+										{initials}
 									</div>
 								)}
 								<div className="min-w-0 flex-1">

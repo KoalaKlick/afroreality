@@ -1,4 +1,5 @@
 "use client";
+// src/components/shared/africa-map.tsx
 
 import { motion, useAnimation, useInView, type Variants } from "motion/react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -141,11 +142,9 @@ export function AfricaMap({
 		const indices = africaPaths.map((_, i) => i);
 		for (let i = indices.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
-			
-      const tmp = indices[i] as number;
-      indices[i] = indices[j] as number;
-      indices[j] = tmp;
-
+			const tmp = indices[i] as number;
+			indices[i] = indices[j] as number;
+			indices[j] = tmp;
 		}
 		return indices;
 	}, [isMounted]);
@@ -157,7 +156,7 @@ export function AfricaMap({
 	const colorMap = useMemo(
 		() =>
 			africaPaths.map(
-				(_, i) => PAN_AFRICAN_COLORS[i % PAN_AFRICAN_COLORS.length],
+				(_, i) => PAN_AFRICAN_COLORS[i % PAN_AFRICAN_COLORS.length] || "#E31B23",
 			),
 		[],
 	);
@@ -250,20 +249,18 @@ export function AfricaMap({
 
 				<g id="africa-countries">
 					{africaPaths.map((country, idx) => (
-						
-<CountryPathComponent
-  key={country.name}
-  country={country}
-  color={PAN_AFRICAN_COLORS[idx % PAN_AFRICAN_COLORS.length] || "#E31B23"}
-  revealDelay={idx * (staggerDelay || 0.05)}
-  baseImageIdx={0}
-  targetImageIdx={1}
-  isTransitioning={false}
-  showColorPulse={false}
-  showHoverColor={showHoverColor}
-  hasInitiallyRevealed={true}
-/>
-
+						<CountryPathComponent
+							key={country.name}
+							country={country}
+							color={colorMap[idx] || "#E31B23"}
+							revealDelay={getRevealDelay(idx)}
+							baseImageIdx={baseIdx}
+							targetImageIdx={targetIdx}
+							isTransitioning={isTransitioning}
+							showColorPulse={showPulse}
+							showHoverColor={showHoverColor}
+							hasInitiallyRevealed={initialReveal}
+						/>
 					))}
 				</g>
 			</svg>
