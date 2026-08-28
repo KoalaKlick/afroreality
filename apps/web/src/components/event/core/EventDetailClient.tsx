@@ -8,6 +8,7 @@ import { EventOverviewTab } from "../tabs/EventOverviewTab";
 import { TicketManager } from "../ticket-manager/TicketManager";
 import { VotingManager } from "../voting-manager/VotingManager";
 import { EventSettingsTab } from "../tabs/EventSettingsTab";
+import { EventVerificationTab } from "../tabs/EventVerificationTab";
 import { MemberManager } from "../members/MemberManager";
 
 interface EventDetailClientProps {
@@ -89,6 +90,12 @@ export function EventDetailClient({
 							isSheetOpen={isTicketSheetOpen}
 							onSheetOpenChange={setIsTicketSheetOpen}
 						/>
+					</TabsContent>
+				)}
+
+				{isTicketed && (
+					<TabsContent value="verification" className="outline-none">
+						<EventVerificationTab event={event} />
 					</TabsContent>
 				)}
 

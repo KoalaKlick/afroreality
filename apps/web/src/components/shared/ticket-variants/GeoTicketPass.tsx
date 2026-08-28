@@ -4,7 +4,7 @@
 import { QrCode } from "lucide-react";
 import { useId, useState } from "react";
 import { getEventImageUrl } from "@/lib/image-url-utils";
-import { generateColorShades } from "@/lib/utils/color-generator";
+import { generateColorShades, type ColorShades } from "@/utils/theme/color-generator";
 import type { TicketVariantProps } from "./types";
 
 interface GeoTicketProps extends TicketVariantProps {
@@ -84,7 +84,7 @@ function Stub({
 	label,
 }: {
 	side: "left" | "right";
-	primaryShades: Record<number, string>;
+	primaryShades: ColorShades;
 	label: string;
 }) {
 	const radius = side === "left" ? "rounded-l-xl" : "rounded-r-xl";
@@ -135,8 +135,8 @@ function TicketShell({
 	clipId,
 	children,
 }: {
-	primaryShades: Record<number, string>;
-	secondaryShades: Record<number, string>;
+	primaryShades: ColorShades;
+	secondaryShades: ColorShades;
 	primaryColor: string;
 	clipId: string;
 	children: React.ReactNode;

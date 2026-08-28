@@ -394,9 +394,7 @@ export function MemberManager({
 		[canEdit, handleSendSingleCode, isPending, isVotingStarted],
 	);
 
-	const table = useDataTable({
-		data: members,
-		columns,
+	const table = useDataTable(members, columns as any, {
 		pageCount: Math.ceil(total / 20),
 		state: {
 			pagination: { pageIndex: page - 1, pageSize: 20 },

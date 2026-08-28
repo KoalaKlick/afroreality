@@ -2,7 +2,8 @@
 // src/components/event/core/EventDetailHeader.tsx
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {
+   useRouter } from "next/navigation";
 import {
 	Calendar,
 	Check,
@@ -14,6 +15,7 @@ import {
 	MapPin,
 	Pencil,
 	Plus,
+	QrCode,
 	Settings,
 	Share2,
 	Ticket,
@@ -553,6 +555,17 @@ export function EventDetailHeader({
 									>
 										<Ticket className="size-4" />
 										Tickets ({ticketCount})
+									</TabsTrigger>
+								)}
+
+								{isTicketed && (
+									<TabsTrigger
+										variant="afro"
+										value="verification"
+										className="gap-2 rounded"
+									>
+										<QrCode className="size-4" />
+										Verification
 									</TabsTrigger>
 								)}
 
