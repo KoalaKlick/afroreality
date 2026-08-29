@@ -10,28 +10,45 @@ if (typeof WebSocket === "undefined") {
 }
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prismaInstance: PrismaClient | undefined;
 };
 
-function createPrismaClient(): PrismaClient {
+function getPrismaClient(): PrismaClient {
+  if (globalForPrisma.prismaInstance) {
+    return globalForPrisma.prismaInstance;
+  }
+
   const connectionString =
     process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL;
 
   if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL environment variable is missing. Please add DATABASE_URL in your Vercel/hosting environment variables.",
-    );
+    const client = new PrismaClient();
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.prismaInstance = client;
+    }
+    return client;
   }
 
   const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool as any);
-  return new PrismaClient({ adapter });
+  const client = new PrismaClient({ adapter });
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prismaInstance = client;
+  }
+
+  return client;
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const client = getPrismaClient();
+    const value = Reflect.get(client, prop, receiver);
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
