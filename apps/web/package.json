@@ -12,6 +12,16 @@
     "build:worker": "opennextjs-cloudflare build",
     "deploy:cloudflare": "opennextjs-cloudflare build && wrangler deploy"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "sharp",
+      "workerd",
+      "@cloudflare/workerd-linux-64"
+    ]
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1119.0",
     "@prisma/adapter-neon": "7.10.0",
