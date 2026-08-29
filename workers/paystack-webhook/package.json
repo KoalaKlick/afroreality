@@ -1,10 +1,11 @@
 {
-  "name": "afrotix-paystack-webhook",
+  "name": "afroreality-paystack-webhook",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "build": "tsc --noEmit",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
