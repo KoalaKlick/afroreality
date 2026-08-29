@@ -1,4 +1,5 @@
 "use client";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 import { useState, useEffect, type ReactNode } from "react";
 import Image from "next/image";

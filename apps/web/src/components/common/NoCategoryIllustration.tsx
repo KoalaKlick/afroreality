@@ -1,121 +1,61 @@
-// src/components/common/NoCategoryIllustration.tsx
 import type { SVGProps } from "react";
 
 type Props = SVGProps<SVGSVGElement>;
 
-export function NoCategoryIllustration({
-	className,
-	...props
-}: Readonly<Props>) {
-	return (
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 240 200"
-			fill="none"
-			className={className}
-			role="img"
-			aria-hidden="true"
-			{...props}
-		>
-			<title>No categories illustration</title>
-			{/* Ambient background rings */}
-			<circle cx="120" cy="100" r="80" className="fill-primary/5" />
-			<circle cx="120" cy="100" r="60" className="fill-primary/10" />
+export function NoCategoryIllustration({ className, ...props }: Readonly<Props>) {
+    const primary = { fill: "var(--color-primary)" } as React.CSSProperties;
+    const tertiary = { fill: "var(--color-tertiary)" } as React.CSSProperties;
 
-			{/* Left background category card */}
-			<g opacity="0.35" transform="translate(35, 65)">
-				<rect
-					x="0"
-					y="0"
-					width="55"
-					height="65"
-					rx="10"
-					className="fill-muted stroke-muted-foreground/30"
-					strokeWidth="1.5"
-				/>
-				<rect x="10" y="14" width="35" height="6" rx="3" className="fill-muted-foreground/40" />
-				<rect x="10" y="26" width="24" height="4" rx="2" className="fill-muted-foreground/30" />
-				<circle cx="27" cy="46" r="8" className="fill-muted-foreground/20" />
-			</g>
-
-			{/* Right background category card */}
-			<g opacity="0.35" transform="translate(150, 65)">
-				<rect
-					x="0"
-					y="0"
-					width="55"
-					height="65"
-					rx="10"
-					className="fill-muted stroke-muted-foreground/30"
-					strokeWidth="1.5"
-				/>
-				<rect x="10" y="14" width="35" height="6" rx="3" className="fill-muted-foreground/40" />
-				<rect x="10" y="26" width="24" height="4" rx="2" className="fill-muted-foreground/30" />
-				<circle cx="27" cy="46" r="8" className="fill-muted-foreground/20" />
-			</g>
-
-			{/* Center prominent category badge / award frame */}
-			<g transform="translate(80, 30)">
-				<rect
-					x="0"
-					y="0"
-					width="80"
-					height="105"
-					rx="14"
-					className="fill-card stroke-primary/50"
-					strokeWidth="2"
-					strokeDasharray="4 4"
-				/>
-				{/* Category trophy / rosette icon in center */}
-				<circle
-					cx="40"
-					cy="42"
-					r="22"
-					className="fill-primary/15 stroke-primary/30"
-					strokeWidth="1.5"
-				/>
-				<path
-					d="M33 32 H47 V42 C47 46 44 49 40 49 C36 49 33 46 33 42 Z"
-					className="fill-primary/30 stroke-primary"
-					strokeWidth="1.5"
-				/>
-				<path
-					d="M30 35 C28 35 27 37 27 40 C27 43 30 44 33 44 M50 44 C53 44 56 43 56 40 C56 37 55 35 50 35"
-					className="stroke-primary"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-				/>
-				<path
-					d="M40 49 V54 M35 54 H45"
-					className="stroke-primary"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-				/>
-
-				{/* Placeholder lines for category name and description */}
-				<rect x="15" y="74" width="50" height="6" rx="3" className="fill-primary/30" />
-				<rect x="22" y="86" width="36" height="4" rx="2" className="fill-muted-foreground/30" />
-
-				{/* Add (+) badge on top right */}
-				<circle cx="68" cy="14" r="10" className="fill-primary" />
-				<path
-					d="M68 9 V19 M63 14 H73"
-					stroke="white"
-					strokeWidth="2"
-					strokeLinecap="round"
-				/>
-			</g>
-
-			{/* Floor Shadow Line */}
-			<rect
-				x="25"
-				y="150"
-				width="190"
-				height="8"
-				rx="4"
-				className="fill-muted stroke-border"
-				strokeWidth="1"
-			/>
-		</svg>
-	);
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="720.9"
+            height="696.741"
+            viewBox="0 0 720.9 696.741"
+            role="img"
+            aria-hidden="true"
+            focusable="false"
+            className={className}
+            {...props}
+        >
+            <title>No category illustration</title>
+            <g transform="translate(-1094.33 -383.837)">
+                <ellipse cx="48.992" cy="29.539" rx="48.992" ry="29.539" transform="translate(1492.159 457.01) rotate(-48.312)"
+                    fill="#090814" />
+                <circle cx="128.244" cy="128.244" r="128.244" transform="translate(1511.484 402.613)" fill="#090814" />
+                <path
+                    d="M831.933,327.857l-119.2,9.753a19.724,19.724,0,0,0-18.064,18.233l-4.451,61.422a19.724,19.724,0,0,0,19.672,21.149h53.725v2.882h21.614v-2.882h11.527v2.882H818.37v-2.882h11.522a19.724,19.724,0,0,0,19.7-18.714l3.65-71.175a19.723,19.723,0,0,0-21.306-20.668Z"
+                    transform="translate(433.024 146.479)" fill="#090814" />
+                <path
+                    d="M896.035,450.2,727.444,370.948,697.184,418.5s87.664,55.963,92.221,60.52c6.484,6.484,76.37,51.874,103.748,44.669S907.562,457.405,896.035,450.2Z"
+                    transform="translate(444.698 218.266)" fill="#ed9da0" />
+                <path d="M738.624,449.388l-21.613,48.99H940.76l-16.252-51.872Z" transform="translate(717.383 582.197)"
+                    fill="#2f2e41" />
+                <path
+                    d="M867.009,405.954s8.646,47.551,0,53.315,57.638,76.37,57.638,76.37l27.378-24.5,8.646-56.2s-25.937-36.024-14.409-67.725S867.009,405.954,867.009,405.954Z"
+                    transform="translate(725.89 227.929)" fill="#ed9da0" />
+                <circle cx="92.221" cy="92.221" r="92.221" transform="translate(1526.616 463.85)" fill="#ed9da0" />
+                <path
+                    d="M1008.859,464.919s-36.024-54.756-56.2-59.079-38.906-1.441-50.433,0-50.433-12.969-73.488-2.882,0,128.244,0,128.244S802.8,682.5,814.331,721.408s2.882,46.11-2.882,50.433S942.576,815.07,942.576,815.07h129.685s0-41.787,12.969-51.874,11.528-223.347,11.528-223.347l43.228-83.575s-7.2-31.7-37.465-33.142-57.271-17.327-57.271-17.327l-20.541,59.115Z"
+                    transform="translate(634.472 265.508)"style={primary} />
+                <path
+                    d="M931.592,415.272l-12.969-7.2s-24.5,1.441-28.819,0-59.079-18.732-80.693-8.646-36.024-2.882-36.024-2.882,70.607,60.52-15.85,79.252c0,0,1.441,7.2,23.055,11.528s25.937,8.646,34.583,15.85,25.937,14.41,37.465,17.291,64.843,34.886,70.606,29.122,0-33.445,0-33.445Z"
+                    transform="translate(544.59 260.4)"style={primary} />
+                <path
+                    d="M950.8,414.771l27.378,15.85s36.024,106.63,30.26,132.567-11.528,21.614-2.882,38.906,17.291,18.732,11.527,34.583-2.882,54.756-11.527,70.606-50.433,66.284-86.457-18.732S950.8,414.771,950.8,414.771Z"
+                    transform="translate(796.276 291.16)"style={primary} />
+                <path
+                    d="M1015.368,688.347s-20.173-40.347-24.5-43.229-24.5-102.307-24.5-102.307,31.7-51.874,2.882-74.929c0,0,53.315-74.929,36.024-73.488s-51.874,56.2-51.874,56.2-7.925-2.161-5.043-13.689,13.689-52.595,5.043-54.036-25.937,60.52-25.937,60.52-35.3,64.122-24.5,86.457a278.433,278.433,0,0,0,21.614,36.023l24.5,178.678S996.636,802.182,1015.368,688.347Z"
+                    transform="translate(783.586 238.049)" fill="#ed9da0" />
+                <ellipse cx="15.85" cy="7.205" rx="15.85" ry="7.205" transform="translate(1239.865 486.905)"style={primary} />
+                <path
+                    d="M744.173,480.609H724S679.33,466.2,679.33,433.057s12.969-100.866,53.315-99.425,2.882,90.78,2.882,90.78l24.424,9.967.072,30.38Z"
+                    transform="translate(415 156.157)" fill="#ed9da0" />
+                <path
+                    d="M82.134,0c45.361,0,94.18,18.709,94.18,41.788S123.2,66.08,82.134,66.08,0,64.866,0,41.788,36.773,0,82.134,0Z"
+                    transform="translate(1521.57 453.046)" fill="#090814" />
+                <ellipse cx="29.539" cy="48.992" rx="29.539" ry="48.992" transform="translate(1709.183 431.973) rotate(-25.902)"
+                    fill="#090814" />       </g>
+        </svg>
+    );
 }

@@ -223,7 +223,7 @@ export function EventDetailHeader({
 	};
 
 	const handleShare = () => {
-		const url = `${window.location.origin}/events/${event.slug || event.id}`;
+		const url = `${window.location.origin}/${event.organization?.slug || organization?.slug || "org"}/event/${event.slug || event.id}`;
 		navigator.clipboard.writeText(url);
 		toast.success("Event link copied to clipboard!");
 	};
@@ -501,7 +501,7 @@ export function EventDetailHeader({
 										className="gap-1.5 text-muted-foreground hover:text-foreground"
 									>
 										<Link
-											href={`/events/${event.slug}` as any}
+											href={`/${event.organization?.slug || organization?.slug || "org"}/event/${event.slug}` as any}
 											target="_blank"
 										>
 											<ExternalLink className="size-3.5" />

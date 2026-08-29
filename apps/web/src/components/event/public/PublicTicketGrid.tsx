@@ -1,4 +1,6 @@
 "use client";
+import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 import { useState } from "react";
 import { Calendar, Lock, Tag, Ticket as TicketIcon } from "lucide-react";
@@ -223,9 +225,7 @@ export function PublicTicketGrid({
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
                         Details
                       </p>
-                      <p className="text-sm leading-6 text-muted-foreground">
-                        {selectedTicket.description}
-                      </p>
+                      <RichTextDisplay content={selectedTicket.description} className="text-sm leading-6 text-muted-foreground" />
                     </div>
                   )}
 
@@ -311,3 +311,4 @@ export function PublicTicketGrid({
     </>
   );
 }
+

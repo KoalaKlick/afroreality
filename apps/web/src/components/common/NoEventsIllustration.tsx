@@ -5,7 +5,8 @@ type Props = SVGProps<SVGSVGElement>;
 // Inline SVG — avoids SVGR/SVGO which strips style= attributes and breaks CSS variables.
 // Using style={{ fill: "var(...)" }} in JSX is resolved by the browser, not SVGO.
 export function NoEventsIllustration({ className, ...props }: Readonly<Props>) {
-    const primary = { fill: "var(--primary, #059669)" } as React.CSSProperties;
+    const primary = { fill: "var(--color-primary)" } as React.CSSProperties;
+    const tertiary = { fill: "var(--color-tertiary)" } as React.CSSProperties;
 
     return (
         <svg
@@ -19,7 +20,7 @@ export function NoEventsIllustration({ className, ...props }: Readonly<Props>) {
         >
             <title>No events illustration</title>
             <polygon points="887.772 763.25 252.263 772.831 0 728.121 393.817 728.121 887.772 763.25" fill="#e6e6e6" />
-            <circle cx="731.82227" cy="101.66024" r="101.66024" color="var(--tertiary-600)" />
+            <circle cx="731.82227" cy="101.66024" r="101.66024" style={tertiary} />
             <path d="M335.9542,797.01953s1.487-31.15875,31.97119-27.537" transform="translate(-156.11386 -63.58465)" fill="currentColor" />
             <circle cx="171.2269" cy="688.52637" r="15.25711" style={primary} />
             <rect x="168.74434" y="714.21843" width="4.30672" height="30.14703" fill="currentColor" />
@@ -40,9 +41,9 @@ export function NoEventsIllustration({ className, ...props }: Readonly<Props>) {
             <path d="M625.74457,580.41025a43.98759,43.98759,0,0,1,67.519,0,48.89064,48.89064,0,1,0-67.519,0Z" transform="translate(-156.11386 -63.58465)" fill="#fff" />
             <circle cx="354.70738" cy="464.81392" r="16.81788" fill="currentColor" />
             <circle cx="486.70738" cy="464.81392" r="16.81788" fill="currentColor" />
-            <circle cx="322.49478" cy="545.03897" r="19.55626" color="var(--tertiary-600)" />
-            <circle cx="547.39179" cy="545.03897" r="19.55626" color="var(--tertiary-600)" />
-            <polygon points="434.943 505.926 420.276 569.484 444.721 545.039 434.943 505.926" color="var(--tertiary-600)" />
+            <circle cx="322.49478" cy="545.03897" r="19.55626" style={tertiary} />
+            <circle cx="547.39179" cy="545.03897" r="19.55626" style={tertiary} />
+            <polygon points="434.943 505.926 420.276 569.484 444.721 545.039 434.943 505.926" style={tertiary} />
             <polygon points="510.307 750.38 493.655 736.404 494.043 750.38 488.871 750.38 488.458 735.602 465.975 750.38 456.563 750.38 488.29 729.526 487.061 685.737 486.143 652.666 491.302 652.524 492.233 685.737 493.461 729.487 518.348 750.38 510.307 750.38" fill="currentColor" />
             <polygon points="432.076 750.38 415.424 736.404 415.812 750.38 410.654 750.38 410.24 735.602 387.757 750.38 378.345 750.38 410.059 729.526 408.831 685.737 407.913 652.666 413.084 652.524 414.015 685.737 415.23 729.487 440.118 750.38 432.076 750.38" fill="currentColor" />
             <path d="M600.83528,388.61566c-4.56112,0-8.58481,3.543-11.27493,8.985-2.37112-8.18315-7.3527-13.874-13.1704-13.874a8.84714,8.84714,0,0,0-1.17422.19724c-2.23625-8.737-7.43356-14.86444-13.493-14.86444-8.1005,0-14.6672,10.9446-14.6672,24.44533s6.5667,24.44533,14.6672,24.44533a8.84716,8.84716,0,0,0,1.17422-.19725c2.23625,8.737,7.43356,14.86444,13.493,14.86444,4.56112,0,8.58481-3.543,11.27493-8.985,2.37113,8.18316,7.3527,13.874,13.1704,13.874,8.1005,0,14.6672-10.9446,14.6672-24.44533S608.93578,388.61566,600.83528,388.61566Z" transform="translate(-156.11386 -63.58465)" fill="currentColor" />

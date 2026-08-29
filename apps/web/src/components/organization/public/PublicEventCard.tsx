@@ -17,6 +17,7 @@ export function PublicEventCard({
 	organizationSlug,
 	className,
 }: PublicEventCardProps) {
+	// Generate an accent color based on event type
 	const accentColors = {
 		voting: "text-brand-tertiary",
 		ticketed: "text-brand-secondary",
@@ -27,55 +28,81 @@ export function PublicEventCard({
 	const colorClass =
 		accentColors[event.type as keyof typeof accentColors] ??
 		"text-brand-primary";
-	const coverImageUrl = getEventImageUrl(event.flierImage) ?? "/landing/a.webp";
+	const coverImageUrl =
+		getEventImageUrl(event.flierImage) || "/landing/a.webp";
 	const eventDetailsHref = `/${organizationSlug}/event/${event.slug}`;
 
 	return (
 		<Link
 			href={eventDetailsHref}
 			className={cn(
-				"group flex flex-col overflow-hidden rounded-2xl bg-card border border-border/80 transition-all duration-300 hover:border-primary/50 hover:shadow-lg",
+				"group relative block cursor-pointer overflow-hidden rounded-2xl aspect-4/3 border border-border/60 shadow-xs hover:shadow-xl transition-all duration-300",
 				className,
 			)}
 		>
-			<div className="relative aspect-16/9 w-full overflow-hidden bg-muted">
-				<img
-					src={coverImageUrl}
-					alt={event.title}
-					className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-				/>
-				<div className="absolute top-3 right-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-semibold backdrop-blur-md capitalize">
-					{event.type}
-				</div>
-			</div>
+			{/* Background image */}
+			<div
+				className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+				style={{ backgroundImage: `url(${coverImageUrl})` }}
+			/>
 
-			<div className="flex flex-1 flex-col p-5">
-				<h3 className="line-clamp-1 text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-					{event.title}
-				</h3>
+			{/* Dark gradient overlay */}
+			<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-colors group-hover:from-black/80" />
 
-				{event.description && (
-					<p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-						{event.description}
-					</p>
+			{/* Side accent (derived from landing page style) */}
+			<svg
+				className={cn(
+					"absolute right-0 top-0 h-full w-24 z-10 opacity-80",
+					colorClass,
 				)}
+				viewBox="0 0 210 297"
+				preserveAspectRatio="none"
+				aria-hidden="true"
+			>
+				<path
+					d="M 179.69167,0.37081617 196.23673,146.38046 179.15249,297.0266 l 31.2116,0.35696 V 0.01812264 Z"
+					fill="currentColor"
+				/>
+			</svg>
 
-				<div className="mt-auto pt-4 flex flex-col gap-2 border-t border-border/60 text-xs text-muted-foreground">
-					{event.startDate && (
-						<div className="flex items-center gap-2">
-							<Calendar className="size-3.5 text-primary" />
-							<span>{new Date(event.startDate).toLocaleDateString()}</span>
-						</div>
-					)}
-					<div className="flex items-center gap-2">
-						<MapPin className="size-3.5 text-primary" />
-						<span className="truncate">
-							{event.isVirtual
-								? "Virtual Event"
-								: [event.venueName, event.venueCity].filter(Boolean).join(", ") ||
-									"Venue TBA"}
+			{/* Content */}
+			<div className="absolute inset-0 p-5 pr-10 flex flex-col justify-end text-white z-20">
+				<div className="space-y-1 mb-3">
+					<h3 className="font-black uppercase text-lg leading-tight tracking-tight drop-shadow-xs">
+						{event.title}
+					</h3>
+					<div className="flex items-center gap-2 text-white/80 text-xs">
+						<Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
+						<span>
+							{event.startDate
+								? new Date(event.startDate).toLocaleDateString("en-US", {
+										month: "short",
+										day: "numeric",
+										year: "numeric",
+									})
+								: "Date TBD"}
 						</span>
 					</div>
+					{event.venueName && (
+						<div className="flex items-center gap-2 text-white/80 text-xs">
+							<MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+							<span className="truncate">{event.venueName}</span>
+						</div>
+					)}
+				</div>
+
+				<div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
+					<span
+						className={cn(
+							"text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md tracking-widest border border-white/10",
+							colorClass,
+						)}
+					>
+						{event.type}
+					</span>
+					<span className="text-[11px] font-bold uppercase underline underline-offset-4 hover:text-white transition-colors">
+						View Details →
+					</span>
 				</div>
 			</div>
 		</Link>

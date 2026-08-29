@@ -1,4 +1,6 @@
 "use client";
+import { NoNomineeIllustration } from "@/components/common/NoNomineeIllustration";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -78,8 +80,14 @@ export function NomineeGrid({
 
 	if (!nominees || nominees.length === 0) {
 		return (
-			<div className="text-center py-8 px-4 rounded-xl border border-dashed bg-card/40 text-xs text-muted-foreground">
-				No nominees published for this category yet.
+			<div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-2xl bg-card/30 p-8 my-6">
+				<NoNomineeIllustration className="w-56 h-auto mb-6 opacity-85" />
+				<h4 className="text-xl font-bold uppercase tracking-tight text-foreground mb-2">
+					No Nominees Yet
+				</h4>
+				<p className="text-sm text-muted-foreground max-w-sm mx-auto">
+					Candidates and nominees haven't been published for this category yet. Check back soon!
+				</p>
 			</div>
 		);
 	}
@@ -127,9 +135,7 @@ export function NomineeGrid({
 										{nominee.optionText}
 									</h4>
 									{nominee.bio && (
-										<p className="text-xs text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
-											{nominee.bio}
-										</p>
+										<RichTextDisplay content={nominee.bio} className="text-xs text-muted-foreground line-clamp-2 mt-1 leading-relaxed" />
 									)}
 								</div>
 							</div>
@@ -207,9 +213,7 @@ export function NomineeGrid({
 									<h5 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
 										About Nominee
 									</h5>
-									<p className="text-xs text-muted-foreground leading-relaxed">
-										{selectedNominee.bio}
-									</p>
+									<RichTextDisplay content={selectedNominee.bio} className="text-xs text-muted-foreground leading-relaxed" />
 								</div>
 							)}
 
@@ -273,9 +277,7 @@ export function PublicNomineeSheet({
 				<div>
 					<h3 className="text-xl font-bold text-foreground">{category.name}</h3>
 					{category.description && (
-						<p className="text-xs text-muted-foreground mt-0.5">
-							{category.description}
-						</p>
+						<RichTextDisplay content={category.description} className="text-xs text-muted-foreground mt-0.5" />
 					)}
 				</div>
 				{category.allowPublicNomination && (
@@ -302,3 +304,4 @@ export function PublicNomineeSheet({
 		</div>
 	);
 }
+

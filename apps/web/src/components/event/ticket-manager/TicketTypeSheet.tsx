@@ -1,4 +1,5 @@
 "use client";
+import { PRESET_COLORS } from "@/utils/theme/constants";
 // src/components/event/ticket-manager/TicketTypeSheet.tsx
 
 import {
@@ -74,17 +75,6 @@ interface TicketTypeSheetProps {
 	readonly editingTicket: TicketTypeItem | null;
 	readonly onSaved?: () => void;
 }
-
-const PRESET_COLORS = [
-	"#009A44",
-	"#CE1126",
-	"#FCD116",
-	"#1877F2",
-	"#7C3AED",
-	"#EC4899",
-	"#F97316",
-	"#14B8A6",
-];
 
 export function TicketTypeSheet({
 	eventId,
@@ -527,16 +517,17 @@ export function TicketTypeSheet({
 								<div className="flex flex-wrap gap-2 pt-1">
 									{PRESET_COLORS.map((col) => (
 										<button
-											key={col}
+											key={col.value}
 											type="button"
+											title={col.name}
 											onClick={() =>
-												setFormData((prev) => ({ ...prev, primaryColor: col }))
+												setFormData((prev) => ({ ...prev, primaryColor: col.value }))
 											}
 											className="size-6 rounded-full border-2 transition-transform hover:scale-110"
 											style={{
-												backgroundColor: col,
+												backgroundColor: col.value,
 												borderColor:
-													formData.primaryColor === col
+													formData.primaryColor === col.value
 														? "var(--foreground)"
 														: "transparent",
 											}}
@@ -573,19 +564,19 @@ export function TicketTypeSheet({
 								<div className="flex flex-wrap gap-2 pt-1">
 									{PRESET_COLORS.map((col) => (
 										<button
-											key={col}
+											key={col.value}
 											type="button"
 											onClick={() =>
 												setFormData((prev) => ({
 													...prev,
-													secondaryColor: col,
+													secondaryColor: col.value,
 												}))
 											}
 											className="size-6 rounded-full border-2 transition-transform hover:scale-110"
 											style={{
-												backgroundColor: col,
+												backgroundColor: col.value,
 												borderColor:
-													formData.secondaryColor === col
+													formData.secondaryColor === col.value
 														? "var(--foreground)"
 														: "transparent",
 											}}
@@ -624,3 +615,5 @@ export function TicketTypeSheet({
 		</Sheet>
 	);
 }
+
+

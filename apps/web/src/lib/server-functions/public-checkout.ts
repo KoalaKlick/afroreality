@@ -1,7 +1,7 @@
+"use server";
 import { prisma } from "@repo/db";
 import { createTicketToken, verifyTicketToken } from "@/lib/ticket-crypto";
 import { paystack } from "@/lib/paystack";
-import { revalidatePath } from "next/cache";
 
 interface PublicTicketCheckoutInput {
 	eventId: string;
@@ -122,9 +122,7 @@ export async function initiatePublicTicketCheckout({
 			},
 		});
 
-		revalidatePath(
-			`/${ticketType.event.organization.slug}/event/${ticketType.event.slug}`,
-		);
+		
 
 		return {
 			success: true,
@@ -270,9 +268,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			data: { status: "voted" },
 		});
 
-		revalidatePath(
-			`/${category.event.organization.slug}/event/${category.event.slug}`,
-		);
+		
 
 		return {
 			success: true,
@@ -305,9 +301,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			},
 		});
 
-		revalidatePath(
-			`/${category.event.organization.slug}/event/${category.event.slug}`,
-		);
+		
 
 		return {
 			success: true,
@@ -474,3 +468,4 @@ export async function verifyAndCheckInTicket({
 		ticket,
 	};
 }
+

@@ -248,7 +248,7 @@ export function EventStep1BasicInfo({
 					<div className="space-y-2">
 						<Label htmlFor="slug">Event URL Slug *</Label>
 						<div className="flex items-center gap-2">
-							<span className="text-sm text-muted-foreground">/events/</span>
+							<span className="text-sm text-muted-foreground">/[org-slug]/event/</span>
 							<Input
 								id="slug"
 								value={slug}

@@ -90,3 +90,24 @@ export function generateColorShades(
 		950: mix(0, 0, 0, 0.88),
 	};
 }
+
+
+export interface BrandColors {
+	primary?: string;
+	secondary?: string;
+	tertiary?: string;
+}
+
+export interface BrandColorShades {
+	primary: ColorShades;
+	secondary: ColorShades;
+	tertiary: ColorShades;
+}
+
+export function generateBrandColorShades(colors: BrandColors): BrandColorShades {
+	return {
+		primary: generateColorShades(colors.primary, "#009A44"),
+		secondary: generateColorShades(colors.secondary, "#FFCD00"),
+		tertiary: generateColorShades(colors.tertiary, "#C8102E"),
+	};
+}

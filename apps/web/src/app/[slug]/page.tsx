@@ -1,3 +1,4 @@
+import { NoEventsIllustration } from "@/components/common/NoEventsIllustration";
 import { notFound } from "next/navigation";
 import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
@@ -125,8 +126,8 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 					</div>
 
 					{upcomingEvents.length === 0 ? (
-						<div className="text-center py-12 px-4 rounded-2xl border border-dashed bg-card/40">
-							<Calendar className="size-10 mx-auto mb-2 text-muted-foreground/40" />
+						<div className="text-center py-12 px-4 rounded-2xl border border-dashed bg-card/40 flex flex-col items-center justify-center">
+<NoEventsIllustration className="size-48 mb-4 opacity-80" />
 							<h4 className="font-semibold text-sm">No Upcoming Events</h4>
 							<p className="text-xs text-muted-foreground mt-1">
 								Check back soon or follow this organization for upcoming

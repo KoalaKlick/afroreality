@@ -1,3 +1,6 @@
+import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
+import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
+import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPublicEventDetails } from "@/lib/dal/public";
@@ -379,35 +382,91 @@ export default async function PublicEventPage({
 						</div>
 
 						{votingCategories.length === 0 ? (
-							<div className="text-center py-12 px-4 rounded-xl border border-dashed bg-muted/20">
-								<Trophy className="size-10 mx-auto mb-3 text-muted-foreground/50" />
+							<div className="text-center py-12 px-4 rounded-xl border border-dashed bg-muted/20 flex flex-col items-center justify-center">
+<NoCategoryIllustration className="size-48 mb-4 opacity-80" />
 								<h4 className="font-semibold text-base">No Categories Published</h4>
 								<p className="text-xs text-muted-foreground mt-1">
 									Voting categories will appear here once finalized by organizers.
 								</p>
 							</div>
 						) : (
-							<div className="space-y-8">
-								{votingCategories.map((category: any) => (
-									<PublicNomineeSheet
-										key={category.id}
-										category={{
-											id: category.id,
-											name: category.name,
-											description: category.description,
-											votePrice: Number(category.votePrice || 0),
-											nominationPrice: Number(category.nominationPrice || 0),
-											allowPublicNomination: category.allowPublicNomination,
-											allowMultiple: category.allowMultiple,
-											showTotalVotesPublicly: category.showTotalVotesPublicly,
-											votingOptions: category.votingOptions || [],
-										}}
-										eventId={event.id}
-										votingMode={event.votingMode || "general"}
-										orgSlug={orgSlug}
-										eventSlug={eventSlug}
-									/>
-								))}
+							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+								{votingCategories.map((category: any) => {
+									const options = category.votingOptions || [];
+									return (
+										<Link
+											key={category.id}
+											href={`/${orgSlug}/event/${eventSlug}/category/${category.id}`}
+											className="group flex flex-col rounded-2xl border bg-card shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+										>
+											{category.templateImage && (
+												<div className="relative w-full h-44 shrink-0 overflow-hidden bg-muted">
+													<img
+														src={getEventImageUrl(category.templateImage) || ""}
+														alt={category.name}
+														className="size-full object-cover group-hover:scale-105 transition-transform duration-500"
+													/>
+												</div>
+											)}
+
+											<div className="p-6 flex flex-col flex-1 bg-card">
+												<div className="flex items-start justify-between mb-3">
+													<div className="flex items-start gap-3 flex-1 min-w-0 pr-2">
+														<div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+															<Trophy className="w-5 h-5 text-primary" />
+														</div>
+														<h3 className="text-lg font-bold text-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-2 mt-1">
+															{category.name}
+														</h3>
+													</div>
+													<div className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+														<ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+													</div>
+												</div>
+
+												{!category.templateImage && category.description && (
+													<RichTextDisplay
+														content={category.description}
+														className="text-xs text-muted-foreground line-clamp-2 mb-4"
+													/>
+												)}
+
+												<div className="mt-auto pt-3 border-t border-border/60">
+													<div className="flex items-center justify-between gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+														<div className="flex items-center gap-1.5">
+															<Users className="w-3.5 h-3.5 text-primary" />
+															<span>
+																{options.length} {options.length === 1 ? "nominee" : "nominees"}
+															</span>
+														</div>
+
+														<span className="text-[10px] font-bold text-primary hover:underline">
+															View Nominees →
+														</span>
+													</div>
+
+													{options.length > 0 && (
+														<div className="flex flex-row items-center pt-2">
+															<AnimatedTooltip
+																items={options.slice(0, 5).map((nominee: any) => ({
+																	id: nominee.id,
+																	name: nominee.optionText,
+																	designation: nominee.nomineeCode ? `#${nominee.nomineeCode}` : "Nominee",
+																	image: getEventImageUrl(nominee.imageUrl),
+																}))}
+															/>
+															{options.length > 5 && (
+																<div className="relative w-10 h-10 ml-2 rounded-full border-2 border-background bg-secondary text-secondary-foreground flex items-center justify-center shrink-0 z-40 text-xs font-bold shadow-xs">
+																	+{options.length - 5}
+																</div>
+															)}
+														</div>
+													)}
+												</div>
+											</div>
+										</Link>
+									);
+								})}
 							</div>
 						)}
 					</section>

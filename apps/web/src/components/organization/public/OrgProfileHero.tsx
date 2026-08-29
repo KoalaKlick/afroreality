@@ -1,4 +1,5 @@
 "use client";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 import Image from "next/image";
 import { useState, useTransition } from "react";
@@ -161,9 +162,7 @@ export function OrgProfileHero({
 				</div>
 
 				{organization.description && (
-					<p className="mt-4 text-xs sm:text-sm text-muted-foreground max-w-3xl leading-relaxed">
-						{organization.description}
-					</p>
+					<RichTextDisplay content={organization.description} className="mt-4 text-xs sm:text-sm text-muted-foreground max-w-3xl leading-relaxed" />
 				)}
 			</div>
 		</div>

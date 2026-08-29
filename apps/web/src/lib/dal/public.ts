@@ -18,17 +18,15 @@ export async function getPublicOrganizationProfile(
 				primaryColor: true,
 				secondaryColor: true,
 				tertiaryColor: true,
-				isVerified: true,
 				allowJoinRequests: true,
 				_count: {
 					select: {
-						members: true,
+						team: true,
 						events: true,
 					},
 				},
 				events: {
 					where: {
-						status: "published",
 						isPublic: true,
 					},
 					orderBy: {
@@ -42,6 +40,10 @@ export async function getPublicOrganizationProfile(
 
 		return {
 			...org,
+			_count: {
+				members: org._count?.team ?? 0,
+				events: org._count?.events ?? 0,
+			},
 			isUserPendingJoin: false,
 		};
 	} catch (error) {
@@ -58,7 +60,6 @@ export async function getPublicEventDetails(
 		const event = await prisma.event.findFirst({
 			where: {
 				slug: eventSlug,
-				status: "published",
 				isPublic: true,
 				organization: {
 					slug: orgSlug,
@@ -137,7 +138,6 @@ export async function getPublicCategoryDetails(
 		const event = await prisma.event.findFirst({
 			where: {
 				slug: eventSlug,
-				status: "published",
 				isPublic: true,
 				organization: {
 					slug: orgSlug,
