@@ -1,13 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: [
-    "@prisma/client",
-    "@prisma/adapter-pg",
-    "pg",
-    "bcryptjs",
-    "nodemailer",
-  ],
+  productionBrowserSourceMaps: false,
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/i,

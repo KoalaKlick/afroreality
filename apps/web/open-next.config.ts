@@ -2,6 +2,7 @@ import type { OpenNextConfig } from "@opennextjs/aws/types/open-next.js";
 
 const config: OpenNextConfig = {
   default: {
+    minify: true,
     override: {
       wrapper: "cloudflare-node",
       converter: "edge",
