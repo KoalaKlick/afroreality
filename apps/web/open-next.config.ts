@@ -11,7 +11,7 @@ const config: OpenNextConfig = {
       queue: "dummy",
     },
   },
-  edgeExternals: ["node:crypto", "pg-cloudflare"],
+  edgeExternals: ["node:crypto"],
   middleware: {
     external: true,
     override: {
