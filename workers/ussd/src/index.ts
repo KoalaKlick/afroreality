@@ -1,8 +1,7 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { neon } from "@neondatabase/serverless";
 
 export interface Env {
-	SUPABASE_URL?: string;
-	SUPABASE_SERVICE_ROLE_KEY?: string;
+	DATABASE_URL: string;
 	PAYSTACK_SECRET_KEY?: string;
 	MAX_LISTED_EVENTS?: string;
 }
@@ -31,7 +30,7 @@ export function textResponse(body: string): Response {
 	return new Response(body, {
 		status: 200,
 		headers: {
-			"Content-Type": "text/plain",
+			"Content-Type": "text/plain; charset=utf-8",
 			"Access-Control-Allow-Origin": "*",
 		},
 	});
@@ -41,7 +40,7 @@ export function jsonResponse(body: object): Response {
 	return new Response(JSON.stringify(body), {
 		status: 200,
 		headers: {
-			"Content-Type": "application/json",
+			"Content-Type": "application/json; charset=utf-8",
 			"Access-Control-Allow-Origin": "*",
 		},
 	});
@@ -118,27 +117,34 @@ export function buildPaginatedMenu(
 	return menu;
 }
 
-// Database Queries
-export const EVENT_SELECT = `
-  id, title, has_ussd, ussd_code, type,
-  voting_categories (id, name, order_idx, vote_price),
-  voting_options (id, option_text, order_idx, status, category_id),
-  ticket_types (id, name, price, status, order_idx)
-`;
+// Database Helpers via direct PostgreSQL connection
+export async function fetchEventByCode(sql: any, code: string) {
+	const events = await sql`
+		SELECT id, title, has_ussd, ussd_code, type 
+		FROM events 
+		WHERE ussd_code = ${code} AND has_ussd = true
+		LIMIT 1
+	`;
+	return events[0] || null;
+}
 
-export async function fetchEventByCode(supabase: SupabaseClient, code: string) {
-	const { data } = await supabase
-		.from("events")
-		.select(EVENT_SELECT)
-		.eq("ussd_code", code)
-		.eq("has_ussd", true)
-		.single();
-	return data;
+export async function fetchEventDetails(sql: any, eventId: string) {
+	const [categories, options, ticketTypes] = await Promise.all([
+		sql`SELECT id, name, order_idx, vote_price FROM voting_categories WHERE event_id = ${eventId} ORDER BY order_idx ASC`,
+		sql`SELECT id, category_id, option_text, order_idx, status FROM voting_options WHERE event_id = ${eventId} AND status = 'approved' ORDER BY order_idx ASC`,
+		sql`SELECT id, name, price, status, order_idx FROM ticket_types WHERE event_id = ${eventId} AND status = 'available' ORDER BY order_idx ASC`,
+	]);
+
+	return {
+		categories,
+		options,
+		ticketTypes,
+	};
 }
 
 // Payment Processing via Paystack
 export async function submitOtp(
-	supabase: SupabaseClient,
+	sql: any,
 	reference: string,
 	otp: string,
 	paystackSecret: string,
@@ -158,19 +164,13 @@ export async function submitOtp(
 		const paystackData = (await paystackRes.json()) as any;
 
 		if (!paystackRes.ok || !paystackData.status) {
-			await supabase
-				.from("ussd_sessions")
-				.update({ status: "pending" })
-				.eq("reference", reference);
+			await sql`UPDATE ussd_sessions SET status = 'pending' WHERE reference = ${reference}`;
 			return textResponse(
 				`END OTP verification failed: ${paystackData.message || "Invalid OTP"}`,
 			);
 		}
 
-		await supabase
-			.from("ussd_sessions")
-			.update({ status: "processing" })
-			.eq("reference", reference);
+		await sql`UPDATE ussd_sessions SET status = 'processing' WHERE reference = ${reference}`;
 		return textResponse(
 			"END Payment authorized! You will receive an SMS confirmation shortly.",
 		);
@@ -181,7 +181,7 @@ export async function submitOtp(
 }
 
 export async function processPayment(
-	supabase: SupabaseClient,
+	sql: any,
 	event: any,
 	optionId: string,
 	quantity: number,
@@ -197,19 +197,17 @@ export async function processPayment(
 	const amountGHS = Number(price) * quantity;
 
 	if (otpStr) {
-		const { data: session } = await supabase
-			.from("ussd_sessions")
-			.select("reference")
-			.eq("phone_number", phoneNumber)
-			.eq("status", "pending")
-			.order("created_at", { ascending: false })
-			.limit(1)
-			.single();
-
-		if (session) {
+		const pendingSessions = await sql`
+			SELECT reference 
+			FROM ussd_sessions 
+			WHERE phone_number = ${phoneNumber} AND status = 'pending' 
+			ORDER BY created_at DESC 
+			LIMIT 1
+		`;
+		if (pendingSessions.length > 0) {
 			return await submitOtp(
-				supabase,
-				session.reference,
+				sql,
+				pendingSessions[0].reference,
 				otpStr,
 				paystackSecret,
 			);
@@ -220,15 +218,10 @@ export async function processPayment(
 	const reference = `USSD_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
 	try {
-		await supabase.from("ussd_sessions").insert({
-			phone_number: phoneNumber,
-			event_id: event.id,
-			option_id: optionId,
-			quantity,
-			amount: amountGHS,
-			reference,
-			status: "pending",
-		});
+		await sql`
+			INSERT INTO ussd_sessions (reference, phone_number, event_id, option_id, quantity, amount, status)
+			VALUES (${reference}, ${phoneNumber}, ${event.id}, ${optionId}, ${quantity}, ${amountGHS}, 'pending')
+		`;
 
 		if (!paystackSecret) {
 			return textResponse(
@@ -287,15 +280,14 @@ export async function processPayment(
 
 // Flow Handlers
 export async function handleVotingFlow(
-	supabase: SupabaseClient,
+	sql: any,
 	event: any,
+	details: any,
 	tokens: string[],
 	phoneNumber: string,
 	paystackSecret: string,
 ): Promise<Response> {
-	const categories = (event.voting_categories ?? []).sort(
-		(a: any, b: any) => a.order_idx - b.order_idx,
-	);
+	const categories = details.categories || [];
 	if (categories.length === 0)
 		return textResponse("END No voting categories available.");
 
@@ -316,12 +308,9 @@ export async function handleVotingFlow(
 
 	tokens = catSelection.remainingTokens;
 
-	const nominees = (event.voting_options ?? [])
-		.filter(
-			(n: any) =>
-				n.status === "approved" && n.category_id === selectedCategory.id,
-		)
-		.sort((a: any, b: any) => a.order_idx - b.order_idx);
+	const nominees = (details.options || []).filter(
+		(n: any) => n.category_id === selectedCategory.id,
+	);
 
 	if (nominees.length === 0)
 		return textResponse("END No nominees in this category.");
@@ -353,7 +342,7 @@ export async function handleVotingFlow(
 	const otpStr = tokens.shift();
 
 	return await processPayment(
-		supabase,
+		sql,
 		event,
 		selectedNominee.id,
 		Number.parseInt(quantityStr, 10),
@@ -365,16 +354,14 @@ export async function handleVotingFlow(
 }
 
 export async function handleTicketFlow(
-	supabase: SupabaseClient,
+	sql: any,
 	event: any,
+	details: any,
 	tokens: string[],
 	phoneNumber: string,
 	paystackSecret: string,
 ): Promise<Response> {
-	const tickets = (event.ticket_types ?? [])
-		.filter((t: any) => t.status === "available")
-		.sort((a: any, b: any) => a.order_idx - b.order_idx);
-
+	const tickets = details.ticketTypes || [];
 	if (tickets.length === 0)
 		return textResponse("END No tickets available.");
 
@@ -405,7 +392,7 @@ export async function handleTicketFlow(
 	const otpStr = tokens.shift();
 
 	return await processPayment(
-		supabase,
+		sql,
 		event,
 		selectedTicket.id,
 		Number.parseInt(quantityStr, 10),
@@ -422,49 +409,41 @@ export async function handleUssdCore(
 	text: string,
 	env: Env,
 ): Promise<Response> {
-	const supabaseUrl = env.SUPABASE_URL || "";
-	const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || "";
+	const dbUrl = env.DATABASE_URL;
 	const paystackSecret = env.PAYSTACK_SECRET_KEY || "";
 
-	if (!supabaseUrl || !supabaseKey) {
-		return textResponse(
-			"END Server misconfiguration: missing Supabase credentials.",
-		);
+	if (!dbUrl) {
+		return textResponse("END Server misconfiguration: missing DATABASE_URL.");
 	}
 
-	const supabase = createClient(supabaseUrl, supabaseKey);
+	const sql = neon(dbUrl);
 
 	// OTP Resumption Interceptor
-	const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-	const { data: pendingSession } = await supabase
-		.from("ussd_sessions")
-		.select("reference, amount")
-		.eq("phone_number", phoneNumber)
-		.eq("status", "pending")
-		.gte("created_at", fiveMinsAgo)
-		.order("created_at", { ascending: false })
-		.limit(1)
-		.single();
+	const pendingSessions = await sql`
+		SELECT reference, amount 
+		FROM ussd_sessions 
+		WHERE phone_number = ${phoneNumber} AND status = 'pending' AND created_at >= NOW() - INTERVAL '5 minutes'
+		ORDER BY created_at DESC 
+		LIMIT 1
+	`;
 
-	if (pendingSession) {
+	if (pendingSessions.length > 0) {
+		const pending = pendingSessions[0];
 		const rawTokens = text.split("*").filter(Boolean);
 
 		if (rawTokens.length === 0) {
 			return textResponse(
-				`CON You have a pending payment of GHS ${pendingSession.amount}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`,
+				`CON You have a pending payment of GHS ${pending.amount}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`,
 			);
 		}
 		const otpAnswer = rawTokens[rawTokens.length - 1];
 		if (otpAnswer === "0") {
-			await supabase
-				.from("ussd_sessions")
-				.update({ status: "cancelled" })
-				.eq("reference", pendingSession.reference);
+			await sql`UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${pending.reference}`;
 			text = "";
 		} else {
 			return await submitOtp(
-				supabase,
-				pendingSession.reference,
+				sql,
+				pending.reference,
 				otpAnswer,
 				paystackSecret,
 			);
@@ -481,12 +460,13 @@ export async function handleUssdCore(
 			env.MAX_LISTED_EVENTS || `${MAX_LISTED_EVENTS}`,
 			10,
 		);
-		const { data: events } = await supabase
-			.from("events")
-			.select("id, title, ussd_code")
-			.eq("has_ussd", true)
-			.order("created_at", { ascending: false })
-			.limit(maxEvents);
+		const events = await sql`
+			SELECT id, title, ussd_code 
+			FROM events 
+			WHERE has_ussd = true 
+			ORDER BY created_at DESC 
+			LIMIT ${maxEvents}
+		`;
 
 		let menu = "CON AfroTix\n";
 		if (events && events.length > 0) {
@@ -509,7 +489,7 @@ export async function handleUssdCore(
 			return textResponse("CON Enter event code:\n0. Back");
 		}
 		const eventCode = tokens.shift();
-		event = await fetchEventByCode(supabase, eventCode!);
+		event = await fetchEventByCode(sql, eventCode!);
 	} else {
 		const firstInput = tokens[0];
 		const selectedIdx = Number.parseInt(firstInput, 10);
@@ -518,18 +498,19 @@ export async function handleUssdCore(
 			10,
 		);
 
-		const { data: listedEvents } = await supabase
-			.from("events")
-			.select(EVENT_SELECT)
-			.eq("has_ussd", true)
-			.order("created_at", { ascending: false })
-			.limit(maxEvents);
+		const listedEvents = await sql`
+			SELECT id, title, has_ussd, ussd_code, type 
+			FROM events 
+			WHERE has_ussd = true 
+			ORDER BY created_at DESC 
+			LIMIT ${maxEvents}
+		`;
 
 		if (listedEvents && selectedIdx >= 1 && selectedIdx <= listedEvents.length) {
 			event = listedEvents[selectedIdx - 1];
 			tokens.shift();
 		} else {
-			event = await fetchEventByCode(supabase, firstInput);
+			event = await fetchEventByCode(sql, firstInput);
 			tokens.shift();
 		}
 	}
@@ -538,12 +519,14 @@ export async function handleUssdCore(
 		return textResponse("END Event not found. Check your code.");
 	}
 
+	const details = await fetchEventDetails(sql, event.id);
 	const eventType = event.type;
 
 	if (eventType === "voting") {
 		return await handleVotingFlow(
-			supabase,
+			sql,
 			event,
+			details,
 			tokens,
 			phoneNumber,
 			paystackSecret,
@@ -551,8 +534,9 @@ export async function handleUssdCore(
 	}
 	if (eventType === "ticketed") {
 		return await handleTicketFlow(
-			supabase,
+			sql,
 			event,
+			details,
 			tokens,
 			phoneNumber,
 			paystackSecret,
@@ -565,8 +549,9 @@ export async function handleUssdCore(
 		}
 		if (modeStr === "1") {
 			return await handleVotingFlow(
-				supabase,
+				sql,
 				event,
+				details,
 				tokens,
 				phoneNumber,
 				paystackSecret,
@@ -574,8 +559,9 @@ export async function handleUssdCore(
 		}
 		if (modeStr === "2") {
 			return await handleTicketFlow(
-				supabase,
+				sql,
 				event,
+				details,
 				tokens,
 				phoneNumber,
 				paystackSecret,
@@ -655,7 +641,7 @@ export default {
 			if (contentType.includes("application/json")) {
 				bodyData = (await request.json()) as any;
 				phoneNumber =
-					bodyData.phoneNumber || bodyData.msisdn || bodyData.msisdn || "";
+					bodyData.phoneNumber || bodyData.msisdn || "";
 				rawText =
 					bodyData.text !== undefined
 						? bodyData.text
@@ -706,32 +692,23 @@ export default {
 				const currentInput = normalizeArkeselInput(rawText, isNewSession);
 				let accumulatedPath = currentInput;
 
-				if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
-					const supabase = createClient(
-						env.SUPABASE_URL,
-						env.SUPABASE_SERVICE_ROLE_KEY,
-					);
-					if (!isNewSession && sessionId) {
-						const { data: state } = await supabase
-							.from("ussd_states")
-							.select("accumulated_path")
-							.eq("session_id", sessionId)
-							.single();
-
-						if (state && state.accumulated_path) {
-							accumulatedPath = `${state.accumulated_path}*${currentInput}`;
+				if (env.DATABASE_URL && sessionId) {
+					const sql = neon(env.DATABASE_URL);
+					if (!isNewSession) {
+						const states = await sql`
+							SELECT accumulated_path FROM ussd_states WHERE session_id = ${sessionId} LIMIT 1
+						`;
+						if (states.length > 0 && states[0].accumulated_path) {
+							accumulatedPath = `${states[0].accumulated_path}*${currentInput}`;
 						}
 					}
 
-					if (sessionId) {
-						await supabase.from("ussd_states").upsert(
-							{
-								session_id: sessionId,
-								accumulated_path: accumulatedPath,
-							},
-							{ onConflict: "session_id" },
-						);
-					}
+					await sql`
+						INSERT INTO ussd_states (session_id, accumulated_path, updated_at)
+						VALUES (${sessionId}, ${accumulatedPath}, NOW())
+						ON CONFLICT (session_id) 
+						DO UPDATE SET accumulated_path = ${accumulatedPath}, updated_at = NOW()
+					`;
 				}
 
 				const atResponse = await handleUssdCore(
