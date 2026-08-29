@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit"
+    "check-types": "next typegen && tsc --noEmit",
+    "build:worker": "opennextjs-cloudflare build",
+    "deploy:cloudflare": "opennextjs-cloudflare build && wrangler deploy"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1119.0",

@@ -1,0 +1,12 @@
+{
+  "name": "afrotix-ussd-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "PROVIDER": "arkesel",
+    "MAX_LISTED_EVENTS": "5"
+  }
+}
