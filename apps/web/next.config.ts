@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  productionBrowserSourceMaps: false,
-  images: {
-    unoptimized: true,
-  },
   experimental: {
     optimizePackageImports: [
       "lucide-react",

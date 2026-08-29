@@ -7,8 +7,6 @@
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "build:web:cloudflare": "cd apps/web && opennextjs-cloudflare build",
-    "deploy:web": "cd apps/web && wrangler deploy",
     "deploy:workers:all": "pnpm deploy:worker:ussd && pnpm deploy:worker:paystack && pnpm deploy:worker:delivery",
     "deploy:worker:ussd": "cd workers/ussd && wrangler deploy",
     "deploy:worker:paystack": "cd workers/paystack-webhook && wrangler deploy",

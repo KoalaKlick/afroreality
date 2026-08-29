@@ -8,18 +8,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit",
-    "build:worker": "opennextjs-cloudflare build",
-    "deploy:cloudflare": "opennextjs-cloudflare build && wrangler deploy"
+    "check-types": "next typegen && tsc --noEmit"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@prisma/engines",
       "prisma",
       "esbuild",
-      "sharp",
-      "workerd",
-      "@cloudflare/workerd-linux-64"
+      "sharp"
     ]
   },
   "dependencies": {
@@ -61,7 +57,6 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "16.3.1",
-    "@opennextjs/cloudflare": "^1.20.4",
     "@repo/eslint-config": "workspace:*",
     "@repo/tailwind-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
