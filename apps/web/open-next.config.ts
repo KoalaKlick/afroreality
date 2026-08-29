@@ -1,3 +1,11 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
-export default defineCloudflareConfig();
+const config = defineCloudflareConfig();
+
+config.default = {
+  ...config.default,
+  minify: true,
+  experimentalBundledNextServer: true,
+};
+
+export default config;
