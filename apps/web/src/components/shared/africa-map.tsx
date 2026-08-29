@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import type { AfricaMapProps } from "./africa-map-client";
 
 export type { AfricaMapProps };
+export { AfroTixLogo } from "./africa-map-client";
 
 export const AfricaMap = dynamic(
 	() => import("./africa-map-client").then((mod) => mod.AfricaMap),
