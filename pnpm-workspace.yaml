@@ -5,3 +5,18 @@ packages:
 
 allowBuilds:
   "@parcel/watcher": true
+  "@prisma/engines": true
+  "prisma": true
+  "esbuild": true
+  "sharp": true
+  "workerd": true
+  "@cloudflare/workerd-linux-64": true
+
+onlyBuiltDependencies:
+  - "@parcel/watcher"
+  - "@prisma/engines"
+  - "prisma"
+  - "esbuild"
+  - "sharp"
+  - "workerd"
+  - "@cloudflare/workerd-linux-64"
