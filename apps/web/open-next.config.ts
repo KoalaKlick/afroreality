@@ -8,4 +8,6 @@ config.default = {
   experimentalBundledNextServer: true,
 };
 
+config.edgeExternals = ["node:crypto", "sharp"];
+
 export default config;
