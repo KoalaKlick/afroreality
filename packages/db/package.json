@@ -16,6 +16,16 @@
     "lint": "echo 0",
     "check-types": "tsc --noEmit"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "sharp",
+      "workerd",
+      "@cloudflare/workerd-linux-64"
+    ]
+  },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "^7.10.0",
