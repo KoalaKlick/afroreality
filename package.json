@@ -19,8 +19,15 @@
     "turbo": "^2.10.12"
   },
   "packageManager": "pnpm@11.22.0",
-  "engines": {
-    "node": ">=24"
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "sharp",
+      "workerd",
+      "@cloudflare/workerd-linux-64"
+    ]
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
