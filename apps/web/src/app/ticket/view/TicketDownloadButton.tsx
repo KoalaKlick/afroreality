@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Download, Printer, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import html2canvas from "html2canvas";
 
 export function TicketDownloadButton({
 	ticketCode,
@@ -20,6 +19,7 @@ export function TicketDownloadButton({
 
 		setIsDownloading(true);
 		try {
+			const html2canvas = (await import("html2canvas")).default;
 			const canvas = await html2canvas(element, {
 				scale: 2,
 				useCORS: true,

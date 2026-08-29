@@ -2,6 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "@tiptap/react",
+      "@tiptap/starter-kit",
+      "@tiptap/pm",
+      "motion",
+      "radix-ui",
+      "@aws-sdk/client-s3",
+    ],
+  },
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/i,
