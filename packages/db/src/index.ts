@@ -16,7 +16,15 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient(): PrismaClient {
   const connectionString =
     process.env.DATABASE_URL ||
-    "postgresql://postgres:postgres@localhost:5432/afroreality";
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL;
+
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL environment variable is missing. Please add DATABASE_URL in your Vercel/hosting environment variables.",
+    );
+  }
+
   const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool as any);
   return new PrismaClient({ adapter });
