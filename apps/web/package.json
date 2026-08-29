@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "next build",
+    "build": "opennextjs-cloudflare build",
+    "build:next": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit",
@@ -62,7 +63,7 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "16.3.1",
-    "@opennextjs/cloudflare": "^1.20.4",
+    "@opennextjs/cloudflare": "1.20.4",
     "@repo/eslint-config": "workspace:*",
     "@repo/tailwind-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
