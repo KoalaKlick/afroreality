@@ -30,6 +30,9 @@ importers:
       turbo:
         specifier: ^2.10.12
         version: 2.10.12
+      wrangler:
+        specifier: ^3.114.17
+        version: 3.114.17(@cloudflare/workers-types@4.20260702.1)
 
   apps/docs:
     dependencies:
