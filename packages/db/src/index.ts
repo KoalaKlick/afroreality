@@ -24,11 +24,12 @@ function getPrismaClient(): PrismaClient {
     process.env.POSTGRES_URL;
 
   if (!connectionString) {
-    const client = new PrismaClient();
-    if (process.env.NODE_ENV !== "production") {
-      globalForPrisma.prismaInstance = client;
-    }
-    return client;
+    console.error(
+      "❌ FATAL: DATABASE_URL is not set in process.env on Vercel!",
+    );
+    throw new Error(
+      "DATABASE_URL environment variable is missing on Vercel. Please go to Vercel Dashboard -> Project Settings -> Environment Variables, add DATABASE_URL (ensure 'Production' checkbox is ticked), and Redeploy.",
+    );
   }
 
   const pool = new Pool({ connectionString });
