@@ -7,7 +7,7 @@
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "deploy:web": "pnpm --filter web deploy:cloudflare",
+    "deploy:web": "wrangler deploy --config apps/web/wrangler.json",
     "deploy:workers:all": "pnpm deploy:worker:ussd && pnpm deploy:worker:paystack && pnpm deploy:worker:delivery",
     "deploy:worker:ussd": "cd workers/ussd && wrangler deploy",
     "deploy:worker:paystack": "cd workers/paystack-webhook && wrangler deploy",
@@ -20,16 +20,6 @@
     "wrangler": "^3.114.17"
   },
   "packageManager": "pnpm@11.22.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/engines",
-      "prisma",
-      "esbuild",
-      "sharp",
-      "workerd",
-      "@cloudflare/workerd-linux-64"
-    ]
-  },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
     "@types/pg": "^8.23.1",
