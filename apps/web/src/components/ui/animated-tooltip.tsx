@@ -24,11 +24,11 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 	const springConfig = { stiffness: 100, damping: 15 };
 	const x = useMotionValue(0);
 	const rotate = useSpring(
-		useTransform(x, [-100, 100], [-45, 45]),
+		useTransform(x, [-100, 100], [-30, 30]),
 		springConfig,
 	);
 	const translateX = useSpring(
-		useTransform(x, [-100, 100], [-50, 50]),
+		useTransform(x, [-100, 100], [-35, 35]),
 		springConfig,
 	);
 
@@ -42,9 +42,15 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 		});
 	};
 
+	const designationText = item.designation
+		? item.designation.startsWith("#")
+			? item.designation
+			: `#${item.designation}`
+		: "";
+
 	return (
 		<div
-			className="group relative -mr-3 hover:z-50"
+			className="group relative -mr-2.5 hover:z-50 cursor-pointer"
 			onMouseEnter={() => setHovered(true)}
 			onMouseLeave={() => {
 				setHovered(false);
@@ -54,31 +60,33 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 			<AnimatePresence>
 				{hovered && (
 					<motion.div
-						initial={{ opacity: 0, y: 20, scale: 0.6 }}
+						initial={{ opacity: 0, y: 10, scale: 0.8 }}
 						animate={{
 							opacity: 1,
 							y: 0,
 							scale: 1,
 							transition: {
 								type: "spring",
-								stiffness: 260,
-								damping: 10,
+								stiffness: 300,
+								damping: 18,
 							},
 						}}
-						exit={{ opacity: 0, y: 20, scale: 0.6 }}
+						exit={{ opacity: 0, y: 10, scale: 0.8 }}
 						style={{
 							translateX,
 							rotate,
 							whiteSpace: "nowrap",
 						}}
-						className="absolute -top-16 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center justify-center rounded-md bg-primary px-4 py-2 text-xs shadow-xl"
+						className="absolute -top-14 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center justify-center rounded-xl bg-popover/95 backdrop-blur-md px-3.5 py-1.5 shadow-2xl border border-border pointer-events-none"
 					>
-						<div className="absolute inset-x-10 -bottom-px z-30 h-px w-[20%] bg-gradient-to-r from-transparent via-primary to-transparent" />
-						<div className="absolute -bottom-px left-10 z-30 h-px w-[40%] bg-gradient-to-r from-transparent via-secondary to-transparent" />
-						<div className="relative z-30 text-base font-bold text-white">
+						<div className="relative z-30 text-xs font-black uppercase tracking-tight text-popover-foreground">
 							{item.name}
 						</div>
-						<div className="text-xs text-white">{item.designation}</div>
+						{designationText && (
+							<div className="text-[10px] font-bold font-mono text-primary">
+								{designationText}
+							</div>
+						)}
 					</motion.div>
 				)}
 			</AnimatePresence>
@@ -86,18 +94,16 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 			{item.image ? (
 				<img
 					onMouseMove={handleMouseMove}
-					height={100}
-					width={100}
 					src={item.image}
 					alt={item.name}
-					className="relative !m-0 h-10 w-10 shrink-0 rounded-full border-2 border-white object-cover object-top !p-0 transition duration-500 group-hover:z-30 group-hover:scale-105"
+					className="relative !m-0 h-9 w-9 shrink-0 rounded-full border-2 border-background object-cover object-top !p-0 shadow-sm transition duration-300 group-hover:scale-110 group-hover:border-primary"
 				/>
 			) : (
 				<div
 					onMouseMove={handleMouseMove}
-					className="relative !m-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-primary/20 to-secondary/20 transition duration-500 group-hover:z-30 group-hover:scale-105"
+					className="relative !m-0 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground shadow-sm transition duration-300 group-hover:scale-110 group-hover:border-primary"
 				>
-					<Users className="h-4 w-4 text-muted-foreground/50" />
+					<Users className="size-3.5" />
 				</div>
 			)}
 		</div>
@@ -106,10 +112,10 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 
 export function AnimatedTooltip({ items }: { readonly items: TooltipItem[] }) {
 	return (
-		<>
+		<div className="flex items-center">
 			{items.map((item) => (
 				<TooltipAvatar key={item.id} item={item} />
 			))}
-		</>
+		</div>
 	);
 }

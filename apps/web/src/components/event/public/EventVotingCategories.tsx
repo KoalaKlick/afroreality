@@ -29,9 +29,9 @@ export function EventVotingCategories({
 			}}
 		>
 			<div>
-				<div className="flex items-center gap-3 mb-12">
+				<div className="flex items-center gap-3 mb-10">
 					<Vote className="size-8 text-primary" />
-					<h2 className="text-3xl font-bold uppercase tracking-tight">
+					<h2 className="text-3xl font-black uppercase tracking-tight text-foreground">
 						Vote Categories.
 					</h2>
 				</div>
@@ -42,10 +42,10 @@ export function EventVotingCategories({
 							<Link
 								key={category.id}
 								href={`/${orgSlug}/event/${eventSlug}/category/${category.id}`}
-								className="group flex flex-col rounded-2xl border bg-card transition-all duration-300 relative overflow-hidden hover:border-primary/50"
+								className="group flex flex-col rounded-2xl border bg-card transition-all duration-300 relative hover:border-primary/50 hover:shadow-md"
 							>
 								{category.templateImage && (
-									<div className="relative w-full h-48 shrink-0 overflow-hidden bg-muted">
+									<div className="relative w-full h-48 shrink-0 overflow-hidden bg-muted rounded-t-2xl">
 										<Image
 											src={getEventImageUrl(category.templateImage) || ""}
 											alt={category.name}
@@ -55,7 +55,7 @@ export function EventVotingCategories({
 										/>
 									</div>
 								)}
-								<div className="p-6 flex flex-col flex-1 bg-card">
+								<div className="p-6 flex flex-col flex-1 bg-card rounded-2xl overflow-visible">
 									<div className="flex items-start justify-between mb-2">
 										<div className="flex items-start gap-3 flex-1 min-w-0 pr-4">
 											<div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -89,9 +89,9 @@ export function EventVotingCategories({
 											</div>
 										)}
 
-										{/* Preview of nominees */}
+										{/* Preview of nominees with hover tooltip */}
 										{category.votingOptions && category.votingOptions.length > 0 && (
-											<div className="flex flex-row items-center mt-1 pt-1 mb-1">
+											<div className="flex flex-row items-center mt-2 pt-2 relative z-20">
 												<AnimatedTooltip
 													items={category.votingOptions
 														.slice(0, 5)
@@ -102,11 +102,11 @@ export function EventVotingCategories({
 																nominee.nomineeCode || "Nominee",
 															image:
 																getEventImageUrl(nominee.imageUrl) ||
-																"/landing/g.webp",
+																null,
 														}))}
 												/>
 												{category.votingOptions.length > 5 && (
-													<div className="relative size-10 ml-2 rounded-full border-2 border-background bg-primary flex items-center justify-center shrink-0 z-40 text-primary-foreground text-xs font-bold">
+													<div className="relative size-9 ml-1.5 rounded-full border-2 border-background bg-primary flex items-center justify-center shrink-0 z-30 text-primary-foreground text-xs font-bold shadow-sm">
 														+{category.votingOptions.length - 5}
 													</div>
 												)}
