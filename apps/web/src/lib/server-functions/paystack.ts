@@ -18,8 +18,6 @@ export interface PaystackBank {
 	country?: string;
 	currency?: string;
 	type?: string;
-	createdAt?: string;
-	updatedAt?: string;
 }
 
 export interface FetchPaystackBanksResult {
@@ -29,23 +27,23 @@ export interface FetchPaystackBanksResult {
 	momo: Array<{ name: string; code: string }>;
 }
 
-const FALLBACK_BANKS: Array<{ name: string; code: string }> = [
-	{ name: "Access Bank Ghana", code: "ABG" },
-	{ name: "Absa Bank Ghana", code: "ABS" },
-	{ name: "CalBank", code: "CAL" },
-	{ name: "Ecobank Ghana", code: "ECO" },
-	{ name: "Fidelity Bank Ghana", code: "FID" },
-	{ name: "First National Bank", code: "FNB" },
-	{ name: "GCB Bank", code: "GCB" },
-	{ name: "Stanbic Bank Ghana", code: "STA" },
-	{ name: "Standard Chartered Bank", code: "SCB" },
-	{ name: "Zenith Bank Ghana", code: "ZEN" },
+const FALLBACK_BANKS = [
+	{ name: "Access Bank", code: "gh01" },
+	{ name: "Absa Bank Ghana", code: "gh02" },
+	{ name: "CalBank", code: "gh03" },
+	{ name: "Ecobank Ghana", code: "gh04" },
+	{ name: "FBNBank Ghana", code: "gh05" },
+	{ name: "GCB Bank", code: "gh06" },
+	{ name: "Stanbic Bank Ghana", code: "gh07" },
+	{ name: "Standard Chartered Bank", code: "gh08" },
+	{ name: "Zenith Bank Ghana", code: "gh09" },
+	{ name: "Fidelity Bank Ghana", code: "gh10" },
 ];
 
-const FALLBACK_MOMO: Array<{ name: string; code: string }> = [
+const FALLBACK_MOMO = [
 	{ name: "MTN Mobile Money", code: "MTN" },
-	{ name: "Telecel Cash / Vodafone", code: "VOD" },
-	{ name: "AT / AirtelTigo Money", code: "ATL" },
+	{ name: "Vodafone / Telecel Cash", code: "VOD" },
+	{ name: "AirtelTigo Money", code: "ATL" },
 ];
 
 export async function fetchPaystackBanks({
@@ -174,52 +172,56 @@ export async function createPaystackSubaccount({
 	message?: string;
 	error?: string;
 }> {
-	const session = await requireSession();
+	try {
+		const session = await requireSession();
 
-	const org = await prisma.organization.findUnique({
-		where: { id: data.organizationId },
-		select: { id: true, name: true, createdBy: true, subaccountCode: true },
-	});
-
-	if (!org) {
-		throw new Error("Organization not found.");
-	}
-
-	const membership = await prisma.teamMember.findFirst({
-		where: {
-			organizationId: data.organizationId,
-			userId: session.userId,
-		},
-	});
-
-	const isOwner = org.createdBy === session.userId;
-	const isPrivileged =
-		isOwner ||
-		(membership && ["owner", "admin"].includes(membership.role.toLowerCase()));
-
-	if (!isPrivileged) {
-		throw new Error("Only the organization owner or admin can configure payout details.");
-	}
-
-	if (!PAYSTACK_SECRET) {
-		await prisma.organization.update({
+		const org = await prisma.organization.findUnique({
 			where: { id: data.organizationId },
-			data: {
-				subaccountCode: `ACCT_LOCAL_${Date.now()}`,
-				paystackBankCode: data.bankCode,
-				paystackAccountNumber: data.accountNumber,
-				paystackAccountName: data.accountName || "Configured Account",
+			select: { id: true, name: true, createdBy: true, subaccountCode: true },
+		});
+
+		if (!org) {
+			return { success: false, error: "Organization not found." };
+		}
+
+		const membership = await prisma.teamMember.findFirst({
+			where: {
+				organizationId: data.organizationId,
+				userId: session.userId,
 			},
 		});
-		return {
-			success: true,
-			subaccountCode: `ACCT_LOCAL_${Date.now()}`,
-			message: "Payment account configured successfully.",
-		};
-	}
 
-	try {
-		if (org.subaccountCode) {
+		const isOwner = org.createdBy === session.userId;
+		const isPrivileged =
+			isOwner ||
+			(membership && ["owner", "admin"].includes(membership.role.toLowerCase()));
+
+		if (!isPrivileged) {
+			return {
+				success: false,
+				error: "Only the organization owner or admin can configure payout details.",
+			};
+		}
+
+		if (!PAYSTACK_SECRET) {
+			const fallbackCode = `ACCT_LOCAL_${Date.now()}`;
+			await prisma.organization.update({
+				where: { id: data.organizationId },
+				data: {
+					subaccountCode: fallbackCode,
+					paystackBankCode: data.bankCode,
+					paystackAccountNumber: data.accountNumber,
+					paystackAccountName: data.accountName || "Configured Account",
+				},
+			});
+			return {
+				success: true,
+				subaccountCode: fallbackCode,
+				message: "Payment account configured successfully.",
+			};
+		}
+
+		if (org.subaccountCode && !org.subaccountCode.startsWith("ACCT_LOCAL_")) {
 			// Update existing subaccount
 			const updateRes = await fetch(
 				`https://api.paystack.co/subaccount/${encodeURIComponent(org.subaccountCode)}`,
@@ -277,7 +279,10 @@ export async function createPaystackSubaccount({
 		const paystackData = await paystackRes.json();
 
 		if (!paystackRes.ok || !paystackData.status) {
-			throw new Error(paystackData.message || "Failed to create payment account with Paystack.");
+			return {
+				success: false,
+				error: paystackData.message || "Failed to create payment account with Paystack.",
+			};
 		}
 
 		const subaccountCode = paystackData.data?.subaccount_code;
@@ -314,46 +319,59 @@ export async function removePayoutAccount({
 	data,
 }: {
 	data: { organizationId: string };
-}): Promise<{ success: boolean; message: string }> {
-	const session = await requireSession();
+}): Promise<{ success: boolean; message: string; error?: string }> {
+	try {
+		const session = await requireSession();
 
-	const org = await prisma.organization.findUnique({
-		where: { id: data.organizationId },
-		select: { id: true, createdBy: true },
-	});
+		const org = await prisma.organization.findUnique({
+			where: { id: data.organizationId },
+			select: { id: true, createdBy: true },
+		});
 
-	if (!org) {
-		throw new Error("Organization not found.");
+		if (!org) {
+			return { success: false, message: "Organization not found.", error: "Organization not found." };
+		}
+
+		const membership = await prisma.teamMember.findFirst({
+			where: {
+				organizationId: data.organizationId,
+				userId: session.userId,
+			},
+		});
+
+		const isOwner = org.createdBy === session.userId;
+		const isPrivileged =
+			isOwner ||
+			(membership && ["owner", "admin"].includes(membership.role.toLowerCase()));
+
+		if (!isPrivileged) {
+			return {
+				success: false,
+				message: "Only the organization owner or admin can remove payout details.",
+				error: "Only the organization owner or admin can remove payout details.",
+			};
+		}
+
+		await prisma.organization.update({
+			where: { id: data.organizationId },
+			data: {
+				subaccountCode: null,
+				paystackBankCode: null,
+				paystackAccountNumber: null,
+				paystackAccountName: null,
+			},
+		});
+
+		return {
+			success: true,
+			message: "Payout account removed successfully.",
+		};
+	} catch (err: any) {
+		console.error("removePayoutAccount error:", err);
+		return {
+			success: false,
+			message: err?.message || "Failed to remove payout account.",
+			error: err?.message || "Failed to remove payout account.",
+		};
 	}
-
-	const membership = await prisma.teamMember.findFirst({
-		where: {
-			organizationId: data.organizationId,
-			userId: session.userId,
-		},
-	});
-
-	const isOwner = org.createdBy === session.userId;
-	const isPrivileged =
-		isOwner ||
-		(membership && ["owner", "admin"].includes(membership.role.toLowerCase()));
-
-	if (!isPrivileged) {
-		throw new Error("Only the organization owner or admin can remove payout details.");
-	}
-
-	await prisma.organization.update({
-		where: { id: data.organizationId },
-		data: {
-			subaccountCode: null,
-			paystackBankCode: null,
-			paystackAccountNumber: null,
-			paystackAccountName: null,
-		},
-	});
-
-	return {
-		success: true,
-		message: "Payout account removed successfully.",
-	};
 }
