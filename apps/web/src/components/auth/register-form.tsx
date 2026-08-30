@@ -41,17 +41,13 @@ export function RegisterForm() {
 		setSubmitting(true);
 
 		try {
-			const res = await signUp({
+			await signUp({
 				email: cleanEmail,
 				password,
 				fullName: cleanName,
 			});
-
-			if (res?.error) {
-				toast.error(res.error.message || "Registration failed");
-			}
 		} catch (err: any) {
-			toast.error(err?.message || "An unexpected error occurred.");
+			// Toast is handled in auth-provider
 		} finally {
 			setSubmitting(false);
 		}

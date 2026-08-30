@@ -38,17 +38,13 @@ export function LoginForm({
 		setSubmitting(true);
 
 		try {
-			const res = await signInWithPassword({
+			await signInWithPassword({
 				identifier: cleanId,
 				password: cleanPass,
 				redirectTo: next ?? undefined,
 			});
-
-			if (res?.error) {
-				toast.error(res.error.message || "Invalid email/username or password");
-			}
 		} catch (err: any) {
-			toast.error(err?.message || "Failed to sign in. Please try again.");
+			// Toast is handled in auth-provider
 		} finally {
 			setSubmitting(false);
 		}
