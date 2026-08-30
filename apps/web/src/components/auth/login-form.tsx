@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Lock, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmailVerifiedIllustration } from "@/components/auth/EmailVerifiedIllustration";
@@ -91,12 +92,12 @@ export function LoginForm({
 						required
 					/>
 					<div className="flex justify-end pt-1">
-						<a
+						<Link
 							href="/forgot-password"
 							className="text-xs text-muted-foreground hover:text-primary underline"
 						>
 							Forgot password?
-						</a>
+						</Link>
 					</div>
 				</div>
 
@@ -140,12 +141,12 @@ export function LoginForm({
 
 			<p className="text-sm text-center text-muted-foreground">
 				Don't have an account?{" "}
-				<a
+				<Link
 					href="/register"
 					className="text-red-500 font-medium hover:underline"
 				>
 					Sign up
-				</a>
+				</Link>
 			</p>
 		</div>
 	);
