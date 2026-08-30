@@ -1,9 +1,14 @@
 "use client";
 
-import { NoNomineeIllustration } from "@/components/common/NoNomineeIllustration";
-import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { useState } from "react";
-import Image from "next/image";
+import {
+	Vote,
+	User,
+	Share2,
+	Trophy,
+	Sparkles,
+	Percent,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Sheet,
@@ -11,37 +16,43 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { getEventImageUrl } from "@/lib/image-url-utils";
-import { Vote, Share2, Users, Hash, User, Trophy, Sparkles, Percent } from "lucide-react";
-import type { VotingOption, VotingCategory } from "@/lib/types/voting";
 import { VotePaymentModal } from "@/components/event/nomination/VotePaymentModal";
-import { PublicNominationModal } from "./PublicNominationModal";
+import { PublicNominationModal } from "@/components/event/public/PublicNominationModal";
+import { getEventImageUrl } from "@/lib/image-url-utils";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
+
+interface VotingOption {
+	id: string;
+	optionText: string;
+	imageUrl?: string | null;
+	nomineeCode?: string | null;
+	bio?: string | null;
+	votes?: number;
+}
 
 interface NomineeGridProps {
 	readonly nominees: VotingOption[];
-	readonly votePrice?: number;
+	readonly votePrice: number;
 	readonly eventId: string;
 	readonly categoryId: string;
-	readonly isPublic?: boolean;
-	readonly votingMode?: "internal" | "general" | string;
+	readonly votingMode?: string;
 	readonly showTotalVotesPublicly?: boolean;
-	readonly resultDisplayType?: "percentage" | "count" | string;
+	readonly resultDisplayType?: "percentage" | "count";
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
 }
 
 export function NomineeGrid({
 	nominees,
-	votePrice = 0,
+	votePrice,
 	eventId,
 	categoryId,
 	votingMode = "general",
 	showTotalVotesPublicly = true,
 	resultDisplayType = "percentage",
-	orgSlug,
-	eventSlug,
+	orgSlug = "",
+	eventSlug = "",
 }: NomineeGridProps) {
 	const [selectedNominee, setSelectedNominee] = useState<VotingOption | null>(
 		null,
@@ -49,10 +60,11 @@ export function NomineeGrid({
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [voteModalOpen, setVoteModalOpen] = useState(false);
 
-	const isFree = votingMode !== "internal" && votePrice === 0;
+	const isFree = Number(votePrice) === 0;
 
-	const totalVotes = nominees.reduce(
-		(acc, n) => acc + Number(n.votesCount || 0),
+	// Total votes for percentage calculation
+	const totalVotesAcrossCategory = nominees.reduce(
+		(acc, n) => acc + (n.votes || 0),
 		0,
 	);
 
@@ -67,34 +79,35 @@ export function NomineeGrid({
 	};
 
 	const handleShare = async (nominee: VotingOption) => {
-		const shareUrl = `${window.location.origin}/${orgSlug}/event/${eventSlug}/category/${categoryId}`;
-		const shareText = `Vote for ${nominee.optionText} on AfroReality!`;
+		const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+		const shareData = {
+			title: `Vote for ${nominee.optionText}`,
+			text: `Vote for ${nominee.optionText} (${nominee.nomineeCode || ""}) on AfroReality!`,
+			url: shareUrl,
+		};
 
-		if (navigator.share) {
+		if (navigator.share && navigator.canShare?.(shareData)) {
 			try {
-				await navigator.share({
-					title: nominee.optionText,
-					text: shareText,
-					url: shareUrl,
-				});
+				await navigator.share(shareData);
+				return;
 			} catch {
-				// Fallback
+				// Fallback to clipboard
 			}
-		} else {
-			await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-			toast.success("Vote link copied to clipboard!");
+		}
+
+		if (typeof window !== "undefined") {
+			navigator.clipboard.writeText(shareUrl);
+			toast.success("Nominee link copied to clipboard!");
 		}
 	};
 
-	if (!nominees || nominees.length === 0) {
+	if (nominees.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-2xl bg-card/30 p-8 my-6">
-				<NoNomineeIllustration className="w-56 h-auto mb-6 opacity-85" />
-				<h4 className="text-xl font-bold uppercase tracking-tight text-foreground mb-2">
-					No Nominees Yet
-				</h4>
-				<p className="text-sm text-muted-foreground max-w-sm mx-auto">
-					Candidates and nominees haven't been published for this category yet. Check back soon!
+			<div className="text-center py-16 border rounded-2xl bg-card/40 p-8">
+				<User className="size-12 mx-auto text-muted-foreground/40 mb-3" />
+				<h4 className="text-lg font-bold">No nominees yet</h4>
+				<p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
+					Nominees for this category have not been published yet. Please check back later.
 				</p>
 			</div>
 		);
@@ -102,19 +115,19 @@ export function NomineeGrid({
 
 	return (
 		<>
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 				{nominees.map((nominee) => {
-					const imgUrl = nominee.imageUrl
-						? getEventImageUrl(nominee.imageUrl)
-						: null;
-					const votes = Number(nominee.votesCount || 0);
+					const votes = nominee.votes || 0;
 					const pct =
-						totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : "0.0";
+						totalVotesAcrossCategory > 0
+							? ((votes / totalVotesAcrossCategory) * 100).toFixed(1)
+							: "0.0";
+					const imgUrl = getEventImageUrl(nominee.imageUrl);
 
 					return (
 						<div
 							key={nominee.id}
-							className="group rounded-2xl border bg-card/70 p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-xl flex flex-col justify-between shadow-xs"
+							className="group rounded-2xl border bg-card/70 p-4 transition-all duration-300 hover:border-primary/50 flex flex-col justify-between"
 						>
 							<div
 								onClick={() => handleOpenNominee(nominee)}
@@ -133,7 +146,7 @@ export function NomineeGrid({
 									)}
 
 									{nominee.nomineeCode && (
-										<div className="absolute top-2.5 right-2.5 rounded-full bg-background/85 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-mono font-bold tracking-wider uppercase border shadow-xs text-primary">
+										<div className="absolute top-2.5 right-2.5 rounded-full bg-background/85 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-mono font-bold tracking-wider uppercase border text-primary">
 											#{nominee.nomineeCode}
 										</div>
 									)}

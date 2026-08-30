@@ -35,7 +35,7 @@ export function EventVotingCategories({
 							<Link
 								key={category.id}
 								href={`/${orgSlug}/event/${eventSlug}/category/${category.id}`}
-								className="group flex flex-col rounded-2xl border bg-card shadow-xs hover:shadow-xl transition-all duration-300 relative overflow-hidden"
+								className="group flex flex-col rounded-2xl border bg-card transition-all duration-300 relative overflow-hidden hover:border-primary/50"
 							>
 								{category.templateImage && (
 									<div className="relative w-full h-48 shrink-0 overflow-hidden bg-muted">
@@ -99,7 +99,7 @@ export function EventVotingCategories({
 														}))}
 												/>
 												{category.votingOptions.length > 5 && (
-													<div className="relative size-10 ml-2 rounded-full border-2 border-background bg-primary flex items-center justify-center shrink-0 z-40 text-primary-foreground text-xs font-bold shadow-xs">
+													<div className="relative size-10 ml-2 rounded-full border-2 border-background bg-primary flex items-center justify-center shrink-0 z-40 text-primary-foreground text-xs font-bold">
 														+{category.votingOptions.length - 5}
 													</div>
 												)}

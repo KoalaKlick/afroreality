@@ -83,8 +83,8 @@ export function OrgProfileHero({
 			{/* Profile Info Overlay */}
 			<div className="max-w-6xl mx-auto px-4 -mt-12 md:-mt-16 relative z-10">
 				<div className="flex flex-col md:flex-row gap-6 items-end md:items-center">
-					{/* Logo */}
-					<div className="relative size-24 md:size-32 rounded-2xl bg-card p-2 shadow-xl border overflow-hidden shrink-0 flex items-center justify-center">
+					{/* Logo (No Shadow) */}
+					<div className="relative size-24 md:size-32 rounded-2xl bg-card p-2 border border-border overflow-hidden shrink-0 flex items-center justify-center">
 						{logoImageUrl ? (
 							<img
 								src={logoImageUrl}

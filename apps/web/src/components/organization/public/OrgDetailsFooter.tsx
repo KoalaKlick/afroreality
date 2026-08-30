@@ -38,13 +38,20 @@ export function OrgDetailsFooter({
 		: null;
 
 	return (
-		<Section maxWidth="7xl" className="py-12 bg-card/40 border-t">
+		<Section
+			maxWidth="7xl"
+			className="py-14 border-t transition-colors"
+			style={{
+				backgroundColor:
+					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+			}}
+		>
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
 				{/* Column 1: Our Partners (Aggregated from events) */}
 				<div className="space-y-6">
 					<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
 						<Trophy className="size-5 text-primary" />
-						Our Partners.
+						<span>Our Partners.</span>
 					</h3>
 					{sponsors.length > 0 ? (
 						<div className="flex flex-wrap gap-2.5">
@@ -54,7 +61,7 @@ export function OrgDetailsFooter({
 								return (
 									<div
 										key={sponsor.id || sponsor.name}
-										className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help shadow-xs"
+										className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help"
 										title={sponsor.name}
 									>
 										{imgUrl ? (
@@ -139,23 +146,26 @@ export function OrgDetailsFooter({
 						)}
 					</div>
 
-					{/* Dedicated Social Links */}
+					{/* Dedicated Social Links with Actual SVGs & No Shadow */}
 					{organization.socialLinks && organization.socialLinks.length > 0 && (
-						<div className="pt-6 border-t border-dashed flex flex-wrap gap-2">
-							{organization.socialLinks.map((link) => (
-								<a
-									key={link.id || link.url}
-									href={link.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="size-10 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary hover:text-primary transition-all shadow-xs"
-									title={link.url}
-								>
-									<div className="size-5 flex items-center justify-center">
-										{getSocialPlatform(link.url, "size-full").icon}
-									</div>
-								</a>
-							))}
+						<div className="pt-6 border-t border-dashed flex flex-wrap gap-2.5">
+							{organization.socialLinks.map((link) => {
+								const plat = getSocialPlatform(link.url, "size-5");
+								return (
+									<a
+										key={link.id || link.url}
+										href={link.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="size-10 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
+										title={plat.name || link.url}
+									>
+										<div className="size-5 flex items-center justify-center">
+											{plat.icon}
+										</div>
+									</a>
+								);
+							})}
 						</div>
 					)}
 				</div>

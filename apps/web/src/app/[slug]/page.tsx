@@ -96,8 +96,16 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 		new Map(combinedSocialLinks.map((s: any) => [s.url, s])).values(),
 	) as any[];
 
+	const { primaryColor, secondaryColor, tertiaryColor } = organization;
+
+	const brandVars = {
+		"--color-brand-primary": primaryColor || "#009A44",
+		"--color-brand-secondary": secondaryColor || "#FFD100",
+		"--color-brand-tertiary": tertiaryColor || "#EF3340",
+	} as React.CSSProperties;
+
 	return (
-		<main className="min-h-screen bg-background text-foreground flex flex-col">
+		<main className="min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
 			{/* 1. Organization Hero Profile */}
 			<OrgProfileHero
 				organization={{

@@ -92,7 +92,7 @@ export function EventCard({ item, index = 0, colorCount = 3, className, size = '
         <Link
             href={href}
             className={cn(
-                "group relative cursor-pointer block overflow-hidden rounded-2xl h-full shadow-sm hover:shadow-xl transition-all duration-300",
+                "group relative cursor-pointer block overflow-hidden rounded-2xl h-full border border-border/40 transition-all duration-300",
                 size === 'large' ? 'aspect-3/4' : 'aspect-4/3',
                 className
             )}

@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
 
 interface SectionProps {
 	as?: "section" | "div" | "article" | "main" | "header" | "footer";
 	maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "4xl" | "6xl" | "7xl" | "8xl" | "full";
 	className?: string;
 	contentClassName?: string;
+	style?: CSSProperties;
 	id?: string;
 	children: ReactNode;
 }
@@ -27,12 +28,13 @@ export const Section: React.FC<SectionProps> = ({
 	maxWidth = "7xl",
 	className = "",
 	contentClassName = "",
+	style,
 	children,
 	id,
 	...props
 }) => {
 	return (
-		<Component {...props} id={id} className={`w-full ${className}`}>
+		<Component {...props} id={id} style={style} className={`w-full ${className}`}>
 			<div
 				className={`mx-auto px-4 sm:px-6 lg:px-6 ${maxWidthClasses[maxWidth]} ${contentClassName}`}
 			>
