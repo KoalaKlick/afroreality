@@ -4,7 +4,7 @@ export const PanAfricanDivider = ({
 	className,
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-	<div className={cn("flex h-2 w-full shrink-0", className)} {...props}>
+	<div className={cn("flex h-px w-full shrink-0", className)} {...props}>
 		<div
 			className="flex-1 bg-[#009A44]"
 			style={{ backgroundColor: "var(--color-brand-primary, #009A44)" }}

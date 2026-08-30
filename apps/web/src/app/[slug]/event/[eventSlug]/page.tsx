@@ -200,7 +200,7 @@ export default async function PublicEventPage({
 				sponsors={sponsors}
 			/>
 
-			<PanAfricanDivider />
+			{/* 5. Brand Footer (Black with dashed top border and logo) */}
 			<PoweredByFooter />
 		</main>
 	);

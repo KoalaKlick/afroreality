@@ -132,14 +132,12 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 
 			<PanAfricanDivider />
 
-			{/* 2. Events Showcase Section */}
+			{/* 2. Events Showcase Section (with light primary bg) */}
 			<EventsSection
 				title="Our Events."
 				useBrand
 				items={eventsWithOrg}
 			/>
-
-			<PanAfricanDivider />
 
 			{/* 3. Organization Details Footer (Our Partners, About Org, Connect with Us) */}
 			<OrgDetailsFooter
@@ -156,7 +154,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 				sponsors={uniqueSponsors}
 			/>
 
-			<PanAfricanDivider />
+			{/* 4. Brand Footer (Black with dashed top border and logo) */}
 			<PoweredByFooter />
 		</main>
 	);
