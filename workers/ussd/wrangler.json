@@ -1,5 +1,5 @@
 {
-  "name": "afrotix-ussd-worker",
+  "name": "afroreality-ussd-webhook",
   "main": "src/index.ts",
   "compatibility_date": "2024-09-23",
   "compatibility_flags": [
