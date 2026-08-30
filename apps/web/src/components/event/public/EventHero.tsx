@@ -81,11 +81,9 @@ export function EventHero({ event, orgSlug }: EventHeroProps) {
 
 					<div className="flex items-center gap-2">
 						{orgLogoUrl ? (
-							<Image
+							<img
 								src={orgLogoUrl}
 								alt={organization.name}
-								width={24}
-								height={24}
 								className="rounded-full border size-6 object-cover"
 							/>
 						) : null}
