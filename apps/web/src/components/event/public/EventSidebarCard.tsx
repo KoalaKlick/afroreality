@@ -6,13 +6,10 @@ import {
 	MapPin,
 	Building2,
 	Globe,
-	Ticket,
-	Vote,
 	ImageIcon,
 	ChevronRight,
 	Trophy,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
@@ -63,9 +60,6 @@ export function EventSidebarCard({
 }: EventSidebarCardProps) {
 	const bannerImage = getEventImageUrl(event.bannerUrl || event.flierUrl);
 	const logoImage = getOrgImageUrl(event.organization.logoUrl);
-
-	const isTicketed = event.type === "ticketed" || event.type === "hybrid";
-	const isVoting = event.type === "voting" || event.type === "hybrid";
 
 	const formattedDate = event.startDate
 		? new Date(event.startDate).toLocaleDateString("en-US", {
@@ -158,31 +152,6 @@ export function EventSidebarCard({
 						)}
 						<span className="truncate">{locationText}</span>
 					</div>
-				</div>
-
-				{/* Quick Actions */}
-				<div className="flex flex-wrap gap-2 pt-1">
-					{isTicketed && (
-						<Button asChild size="sm" className="flex-1 font-bold text-xs h-9 gap-1.5">
-							<a href="#tickets">
-								<Ticket className="size-3.5" />
-								<span>Get Tickets</span>
-							</a>
-						</Button>
-					)}
-					{isVoting && (
-						<Button
-							asChild
-							variant={isTicketed ? "outline" : "default"}
-							size="sm"
-							className="flex-1 font-bold text-xs h-9 gap-1.5"
-						>
-							<a href="#voting">
-								<Vote className="size-3.5" />
-								<span>Cast Votes</span>
-							</a>
-						</Button>
-					)}
 				</div>
 
 				<PanAfricanDivider />
