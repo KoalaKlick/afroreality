@@ -2,11 +2,11 @@ import { notFound } from "next/navigation";
 import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
 import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero";
+import { OrgProfileSponsors } from "@/components/organization/public/OrgProfileSponsors";
 import { EventsSection } from "@/components/Landing/sections/revamp-events";
-import { Section } from "@/components/Landing/shared/Section";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
-import { getOrgImageUrl, getEventImageUrl } from "@/lib/image-url-utils";
+import { getOrgImageUrl } from "@/lib/image-url-utils";
 import type { Metadata } from "next";
 
 interface OrgProfilePageProps {
@@ -16,6 +16,7 @@ interface OrgProfilePageProps {
 const BASE_URL =
 	process.env.NEXT_PUBLIC_APP_URL ||
 	process.env.NEXT_PUBLIC_DOMAIN_URL ||
+	process.env.BASE_URL ||
 	"https://afroreality.com";
 
 export async function generateMetadata({
@@ -30,8 +31,8 @@ export async function generateMetadata({
 		"/landing/g.webp";
 	const absoluteImage = bannerImage.startsWith("http")
 		? bannerImage
-		: `${BASE_URL}${bannerImage}`;
-	const pageUrl = `${BASE_URL}/${slug}`;
+		: `${BASE_URL.replace(/\/$/, "")}${bannerImage}`;
+	const pageUrl = `${BASE_URL.replace(/\/$/, "")}/${slug}`;
 	const description =
 		organization.description ||
 		`Official profile for ${organization.name} on AfroReality.`;
@@ -84,9 +85,11 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 
 	// Collect unique sponsors from organization events
 	const allSponsors = rawEvents.flatMap((e: any) => e.sponsors || []);
-	const uniqueSponsors = Array.from(
-		new Map(allSponsors.map((s: any) => [s.name, s])).values(),
-	);
+	const uniqueSponsors: Array<{
+		id?: string;
+		name: string;
+		logoUrl?: string | null;
+	}> = Array.from(new Map(allSponsors.map((s: any) => [s.name, s])).values()) as any;
 
 	return (
 		<main className="min-h-screen bg-background text-foreground flex flex-col">
@@ -109,6 +112,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 						members: organization._count?.members ?? 0,
 					},
 				}}
+				baseUrl={BASE_URL}
 				isUserAuthenticated={isUserAuthenticated}
 				hasPendingRequest={organization.isUserPendingJoin ?? false}
 			/>
@@ -126,31 +130,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 			{uniqueSponsors.length > 0 && (
 				<>
 					<PanAfricanDivider />
-					<Section maxWidth="7xl" className="py-12 bg-card/40 border-t">
-						<div className="space-y-4">
-							<h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-								Partners &amp; Sponsors
-							</h3>
-							<div className="flex flex-wrap items-center gap-6">
-								{uniqueSponsors.map((sponsor: any) => (
-									<div
-										key={sponsor.id || sponsor.name}
-										className="flex items-center gap-2 px-3.5 py-2 rounded-xl border bg-background shadow-xs text-xs font-semibold"
-									>
-										{sponsor.logoUrl ? (
-											<img
-												src={getEventImageUrl(sponsor.logoUrl)}
-												alt={sponsor.name}
-												className="h-6 w-auto object-contain"
-											/>
-										) : (
-											<span>{sponsor.name}</span>
-										)}
-									</div>
-								))}
-							</div>
-						</div>
-					</Section>
+					<OrgProfileSponsors sponsors={uniqueSponsors} />
 				</>
 			)}
 

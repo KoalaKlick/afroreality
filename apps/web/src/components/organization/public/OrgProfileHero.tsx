@@ -1,12 +1,20 @@
 "use client";
-import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
-import Image from "next/image";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Building2, Globe, Mail, Users, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+	Building2,
+	Globe,
+	Mail,
+	Users,
+	ArrowRight,
+	CheckCircle2,
+	Share2,
+	ExternalLink,
+	Copy,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 
 interface OrgProfileHeroProps {
@@ -27,12 +35,14 @@ interface OrgProfileHeroProps {
 			members: number;
 		};
 	};
+	readonly baseUrl?: string;
 	readonly isUserAuthenticated: boolean;
 	readonly hasPendingRequest: boolean;
 }
 
 export function OrgProfileHero({
 	organization,
+	baseUrl = "https://afroreality.com",
 	isUserAuthenticated,
 	hasPendingRequest: initialPending,
 }: OrgProfileHeroProps) {
@@ -44,10 +54,27 @@ export function OrgProfileHero({
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
 
 	const brandVars = {
-		"--color-brand-primary": primaryColor,
-		"--color-brand-secondary": secondaryColor,
-		"--color-brand-tertiary": tertiaryColor,
+		"--color-brand-primary": primaryColor || "#009A44",
+		"--color-brand-secondary": secondaryColor || "#FFD100",
+		"--color-brand-tertiary": tertiaryColor || "#EF3340",
 	} as React.CSSProperties;
+
+	// Normalize website URL to ensure it is always clickable with http/https
+	const cleanWebsiteUrl = organization.websiteUrl
+		? organization.websiteUrl.startsWith("http://") ||
+			organization.websiteUrl.startsWith("https://")
+			? organization.websiteUrl
+			: `https://${organization.websiteUrl}`
+		: null;
+
+	const publicOrgUrl = `${baseUrl.replace(/\/$/, "")}/${organization.slug}`;
+
+	const handleCopyOrgLink = async () => {
+		if (navigator.clipboard) {
+			await navigator.clipboard.writeText(publicOrgUrl);
+			toast.success("Organization link copied to clipboard!");
+		}
+	};
 
 	const handleJoinRequest = async () => {
 		if (!isUserAuthenticated) {
@@ -78,11 +105,11 @@ export function OrgProfileHero({
 					<div
 						className="size-full"
 						style={{
-							background: `linear-gradient(135deg, ${primaryColor}22 0%, ${secondaryColor}22 100%)`,
+							background: `linear-gradient(135deg, ${primaryColor || "#009A44"}22 0%, ${secondaryColor || "#FFD100"}22 100%)`,
 						}}
 					/>
 				)}
-				<div className="absolute inset-0 bg-linear-to-t from-background via-background/40 to-transparent" />
+				<div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 			</div>
 
 			{/* Profile Info Row */}
@@ -113,56 +140,78 @@ export function OrgProfileHero({
 									{organization._count.members}{" "}
 									{organization._count.members === 1 ? "Member" : "Members"}
 								</span>
-								{organization.websiteUrl && (
+
+								{cleanWebsiteUrl && (
 									<a
-										href={organization.websiteUrl}
+										href={cleanWebsiteUrl}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex items-center gap-1 hover:text-foreground transition-colors"
+										className="flex items-center gap-1 hover:text-primary transition-colors underline-offset-4 hover:underline"
 									>
-										<Globe className="size-3.5" /> Website
+										<Globe className="size-3.5 text-primary" />
+										<span>Website</span>
+										<ExternalLink className="size-2.5 opacity-60" />
 									</a>
 								)}
+
 								{organization.contactEmail && (
 									<a
 										href={`mailto:${organization.contactEmail}`}
-										className="flex items-center gap-1 hover:text-foreground transition-colors"
+										className="flex items-center gap-1 hover:text-primary transition-colors"
 									>
-										<Mail className="size-3.5" /> Contact
+										<Mail className="size-3.5 text-primary" />
+										<span>{organization.contactEmail}</span>
 									</a>
 								)}
+
+								{/* Clickable Public Link button */}
+								<button
+									type="button"
+									onClick={handleCopyOrgLink}
+									className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted/80 hover:bg-muted text-foreground transition-colors cursor-pointer text-[11px] font-mono"
+									title="Click to copy organization URL"
+								>
+									<Share2 className="size-3 text-primary" />
+									<span>/{organization.slug}</span>
+									<Copy className="size-2.5 opacity-50 ml-0.5" />
+								</button>
 							</div>
 						</div>
 					</div>
 
 					{/* Action Buttons */}
-					{organization.allowJoinRequests && (
-						<div className="w-full sm:w-auto">
-							{hasRequested ? (
-								<Button
-									variant="outline"
-									disabled
-									className="w-full sm:w-auto text-xs gap-1.5 font-bold"
-								>
-									<CheckCircle2 className="size-3.5 text-green-500" />
-									Membership Requested
-								</Button>
-							) : (
-								<Button
-									onClick={handleJoinRequest}
-									disabled={isPending}
-									className="w-full sm:w-auto text-xs gap-1.5 font-bold"
-								>
-									<span>Join Organization</span>
-									<ArrowRight className="size-3.5" />
-								</Button>
-							)}
-						</div>
-					)}
+					<div className="flex items-center gap-2 w-full sm:w-auto">
+						{organization.allowJoinRequests && (
+							<div className="flex-1 sm:flex-initial">
+								{hasRequested ? (
+									<Button
+										variant="outline"
+										disabled
+										className="w-full sm:w-auto text-xs gap-1.5 font-bold"
+									>
+										<CheckCircle2 className="size-3.5 text-green-500" />
+										Membership Requested
+									</Button>
+								) : (
+									<Button
+										onClick={handleJoinRequest}
+										disabled={isPending}
+										className="w-full sm:w-auto text-xs gap-1.5 font-bold"
+									>
+										<span>Join Organization</span>
+										<ArrowRight className="size-3.5" />
+									</Button>
+								)}
+							</div>
+						)}
+					</div>
 				</div>
 
 				{organization.description && (
-					<RichTextDisplay content={organization.description} className="mt-4 text-xs sm:text-sm text-muted-foreground max-w-3xl leading-relaxed" />
+					<RichTextDisplay
+						content={organization.description}
+						className="mt-4 text-xs sm:text-sm text-muted-foreground max-w-3xl leading-relaxed"
+					/>
 				)}
 			</div>
 		</div>
