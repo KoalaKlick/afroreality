@@ -161,93 +161,94 @@ export default async function PublicEventPage({
 	);
 
 	return (
-		<main className="@container min-h-[100svh] bg-background text-foreground flex flex-col justify-between" style={brandVars}>
-			<div className="flex-1 flex flex-col">
-				{/* Mobile / Tablet View (< 5xl) */}
-				<div className="flex flex-col @5xl:hidden">
-					<EventHero
-						event={event as any}
-						orgSlug={orgSlug}
-						eventSlug={eventSlug}
-					/>
+		<main
+			className="@container min-h-[100svh] @5xl:h-[100svh] @5xl:overflow-hidden bg-background text-foreground flex flex-col justify-between"
+			style={brandVars}
+		>
+			{/* Mobile / Tablet View (< 5xl) */}
+			<div className="flex flex-col @5xl:hidden flex-1">
+				<EventHero
+					event={event as any}
+					orgSlug={orgSlug}
+					eventSlug={eventSlug}
+				/>
 
-					{isVoting && (
-						<>
-							<PanAfricanDivider />
-							<EventVotingCategories
-								categories={votingCategories}
-								orgSlug={orgSlug}
-								eventSlug={eventSlug}
-							/>
-						</>
-					)}
+				{isVoting && (
+					<>
+						<PanAfricanDivider />
+						<EventVotingCategories
+							categories={votingCategories}
+							orgSlug={orgSlug}
+							eventSlug={eventSlug}
+						/>
+					</>
+				)}
 
-					{isTicketed && (
-						<>
-							<PanAfricanDivider />
-							<Section
-								maxWidth="7xl"
-								className="py-16 transition-colors"
+				{isTicketed && (
+					<>
+						<PanAfricanDivider />
+						<Section
+							maxWidth="7xl"
+							className="py-16 transition-colors"
+							style={{
+								backgroundColor:
+									"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+							}}
+						>
+							{ticketsContent}
+						</Section>
+					</>
+				)}
+
+				<PanAfricanDivider />
+
+				<EventDetailsSection
+					description={event.description}
+					socialLinks={socialLinks}
+					galleryLinks={galleryLinks}
+					sponsors={sponsors}
+				/>
+			</div>
+
+			{/* Large Screen Container View (@5xl+) - Dual Independent Scroll Panes */}
+			<div className="hidden @5xl:flex flex-1 min-h-0 max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-5">
+				<div className="grid grid-cols-12 gap-8 h-full min-h-0 w-full items-stretch">
+					{/* Left Column: Independent Scrollable Sidebar Panel */}
+					<aside className="col-span-4 h-full min-h-0 overflow-y-auto pr-1">
+						<EventSidebarCard
+							event={event}
+							socialLinks={socialLinks}
+							galleryLinks={galleryLinks}
+							sponsors={sponsors}
+							orgSlug={orgSlug}
+							eventSlug={eventSlug}
+						/>
+					</aside>
+
+					{/* Right Column: Independent Scrollable Content Feed */}
+					<div className="col-span-8 h-full min-h-0 overflow-y-auto pr-1 space-y-6">
+						{isVoting && (
+							<div id="voting" className="rounded-2xl border bg-card overflow-hidden">
+								<EventVotingCategories
+									categories={votingCategories}
+									orgSlug={orgSlug}
+									eventSlug={eventSlug}
+								/>
+							</div>
+						)}
+
+						{isTicketed && (
+							<div
+								id="tickets"
+								className="rounded-2xl border bg-card p-8 transition-colors"
 								style={{
 									backgroundColor:
 										"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
 								}}
 							>
 								{ticketsContent}
-							</Section>
-						</>
-					)}
-
-					<PanAfricanDivider />
-
-					<EventDetailsSection
-						description={event.description}
-						socialLinks={socialLinks}
-						galleryLinks={galleryLinks}
-						sponsors={sponsors}
-					/>
-				</div>
-
-				{/* Large Screen Container View (@5xl+) - LinkedIn Split Pane */}
-				<div className="hidden @5xl:block max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8 flex-1">
-					<div className="grid grid-cols-12 gap-8 items-start">
-						{/* Left Column: Sticky Event Details & Profile Sidebar */}
-						<aside className="col-span-4 sticky top-6">
-							<EventSidebarCard
-								event={event}
-								socialLinks={socialLinks}
-								galleryLinks={galleryLinks}
-								sponsors={sponsors}
-								orgSlug={orgSlug}
-								eventSlug={eventSlug}
-							/>
-						</aside>
-
-						{/* Right Column: Scrollable Feed of Voting and/or Tickets */}
-						<div className="col-span-8 space-y-8">
-							{isVoting && (
-								<div id="voting" className="rounded-2xl border bg-card overflow-hidden">
-									<EventVotingCategories
-										categories={votingCategories}
-										orgSlug={orgSlug}
-										eventSlug={eventSlug}
-									/>
-								</div>
-							)}
-
-							{isTicketed && (
-								<div
-									id="tickets"
-									className="rounded-2xl border bg-card p-8 transition-colors"
-									style={{
-										backgroundColor:
-											"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-									}}
-								>
-									{ticketsContent}
-								</div>
-							)}
-						</div>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
