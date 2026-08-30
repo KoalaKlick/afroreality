@@ -32,5 +32,8 @@ yarn-error.log*
 # turbo
 .turbo
 
+# cloudflare wrangler
+.wrangler/
+
 # ui
 dist/
