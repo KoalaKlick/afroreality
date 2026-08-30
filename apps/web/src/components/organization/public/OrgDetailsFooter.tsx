@@ -40,11 +40,7 @@ export function OrgDetailsFooter({
 	return (
 		<Section
 			maxWidth="7xl"
-			className="py-14 border-t transition-colors"
-			style={{
-				backgroundColor:
-					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-			}}
+			className="py-14 border-t bg-background"
 		>
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
 				{/* Column 1: Our Partners (Aggregated from events) */}

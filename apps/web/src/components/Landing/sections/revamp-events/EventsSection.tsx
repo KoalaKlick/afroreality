@@ -24,7 +24,14 @@ export function EventsSection({
 
     if (items.length === 0) {
         return (
-            <Section id="events" className="py-20">
+            <Section
+                id="events"
+                className="py-20"
+                style={{
+                    backgroundColor:
+                        "color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+                }}
+            >
                 <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -64,7 +71,14 @@ export function EventsSection({
     })
 
     return (
-        <Section id="events" className="py-20 overflow-hidden">
+        <Section
+            id="events"
+            className="py-20 overflow-hidden transition-colors"
+            style={{
+                backgroundColor:
+                    "color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+            }}
+        >
             <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
