@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import Link from "next/link";
+import { Mail, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { OTPVerificationIllustration } from "@/components/auth/OTPVerificationIllustration";
 import { Button } from "@/components/ui/button";
@@ -163,9 +164,9 @@ export function ForgotPasswordContent({ expired }: { expired?: boolean }) {
 
 			<p className="text-sm text-center text-muted-foreground">
 				Remember your password?{" "}
-				<a href="/login" className="text-red-500 font-medium hover:underline">
+				<Link href="/login" className="text-red-500 font-medium hover:underline">
 					Sign in
-				</a>
+				</Link>
 			</p>
 		</div>
 	);

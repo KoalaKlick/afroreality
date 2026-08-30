@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Lock, Mail, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { GoogleIcon } from "@/components/shared/google-icon";
@@ -151,9 +152,9 @@ export function RegisterForm() {
 
 			<p className="text-sm text-center text-muted-foreground">
 				Already have an account?{" "}
-				<a href="/login" className="text-red-500 font-medium hover:underline">
+				<Link href="/login" className="text-red-500 font-medium hover:underline">
 					Sign in
-				</a>
+				</Link>
 			</p>
 		</div>
 	);

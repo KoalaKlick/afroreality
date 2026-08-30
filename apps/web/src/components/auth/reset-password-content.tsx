@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Lock, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { Lock, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ export function ResetPasswordContent({
 					asChild
 					className="w-full rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
 				>
-					<a href="/login">Sign In</a>
+					<Link href="/login">Sign In</Link>
 				</Button>
 			</div>
 		);
