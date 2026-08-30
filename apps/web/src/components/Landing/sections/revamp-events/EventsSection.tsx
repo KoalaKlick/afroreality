@@ -1,7 +1,6 @@
 "use client"
 
-import { useRef } from "react"
-import { motion, useInView } from "motion/react"
+import { motion } from "motion/react"
 import Link from "next/link"
 import { eventItems, type EventItem } from "@/lib/const/landing"
 import { EventCard, type DbEvent } from "./EventGalleryItem"
@@ -19,9 +18,6 @@ export function EventsSection({
     items = eventItems,
     useBrand = false,
 }: EventsSectionProps) {
-    const sectionRef = useRef<HTMLDivElement>(null)
-    const isInView = useInView(sectionRef, { once: true, margin: "-80px" })
-
     // Show max 6 items
     const visible = items.slice(0, 6)
     const hasMore = items.length > 6
@@ -31,7 +27,8 @@ export function EventsSection({
             <Section id="events" className="py-20">
                 <motion.h2
                     initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                     className="text-4xl md:text-5xl font-black text-center uppercase mb-12 tracking-tight"
                 >
@@ -39,7 +36,8 @@ export function EventsSection({
                 </motion.h2>
                 <motion.div
                     initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
                     transition={{ duration: 0.55, delay: 0.1 }}
                     className="flex flex-col items-center justify-center text-center py-8"
                 >
@@ -60,7 +58,8 @@ export function EventsSection({
 
     const fadeUp = (delay: number) => ({
         initial: { opacity: 0, y: 48 },
-        animate: isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 48 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, margin: "-40px" },
         transition: { duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] as const },
     })
 
@@ -68,7 +67,8 @@ export function EventsSection({
         <Section id="events" className="py-20 overflow-hidden">
             <motion.h2
                 initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                 className="text-4xl md:text-5xl font-black text-center uppercase mb-16 tracking-tight"
             >
@@ -76,13 +76,14 @@ export function EventsSection({
             </motion.h2>
 
             {/* Mobile: 2-column grid */}
-            <div ref={sectionRef} className="max-w-6xl mx-auto px-4">
+            <div className="max-w-6xl mx-auto px-4">
                 <div className="grid grid-cols-2 @max-2xl:grid-cols-1 gap-3 lg:hidden">
                     {visible.map((item, i) => (
                         <motion.div
                             key={`mobile-${item.id}`}
                             initial={{ opacity: 0, y: 32 }}
-                            animate={isInView ? { opacity: 1, y: 0 } : {}}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                             whileHover={{ scale: 1.02 }}
                         >
@@ -130,7 +131,8 @@ export function EventsSection({
                     <motion.div
                         className="text-center mt-16"
                         initial={{ opacity: 0, y: 20 }}
-                        animate={isInView ? { opacity: 1, y: 0 } : {}}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.3 }}
                     >
                         <Link

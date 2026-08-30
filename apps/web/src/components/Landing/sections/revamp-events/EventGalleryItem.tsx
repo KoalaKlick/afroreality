@@ -74,12 +74,13 @@ export function EventCard({ item, index = 0, colorCount = 3, className, size = '
     const brandColor = useBrand && isDb ? brandCycle[index % brandCycle.length] : undefined;
 
     const image = isDb ? getEventImageUrl((item as DbEvent).flierImage) : (item as EventItem).image;
-    const subtitle = isDb ? (item as DbEvent).description : (item as EventItem).subtitle;
+    const rawSubtitle = isDb ? (item as DbEvent).description : (item as EventItem).subtitle;
+    const plainSubtitle = rawSubtitle ? rawSubtitle.replaceAll(/<[^>]*>/g, '').trim() : null;
     const categoryName = isDb ? ((item as DbEvent).type || "EVENT").toUpperCase() : (item as EventItem).category;
 
     const dateStr = isDb
         ? (item as DbEvent).startDate
-            ? new Date((item as DbEvent).startDate!).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()
+            ? new Date((item as DbEvent).startDate!).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }).toUpperCase()
             : 'TBA'
         : (item as EventItem).date;
 
@@ -88,53 +89,54 @@ export function EventCard({ item, index = 0, colorCount = 3, className, size = '
         : `/events/${(item as EventItem).id}`;
 
     return (
-        <Link href={href}>
+        <Link
+            href={href}
+            className={cn(
+                "group relative cursor-pointer block overflow-hidden rounded-2xl h-full shadow-sm hover:shadow-xl transition-all duration-300",
+                size === 'large' ? 'aspect-3/4' : 'aspect-4/3',
+                className
+            )}
+        >
+            {/* Background image */}
             <div
-                className={cn(
-                    "group relative cursor-pointer overflow-hidden rounded-2xl h-full shadow-sm hover:shadow-xl transition-all duration-300",
-                    size === 'large' ? 'aspect-3/4' : 'aspect-4/3',
-                    className
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                style={{ backgroundImage: image ? `url(${image})` : undefined }}
+            />
+
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent transition-colors group-hover:from-black/75" />
+
+            {/* Side accent */}
+            <SideAccent colorClass={colorClass} brandColor={brandColor} />
+
+            {/* Content */}
+            <div className="absolute inset-0 p-4 pr-9 flex flex-col justify-end">
+                <h3 className={cn(
+                    "text-white font-bold leading-tight mb-1",
+                    size === 'large' ? 'text-lg' : 'text-sm'
+                )}>
+                    {title}
+                </h3>
+
+                {plainSubtitle && (
+                    <p className="text-white/65 text-xs mb-3 line-clamp-2 leading-relaxed">
+                        {plainSubtitle}
+                    </p>
                 )}
-            >
-                {/* Background image */}
-                <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                    style={{ backgroundImage: image ? `url(${image})` : undefined }}
-                />
 
-                {/* Dark gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent transition-colors group-hover:from-black/75" />
-
-                {/* Side accent */}
-                <SideAccent colorClass={colorClass} brandColor={brandColor} />
-
-                {/* Content */}
-                <div className="absolute inset-0 p-4 pr-9 flex flex-col justify-end">
-                    <h3 className={cn(
-                        "text-white font-bold leading-tight mb-1",
-                        size === 'large' ? 'text-lg' : 'text-sm'
-                    )}>
-                        {title}
-                    </h3>
-
-                    {subtitle && (
-                        <div className="text-white/65 text-xs mb-3 line-clamp-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: subtitle }} />
-                    )}
-
-                    <div className="flex items-center justify-between gap-2">
-                        <span
-                            className={cn(
-                                "text-white text-[10px] font-bold uppercase px-2 py-1 rounded-sm tracking-wide bg-white/10 backdrop-blur-xs",
-                                !brandColor && badgeColors[accentColor]
-                            )}
-                            style={brandColor ? { color: `var(--color-brand-${brandColor})` } : undefined}
-                        >
-                            {categoryName}
-                        </span>
-                        <span className="text-white/55 text-[10px] shrink-0">
-                            {dateStr}
-                        </span>
-                    </div>
+                <div className="flex items-center justify-between gap-2">
+                    <span
+                        className={cn(
+                            "text-white text-[10px] font-bold uppercase px-2 py-1 rounded-sm tracking-wide bg-white/10 backdrop-blur-xs",
+                            !brandColor && badgeColors[accentColor]
+                        )}
+                        style={brandColor ? { color: `var(--color-brand-${brandColor})` } : undefined}
+                    >
+                        {categoryName}
+                    </span>
+                    <span className="text-white/55 text-[10px] shrink-0" suppressHydrationWarning>
+                        {dateStr}
+                    </span>
                 </div>
             </div>
         </Link>
