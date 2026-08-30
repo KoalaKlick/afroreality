@@ -88,10 +88,12 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 		logoUrl?: string | null;
 	}> = Array.from(new Map(allSponsors.map((s: any) => [s.name, s])).values()) as any;
 
-	// Collect unique social links from organization events
-	const allSocialLinks = rawEvents.flatMap((e: any) => e.socialLinks || []);
+	// Collect unique social links from organization and organization events
+	const orgSocialLinks = organization.socialLinks || [];
+	const eventSocialLinks = rawEvents.flatMap((e: any) => e.socialLinks || []);
+	const combinedSocialLinks = [...orgSocialLinks, ...eventSocialLinks];
 	const uniqueSocialLinks = Array.from(
-		new Map(allSocialLinks.map((s: any) => [s.url, s])).values(),
+		new Map(combinedSocialLinks.map((s: any) => [s.url, s])).values(),
 	) as any[];
 
 	return (

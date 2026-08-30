@@ -1,17 +1,8 @@
 "use client";
 
-import { RichTextDisplay } from "@/components/ui/rich-text-display";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
-import {
-	Building2,
-	Globe,
-	Mail,
-	Users,
-	ArrowRight,
-	CheckCircle2,
-	ExternalLink,
-} from "lucide-react";
+import { Building2, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 
@@ -44,7 +35,6 @@ export function OrgProfileHero({
 	hasPendingRequest: initialPending,
 }: OrgProfileHeroProps) {
 	const [isPending, startTransition] = useTransition();
-	const [hasRequested, setHasRequested] = useState(initialPending);
 	const bannerImageUrl = getOrgImageUrl(organization.bannerUrl);
 	const logoImageUrl = getOrgImageUrl(organization.logoUrl);
 
@@ -56,25 +46,16 @@ export function OrgProfileHero({
 		"--color-brand-tertiary": tertiaryColor || "#EF3340",
 	} as React.CSSProperties;
 
-	// Normalize website URL to ensure it is always clickable with http/https
-	const cleanWebsiteUrl = organization.websiteUrl
-		? organization.websiteUrl.startsWith("http://") ||
-			organization.websiteUrl.startsWith("https://")
-			? organization.websiteUrl
-			: `https://${organization.websiteUrl}`
-		: null;
-
 	const handleJoinRequest = async () => {
 		if (!isUserAuthenticated) {
-			toast.info("Please log in or register to join this organization.");
+			toast.error("Please log in to request joining this organization.");
 			window.location.href = `/login?redirect=/${organization.slug}`;
 			return;
 		}
 
 		startTransition(async () => {
-			setHasRequested(true);
 			toast.success(
-				"Join request sent! The organization admins will review your request.",
+				"Request sent successfully! The organization admins will review it.",
 			);
 		});
 	};
@@ -82,113 +63,71 @@ export function OrgProfileHero({
 	return (
 		<div className="relative" style={brandVars}>
 			{/* Banner */}
-			<div className="relative h-48 sm:h-64 md:h-80 w-full overflow-hidden bg-muted">
+			<div className="relative h-48 md:h-64 w-full overflow-hidden bg-muted">
 				{bannerImageUrl ? (
 					<img
 						src={bannerImageUrl}
-						alt={`${organization.name} banner`}
-						className="size-full object-cover"
+						alt={organization.name}
+						className="w-full h-full object-cover"
 					/>
 				) : (
 					<div
-						className="size-full"
+						className="w-full h-full"
 						style={{
-							background: `linear-gradient(135deg, ${primaryColor || "#009A44"}22 0%, ${secondaryColor || "#FFD100"}22 100%)`,
+							background: `linear-gradient(135deg, ${primaryColor || "#009A44"}cc 0%, ${secondaryColor || "#FFD100"}99 50%, ${tertiaryColor || "#EF3340"}cc 100%)`,
 						}}
 					/>
 				)}
-				<div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 			</div>
 
-			{/* Profile Info Row */}
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="relative -mt-16 sm:-mt-20 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pb-6 border-b border-border/80">
-					<div className="flex items-end gap-4 sm:gap-6">
-						{/* Logo */}
-						<div className="relative size-24 sm:size-32 rounded-2xl bg-card border-4 border-background shadow-xl overflow-hidden shrink-0 flex items-center justify-center">
-							{logoImageUrl ? (
-								<img
-									src={logoImageUrl}
-									alt={`${organization.name} logo`}
-									className="size-full object-cover"
-								/>
-							) : (
-								<Building2 className="size-10 text-muted-foreground" />
-							)}
-						</div>
-
-						{/* Names & stats */}
-						<div className="space-y-1.5">
-							<h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-								{organization.name}
-							</h1>
-							<div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-medium">
-								<span className="flex items-center gap-1">
-									<Users className="size-3.5" />
-									{organization._count.members}{" "}
-									{organization._count.members === 1 ? "Member" : "Members"}
-								</span>
-
-								{cleanWebsiteUrl && (
-									<a
-										href={cleanWebsiteUrl}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="flex items-center gap-1 hover:text-primary transition-colors underline-offset-4 hover:underline font-semibold text-foreground/80"
-									>
-										<Globe className="size-3.5 text-primary" />
-										<span>Website</span>
-										<ExternalLink className="size-2.5 opacity-60" />
-									</a>
-								)}
-
-								{organization.contactEmail && (
-									<a
-										href={`mailto:${organization.contactEmail}`}
-										className="flex items-center gap-1 hover:text-primary transition-colors text-foreground/80"
-									>
-										<Mail className="size-3.5 text-primary" />
-										<span>{organization.contactEmail}</span>
-									</a>
-								)}
-							</div>
-						</div>
-					</div>
-
-					{/* Action Buttons */}
-					<div className="flex items-center gap-2 w-full sm:w-auto">
-						{organization.allowJoinRequests && (
-							<div className="flex-1 sm:flex-initial">
-								{hasRequested ? (
-									<Button
-										variant="outline"
-										disabled
-										className="w-full sm:w-auto text-xs gap-1.5 font-bold"
-									>
-										<CheckCircle2 className="size-3.5 text-green-500" />
-										Membership Requested
-									</Button>
-								) : (
-									<Button
-										onClick={handleJoinRequest}
-										disabled={isPending}
-										className="w-full sm:w-auto text-xs gap-1.5 font-bold"
-									>
-										<span>Join Organization</span>
-										<ArrowRight className="size-3.5" />
-									</Button>
-								)}
+			{/* Profile Info Overlay */}
+			<div className="max-w-6xl mx-auto px-4 -mt-12 md:-mt-16 relative z-10">
+				<div className="flex flex-col md:flex-row gap-6 items-end md:items-center">
+					{/* Logo */}
+					<div className="relative size-24 md:size-32 rounded-2xl bg-card p-2 shadow-xl border overflow-hidden shrink-0 flex items-center justify-center">
+						{logoImageUrl ? (
+							<img
+								src={logoImageUrl}
+								alt={organization.name}
+								className="w-full h-full object-cover rounded-xl"
+							/>
+						) : (
+							<div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary rounded-xl">
+								<Building2 className="size-12" />
 							</div>
 						)}
 					</div>
-				</div>
 
-				{organization.description && (
-					<RichTextDisplay
-						content={organization.description}
-						className="mt-4 text-xs sm:text-sm text-muted-foreground max-w-3xl leading-relaxed"
-					/>
-				)}
+					{/* Stats & Actions */}
+					<div className="flex-1 space-y-2 text-center md:text-left">
+						<h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-foreground">
+							{organization.name}
+						</h1>
+						<div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-muted-foreground font-medium">
+							<div className="flex items-center gap-1">
+								<Users className="size-4" />
+								<span>{organization._count.members} Members</span>
+							</div>
+						</div>
+					</div>
+
+					{/* Action Button */}
+					{organization.allowJoinRequests && (
+						<div className="pb-2 w-full md:w-auto">
+							<Button
+								size="default"
+								onClick={handleJoinRequest}
+								disabled={isPending || initialPending}
+								className="w-full md:w-auto font-bold text-xs"
+							>
+								{initialPending
+									? "Request Pending"
+									: "Request to Join Organizers"}
+								{!initialPending && <ArrowRight className="ml-2 size-4" />}
+							</Button>
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);

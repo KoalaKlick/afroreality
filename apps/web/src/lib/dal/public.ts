@@ -6,20 +6,12 @@ export async function getPublicOrganizationProfile(
 	try {
 		const org = await prisma.organization.findUnique({
 			where: { slug },
-			select: {
-				id: true,
-				name: true,
-				slug: true,
-				description: true,
-				logoUrl: true,
-				bannerUrl: true,
-				websiteUrl: true,
-				contactEmail: true,
-				phone: true,
-				primaryColor: true,
-				secondaryColor: true,
-				tertiaryColor: true,
-				allowJoinRequests: true,
+			include: {
+				socialLinks: {
+					orderBy: {
+						createdAt: "asc",
+					},
+				},
 				_count: {
 					select: {
 						team: true,
@@ -35,6 +27,11 @@ export async function getPublicOrganizationProfile(
 					},
 					include: {
 						sponsors: {
+							orderBy: {
+								createdAt: "asc",
+							},
+						},
+						galleryLinks: {
 							orderBy: {
 								createdAt: "asc",
 							},
