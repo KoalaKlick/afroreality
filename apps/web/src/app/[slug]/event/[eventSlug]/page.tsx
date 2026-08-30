@@ -33,7 +33,12 @@ export async function generateMetadata({
 	if (!event) return {};
 
 	const coverImage =
-		getEventImageUrl(event.bannerUrl || event.flierUrl) ?? "/landing/a.webp";
+		getEventImageUrl(
+			event.flierUrl ||
+				event.bannerUrl ||
+				(event as any).flierImage ||
+				(event as any).bannerImage,
+		) ?? "/landing/a.webp";
 	const absoluteImage = coverImage.startsWith("http")
 		? coverImage
 		: `${BASE_URL.replace(/\/$/, "")}${coverImage}`;

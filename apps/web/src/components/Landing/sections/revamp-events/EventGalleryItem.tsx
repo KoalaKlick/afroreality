@@ -73,7 +73,11 @@ export function EventCard({ item, index = 0, colorCount = 3, className, size = '
 
     const brandColor = useBrand && isDb ? brandCycle[index % brandCycle.length] : undefined;
 
-    const image = isDb ? getEventImageUrl((item as DbEvent).flierImage) : (item as EventItem).image;
+    const rawImg = isDb
+        ? (item as DbEvent).flierImage || (item as any).flierUrl || (item as DbEvent).bannerImage || (item as any).bannerUrl
+        : (item as EventItem).image;
+    const image = isDb ? getEventImageUrl(rawImg) : (item as EventItem).image;
+
     const rawSubtitle = isDb ? (item as DbEvent).description : (item as EventItem).subtitle;
     const plainSubtitle = rawSubtitle ? rawSubtitle.replaceAll(/<[^>]*>/g, '').trim() : null;
     const categoryName = isDb ? ((item as DbEvent).type || "EVENT").toUpperCase() : (item as EventItem).category;
@@ -103,40 +107,40 @@ export function EventCard({ item, index = 0, colorCount = 3, className, size = '
                 style={{ backgroundImage: image ? `url(${image})` : undefined }}
             />
 
-            {/* Dark gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent transition-colors group-hover:from-black/75" />
+            {/* Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
 
-            {/* Side accent */}
+            {/* Top Badge */}
+            <div className="absolute top-4 left-4 z-20">
+                <span
+                    className={cn(
+                        "inline-flex items-center rounded-full px-3 py-1 text-xs font-black tracking-wider uppercase backdrop-blur-md border border-white/10 bg-black/40",
+                        !brandColor && (badgeColors[accentColor] ?? 'text-[#009A44]')
+                    )}
+                    style={brandColor ? { color: `var(--color-brand-${brandColor})` } : undefined}
+                >
+                    {categoryName}
+                </span>
+            </div>
+
+            {/* Side Accent SVG */}
             <SideAccent colorClass={colorClass} brandColor={brandColor} />
 
-            {/* Content */}
-            <div className="absolute inset-0 p-4 pr-9 flex flex-col justify-end">
-                <h3 className={cn(
-                    "text-white font-bold leading-tight mb-1",
-                    size === 'large' ? 'text-lg' : 'text-sm'
-                )}>
-                    {title}
-                </h3>
-
-                {plainSubtitle && (
-                    <p className="text-white/65 text-xs mb-3 line-clamp-2 leading-relaxed">
-                        {plainSubtitle}
-                    </p>
-                )}
-
-                <div className="flex items-center justify-between gap-2">
-                    <span
-                        className={cn(
-                            "text-white text-[10px] font-bold uppercase px-2 py-1 rounded-sm tracking-wide bg-white/10 backdrop-blur-xs",
-                            !brandColor && badgeColors[accentColor]
-                        )}
-                        style={brandColor ? { color: `var(--color-brand-${brandColor})` } : undefined}
-                    >
-                        {categoryName}
-                    </span>
-                    <span className="text-white/55 text-[10px] shrink-0" suppressHydrationWarning>
+            {/* Bottom Content */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 z-20 flex flex-col justify-end">
+                <div className="space-y-1">
+                    <p className="text-[11px] font-bold tracking-widest text-white/70 uppercase">
                         {dateStr}
-                    </span>
+                    </p>
+                    <h3 className="text-lg font-black tracking-tight text-white uppercase line-clamp-1 group-hover:text-primary transition-colors">
+                        {title}
+                    </h3>
+                    {plainSubtitle && (
+                        <p className="text-xs text-white/80 line-clamp-2 leading-relaxed">
+                            {plainSubtitle}
+                        </p>
+                    )}
                 </div>
             </div>
         </Link>

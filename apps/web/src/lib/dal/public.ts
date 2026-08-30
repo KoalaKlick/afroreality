@@ -131,13 +131,16 @@ export async function getPublicEventDetails(
 
 		if (!event) return null;
 
+		const flier = event.flierImage || event.bannerImage;
+		const banner = event.bannerImage || event.flierImage;
+
 		return {
 			...event,
 			votingMode:
 				(event as any).votingMode ||
 				(event.type === "voting" ? "general" : "general"),
-			bannerUrl: event.bannerImage,
-			flierUrl: event.flierImage,
+			bannerUrl: banner,
+			flierUrl: flier,
 		};
 	} catch (error) {
 		console.error("Error fetching public event details:", error);
@@ -211,12 +214,15 @@ export async function getPublicCategoryDetails(
 
 		if (!category) return null;
 
+		const flier = event.flierImage || event.bannerImage;
+		const banner = event.bannerImage || event.flierImage;
+
 		return {
 			event: {
 				...event,
 				votingMode: (event as any).votingMode || "general",
-				bannerUrl: event.bannerImage,
-				flierUrl: event.flierImage,
+				bannerUrl: banner,
+				flierUrl: flier,
 			},
 			category,
 		};

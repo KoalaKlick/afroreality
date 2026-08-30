@@ -58,7 +58,12 @@ export function EventSidebarCard({
 	sponsors = [],
 	orgSlug,
 }: EventSidebarCardProps) {
-	const bannerImage = getEventImageUrl(event.bannerUrl || event.flierUrl);
+	const bannerImage = getEventImageUrl(
+		event.flierUrl ||
+			event.bannerUrl ||
+			(event as any).flierImage ||
+			(event as any).bannerImage,
+	);
 	const logoImage = getOrgImageUrl(event.organization.logoUrl);
 
 	const formattedDate = event.startDate
