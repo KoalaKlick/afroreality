@@ -20,7 +20,14 @@ export function EventVotingCategories({
 	eventSlug,
 }: EventVotingCategoriesProps) {
 	return (
-		<Section maxWidth="7xl" className="py-16">
+		<Section
+			maxWidth="7xl"
+			className="py-16 transition-colors"
+			style={{
+				backgroundColor:
+					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+			}}
+		>
 			<div>
 				<div className="flex items-center gap-3 mb-12">
 					<Vote className="size-8 text-primary" />

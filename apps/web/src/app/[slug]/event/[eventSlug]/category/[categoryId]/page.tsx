@@ -1,16 +1,19 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getPublicCategoryDetails } from "@/lib/dal/public";
-import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
+import { getEventImageUrl } from "@/lib/image-url-utils";
 import { PublicNomineeSheet } from "@/components/event/public/PublicNomineeSheet";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
+import { Section } from "@/components/Landing/shared/Section";
+import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import {
 	ChevronRight,
 	Trophy,
-	Sparkles,
 	ArrowLeft,
 	Lock,
+	ImageIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -96,6 +99,10 @@ export default async function PublicCategoryPage({
 		"--color-brand-tertiary": tertiaryColor || "#EF3340",
 	} as React.CSSProperties;
 
+	const sponsors = event.sponsors || [];
+	const galleryLinks = event.galleryLinks || [];
+	const socialLinks = event.socialLinks || [];
+
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
 			{/* Breadcrumb Header */}
@@ -161,29 +168,174 @@ export default async function PublicCategoryPage({
 				</div>
 			</section>
 
-			{/* Main Nominees View */}
-			<main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-				<PublicNomineeSheet
-					category={{
-						id: category.id,
-						name: category.name,
-						description: category.description,
-						votePrice: Number(category.votePrice || 0),
-						nominationPrice: Number(category.nominationPrice || 0),
-						allowPublicNomination: category.allowPublicNomination,
-						allowMultiple: false,
-						showTotalVotesPublicly: category.showTotalVotesPublicly,
-						templateConfig: (category as any).templateConfig,
-						votingOptions: category.votingOptions || [],
-					}}
-					eventId={event.id}
-					votingMode={event.votingMode || "general"}
-					orgSlug={orgSlug}
-					eventSlug={eventSlug}
-				/>
+			<PanAfricanDivider />
+
+			{/* Main Nominees View (with light primary bg) */}
+			<main
+				className="flex-1 w-full py-12 transition-colors"
+				style={{
+					backgroundColor:
+						"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+				}}
+			>
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<PublicNomineeSheet
+						category={{
+							id: category.id,
+							name: category.name,
+							description: category.description,
+							votePrice: Number(category.votePrice || 0),
+							nominationPrice: Number(category.nominationPrice || 0),
+							allowPublicNomination: category.allowPublicNomination,
+							allowMultiple: false,
+							showTotalVotesPublicly: category.showTotalVotesPublicly,
+							templateConfig: (category as any).templateConfig,
+							votingOptions: category.votingOptions || [],
+						}}
+						eventId={event.id}
+						votingMode={event.votingMode || "general"}
+						orgSlug={orgSlug}
+						eventSlug={eventSlug}
+					/>
+				</div>
 			</main>
 
-			<PanAfricanDivider className="my-12" />
+			{/* Category Details Footer (3-column layout matching reference design) */}
+			<Section maxWidth="7xl" className="py-14 border-t bg-background">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+					{/* Column 1: About Category */}
+					<div id="about-category" className="space-y-6 scroll-mt-24">
+						<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+							<Trophy className="size-5 text-primary" />
+							<span>About Category.</span>
+						</h3>
+						<div className="text-xs text-muted-foreground leading-relaxed">
+							{category.description ? (
+								<RichTextDisplay content={category.description} />
+							) : (
+								<p className="italic text-muted-foreground/60">
+									Help your favorite nominee win by casting your vote!
+								</p>
+							)}
+						</div>
+						<div className="pt-4 border-t border-dashed">
+							<Link
+								href={`/${orgSlug}/event/${eventSlug}/#details`}
+								className="inline-flex items-center text-xs font-bold text-primary hover:underline gap-1"
+							>
+								<span>View full event details</span>
+								<ChevronRight className="size-3.5" />
+							</Link>
+						</div>
+					</div>
+
+					{/* Column 2: Sponsors */}
+					<div className="space-y-6">
+						<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+							<Trophy className="size-5 text-primary" />
+							<span>Sponsors.</span>
+						</h3>
+						{sponsors.length > 0 ? (
+							<div className="flex flex-wrap gap-2.5">
+								{sponsors.slice(0, 15).map((sponsor: any) => {
+									const imgKey = sponsor.logoUrl || sponsor.logo;
+									const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
+									return (
+										<div
+											key={sponsor.id || sponsor.name}
+											className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help"
+											title={sponsor.name}
+										>
+											{imgUrl ? (
+												<img
+													src={imgUrl}
+													alt={sponsor.name}
+													className="object-contain max-h-full max-w-full"
+												/>
+											) : (
+												<span className="text-[6px] font-bold text-center leading-none truncate uppercase tracking-tighter">
+													{sponsor.name}
+												</span>
+											)}
+										</div>
+									);
+								})}
+							</div>
+						) : (
+							<p className="text-xs text-muted-foreground italic leading-relaxed">
+								Partnering for event excellence.
+							</p>
+						)}
+					</div>
+
+					{/* Column 3: Galleries & Event Socials */}
+					<div className="space-y-8">
+						{/* Galleries */}
+						{galleryLinks.length > 0 && (
+							<div className="space-y-4">
+								<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+									<ImageIcon className="size-5 text-primary" />
+									<span>Galleries.</span>
+								</h3>
+								<div className="space-y-2.5">
+									{galleryLinks.map((link: any) => {
+										const provider = getGalleryProvider(link.url, "size-5");
+										return (
+											<a
+												key={link.id || link.url}
+												href={link.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="flex items-center justify-between p-3 rounded-xl border bg-card hover:border-primary/50 transition-colors group"
+											>
+												<div className="flex items-center gap-3">
+													<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+														{provider.icon}
+													</div>
+													<span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
+														{provider.name}
+													</span>
+												</div>
+												<ChevronRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+											</a>
+										);
+									})}
+								</div>
+							</div>
+						)}
+
+						{/* Event Socials */}
+						{socialLinks.length > 0 && (
+							<div className="space-y-4 pt-4 border-t border-dashed">
+								<h3 className="text-xs font-bold uppercase tracking-widest text-primary">
+									Event Socials.
+								</h3>
+								<div className="flex flex-wrap gap-2.5">
+									{socialLinks.map((link: any) => {
+										const plat = getSocialPlatform(link.url, "size-5");
+										return (
+											<a
+												key={link.id || link.url}
+												href={link.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="size-10 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
+												title={plat.name || link.url}
+											>
+												<div className="size-5 flex items-center justify-center">
+													{plat.icon}
+												</div>
+											</a>
+										);
+									})}
+								</div>
+							</div>
+						)}
+					</div>
+				</div>
+			</Section>
+
+			{/* Black Brand Footer with Dashed Top Edge */}
 			<PoweredByFooter />
 		</div>
 	);

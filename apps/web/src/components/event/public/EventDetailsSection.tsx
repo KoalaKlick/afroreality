@@ -3,7 +3,7 @@
 import { Section } from "@/components/Landing/shared/Section";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { getEventImageUrl } from "@/lib/image-url-utils";
-import { ImageIcon, ChevronRight } from "lucide-react";
+import { ImageIcon, ChevronRight, Trophy } from "lucide-react";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 interface EventDetailsSectionProps {
@@ -22,15 +22,11 @@ export function EventDetailsSection({
 	return (
 		<Section
 			maxWidth="7xl"
-			className="py-16 border-t transition-colors"
-			style={{
-				backgroundColor:
-					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-			}}
+			className="py-16 border-t bg-background"
 		>
 			<div className="mx-auto">
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-					{/* Left: About */}
+					{/* Left: About (2 columns) */}
 					<div className="md:col-span-2 space-y-8 scroll-mt-10" id="details">
 						<div className="space-y-4">
 							<h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
@@ -83,7 +79,7 @@ export function EventDetailsSection({
 							<div className="space-y-6">
 								<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
 									<ImageIcon className="size-5 text-primary" />
-									Galleries.
+									<span>Galleries.</span>
 								</h3>
 								<div className="space-y-3">
 									{galleryLinks.map((link: any) => {
@@ -115,8 +111,9 @@ export function EventDetailsSection({
 						{/* Sponsors with No Shadow */}
 						{sponsors.length > 0 && (
 							<div className="space-y-6">
-								<h3 className="text-xl font-bold uppercase tracking-tight">
-									Sponsors &amp; Partners.
+								<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
+									<Trophy className="size-5 text-primary" />
+									<span>Sponsors &amp; Partners.</span>
 								</h3>
 								<div className="grid grid-cols-2 gap-3">
 									{sponsors.map((sponsor: any) => (

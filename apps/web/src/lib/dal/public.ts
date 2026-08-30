@@ -166,8 +166,28 @@ export async function getPublicCategoryDetails(
 						name: true,
 						slug: true,
 						logoUrl: true,
+						bannerUrl: true,
 						primaryColor: true,
 						secondaryColor: true,
+						tertiaryColor: true,
+						contactEmail: true,
+						websiteUrl: true,
+						phone: true,
+					},
+				},
+				sponsors: {
+					orderBy: {
+						createdAt: "asc",
+					},
+				},
+				galleryLinks: {
+					orderBy: {
+						createdAt: "asc",
+					},
+				},
+				socialLinks: {
+					orderBy: {
+						createdAt: "asc",
 					},
 				},
 			},

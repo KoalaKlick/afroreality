@@ -97,7 +97,7 @@ export default async function PublicEventPage({
 	} as React.CSSProperties;
 
 	return (
-		<main className="min-h-screen bg-background text-foreground" style={brandVars}>
+		<main className="min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
 			{/* 1. Hero Section */}
 			<EventHero
 				event={event as any}
@@ -121,7 +121,14 @@ export default async function PublicEventPage({
 			{isTicketed && (
 				<>
 					<PanAfricanDivider />
-					<Section maxWidth="7xl" className="py-16">
+					<Section
+						maxWidth="7xl"
+						className="py-16 transition-colors"
+						style={{
+							backgroundColor:
+								"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+						}}
+					>
 						<div className="space-y-10">
 							{ticketTypes.length > 0 ? (
 								<>
