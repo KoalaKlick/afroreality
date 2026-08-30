@@ -125,7 +125,7 @@ export default async function PublicCategoryPage({
 	);
 
 	return (
-		<div className="min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
+		<main className="@container min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
 			{/* Mobile / Tablet View (< 5xl) */}
 			<div className="flex flex-col @5xl:hidden">
 				<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
@@ -374,6 +374,6 @@ export default async function PublicCategoryPage({
 
 			{/* Brand Footer */}
 			<PoweredByFooter />
-		</div>
+		</main>
 	);
 }

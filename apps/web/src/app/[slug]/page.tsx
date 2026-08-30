@@ -106,7 +106,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 	} as React.CSSProperties;
 
 	return (
-		<main className="min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
+		<main className="@container min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
 			{/* Mobile / Tablet View (< 5xl) */}
 			<div className="flex flex-col @5xl:hidden">
 				<OrgProfileHero
