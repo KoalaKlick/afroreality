@@ -19,7 +19,7 @@ import { VotePaymentModal } from "@/components/event/nomination/VotePaymentModal
 import { PublicNominationModal } from "@/components/event/public/PublicNominationModal";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
-import { toast } from "sonner";
+import { shareNominee } from "@/lib/utils/share-utils";
 
 interface VotingOption {
 	id: string;
@@ -35,6 +35,7 @@ interface NomineeGridProps {
 	readonly votePrice: number;
 	readonly eventId: string;
 	readonly categoryId: string;
+	readonly categoryName?: string;
 	readonly votingMode?: string;
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
@@ -45,6 +46,7 @@ export function NomineeGrid({
 	votePrice,
 	eventId,
 	categoryId,
+	categoryName = "",
 	votingMode = "general",
 	orgSlug = "",
 	eventSlug = "",
@@ -67,27 +69,15 @@ export function NomineeGrid({
 		setSheetOpen(true);
 	};
 
-	const handleShare = async (nominee: VotingOption) => {
-		const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-		const shareData = {
-			title: `Vote for ${nominee.optionText}`,
-			text: `Vote for ${nominee.optionText} (${nominee.nomineeCode || ""}) on AfroReality!`,
-			url: shareUrl,
-		};
-
-		if (navigator.share && navigator.canShare?.(shareData)) {
-			try {
-				await navigator.share(shareData);
-				return;
-			} catch {
-				// Fallback to clipboard
-			}
-		}
-
-		if (typeof window !== "undefined") {
-			navigator.clipboard.writeText(shareUrl);
-			toast.success("Nominee link copied to clipboard!");
-		}
+	const handleShare = async (e: React.MouseEvent, nominee: VotingOption) => {
+		e.stopPropagation();
+		await shareNominee({
+			optionText: nominee.optionText,
+			nomineeCode: nominee.nomineeCode,
+			bio: nominee.bio,
+			imageUrl: nominee.imageUrl,
+			categoryName: categoryName,
+		});
 	};
 
 	if (!nominees || nominees.length === 0) {
@@ -154,7 +144,7 @@ export function NomineeGrid({
 									variant="ghost"
 									size="icon"
 									className="size-8 rounded-full shrink-0"
-									onClick={() => handleShare(nominee)}
+									onClick={(e) => handleShare(e, nominee)}
 									title="Share Nominee"
 								>
 									<Share2 className="size-3.5 text-muted-foreground" />
@@ -236,7 +226,7 @@ export function NomineeGrid({
 									variant="outline"
 									size="icon"
 									className="size-10 shrink-0"
-									onClick={() => handleShare(selectedNominee)}
+									onClick={(e) => handleShare(e, selectedNominee)}
 									title="Share Nominee"
 								>
 									<Share2 className="size-4" />
@@ -342,6 +332,7 @@ export function PublicNomineeSheet({
 				votePrice={category.votePrice || 0}
 				eventId={eventId}
 				categoryId={category.id}
+				categoryName={category.name}
 				votingMode={votingMode}
 				orgSlug={orgSlug}
 				eventSlug={eventSlug}

@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Calendar, Clock, MapPin, Info } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, Info, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { EventInfoPill } from "@/components/shared/EventInfoPill";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
+import { shareEvent } from "@/lib/utils/share-utils";
 
 interface EventHeroProps {
 	readonly event: {
 		id: string;
 		title: string;
 		type: string;
+		description?: string | null;
 		startDate?: Date | string | null;
 		endDate?: Date | string | null;
 		venueName?: string | null;
@@ -66,6 +69,17 @@ export function EventHero({ event, orgSlug }: EventHeroProps) {
 
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
 
+	const handleShareEvent = async () => {
+		await shareEvent({
+			title: event.title,
+			organizationName: organization.name,
+			description: event.description,
+			dateStr: dateStr,
+			locationStr: event.venueName,
+			imageUrl: heroImageUrl,
+		});
+	};
+
 	return (
 		<div className="relative w-full overflow-hidden bg-background">
 			{/* Top Navigation Bar */}
@@ -79,17 +93,30 @@ export function EventHero({ event, orgSlug }: EventHeroProps) {
 						<span>Back to {organization.name}</span>
 					</Link>
 
-					<div className="flex items-center gap-2">
-						{orgLogoUrl ? (
-							<img
-								src={orgLogoUrl}
-								alt={organization.name}
-								className="rounded-full border size-6 object-cover"
-							/>
-						) : null}
-						<span className="text-xs font-black uppercase tracking-tight text-foreground truncate max-w-[150px] sm:max-w-xs">
-							{organization.name}
-						</span>
+					<div className="flex items-center gap-3">
+						<div className="flex items-center gap-2">
+							{orgLogoUrl ? (
+								<img
+									src={orgLogoUrl}
+									alt={organization.name}
+									className="rounded-full border size-6 object-cover"
+								/>
+							) : null}
+							<span className="text-xs font-black uppercase tracking-tight text-foreground truncate max-w-[150px] sm:max-w-xs">
+								{organization.name}
+							</span>
+						</div>
+
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleShareEvent}
+							className="rounded-full text-xs font-bold gap-1.5 h-8 border-border hover:border-primary/50"
+							title="Share Event"
+						>
+							<Share2 className="size-3.5" />
+							<span className="hidden sm:inline">Share</span>
+						</Button>
 					</div>
 				</div>
 			</div>
