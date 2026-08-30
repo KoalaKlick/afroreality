@@ -1,13 +1,8 @@
-import { Pool, neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
-import ws from "ws";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client.js";
 
 export * from "./generated/prisma/client.js";
-
-if (typeof WebSocket === "undefined") {
-  neonConfig.webSocketConstructor = ws;
-}
 
 const globalForPrisma = globalThis as unknown as {
   prismaInstance: PrismaClient | undefined;
@@ -18,22 +13,24 @@ function getPrismaClient(): PrismaClient {
     return globalForPrisma.prismaInstance;
   }
 
-  const connectionString =
+  const databaseUrl =
     process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL;
 
-  if (!connectionString) {
-    console.error(
-      "❌ FATAL: DATABASE_URL is not set in process.env on Vercel!",
-    );
+  if (!databaseUrl) {
     throw new Error(
-      "DATABASE_URL environment variable is missing on Vercel. Please go to Vercel Dashboard -> Project Settings -> Environment Variables, add DATABASE_URL (ensure 'Production' checkbox is ticked), and Redeploy.",
+      "DATABASE_URL environment variable is missing. Please set DATABASE_URL in your Vercel project Settings -> Environment Variables.",
     );
   }
 
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaNeon(pool as any);
+  const isNeon =
+    databaseUrl.includes("neon.tech") || databaseUrl.startsWith("neon://");
+
+  const adapter = isNeon
+    ? new PrismaNeon({ connectionString: databaseUrl })
+    : new PrismaPg({ connectionString: databaseUrl });
+
   const client = new PrismaClient({ adapter });
 
   if (process.env.NODE_ENV !== "production") {
