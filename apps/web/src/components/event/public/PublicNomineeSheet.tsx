@@ -7,7 +7,6 @@ import {
 	Share2,
 	Trophy,
 	Sparkles,
-	Percent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,14 +18,14 @@ import {
 import { VotePaymentModal } from "@/components/event/nomination/VotePaymentModal";
 import { PublicNominationModal } from "@/components/event/public/PublicNominationModal";
 import { getEventImageUrl } from "@/lib/image-url-utils";
-import { toast } from "sonner";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
+import { toast } from "sonner";
 
 interface VotingOption {
 	id: string;
 	optionText: string;
-	imageUrl?: string | null;
 	nomineeCode?: string | null;
+	imageUrl?: string | null;
 	bio?: string | null;
 	votes?: number;
 }
@@ -37,8 +36,6 @@ interface NomineeGridProps {
 	readonly eventId: string;
 	readonly categoryId: string;
 	readonly votingMode?: string;
-	readonly showTotalVotesPublicly?: boolean;
-	readonly resultDisplayType?: "percentage" | "count";
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
 }
@@ -49,33 +46,25 @@ export function NomineeGrid({
 	eventId,
 	categoryId,
 	votingMode = "general",
-	showTotalVotesPublicly = true,
-	resultDisplayType = "percentage",
 	orgSlug = "",
 	eventSlug = "",
 }: NomineeGridProps) {
+	const [sheetOpen, setSheetOpen] = useState(false);
+	const [voteModalOpen, setVoteModalOpen] = useState(false);
 	const [selectedNominee, setSelectedNominee] = useState<VotingOption | null>(
 		null,
 	);
-	const [sheetOpen, setSheetOpen] = useState(false);
-	const [voteModalOpen, setVoteModalOpen] = useState(false);
 
 	const isFree = Number(votePrice) === 0;
-
-	// Total votes for percentage calculation
-	const totalVotesAcrossCategory = nominees.reduce(
-		(acc, n) => acc + (n.votes || 0),
-		0,
-	);
-
-	const handleOpenNominee = (nominee: VotingOption) => {
-		setSelectedNominee(nominee);
-		setSheetOpen(true);
-	};
 
 	const handleOpenVoteModal = (nominee: VotingOption) => {
 		setSelectedNominee(nominee);
 		setVoteModalOpen(true);
+	};
+
+	const handleOpenSheet = (nominee: VotingOption) => {
+		setSelectedNominee(nominee);
+		setSheetOpen(true);
 	};
 
 	const handleShare = async (nominee: VotingOption) => {
@@ -101,13 +90,13 @@ export function NomineeGrid({
 		}
 	};
 
-	if (nominees.length === 0) {
+	if (!nominees || nominees.length === 0) {
 		return (
-			<div className="text-center py-16 border rounded-2xl bg-card/40 p-8">
-				<User className="size-12 mx-auto text-muted-foreground/40 mb-3" />
-				<h4 className="text-lg font-bold">No nominees yet</h4>
-				<p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
-					Nominees for this category have not been published yet. Please check back later.
+			<div className="flex flex-col items-center justify-center p-12 text-center border rounded-2xl bg-card">
+				<Trophy className="size-12 text-muted-foreground/40 mb-3" />
+				<h4 className="text-lg font-bold">No Nominees Yet</h4>
+				<p className="text-xs text-muted-foreground max-w-sm mt-1">
+					Nominees have not been announced or approved for this category yet.
 				</p>
 			</div>
 		);
@@ -115,29 +104,22 @@ export function NomineeGrid({
 
 	return (
 		<>
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
 				{nominees.map((nominee) => {
-					const votes = nominee.votes || 0;
-					const pct =
-						totalVotesAcrossCategory > 0
-							? ((votes / totalVotesAcrossCategory) * 100).toFixed(1)
-							: "0.0";
-					const imgUrl = getEventImageUrl(nominee.imageUrl);
-
 					return (
 						<div
 							key={nominee.id}
-							className="group rounded-2xl border bg-card/70 p-4 transition-all duration-300 hover:border-primary/50 flex flex-col justify-between"
+							className="group relative flex flex-col justify-between rounded-2xl border bg-card p-4 transition-all duration-300 hover:border-primary/50"
 						>
 							<div
-								onClick={() => handleOpenNominee(nominee)}
+								onClick={() => handleOpenSheet(nominee)}
 								className="cursor-pointer space-y-3"
 							>
 								{/* Nominee Avatar */}
-								<div className="relative aspect-4/3 w-full rounded-xl overflow-hidden bg-muted border flex items-center justify-center">
-									{imgUrl ? (
+								<div className="relative aspect-4/5 w-full rounded-xl overflow-hidden bg-muted flex items-center justify-center border">
+									{nominee.imageUrl ? (
 										<img
-											src={imgUrl}
+											src={getEventImageUrl(nominee.imageUrl) || ""}
 											alt={nominee.optionText}
 											className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
 										/>
@@ -166,47 +148,12 @@ export function NomineeGrid({
 								</div>
 							</div>
 
-							{/* Live Results Display */}
-							{showTotalVotesPublicly && (
-								<div className="mt-3 pt-3 border-t">
-									{resultDisplayType === "count" ? (
-										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground font-medium flex items-center gap-1">
-												<Vote className="size-3 text-primary" /> Total Votes:
-											</span>
-											<span className="font-mono font-bold text-foreground">
-												{votes.toLocaleString()}
-											</span>
-										</div>
-									) : (
-										<div className="space-y-1.5">
-											<div className="flex items-center justify-between text-xs">
-												<span className="text-muted-foreground font-medium flex items-center gap-1">
-													<Percent className="size-3 text-primary" /> Share:
-												</span>
-												<span className="font-mono font-bold text-primary">
-													{pct}%
-												</span>
-											</div>
-											<div className="w-full bg-muted/80 rounded-full h-1.5 overflow-hidden">
-												<div
-													className="bg-primary h-full rounded-full transition-all duration-500"
-													style={{
-														width: `${Math.min(100, Math.max(0, Number(pct)))}%`,
-													}}
-												/>
-											</div>
-										</div>
-									)}
-								</div>
-							)}
-
 							{/* Actions */}
 							<div className="pt-3 mt-3 border-t flex items-center justify-between gap-2">
 								<Button
 									variant="ghost"
 									size="icon"
-									className="size-8 rounded-full"
+									className="size-8 rounded-full shrink-0"
 									onClick={() => handleShare(nominee)}
 									title="Share Nominee"
 								>
@@ -268,22 +215,29 @@ export function NomineeGrid({
 								</div>
 							)}
 
-							<div className="flex gap-2 pt-2">
+							<div className="flex items-center gap-3 pt-4 border-t">
 								<Button
+									className="flex-1 font-bold gap-2"
 									onClick={() => {
 										setSheetOpen(false);
 										setVoteModalOpen(true);
 									}}
-									className="flex-1 text-xs font-bold h-10 gap-2"
 								>
 									<Vote className="size-4" />
-									Vote for {selectedNominee.optionText}
+									<span>
+										{votingMode === "internal"
+											? "Cast Ballot"
+											: isFree
+												? "Vote Free"
+												: `Vote (GHS ${votePrice.toFixed(2)})`}
+									</span>
 								</Button>
 								<Button
 									variant="outline"
 									size="icon"
-									className="size-10"
+									className="size-10 shrink-0"
 									onClick={() => handleShare(selectedNominee)}
+									title="Share Nominee"
 								>
 									<Share2 className="size-4" />
 								</Button>
@@ -293,19 +247,21 @@ export function NomineeGrid({
 				</SheetContent>
 			</Sheet>
 
-			{/* Vote Modal */}
-			<VotePaymentModal
-				nominee={selectedNominee}
-				open={voteModalOpen}
-				onOpenChange={setVoteModalOpen}
-				votePrice={votePrice}
-				eventId={eventId}
-				categoryId={categoryId}
-				isPublic={true}
-				votingMode={votingMode}
-				orgSlug={orgSlug}
-				eventSlug={eventSlug}
-			/>
+			{/* Public Vote Modal */}
+			{selectedNominee && (
+				<VotePaymentModal
+					nominee={selectedNominee}
+					open={voteModalOpen}
+					onOpenChange={setVoteModalOpen}
+					votePrice={votePrice}
+					eventId={eventId}
+					categoryId={categoryId}
+					isPublic={true}
+					votingMode={votingMode}
+					orgSlug={orgSlug}
+					eventSlug={eventSlug}
+				/>
+			)}
 		</>
 	);
 }
@@ -325,8 +281,8 @@ interface PublicNomineeSheetProps {
 	};
 	readonly eventId: string;
 	readonly votingMode?: string;
-	readonly orgSlug?: string;
-	readonly eventSlug?: string;
+	readonly orgSlug: string;
+	readonly eventSlug: string;
 }
 
 export function PublicNomineeSheet({
@@ -336,36 +292,44 @@ export function PublicNomineeSheet({
 	orgSlug,
 	eventSlug,
 }: PublicNomineeSheetProps) {
-	const resultDisplayType =
-		category.templateConfig?.resultDisplayType === "count"
-			? "count"
-			: "percentage";
-
 	return (
 		<div className="space-y-8">
 			{/* Public Nomination Banner */}
 			{category.allowPublicNomination && (
-				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
+				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl border bg-card text-foreground">
 					<div className="space-y-1 text-center sm:text-left">
-						<div className="flex items-center justify-center sm:justify-start gap-2 text-primary font-bold text-sm">
-							<Sparkles className="size-4" />
-							<span>Public Nominations Open!</span>
-						</div>
-						<p className="text-xs text-muted-foreground">
-							Know an exceptional candidate? Submit a nominee for the{" "}
-							<strong>{category.name}</strong> category.
+						<h4 className="font-black text-sm uppercase tracking-tight flex items-center justify-center sm:justify-start gap-2">
+							<Sparkles className="size-4 text-primary" />
+							<span>Nominate a Candidate</span>
+						</h4>
+						<p className="text-xs text-muted-foreground max-w-xl">
+							Have an exceptional nominee in mind for {category.name}? Submit a
+							nomination now to be approved by event organizers.
 						</p>
 					</div>
 
 					<PublicNominationModal
+						category={{
+							id: category.id,
+							name: category.name,
+							description: category.description ?? null,
+							nominationPrice: Number(category.nominationPrice || 0),
+							votePrice: Number(category.votePrice || 0),
+							eventId: eventId,
+							allowMultiple: category.allowMultiple ?? false,
+							allowPublicNomination: category.allowPublicNomination ?? true,
+							showTotalVotesPublicly: category.showTotalVotesPublicly ?? true,
+							orderIdx: 0,
+							templateConfig: category.templateConfig ?? null,
+							templateImage: null,
+							votingOptions: [],
+						}}
 						eventId={eventId}
-						category={category as any}
 						orgSlug={orgSlug}
 						eventSlug={eventSlug}
 						trigger={
-							<Button className="text-xs font-bold gap-1.5 shrink-0">
-								<Trophy className="size-3.5" />
-								<span>Submit Nomination</span>
+							<Button className="shrink-0 text-xs font-bold uppercase tracking-wider">
+								Nominate Candidate
 							</Button>
 						}
 					/>
@@ -379,8 +343,6 @@ export function PublicNomineeSheet({
 				eventId={eventId}
 				categoryId={category.id}
 				votingMode={votingMode}
-				showTotalVotesPublicly={category.showTotalVotesPublicly ?? true}
-				resultDisplayType={resultDisplayType}
 				orgSlug={orgSlug}
 				eventSlug={eventSlug}
 			/>
