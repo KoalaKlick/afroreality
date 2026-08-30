@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
 import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero";
-import { OrgSidebarCard } from "@/components/organization/public/OrgSidebarCard";
 import { OrgDetailsFooter } from "@/components/organization/public/OrgDetailsFooter";
 import { EventsSection } from "@/components/Landing/sections/revamp-events";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
@@ -106,9 +105,9 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 	} as React.CSSProperties;
 
 	return (
-		<main className="@container min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
-			{/* Mobile / Tablet View (< 5xl) */}
-			<div className="flex flex-col @5xl:hidden">
+		<main className="min-h-[100svh] bg-background text-foreground flex flex-col justify-between" style={brandVars}>
+			<div className="flex-1 flex flex-col">
+				{/* 1. Organization Hero Profile */}
 				<OrgProfileHero
 					organization={{
 						id: organization.id,
@@ -134,12 +133,16 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 
 				<PanAfricanDivider />
 
-				<EventsSection
-					title="Our Events."
-					useBrand
-					items={eventsWithOrg}
-				/>
+				{/* 2. Events Showcase Section (with light primary bg) */}
+				<div className="flex-1">
+					<EventsSection
+						title="Our Events."
+						useBrand
+						items={eventsWithOrg}
+					/>
+				</div>
 
+				{/* 3. Organization Details Footer (Our Partners, About Org, Connect with Us) */}
 				<OrgDetailsFooter
 					organization={{
 						id: organization.id,
@@ -155,34 +158,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 				/>
 			</div>
 
-			{/* Large Screen Container View (@5xl+) - LinkedIn Split Pane */}
-			<div className="hidden @5xl:block max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
-				<div className="grid grid-cols-12 gap-8 items-start">
-					{/* Left Column: Sticky Profile / Details Panel */}
-					<aside className="col-span-4 sticky top-6">
-						<OrgSidebarCard
-							organization={organization}
-							socialLinks={uniqueSocialLinks}
-							sponsors={uniqueSponsors}
-							isUserAuthenticated={isUserAuthenticated}
-							hasPendingRequest={organization.isUserPendingJoin ?? false}
-						/>
-					</aside>
-
-					{/* Right Column: Scrollable Events Feed */}
-					<div className="col-span-8 space-y-6">
-						<div className="rounded-2xl border bg-card overflow-hidden">
-							<EventsSection
-								title="Our Events."
-								useBrand
-								items={eventsWithOrg}
-							/>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			{/* Brand Footer */}
+			{/* 4. Brand Footer */}
 			<PoweredByFooter />
 		</main>
 	);

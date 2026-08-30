@@ -125,248 +125,250 @@ export default async function PublicCategoryPage({
 	);
 
 	return (
-		<main className="@container min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
-			{/* Mobile / Tablet View (< 5xl) */}
-			<div className="flex flex-col @5xl:hidden">
-				<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
-					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs">
-						<div className="flex items-center gap-2 truncate">
-							<Link
-								href={`/${orgSlug}`}
-								className="font-semibold text-muted-foreground hover:text-foreground transition-colors"
-							>
-								{organization.name}
-							</Link>
-							<ChevronRight className="size-3.5 text-muted-foreground/60" />
-							<Link
-								href={`/${orgSlug}/event/${eventSlug}`}
-								className="font-semibold text-muted-foreground hover:text-foreground transition-colors truncate"
-							>
-								{event.title}
-							</Link>
-							<ChevronRight className="size-3.5 text-muted-foreground/60" />
-							<span className="font-bold text-foreground truncate">
-								{category.name}
-							</span>
-						</div>
-
-						<Button asChild variant="ghost" size="sm" className="h-8 gap-1 text-xs">
-							<Link href={`/${orgSlug}/event/${eventSlug}`}>
-								<ArrowLeft className="size-3.5" /> Back to Event
-							</Link>
-						</Button>
-					</div>
-				</header>
-
-				<section className="border-b border-border/80 bg-muted/30 py-10">
-					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-						<div className="flex flex-wrap items-center gap-2">
-							<Badge
-								variant="secondary"
-								className="text-xs bg-primary/10 text-primary border-primary/20 font-bold"
-							>
-								Voting Category
-							</Badge>
-							{isInternalVoting && (
-								<Badge
-									variant="outline"
-									className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1"
+		<main className="@container min-h-[100svh] bg-background text-foreground flex flex-col justify-between" style={brandVars}>
+			<div className="flex-1 flex flex-col">
+				{/* Mobile / Tablet View (< 5xl) */}
+				<div className="flex flex-col @5xl:hidden">
+					<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
+						<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs">
+							<div className="flex items-center gap-2 truncate">
+								<Link
+									href={`/${orgSlug}`}
+									className="font-semibold text-muted-foreground hover:text-foreground transition-colors"
 								>
-									<Lock className="size-3" /> Member Ballot
+									{organization.name}
+								</Link>
+								<ChevronRight className="size-3.5 text-muted-foreground/60" />
+								<Link
+									href={`/${orgSlug}/event/${eventSlug}`}
+									className="font-semibold text-muted-foreground hover:text-foreground transition-colors truncate"
+								>
+									{event.title}
+								</Link>
+								<ChevronRight className="size-3.5 text-muted-foreground/60" />
+								<span className="font-bold text-foreground truncate">
+									{category.name}
+								</span>
+							</div>
+
+							<Button asChild variant="ghost" size="sm" className="h-8 gap-1 text-xs">
+								<Link href={`/${orgSlug}/event/${eventSlug}`}>
+									<ArrowLeft className="size-3.5" /> Back to Event
+								</Link>
+							</Button>
+						</div>
+					</header>
+
+					<section className="border-b border-border/80 bg-muted/30 py-10">
+						<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+							<div className="flex flex-wrap items-center gap-2">
+								<Badge
+									variant="secondary"
+									className="text-xs bg-primary/10 text-primary border-primary/20 font-bold"
+								>
+									Voting Category
 								</Badge>
+								{isInternalVoting && (
+									<Badge
+										variant="outline"
+										className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1"
+									>
+										<Lock className="size-3" /> Member Ballot
+									</Badge>
+								)}
+							</div>
+
+							<h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight uppercase">
+								{category.name}
+							</h1>
+
+							{category.description && (
+								<div className="max-w-3xl text-sm text-muted-foreground leading-relaxed">
+									<RichTextDisplay content={category.description} />
+								</div>
 							)}
 						</div>
+					</section>
 
-						<h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight uppercase">
-							{category.name}
-						</h1>
+					<PanAfricanDivider />
 
-						{category.description && (
-							<div className="max-w-3xl text-sm text-muted-foreground leading-relaxed">
-								<RichTextDisplay content={category.description} />
+					<main
+						className="flex-1 w-full py-12 transition-colors"
+						style={{
+							backgroundColor:
+								"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+						}}
+					>
+						<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+							{nomineeContent}
+						</div>
+					</main>
+
+					<Section maxWidth="7xl" className="py-14 border-t bg-background">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+							<div id="about-category" className="space-y-6 scroll-mt-24">
+								<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+									<Trophy className="size-5 text-primary" />
+									<span>About Category.</span>
+								</h3>
+								<div className="text-xs text-muted-foreground leading-relaxed">
+									{category.description ? (
+										<RichTextDisplay content={category.description} />
+									) : (
+										<p className="italic text-muted-foreground/60">
+											Help your favorite nominee win by casting your vote!
+										</p>
+									)}
+								</div>
+								<div className="pt-4 border-t border-dashed">
+									<Link
+										href={`/${orgSlug}/event/${eventSlug}/#details`}
+										className="inline-flex items-center text-xs font-bold text-primary hover:underline gap-1"
+									>
+										<span>View full event details</span>
+										<ChevronRight className="size-3.5" />
+									</Link>
+								</div>
 							</div>
-						)}
-					</div>
-				</section>
 
-				<PanAfricanDivider />
-
-				<main
-					className="flex-1 w-full py-12 transition-colors"
-					style={{
-						backgroundColor:
-							"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-					}}
-				>
-					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-						{nomineeContent}
-					</div>
-				</main>
-
-				<Section maxWidth="7xl" className="py-14 border-t bg-background">
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-						<div id="about-category" className="space-y-6 scroll-mt-24">
-							<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-								<Trophy className="size-5 text-primary" />
-								<span>About Category.</span>
-							</h3>
-							<div className="text-xs text-muted-foreground leading-relaxed">
-								{category.description ? (
-									<RichTextDisplay content={category.description} />
+							<div className="space-y-6">
+								<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+									<Trophy className="size-5 text-primary" />
+									<span>Sponsors.</span>
+								</h3>
+								{sponsors.length > 0 ? (
+									<div className="flex flex-wrap gap-2.5">
+										{sponsors.slice(0, 15).map((sponsor: any) => {
+											const imgKey = sponsor.logoUrl || sponsor.logo;
+											const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
+											return (
+										<div
+											key={sponsor.id || sponsor.name}
+											className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help"
+											title={sponsor.name}
+										>
+											{imgUrl ? (
+												<img
+													src={imgUrl}
+													alt={sponsor.name}
+													className="object-contain max-h-full max-w-full"
+												/>
+											) : (
+												<span className="text-[6px] font-bold text-center leading-none truncate uppercase tracking-tighter">
+													{sponsor.name}
+												</span>
+											)}
+										</div>
+											);
+										})}
+									</div>
 								) : (
-									<p className="italic text-muted-foreground/60">
-										Help your favorite nominee win by casting your vote!
+									<p className="text-xs text-muted-foreground italic leading-relaxed">
+										Partnering for event excellence.
 									</p>
 								)}
 							</div>
-							<div className="pt-4 border-t border-dashed">
-								<Link
-									href={`/${orgSlug}/event/${eventSlug}/#details`}
-									className="inline-flex items-center text-xs font-bold text-primary hover:underline gap-1"
-								>
-									<span>View full event details</span>
-									<ChevronRight className="size-3.5" />
-								</Link>
-							</div>
-						</div>
 
-						<div className="space-y-6">
-							<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-								<Trophy className="size-5 text-primary" />
-								<span>Sponsors.</span>
-							</h3>
-							{sponsors.length > 0 ? (
-								<div className="flex flex-wrap gap-2.5">
-									{sponsors.slice(0, 15).map((sponsor: any) => {
-										const imgKey = sponsor.logoUrl || sponsor.logo;
-										const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
-										return (
-											<div
-												key={sponsor.id || sponsor.name}
-												className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help"
-												title={sponsor.name}
-											>
-												{imgUrl ? (
-													<img
-														src={imgUrl}
-														alt={sponsor.name}
-														className="object-contain max-h-full max-w-full"
-													/>
-												) : (
-													<span className="text-[6px] font-bold text-center leading-none truncate uppercase tracking-tighter">
-														{sponsor.name}
-													</span>
-												)}
-											</div>
-										);
-									})}
-								</div>
-							) : (
-								<p className="text-xs text-muted-foreground italic leading-relaxed">
-									Partnering for event excellence.
-								</p>
-							)}
-						</div>
-
-						<div className="space-y-8">
-							{galleryLinks.length > 0 && (
-								<div className="space-y-4">
-									<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-										<ImageIcon className="size-5 text-primary" />
-										<span>Galleries.</span>
-									</h3>
-									<div className="space-y-2.5">
-										{galleryLinks.map((link: any) => {
-											const provider = getGalleryProvider(link.url, "size-5");
-											return (
-												<a
-													key={link.id || link.url}
-													href={link.url}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="flex items-center justify-between p-3 rounded-xl border bg-card hover:border-primary/50 transition-colors group"
-												>
-													<div className="flex items-center gap-3">
-														<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-															{provider.icon}
+							<div className="space-y-8">
+								{galleryLinks.length > 0 && (
+									<div className="space-y-4">
+										<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+											<ImageIcon className="size-5 text-primary" />
+											<span>Galleries.</span>
+										</h3>
+										<div className="space-y-2.5">
+											{galleryLinks.map((link: any) => {
+												const provider = getGalleryProvider(link.url, "size-5");
+												return (
+													<a
+														key={link.id || link.url}
+														href={link.url}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="flex items-center justify-between p-3 rounded-xl border bg-card hover:border-primary/50 transition-colors group"
+													>
+														<div className="flex items-center gap-3">
+															<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+																{provider.icon}
+															</div>
+															<span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
+																{provider.name}
+															</span>
 														</div>
-														<span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
-															{provider.name}
-														</span>
-													</div>
-													<ChevronRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-												</a>
-											);
-										})}
+														<ChevronRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+													</a>
+												);
+											})}
+										</div>
 									</div>
-								</div>
-							)}
+								)}
 
-							{socialLinks.length > 0 && (
-								<div className="space-y-4 pt-4 border-t border-dashed">
-									<h3 className="text-xs font-bold uppercase tracking-widest text-primary">
-										Event Socials.
-									</h3>
-									<div className="flex flex-wrap gap-2.5">
-										{socialLinks.map((link: any) => {
-											const plat = getSocialPlatform(link.url, "size-5");
-											return (
-												<a
-													key={link.id || link.url}
-													href={link.url}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="size-10 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
-													title={plat.name || link.url}
-												>
-													<div className="size-5 flex items-center justify-center">
-														{plat.icon}
-													</div>
-												</a>
-											);
-										})}
+								{socialLinks.length > 0 && (
+									<div className="space-y-4 pt-4 border-t border-dashed">
+										<h3 className="text-xs font-bold uppercase tracking-widest text-primary">
+											Event Socials.
+										</h3>
+										<div className="flex flex-wrap gap-2.5">
+											{socialLinks.map((link: any) => {
+												const plat = getSocialPlatform(link.url, "size-5");
+												return (
+													<a
+														key={link.id || link.url}
+														href={link.url}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="size-10 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
+														title={plat.name || link.url}
+													>
+														<div className="size-5 flex items-center justify-center">
+															{plat.icon}
+														</div>
+													</a>
+												);
+											})}
+										</div>
 									</div>
-								</div>
-							)}
-						</div>
-					</div>
-				</Section>
-			</div>
-
-			{/* Large Screen Container View (@5xl+) - LinkedIn Split Pane */}
-			<div className="hidden @5xl:block max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
-				<div className="grid grid-cols-12 gap-8 items-start">
-					{/* Left Column: Sticky Category Details & Event Info Panel */}
-					<aside className="col-span-4 sticky top-6">
-						<CategorySidebarCard
-							category={category}
-							event={event}
-							sponsors={sponsors}
-							galleryLinks={galleryLinks}
-							socialLinks={socialLinks}
-							orgSlug={orgSlug}
-							eventSlug={eventSlug}
-						/>
-					</aside>
-
-					{/* Right Column: Scrollable Nominees Feed */}
-					<div className="col-span-8 space-y-6">
-						<div
-							className="rounded-2xl border bg-card p-8 transition-colors"
-							style={{
-								backgroundColor:
-									"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-							}}
-						>
-							<div className="mb-6">
-								<h2 className="text-2xl font-black uppercase tracking-tight">
-									Nominees &amp; Candidates.
-								</h2>
-								<p className="text-xs text-muted-foreground mt-0.5">
-									Cast your votes or submit a public nomination below.
-								</p>
+								)}
 							</div>
-							{nomineeContent}
+						</div>
+					</Section>
+				</div>
+
+				{/* Large Screen Container View (@5xl+) - LinkedIn Split Pane */}
+				<div className="hidden @5xl:block max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8 flex-1">
+					<div className="grid grid-cols-12 gap-8 items-start">
+						{/* Left Column: Sticky Category Details & Event Info Panel */}
+						<aside className="col-span-4 sticky top-6">
+							<CategorySidebarCard
+								category={category}
+								event={event}
+								sponsors={sponsors}
+								galleryLinks={galleryLinks}
+								socialLinks={socialLinks}
+								orgSlug={orgSlug}
+								eventSlug={eventSlug}
+							/>
+						</aside>
+
+						{/* Right Column: Scrollable Nominees Feed */}
+						<div className="col-span-8 space-y-6">
+							<div
+								className="rounded-2xl border bg-card p-8 transition-colors"
+								style={{
+									backgroundColor:
+										"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+								}}
+							>
+								<div className="mb-6">
+									<h2 className="text-2xl font-black uppercase tracking-tight">
+										Nominees &amp; Candidates.
+									</h2>
+									<p className="text-xs text-muted-foreground mt-0.5">
+										Cast your votes or submit a public nomination below.
+									</p>
+								</div>
+								{nomineeContent}
+							</div>
 						</div>
 					</div>
 				</div>
