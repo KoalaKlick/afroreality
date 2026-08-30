@@ -1,6 +1,9 @@
 // src/components/organization/management/OrgThemeColors.tsx
 
-import { Palette, Check, Sparkles } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Palette, Check, Sparkles, Layers } from "lucide-react";
 import { TicketRenderer } from "@/components/shared/ticket-variants/TicketRenderer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -93,6 +96,7 @@ export function OrgThemeColors({
 	logoUrl,
 	orgName,
 }: OrgThemeColorsProps) {
+	const [activeVariant, setActiveVariant] = useState<"classic" | "modern" | "geo" | "retro">("classic");
 	const logoDisplayUrl = logoUrl ? getOrgImageUrl(logoUrl) : null;
 
 	const handleApplyTheme = (theme: (typeof PRESET_THEMES)[number]) => {
@@ -102,9 +106,10 @@ export function OrgThemeColors({
 	};
 
 	return (
-		<Card className="@container">
-			<CardContent className="pt-6 @lg:grid @3xl:grid-cols-[auto_480px] @5xl:grid-cols-[auto_560px] @lg:gap-8">
-				<div className="space-y-6">
+		<Card>
+			<CardContent className="pt-6 grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+				{/* Left Column: Color Controls */}
+				<div className="xl:col-span-7 space-y-6">
 					<div>
 						<div className="flex items-center gap-2 text-lg font-bold text-foreground">
 							<Palette className="size-5 text-primary" />
@@ -121,7 +126,7 @@ export function OrgThemeColors({
 							<Sparkles className="size-3.5 text-primary" />
 							<span>Curated Palette Themes</span>
 						</div>
-						<div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 							{PRESET_THEMES.map((theme) => {
 								const isActive =
 									primaryColor.toLowerCase() === theme.primary.toLowerCase() &&
@@ -184,19 +189,48 @@ export function OrgThemeColors({
 					/>
 				</div>
 
-				<div className="@lg:mt-0 min-h-96 flex flex-col items-center justify-center p-6 bg-muted/10 rounded-2xl border border-dashed">
-					<p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-						Live Pass &amp; Brand Preview
+				{/* Right Column: Live Pass & Brand Preview */}
+				<div className="xl:col-span-5 flex flex-col items-center justify-center p-6 bg-muted/15 rounded-2xl border border-dashed min-h-[380px] space-y-4">
+					<div className="w-full flex items-center justify-between">
+						<p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+							Live Pass &amp; Brand Preview
+						</p>
+
+						{/* Pass Design Variant Switcher */}
+						<div className="flex items-center gap-1 bg-background/80 p-0.5 rounded-lg border text-[10px] font-bold uppercase">
+							{(["classic", "modern", "geo", "retro"] as const).map((v) => (
+								<button
+									key={v}
+									type="button"
+									onClick={() => setActiveVariant(v)}
+									className={cn(
+										"px-2 py-1 rounded transition-all",
+										activeVariant === v
+											? "bg-primary text-primary-foreground shadow-2xs"
+											: "text-muted-foreground hover:text-foreground",
+									)}
+								>
+									{v}
+								</button>
+							))}
+						</div>
+					</div>
+
+					<div className="w-full flex items-center justify-center py-2">
+						<TicketRenderer
+							variant={activeVariant}
+							primaryColor={primaryColor}
+							secondaryColor={secondaryColor}
+							tertiaryColor={tertiaryColor}
+							logoUrl={logoDisplayUrl}
+							organizationName={orgName || "Your Organization"}
+							stacked={true}
+						/>
+					</div>
+
+					<p className="text-[10px] text-muted-foreground/70 italic text-center">
+						Click the ticket to flip between front pass and back verification QR code.
 					</p>
-					<TicketRenderer
-						variant="classic"
-						primaryColor={primaryColor}
-						secondaryColor={secondaryColor}
-						tertiaryColor={tertiaryColor}
-						logoUrl={logoDisplayUrl}
-						organizationName={orgName || undefined}
-						stacked={true}
-					/>
 				</div>
 			</CardContent>
 		</Card>

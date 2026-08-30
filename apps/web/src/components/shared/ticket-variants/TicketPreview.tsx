@@ -7,7 +7,6 @@ import QRCode from "react-qr-code";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades } from "@/utils/theme/color-generator";
 
-
 interface TicketCardProps {
   readonly primaryColor: string;
   readonly secondaryColor: string;
@@ -32,16 +31,7 @@ interface TicketCardProps {
 /**
  * Builds a clip-path that describes the ticket silhouette:
  * a rounded rectangle with 3 semicircular notches punched into each side.
- *
- * All values are expressed as percentages of the element's bounding box so the
- * clip scales automatically when the element resizes.
- *
- * The path uses the SVG "even-odd" fill rule, so the semicircle sub-paths
- * act as holes (they are wound opposite to the outer rect).
  */
-// Using objectBoundingBox (0-1) coordinates for perfect responsiveness.
-// Values derived from: 560w x 210h. 
-// x-coords = val / 560, y-coords = val / 210
 const TICKET_PATH_RELATIVE = [
   `M ${12 / 560} 0`,
   // Top Edge
@@ -72,7 +62,14 @@ const TICKET_PATH_RELATIVE = [
 function TicketClipPath({ id }: { id: string }) {
   return (
     <svg
-      style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
+      style={{
+        position: "absolute",
+        width: "1px",
+        height: "1px",
+        overflow: "hidden",
+        pointerEvents: "none",
+        opacity: 0,
+      }}
       aria-hidden="true"
     >
       <defs>
@@ -159,7 +156,7 @@ function Stub({
   );
 }
 
-/** Ghost ticket for the stacked deck effect — clipped the same way */
+/** Ghost ticket for the stacked deck effect */
 function GhostTicket({
   backgroundColor,
   outlineColor,
@@ -219,7 +216,7 @@ function TicketShell({
 }) {
   return (
     <div
-      className="flex flex-row bg-background items-stretch w-full h-full relative"
+      className="flex flex-row bg-background items-stretch w-full h-full relative rounded-2xl overflow-hidden shadow-sm"
       style={{
         clipPath: `url(#${clipId})`,
         backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
@@ -243,7 +240,7 @@ export function TicketCard({
   ticketType = "General Admission",
   dateTime = "18 Mar 2026, 7:00 PM",
   venue = "Convention Center, Accra",
-  ticketCode = "XXXX-XXXXXX",
+  ticketCode = "AR-8924-X",
   qrPayload,
   className,
   stacked = false,
@@ -256,10 +253,9 @@ export function TicketCard({
   const primaryShades = generateColorShades(primaryColor);
   const secondaryShades = generateColorShades(secondaryColor);
 
-  // Stable unique ID so multiple tickets on the same page don't share clipPaths
-  const uid = useId().replace(/:/g, "");
+  // Stable unique ID
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const clipId = `ticket-clip-${uid}`;
-  // Ghost tickets can share the same clip shape (they're the same dimensions)
   const ghostClipId = `ticket-ghost-clip-${uid}`;
 
   const logoDisplayUrl = getOrgImageUrl(logoUrl);
@@ -273,26 +269,25 @@ export function TicketCard({
   const barHeights = [38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38];
 
   const ghosts = [
-    { translateX: 24, translateY: 3, rotate: 22, zIndex: 1 },
-    { translateX: 14, translateY: 2, rotate: 13, zIndex: 2 },
-    { translateX: 6, translateY: 1, rotate: 5, zIndex: 3 },
+    { translateX: 18, translateY: 4, rotate: 6, zIndex: 1 },
+    { translateX: 10, translateY: 2, rotate: 3, zIndex: 2 },
   ];
 
   const renderFront = () => (
     <TicketShell
-      backgroundColor={secondaryShades[50]}
-      outlineColor={primaryShades[200]}
+      backgroundColor={secondaryShades[50] || "#fafafa"}
+      outlineColor={primaryShades[200] || primaryColor}
       clipId={clipId}
     >
       <Stub 
         side="left" 
         primaryColor={primaryColor} 
-        backgroundColor={primaryShades[100]}
-        borderColor={primaryShades[200]}
+        backgroundColor={primaryShades[100] || "#f4f4f5"}
+        borderColor={primaryShades[200] || primaryColor}
         label={ticketType} 
       />
 
-      <div className={`flex-1 ${exportMode ? "flex" : "@min-md:flex"} items-center gap-3.5 px-5 py-4 overflow-hidden relative`}>
+      <div className="flex-1 flex items-center gap-3.5 px-5 py-4 overflow-hidden relative">
         {heroImageUrl && (
           <>
             <Image
@@ -318,35 +313,29 @@ export function TicketCard({
           >
             {ticketType}
           </span>
-          <div className={`text-base ${exportMode ? "text-lg" : "@min-lg:text-lg"} uppercase font-montserrat font-bold truncate leading-tight`}>
+          <div className="text-base font-bold uppercase truncate leading-tight text-foreground">
             {eventName}
           </div>
           <div className="flex flex-col gap-1 mt-1.5">
             <div>
               <div
-                className="text-xs font-bold tracking-[0.15em] uppercase"
+                className="text-[10px] font-bold tracking-[0.15em] uppercase"
                 style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
               >
                 Date &amp; Time
               </div>
-              <div
-                className="text-sm text-[#3d3530]"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
+              <div className="text-xs text-muted-foreground truncate">
                 {dateTime}
               </div>
             </div>
             <div>
               <div
-                className="text-xs font-bold tracking-[0.15em] uppercase "
+                className="text-[10px] font-bold tracking-[0.15em] uppercase"
                 style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
               >
                 Venue
               </div>
-              <div
-                className="text-[11px] text-[#3d3530] truncate"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
+              <div className="text-xs text-muted-foreground truncate">
                 {venue}
               </div>
             </div>
@@ -355,10 +344,17 @@ export function TicketCard({
 
         <div
           className="self-stretch w-px shrink-0 relative z-10"
-          style={{ background: primaryShades[100] }}
+          style={{ background: primaryShades[200] || primaryColor }}
         />
 
-        <div className="shrink-0 flex flex-col items-center gap-1 relative z-10">
+        <div className="shrink-0 flex flex-col items-center gap-1.5 relative z-10">
+          {logoDisplayUrl ? (
+            <img
+              src={logoDisplayUrl}
+              alt={organizationName}
+              className="size-8 rounded-full object-cover border"
+            />
+          ) : null}
           <div
             className="text-[9px] font-black tracking-[0.15em] uppercase text-center opacity-60"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
@@ -366,8 +362,7 @@ export function TicketCard({
             Organizer
           </div>
           <div
-            className="text-[11px] font-bold text-center"
-            style={{ fontFamily: "Georgia, serif", color: primaryShades[700] }}
+            className="text-[11px] font-bold text-center max-w-[90px] truncate text-foreground"
           >
             {organizationName}
           </div>
@@ -377,8 +372,8 @@ export function TicketCard({
       <Stub 
         side="right" 
         primaryColor={primaryColor} 
-        backgroundColor={primaryShades[100]}
-        borderColor={primaryShades[200]}
+        backgroundColor={primaryShades[100] || "#f4f4f5"}
+        borderColor={primaryShades[200] || primaryColor}
         label={stubLabel} 
       />
     </TicketShell>
@@ -386,43 +381,42 @@ export function TicketCard({
 
   const renderBack = () => (
     <TicketShell
-      backgroundColor={secondaryShades[50]}
-      outlineColor={primaryShades[200]}
+      backgroundColor={secondaryShades[50] || "#fafafa"}
+      outlineColor={primaryShades[200] || primaryColor}
       clipId={clipId}
     >
       <Stub 
         side="left" 
         primaryColor={primaryColor} 
-        backgroundColor={primaryShades[100]}
-        borderColor={primaryShades[200]}
+        backgroundColor={primaryShades[100] || "#f4f4f5"}
+        borderColor={primaryShades[200] || primaryColor}
         label={buyerName.slice(0, 12)} 
       />
 
-      <div className={`flex-1 ${exportMode ? "flex" : "@min-md:flex"} items-center gap-6 px-6 py-4`}>
+      <div className="flex-1 flex items-center gap-6 px-6 py-4">
         <div className="flex flex-col items-center gap-1.5 shrink-0">
           <div
-            className={`rounded-none flex items-center justify-center bg-white p-1 ${exportMode ? "size-32" : "size-12 @min-md:size-18"}`}
+            className="rounded-none flex items-center justify-center bg-white p-1 size-16"
             style={{ 
-              backgroundColor: primaryShades[50],
+              backgroundColor: primaryShades[50] || "#ffffff",
               imageRendering: "pixelated"
             }}
           >
             {qrPayload ? (
               <QRCode
                 value={qrPayload}
-                size={512} // Massive internal resolution
+                size={512}
                 style={{ height: "100%", width: "100%", imageRendering: "pixelated" }}
                 fgColor={primaryColor}
                 bgColor="transparent"
-                level="H" // High error correction for better scannability
+                level="H"
               />
             ) : (
-              <QrCode className={exportMode ? "size-16" : "size-6 lg:size-9"} style={{ color: primaryColor }} />
+              <QrCode className="size-8" style={{ color: primaryColor }} />
             )}
-            
           </div>
           <div
-            className="text-[8px] font-black tracking-[0.1em] uppercase opacity-40 text-center"
+            className="text-[8px] font-black tracking-[0.1em] uppercase opacity-60 text-center"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             Scan to verify
@@ -431,18 +425,18 @@ export function TicketCard({
 
         <div
           className="self-stretch w-px shrink-0"
-          style={{ background: primaryShades[100] }}
+          style={{ background: primaryShades[200] || primaryColor }}
         />
 
         <div className="flex flex-col items-center gap-2 flex-1">
           <div
-            className="text-[9px] font-black tracking-[0.3em] uppercase opacity-50"
+            className="text-[9px] font-black tracking-[0.3em] uppercase opacity-60"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             Ticket No.
           </div>
           <div
-            className="text-xl font-black tracking-[0.15em] opacity-85"
+            className="text-base font-black tracking-[0.15em]"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             {ticketCode}
@@ -451,13 +445,13 @@ export function TicketCard({
             {barWidths.map((w, i) => (
               <div
                 key={i}
-                className="rounded-[1px] opacity-60"
-                style={{ width: w, height: barHeights[i], background: primaryColor }}
+                className="rounded-[1px] opacity-70"
+                style={{ width: w, height: (barHeights[i] ?? 26) * 0.7, background: primaryColor }}
               />
             ))}
           </div>
           <div
-            className="text-[8px] opacity-40"
+            className="text-[8px] opacity-60"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             {organizationName}
@@ -468,8 +462,8 @@ export function TicketCard({
       <Stub 
         side="right" 
         primaryColor={primaryColor} 
-        backgroundColor={primaryShades[100]}
-        borderColor={primaryShades[200]}
+        backgroundColor={primaryShades[100] || "#f4f4f5"}
+        borderColor={primaryShades[200] || primaryColor}
         label={stubLabel} 
       />
     </TicketShell>
@@ -496,7 +490,7 @@ export function TicketCard({
 
   return (
     <div
-      className={`cursor-pointer select-none @container ${className ?? ""}`}
+      className={`cursor-pointer select-none w-full max-w-[560px] ${className ?? ""}`}
       style={{ perspective: 1200 }}
     >
       {/* Hidden SVG that defines the clip-paths */}
@@ -504,7 +498,7 @@ export function TicketCard({
       <TicketClipPath id={ghostClipId} />
 
       <div
-        className="relative w-full max-w-[560px] h-[210px]"
+        className="relative w-full aspect-[560/210] min-h-[190px]"
         onClick={() => setFlipped((f) => !f)}
       >
         {/* Ghost (stacked) copies */}
@@ -512,9 +506,9 @@ export function TicketCard({
           ghosts.map((g, i) => (
             <GhostTicket
               key={i}
-              backgroundColor={secondaryShades[50]}
-              outlineColor={primaryShades[200]}
-              stubColor={primaryShades[50]}
+              backgroundColor={secondaryShades[50] || "#ffffff"}
+              outlineColor={primaryShades[200] || primaryColor}
+              stubColor={primaryShades[50] || "#f4f4f5"}
               clipId={ghostClipId}
               {...g}
             />
@@ -529,7 +523,7 @@ export function TicketCard({
             transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
           }}
         >
-          {/* ── FRONT ── */}
+          {/* FRONT */}
           <div
             className="absolute inset-0"
             style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
@@ -537,7 +531,7 @@ export function TicketCard({
             {renderFront()}
           </div>
 
-          {/* ── BACK ── */}
+          {/* BACK */}
           <div
             className="absolute inset-0"
             style={{

@@ -22,7 +22,7 @@ export function EventVotingCategories({
 	return (
 		<Section
 			maxWidth="7xl"
-			className="py-16 transition-colors"
+			className="py-4 transition-colors"
 			style={{
 				backgroundColor:
 					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
