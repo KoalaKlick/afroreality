@@ -14,58 +14,82 @@ export function stripHtml(html?: string | null): string {
 }
 
 /**
- * Convert any image URL / blob to a standard JPEG File for WhatsApp and Native Share compatibility
+ * Fetch image blob with CORS fallback via /api/image-proxy
  */
-export async function convertImageUrlToJpegFile(
-	imageUrl: string,
+async function fetchImageBlob(imageUrl: string): Promise<Blob | null> {
+	// First attempt: direct fetch
+	try {
+		const res = await fetch(imageUrl, { mode: "cors" });
+		if (res.ok) {
+			return await res.blob();
+		}
+	} catch {
+		// CORS or network error, proceed to proxy
+	}
+
+	// Second attempt: via internal image proxy
+	try {
+		const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+		const res = await fetch(proxyUrl);
+		if (res.ok) {
+			return await res.blob();
+		}
+	} catch {
+		// Both attempts failed
+	}
+
+	return null;
+}
+
+/**
+ * Convert any image blob to a standard JPEG File for WhatsApp and Native Share compatibility
+ */
+export async function convertBlobToJpegFile(
+	blob: Blob,
 	filename: string,
 ): Promise<File | null> {
-	try {
-		const response = await fetch(imageUrl, { mode: "cors" });
-		if (!response.ok) return null;
-		const blob = await response.blob();
+	return new Promise((resolve) => {
+		const url = URL.createObjectURL(blob);
+		const img = new window.Image();
+		img.crossOrigin = "anonymous";
 
-		return new Promise((resolve) => {
-			const url = URL.createObjectURL(blob);
-			const img = new window.Image();
-			img.crossOrigin = "anonymous";
-
-			img.onload = () => {
-				const canvas = document.createElement("canvas");
-				canvas.width = img.naturalWidth;
-				canvas.height = img.naturalHeight;
-				const ctx = canvas.getContext("2d");
-				if (!ctx) {
-					URL.revokeObjectURL(url);
-					resolve(null);
-					return;
-				}
-				ctx.drawImage(img, 0, 0);
-				canvas.toBlob(
-					(jpegBlob) => {
-						URL.revokeObjectURL(url);
-						if (jpegBlob) {
-							const cleanName = filename.replace(/[^a-zA-Z0-9_-]/g, "_");
-							resolve(new File([jpegBlob], `${cleanName}.jpg`, { type: "image/jpeg" }));
-						} else {
-							resolve(null);
-						}
-					},
-					"image/jpeg",
-					0.92,
-				);
-			};
-
-			img.onerror = () => {
+		img.onload = () => {
+			const canvas = document.createElement("canvas");
+			canvas.width = img.naturalWidth;
+			canvas.height = img.naturalHeight;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) {
 				URL.revokeObjectURL(url);
 				resolve(null);
-			};
+				return;
+			}
+			ctx.drawImage(img, 0, 0);
+			canvas.toBlob(
+				(jpegBlob) => {
+					URL.revokeObjectURL(url);
+					if (jpegBlob) {
+						const cleanName = filename.replace(/[^a-zA-Z0-9_-]/g, "_");
+						resolve(
+							new File([jpegBlob], `${cleanName}.jpg`, {
+								type: "image/jpeg",
+							}),
+						);
+					} else {
+						resolve(null);
+					}
+				},
+				"image/jpeg",
+				0.92,
+			);
+		};
 
-			img.src = url;
-		});
-	} catch {
-		return null;
-	}
+		img.onerror = () => {
+			URL.revokeObjectURL(url);
+			resolve(null);
+		};
+
+		img.src = url;
+	});
 }
 
 export interface ShareNomineeParams {
@@ -83,7 +107,8 @@ export interface ShareNomineeParams {
  * Rich share for Nominees / Candidates with picture attached
  */
 export async function shareNominee(nominee: ShareNomineeParams) {
-	const shareUrl = nominee.url || (typeof window !== "undefined" ? window.location.href : "");
+	const shareUrl =
+		nominee.url || (typeof window !== "undefined" ? window.location.href : "");
 	const imageUrl = getEventImageUrl(nominee.imageUrl);
 	const bioText = stripHtml(nominee.bio || nominee.description);
 
@@ -99,28 +124,31 @@ export async function shareNominee(nominee: ShareNomineeParams) {
 	}
 	caption += `\n\nVote now at: ${shareUrl}`;
 
-	// Try sharing with picture attached
+	// Try sharing with picture attached via Web Share API
 	if (imageUrl && typeof navigator !== "undefined" && typeof navigator.canShare === "function") {
 		try {
-			const file = await convertImageUrlToJpegFile(imageUrl, nominee.optionText);
-			if (file) {
-				const shareData: ShareData = {
-					title: `Vote for ${nominee.optionText}`,
-					text: caption,
-					files: [file],
-				};
+			const blob = await fetchImageBlob(imageUrl);
+			if (blob) {
+				const file = await convertBlobToJpegFile(blob, nominee.optionText);
+				if (file) {
+					// Single text field = WhatsApp photo caption
+					const shareData: ShareData = {
+						text: caption,
+						files: [file],
+					};
 
-				if (navigator.canShare(shareData)) {
-					await navigator.share(shareData);
-					return;
+					if (navigator.canShare(shareData)) {
+						await navigator.share(shareData);
+						return;
+					}
 				}
 			}
-		} catch {
-			// Fall through to text-only share
+		} catch (err) {
+			console.warn("Native file share failed, falling back:", err);
 		}
 	}
 
-	// Text-only Web Share API
+	// Fallback 1: Text-only Web Share API
 	if (typeof navigator !== "undefined" && navigator.share) {
 		try {
 			await navigator.share({
@@ -129,11 +157,11 @@ export async function shareNominee(nominee: ShareNomineeParams) {
 			});
 			return;
 		} catch {
-			// Fall through to clipboard
+			// User cancelled or share failed, fall through to clipboard
 		}
 	}
 
-	// Clipboard fallback
+	// Fallback 2: Clipboard
 	if (typeof window !== "undefined" && navigator.clipboard) {
 		await navigator.clipboard.writeText(caption);
 		toast.success("Nominee voting link and details copied to clipboard!");
@@ -154,7 +182,8 @@ export interface ShareEventParams {
  * Rich share for Events with poster / flier picture attached
  */
 export async function shareEvent(event: ShareEventParams) {
-	const shareUrl = event.url || (typeof window !== "undefined" ? window.location.href : "");
+	const shareUrl =
+		event.url || (typeof window !== "undefined" ? window.location.href : "");
 	const imageUrl = getEventImageUrl(event.imageUrl);
 	const descText = stripHtml(event.description);
 
@@ -175,21 +204,23 @@ export async function shareEvent(event: ShareEventParams) {
 
 	if (imageUrl && typeof navigator !== "undefined" && typeof navigator.canShare === "function") {
 		try {
-			const file = await convertImageUrlToJpegFile(imageUrl, event.title);
-			if (file) {
-				const shareData: ShareData = {
-					title: event.title,
-					text: caption,
-					files: [file],
-				};
+			const blob = await fetchImageBlob(imageUrl);
+			if (blob) {
+				const file = await convertBlobToJpegFile(blob, event.title);
+				if (file) {
+					const shareData: ShareData = {
+						text: caption,
+						files: [file],
+					};
 
-				if (navigator.canShare(shareData)) {
-					await navigator.share(shareData);
-					return;
+					if (navigator.canShare(shareData)) {
+						await navigator.share(shareData);
+						return;
+					}
 				}
 			}
-		} catch {
-			// Fall through
+		} catch (err) {
+			console.warn("Native event file share failed, falling back:", err);
 		}
 	}
 
