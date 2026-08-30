@@ -2,22 +2,19 @@ import { notFound } from "next/navigation";
 import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
 import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero";
-import { OrgProfileSponsors } from "@/components/organization/public/OrgProfileSponsors";
+import { OrgDetailsFooter } from "@/components/organization/public/OrgDetailsFooter";
 import { EventsSection } from "@/components/Landing/sections/revamp-events";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
+import { getFrontendBaseUrl } from "@/lib/utils";
 import type { Metadata } from "next";
 
 interface OrgProfilePageProps {
 	params: Promise<{ slug: string }>;
 }
 
-const BASE_URL =
-	process.env.NEXT_PUBLIC_APP_URL ||
-	process.env.NEXT_PUBLIC_DOMAIN_URL ||
-	process.env.BASE_URL ||
-	"https://afroreality.com";
+const FRONTEND_URL = getFrontendBaseUrl();
 
 export async function generateMetadata({
 	params,
@@ -31,8 +28,8 @@ export async function generateMetadata({
 		"/landing/g.webp";
 	const absoluteImage = bannerImage.startsWith("http")
 		? bannerImage
-		: `${BASE_URL.replace(/\/$/, "")}${bannerImage}`;
-	const pageUrl = `${BASE_URL.replace(/\/$/, "")}/${slug}`;
+		: `${FRONTEND_URL}/${bannerImage.replace(/^\//, "")}`;
+	const pageUrl = `${FRONTEND_URL}/${slug}`;
 	const description =
 		organization.description ||
 		`Official profile for ${organization.name} on AfroReality.`;
@@ -91,9 +88,15 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 		logoUrl?: string | null;
 	}> = Array.from(new Map(allSponsors.map((s: any) => [s.name, s])).values()) as any;
 
+	// Collect unique social links from organization events
+	const allSocialLinks = rawEvents.flatMap((e: any) => e.socialLinks || []);
+	const uniqueSocialLinks = Array.from(
+		new Map(allSocialLinks.map((s: any) => [s.url, s])).values(),
+	) as any[];
+
 	return (
 		<main className="min-h-screen bg-background text-foreground flex flex-col">
-			{/* Organization Hero Profile */}
+			{/* 1. Organization Hero Profile */}
 			<OrgProfileHero
 				organization={{
 					id: organization.id,
@@ -112,27 +115,36 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 						members: organization._count?.members ?? 0,
 					},
 				}}
-				baseUrl={BASE_URL}
+				baseUrl={FRONTEND_URL}
 				isUserAuthenticated={isUserAuthenticated}
 				hasPendingRequest={organization.isUserPendingJoin ?? false}
 			/>
 
 			<PanAfricanDivider />
 
-			{/* Events Showcase Section */}
+			{/* 2. Events Showcase Section */}
 			<EventsSection
 				title="Our Events."
 				useBrand
 				items={eventsWithOrg}
 			/>
 
-			{/* Organization Sponsors Footer Section */}
-			{uniqueSponsors.length > 0 && (
-				<>
-					<PanAfricanDivider />
-					<OrgProfileSponsors sponsors={uniqueSponsors} />
-				</>
-			)}
+			<PanAfricanDivider />
+
+			{/* 3. Organization Details Footer (Our Partners, About Org, Connect with Us) */}
+			<OrgDetailsFooter
+				organization={{
+					id: organization.id,
+					name: organization.name,
+					description: organization.description,
+					websiteUrl: organization.websiteUrl,
+					contactEmail: organization.contactEmail,
+					phone: organization.phone,
+					socialLinks: uniqueSocialLinks,
+					primaryColor: organization.primaryColor,
+				}}
+				sponsors={uniqueSponsors}
+			/>
 
 			<PanAfricanDivider />
 			<PoweredByFooter />

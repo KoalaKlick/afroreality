@@ -15,6 +15,7 @@ export async function getPublicOrganizationProfile(
 				bannerUrl: true,
 				websiteUrl: true,
 				contactEmail: true,
+				phone: true,
 				primaryColor: true,
 				secondaryColor: true,
 				tertiaryColor: true,
@@ -31,6 +32,18 @@ export async function getPublicOrganizationProfile(
 					},
 					orderBy: {
 						startDate: "desc",
+					},
+					include: {
+						sponsors: {
+							orderBy: {
+								createdAt: "asc",
+							},
+						},
+						socialLinks: {
+							orderBy: {
+								createdAt: "asc",
+							},
+						},
 					},
 				},
 			},
@@ -78,6 +91,7 @@ export async function getPublicEventDetails(
 						tertiaryColor: true,
 						contactEmail: true,
 						websiteUrl: true,
+						phone: true,
 					},
 				},
 				ticketTypes: {
@@ -106,6 +120,11 @@ export async function getPublicEventDetails(
 					},
 				},
 				galleryLinks: {
+					orderBy: {
+						createdAt: "asc",
+					},
+				},
+				socialLinks: {
 					orderBy: {
 						createdAt: "asc",
 					},
