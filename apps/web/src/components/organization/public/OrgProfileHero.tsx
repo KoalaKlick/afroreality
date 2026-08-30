@@ -10,9 +10,7 @@ import {
 	Users,
 	ArrowRight,
 	CheckCircle2,
-	Share2,
 	ExternalLink,
-	Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
@@ -42,7 +40,6 @@ interface OrgProfileHeroProps {
 
 export function OrgProfileHero({
 	organization,
-	baseUrl = "https://afroreality.com",
 	isUserAuthenticated,
 	hasPendingRequest: initialPending,
 }: OrgProfileHeroProps) {
@@ -66,15 +63,6 @@ export function OrgProfileHero({
 			? organization.websiteUrl
 			: `https://${organization.websiteUrl}`
 		: null;
-
-	const publicOrgUrl = `${baseUrl.replace(/\/$/, "")}/${organization.slug}`;
-
-	const handleCopyOrgLink = async () => {
-		if (navigator.clipboard) {
-			await navigator.clipboard.writeText(publicOrgUrl);
-			toast.success("Organization link copied to clipboard!");
-		}
-	};
 
 	const handleJoinRequest = async () => {
 		if (!isUserAuthenticated) {
@@ -130,7 +118,7 @@ export function OrgProfileHero({
 						</div>
 
 						{/* Names & stats */}
-						<div className="space-y-1">
+						<div className="space-y-1.5">
 							<h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
 								{organization.name}
 							</h1>
@@ -146,7 +134,7 @@ export function OrgProfileHero({
 										href={cleanWebsiteUrl}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex items-center gap-1 hover:text-primary transition-colors underline-offset-4 hover:underline"
+										className="flex items-center gap-1 hover:text-primary transition-colors underline-offset-4 hover:underline font-semibold text-foreground/80"
 									>
 										<Globe className="size-3.5 text-primary" />
 										<span>Website</span>
@@ -157,24 +145,12 @@ export function OrgProfileHero({
 								{organization.contactEmail && (
 									<a
 										href={`mailto:${organization.contactEmail}`}
-										className="flex items-center gap-1 hover:text-primary transition-colors"
+										className="flex items-center gap-1 hover:text-primary transition-colors text-foreground/80"
 									>
 										<Mail className="size-3.5 text-primary" />
 										<span>{organization.contactEmail}</span>
 									</a>
 								)}
-
-								{/* Clickable Public Link button */}
-								<button
-									type="button"
-									onClick={handleCopyOrgLink}
-									className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted/80 hover:bg-muted text-foreground transition-colors cursor-pointer text-[11px] font-mono"
-									title="Click to copy organization URL"
-								>
-									<Share2 className="size-3 text-primary" />
-									<span>/{organization.slug}</span>
-									<Copy className="size-2.5 opacity-50 ml-0.5" />
-								</button>
 							</div>
 						</div>
 					</div>

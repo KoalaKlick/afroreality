@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useId, useState } from "react";
+import React, { useId } from "react";
 import Image from "next/image";
+import { QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
+import { getEventImageUrl } from "@/lib/image-url-utils";
 import { cn } from "@/lib/utils";
-import { generateColorShades } from "@/utils/theme/color-generator";
-import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
+import { generateColorShades } from "@/lib/utils/color-generator";
 
-interface TicketProps {
+interface TicketCardRetroProps {
   readonly primaryColor: string;
-  readonly secondaryColor: string;
+  readonly secondaryColor?: string;
+  readonly tertiaryColor?: string;
   readonly logoUrl?: string | null;
   readonly flierImage?: string | null;
   readonly bannerImage?: string | null;
@@ -21,58 +23,51 @@ interface TicketProps {
   readonly ticketCode?: string;
   readonly qrPayload?: string;
   readonly className?: string;
+  readonly stacked?: boolean;
   readonly exportMode?: boolean;
   readonly exportSide?: "front" | "back" | "both";
   readonly buyerName?: string;
 }
 
-const RETRO_PATH = "M 0,0.1 C 0,0.05 0.05,0 0.1,0 L 0.9,0 C 0.95,0 1,0.05 1,0.1 L 1,0.4 C 0.98,0.4 0.96,0.42 0.96,0.5 C 0.96,0.58 0.98,0.6 1,0.6 L 1,0.9 C 1,0.95 0.95,1 0.9,1 L 0.1,1 C 0.05,1 0,0.95 0,0.9 L 0,0.6 C 0.02,0.6 0.04,0.58 0.04,0.5 C 0.04,0.42 0.02,0.4 0,0.4 Z";
-
-function TicketClipPath({ id }: { id: string }) {
-  return (
-    <svg
-      style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
-      aria-hidden="true"
-    >
-      <defs>
-        <clipPath id={id} clipPathUnits="objectBoundingBox">
-          <path d={RETRO_PATH} />
-        </clipPath>
-      </defs>
-    </svg>
-  );
-}
-
-function TicketOutline({ color }: { color: string }) {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none z-20"
-      viewBox="0 0 1 1"
-      preserveAspectRatio="none"
-    >
-      <path
-        d={RETRO_PATH}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-}
+// Distinct Vintage Stub Path with semi-circular notches
+const TicketClipPath = ({ id }: { id: string }) => (
+  <svg width="0" height="0" className="absolute">
+    <defs>
+      <clipPath id={id} clipPathUnits="objectBoundingBox">
+        <path d="M 0,0 
+                 L 0.33,0 
+                 A 0.03,0.06 0 0,0 0.33,0.08 
+                 L 0.33,0.92 
+                 A 0.03,0.06 0 0,0 0.33,1 
+                 L 1,1 
+                 L 1,0 
+                 L 0,0 Z" />
+      </clipPath>
+    </defs>
+  </svg>
+);
 
 const DotPattern = ({ color }: { color: string }) => (
   <div 
-    className="absolute inset-0 opacity-[0.03] pointer-events-none"
+    className="absolute inset-0 opacity-10 pointer-events-none"
     style={{
       backgroundImage: `radial-gradient(${color} 1px, transparent 1px)`,
-      backgroundSize: '12px 12px'
+      backgroundSize: '8px 8px'
+    }}
+  />
+);
+
+const TicketOutline = ({ color }: { color: string }) => (
+  <div 
+    className="absolute inset-2 border border-dashed pointer-events-none opacity-40 rounded-sm"
+    style={{
+      borderColor: color
     }}
   />
 );
 
 export function TicketCardRetro({
-  primaryColor,
+  primaryColor = "#009A44",
   secondaryColor,
   logoUrl,
   flierImage,
@@ -88,11 +83,12 @@ export function TicketCardRetro({
   exportSide = "both",
   buyerName,
   stacked = true,
-}: TicketProps & { stacked?: boolean }) {
+}: TicketCardRetroProps) {
   const uid = useId().replace(/:/g, "");
   const clipId = `ticket-retro-clip-${uid}`;
   const [flipped, setFlipped] = React.useState(false);
   const primaryShades = generateColorShades(primaryColor);
+  const outlineColor = primaryShades[200] || primaryColor;
   
   const showFront = exportMode ? (exportSide === "front" || exportSide === "both") : true;
   const showBack = exportMode ? (exportSide === "back" || exportSide === "both") : true;
@@ -111,7 +107,7 @@ export function TicketCardRetro({
       }}
     >
       <DotPattern color={primaryColor} />
-      <TicketOutline color={primaryShades[200]} />
+      <TicketOutline color={outlineColor} />
       
       {/* Texture Overlay (Grain) */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-black/5" />
@@ -215,7 +211,7 @@ export function TicketCardRetro({
       }}
     >
       <DotPattern color={primaryColor} />
-      <TicketOutline color={primaryShades[200]} />
+      <TicketOutline color={outlineColor} />
       <div className="w-full h-full flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-2">
             <div className="border-4 border-black p-2 bg-white rotate-[-1deg]">
@@ -227,13 +223,13 @@ export function TicketCardRetro({
                   bgColor="#ffffff"
                 />
               ) : (
-                <div className="w-24 h-24 bg-muted animate-pulse" />
+                <QrCode className="size-16 text-slate-900" />
               )}
             </div>
             <div className="text-center space-y-1">
               <div className="text-[10px] font-black tracking-[0.2em]">VALIDATE AT GATE</div>
               <div className="text-[8px] opacity-60 max-w-[200px]">
-                DO NOT FOLD OR MUTILATE. VOID IF DETACHED. AFROTIX OFFICIAL DOCUMENT.
+                DO NOT FOLD OR MUTILATE. VOID IF DETACHED. AFROREALITY OFFICIAL DOCUMENT.
               </div>
             </div>
         </div>
@@ -278,7 +274,7 @@ export function TicketCardRetro({
             transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
           }}
         >
-          {/* ── FRONT ── */}
+          {/* FRONT */}
           <div
             className="absolute inset-0"
             style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
@@ -286,7 +282,7 @@ export function TicketCardRetro({
             {renderFront()}
           </div>
 
-          {/* ── BACK ── */}
+          {/* BACK */}
           <div
             className="absolute inset-0"
             style={{

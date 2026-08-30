@@ -155,3 +155,16 @@ export function formatNumber(
 export function formatAmount(value: number, currency = "GHS") {
 	return formatNumber(value, { style: "currency", currency });
 }
+
+export function getFrontendBaseUrl(): string {
+	const url =
+		process.env.NEXT_PUBLIC_FRONTEND_URL ||
+		process.env.FRONTEND_URL ||
+		process.env.NEXT_PUBLIC_APP_URL ||
+		process.env.NEXT_PUBLIC_DOMAIN_URL ||
+		(typeof window !== "undefined" && window.location.origin
+			? window.location.origin
+			: "") ||
+		"http://localhost:3000";
+	return url.replace(/\/$/, "");
+}

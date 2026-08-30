@@ -1,15 +1,27 @@
 "use client";
 
-import { Building2, Globe, ImagePlus, Loader2, Pencil, X } from "lucide-react";
+import {
+	Building2,
+	Globe,
+	ImagePlus,
+	Loader2,
+	Pencil,
+	X,
+	Copy,
+	ExternalLink,
+} from "lucide-react";
 import { useRef } from "react";
 import AddFilesIcon from "@/assets/add-files.svg";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import type { useImageUpload } from "@/hooks/use-image-upload";
 import { DOMAIN_NAME } from "@/lib/constants/branding";
 import { cleanStorageKey, getOrgImageUrl } from "@/lib/image-url-utils";
+import { getFrontendBaseUrl } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface OrgBrandIdentityProps {
 	readonly name: string;
@@ -43,8 +55,18 @@ export function OrgBrandIdentity({
 	const logoInputRef = useRef<HTMLInputElement>(null);
 	const bannerInputRef = useRef<HTMLInputElement>(null);
 
-	const bannerDisplayUrl = bannerUrl ? getOrgImageUrl(bannerUrl) : null;
-	const logoDisplayUrl = logoUrl ? getOrgImageUrl(logoUrl) : null;
+	const logoDisplayUrl = getOrgImageUrl(logoUrl);
+	const bannerDisplayUrl = getOrgImageUrl(bannerUrl);
+
+	const frontendUrl = getFrontendBaseUrl();
+	const publicUrl = `${frontendUrl}/${slug}`;
+
+	const handleCopyPublicUrl = () => {
+		if (navigator.clipboard) {
+			navigator.clipboard.writeText(publicUrl);
+			toast.success("Public URL copied to clipboard!");
+		}
+	};
 
 	async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0];
@@ -265,12 +287,40 @@ export function OrgBrandIdentity({
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="org-slug">Public URL</Label>
-							<Input
-								id="org-slug"
-								value={`${DOMAIN_NAME}/${slug}`}
-								disabled
-								className="bg-muted text-muted-foreground"
-							/>
+							<div className="flex items-center gap-2">
+								<Input
+									id="org-slug"
+									value={publicUrl}
+									disabled
+									className="bg-muted text-muted-foreground font-mono text-xs"
+								/>
+								<Button
+									type="button"
+									variant="outline"
+									size="icon"
+									className="shrink-0"
+									onClick={handleCopyPublicUrl}
+									title="Copy public URL"
+								>
+									<Copy className="size-4" />
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									size="icon"
+									className="shrink-0"
+									asChild
+									title="Open public organization profile"
+								>
+									<a
+										href={publicUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										<ExternalLink className="size-4" />
+									</a>
+								</Button>
+							</div>
 						</div>
 					</div>
 
