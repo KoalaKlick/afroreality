@@ -88,8 +88,16 @@ export default async function PublicCategoryPage({
 	const { organization } = event;
 	const isInternalVoting = event.votingMode === "internal";
 
+	const { primaryColor, secondaryColor, tertiaryColor } = organization;
+
+	const brandVars = {
+		"--color-brand-primary": primaryColor || "#009A44",
+		"--color-brand-secondary": secondaryColor || "#FFD100",
+		"--color-brand-tertiary": tertiaryColor || "#EF3340",
+	} as React.CSSProperties;
+
 	return (
-		<div className="min-h-screen bg-background text-foreground flex flex-col">
+		<div className="min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
 			{/* Breadcrumb Header */}
 			<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs">
@@ -141,7 +149,7 @@ export default async function PublicCategoryPage({
 						)}
 					</div>
 
-					<h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight">
+					<h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight uppercase">
 						{category.name}
 					</h1>
 
@@ -163,8 +171,9 @@ export default async function PublicCategoryPage({
 						votePrice: Number(category.votePrice || 0),
 						nominationPrice: Number(category.nominationPrice || 0),
 						allowPublicNomination: category.allowPublicNomination,
-						allowMultiple: category.allowMultiple,
+						allowMultiple: false,
 						showTotalVotesPublicly: category.showTotalVotesPublicly,
+						templateConfig: (category as any).templateConfig,
 						votingOptions: category.votingOptions || [],
 					}}
 					eventId={event.id}

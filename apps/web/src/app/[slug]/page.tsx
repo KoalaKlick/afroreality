@@ -1,13 +1,12 @@
-import { NoEventsIllustration } from "@/components/common/NoEventsIllustration";
 import { notFound } from "next/navigation";
 import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
 import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero";
-import { PublicEventCard } from "@/components/organization/public/PublicEventCard";
+import { EventsSection } from "@/components/Landing/sections/revamp-events";
+import { Section } from "@/components/Landing/shared/Section";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
-import { Calendar, Trophy } from "lucide-react";
-import { getOrgImageUrl } from "@/lib/image-url-utils";
+import { getOrgImageUrl, getEventImageUrl } from "@/lib/image-url-utils";
 import type { Metadata } from "next";
 
 interface OrgProfilePageProps {
@@ -74,17 +73,23 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 	const session = await getSession();
 	const isUserAuthenticated = !!session?.userId;
 
-	const events = organization.events || [];
-	const now = new Date();
-	const upcomingEvents = events.filter(
-		(e: any) => !e.endDate || new Date(e.endDate) >= now,
-	);
-	const pastEvents = events.filter(
-		(e: any) => e.endDate && new Date(e.endDate) < now,
+	const rawEvents = organization.events || [];
+	const eventsWithOrg = rawEvents.map((e: any) => ({
+		...e,
+		organization: {
+			slug: organization.slug,
+			name: organization.name,
+		},
+	}));
+
+	// Collect unique sponsors from organization events
+	const allSponsors = rawEvents.flatMap((e: any) => e.sponsors || []);
+	const uniqueSponsors = Array.from(
+		new Map(allSponsors.map((s: any) => [s.name, s])).values(),
 	);
 
 	return (
-		<div className="min-h-screen bg-background text-foreground flex flex-col">
+		<main className="min-h-screen bg-background text-foreground flex flex-col">
 			{/* Organization Hero Profile */}
 			<OrgProfileHero
 				organization={{
@@ -108,76 +113,49 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 				hasPendingRequest={organization.isUserPendingJoin ?? false}
 			/>
 
-			{/* Events Showcase */}
-			<main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-				{/* Upcoming & Live Events */}
-				<section className="space-y-6">
-					<div className="flex items-center justify-between border-b pb-3">
-						<div className="flex items-center gap-2">
-							<Calendar className="size-5 text-primary" />
-							<h2 className="text-xl font-bold tracking-tight text-foreground">
-								Live &amp; Upcoming Events
-							</h2>
-						</div>
-						<span className="text-xs text-muted-foreground font-semibold">
-							{upcomingEvents.length}{" "}
-							{upcomingEvents.length === 1 ? "Event" : "Events"}
-						</span>
-					</div>
+			<PanAfricanDivider />
 
-					{upcomingEvents.length === 0 ? (
-						<div className="text-center py-12 px-4 rounded-2xl border border-dashed bg-card/40 flex flex-col items-center justify-center">
-<NoEventsIllustration className="size-48 mb-4 opacity-80" />
-							<h4 className="font-semibold text-sm">No Upcoming Events</h4>
-							<p className="text-xs text-muted-foreground mt-1">
-								Check back soon or follow this organization for upcoming
-								announcements.
-							</p>
-						</div>
-					) : (
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-							{upcomingEvents.map((event: any) => (
-								<PublicEventCard
-									key={event.id}
-									event={event}
-									organizationSlug={organization.slug}
-								/>
-							))}
-						</div>
-					)}
-				</section>
+			{/* Events Showcase Section */}
+			<EventsSection
+				title="Our Events."
+				useBrand
+				items={eventsWithOrg}
+			/>
 
-				{/* Past Events */}
-				{pastEvents.length > 0 && (
-					<section className="space-y-6 pt-6 border-t">
-						<div className="flex items-center justify-between border-b pb-3">
-							<div className="flex items-center gap-2">
-								<Trophy className="size-5 text-muted-foreground" />
-								<h2 className="text-xl font-bold tracking-tight text-foreground">
-									Past Events
-								</h2>
+			{/* Organization Sponsors Footer Section */}
+			{uniqueSponsors.length > 0 && (
+				<>
+					<PanAfricanDivider />
+					<Section maxWidth="7xl" className="py-12 bg-card/40 border-t">
+						<div className="space-y-4">
+							<h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+								Partners &amp; Sponsors
+							</h3>
+							<div className="flex flex-wrap items-center gap-6">
+								{uniqueSponsors.map((sponsor: any) => (
+									<div
+										key={sponsor.id || sponsor.name}
+										className="flex items-center gap-2 px-3.5 py-2 rounded-xl border bg-background shadow-xs text-xs font-semibold"
+									>
+										{sponsor.logoUrl ? (
+											<img
+												src={getEventImageUrl(sponsor.logoUrl)}
+												alt={sponsor.name}
+												className="h-6 w-auto object-contain"
+											/>
+										) : (
+											<span>{sponsor.name}</span>
+										)}
+									</div>
+								))}
 							</div>
-							<span className="text-xs text-muted-foreground font-semibold">
-								{pastEvents.length}{" "}
-								{pastEvents.length === 1 ? "Event" : "Events"}
-							</span>
 						</div>
+					</Section>
+				</>
+			)}
 
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 opacity-85">
-							{pastEvents.map((event: any) => (
-								<PublicEventCard
-									key={event.id}
-									event={event}
-									organizationSlug={organization.slug}
-								/>
-							))}
-						</div>
-					</section>
-				)}
-			</main>
-
-			<PanAfricanDivider className="my-10" />
+			<PanAfricanDivider />
 			<PoweredByFooter />
-		</div>
+		</main>
 	);
 }

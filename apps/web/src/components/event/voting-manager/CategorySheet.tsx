@@ -15,7 +15,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, ImageIcon, Info, Lock } from "lucide-react";
+import { Loader2, X, ImageIcon, Info, Lock, Percent, Hash } from "lucide-react";
 import { toast } from "sonner";
 import {
 	createVotingCategory,
@@ -23,7 +23,7 @@ import {
 } from "@/lib/server-functions/voting";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getEventImageUrl } from "@/lib/image-url-utils";
-import { getErrorMessage } from "@/lib/utils";
+import { getErrorMessage, cn } from "@/lib/utils";
 
 export interface CategoryItem {
 	id: string;
@@ -32,12 +32,12 @@ export interface CategoryItem {
 	description?: string | null;
 	votePrice?: number;
 	nominationPrice?: number;
-	allowMultiple?: boolean;
 	allowPublicNomination?: boolean;
 	requireApproval?: boolean;
 	showTotalVotesPublicly?: boolean;
 	showFinalImage?: boolean;
 	templateImage?: string | null;
+	templateConfig?: any;
 	nominationDeadline?: string | Date | null;
 	votingOptions: {
 		id: string;
@@ -86,13 +86,13 @@ export function CategorySheet({
 		name: "",
 		description: "",
 		templateImage: "" as string | null,
-		votePrice: isInternal ? 0 : 0, // General can be free (0) or paid
+		votePrice: isInternal ? 0 : 0,
 		nominationPrice: 0,
 		maxVotesPerUser: isInternal ? 1 : 10,
-		allowMultiple: isInternal ? false : true,
 		allowPublicNomination: false,
 		requireApproval: true,
 		showTotalVotesPublicly: true,
+		resultDisplayType: "percentage" as "percentage" | "count",
 		showFinalImage: true,
 		nominationDeadline: "",
 	});
@@ -109,6 +109,11 @@ export function CategorySheet({
 								.slice(0, 16);
 			}
 
+			const displayType =
+				editingCategory.templateConfig?.resultDisplayType === "count"
+					? "count"
+					: "percentage";
+
 			setFormData({
 				name: editingCategory.name,
 				description: editingCategory.description ?? "",
@@ -118,13 +123,11 @@ export function CategorySheet({
 					? 0
 					: Number(editingCategory.nominationPrice ?? 0),
 				maxVotesPerUser: isInternal ? 1 : 10,
-				allowMultiple: isInternal
-					? false
-					: (editingCategory.allowMultiple ?? true),
 				allowPublicNomination: editingCategory.allowPublicNomination ?? false,
 				requireApproval: editingCategory.requireApproval ?? true,
 				showTotalVotesPublicly:
 					editingCategory.showTotalVotesPublicly ?? true,
+				resultDisplayType: displayType,
 				showFinalImage: editingCategory.showFinalImage ?? true,
 				nominationDeadline: deadlineStr,
 			});
@@ -136,10 +139,10 @@ export function CategorySheet({
 				votePrice: 0,
 				nominationPrice: 0,
 				maxVotesPerUser: isInternal ? 1 : 10,
-				allowMultiple: !isInternal,
 				allowPublicNomination: false,
 				requireApproval: true,
 				showTotalVotesPublicly: true,
+				resultDisplayType: "percentage",
 				showFinalImage: true,
 				nominationDeadline: "",
 			});
@@ -168,6 +171,12 @@ export function CategorySheet({
 
 		startTransition(async () => {
 			try {
+				const existingTemplateConfig = editingCategory?.templateConfig || {};
+				const updatedTemplateConfig = {
+					...existingTemplateConfig,
+					resultDisplayType: formData.resultDisplayType,
+				};
+
 				if (editingCategory) {
 					await updateVotingCategory({
 						data: {
@@ -175,9 +184,10 @@ export function CategorySheet({
 							name: formData.name,
 							description: formData.description || undefined,
 							templateImage: formData.templateImage || null,
+							templateConfig: updatedTemplateConfig,
 							votePrice: votePriceNum,
 							nominationPrice: nomPriceNum,
-							allowMultiple: isInternal ? false : formData.allowMultiple,
+							allowMultiple: false,
 							allowPublicNomination: formData.allowPublicNomination,
 							requireApproval: formData.requireApproval,
 							showTotalVotesPublicly: formData.showTotalVotesPublicly,
@@ -193,9 +203,10 @@ export function CategorySheet({
 							name: formData.name,
 							description: formData.description || undefined,
 							templateImage: formData.templateImage || undefined,
+							templateConfig: updatedTemplateConfig,
 							votePrice: votePriceNum,
 							nominationPrice: nomPriceNum,
-							allowMultiple: isInternal ? false : formData.allowMultiple,
+							allowMultiple: false,
 							allowPublicNomination: formData.allowPublicNomination,
 							requireApproval: formData.requireApproval,
 							showTotalVotesPublicly: formData.showTotalVotesPublicly,
@@ -220,163 +231,220 @@ export function CategorySheet({
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="w-full sm:max-w-lg flex flex-col h-full overflow-y-auto">
-				<SheetHeader>
-					<SheetTitle>
-						{editingCategory ? "Edit Voting Category" : "Add Voting Category"}
-					</SheetTitle>
-					<SheetDescription>
-						{isInternal
-							? "Configure category rules for internal membership voting."
-							: "Configure category rules, nominee poster template, and pricing."}
-					</SheetDescription>
-				</SheetHeader>
+			<SheetContent className="sm:max-w-lg overflow-y-auto">
+				<form onSubmit={handleSubmit} className="flex flex-col h-full">
+					<SheetHeader className="pb-4 border-b">
+						<SheetTitle>
+							{editingCategory ? "Edit Category" : "Add Voting Category"}
+						</SheetTitle>
+						<SheetDescription>
+							{isInternal
+								? "Set up a category for internal organization member voting."
+								: "Configure category rules, pricing, nominations, and flyers."}
+						</SheetDescription>
+					</SheetHeader>
 
-				<form
-					onSubmit={handleSubmit}
-					className="space-y-4 py-4 flex-1 flex flex-col"
-				>
-					<Tabs defaultValue="basic" className="w-full flex-1">
-						<TabsList
-							variant="afro"
-							className={`grid w-full mb-4 ${isInternal ? "grid-cols-2" : "grid-cols-3"}`}
-						>
-							<TabsTrigger variant="afro" value="basic">
-								Basic Info
-							</TabsTrigger>
-							<TabsTrigger variant="afro" value="nominations">
-								Nominations
-							</TabsTrigger>
-							{!isInternal && (
-								<TabsTrigger variant="afro" value="pricing">
-									Pricing
-								</TabsTrigger>
-							)}
+					<Tabs defaultValue="basic" className="flex-1 py-4 flex flex-col">
+						<TabsList className="grid grid-cols-3 mb-4">
+							<TabsTrigger value="basic">Basic Info</TabsTrigger>
+							<TabsTrigger value="voting">Voting Rules</TabsTrigger>
+							<TabsTrigger value="nominations">Nominations</TabsTrigger>
 						</TabsList>
 
-						{/* 1. Basic Tab */}
-						<TabsContent value="basic" className="space-y-4">
-							{/* Category Template Image Upload */}
-							<div className="space-y-2">
-								<Label>Category Template / Header Image</Label>
-								<input
-									ref={fileInputRef}
-									type="file"
-									accept="image/*"
-									onChange={handleImageUpload}
-									className="hidden"
-								/>
-								{templateDisplayUrl ? (
-									<div className="relative w-full h-40 rounded-xl overflow-hidden border bg-muted group/img">
-										<img
-											src={templateDisplayUrl}
-											alt="Category template"
-											className="size-full object-cover"
-										/>
-										<div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-2">
-											<Button
-												type="button"
-												size="sm"
-												variant="secondary"
-												onClick={() => fileInputRef.current?.click()}
-												disabled={isUploading}
-											>
-												{isUploading ? (
-													<Loader2 className="size-4 animate-spin" />
-												) : (
-													"Change Image"
-												)}
-											</Button>
-											<Button
-												type="button"
-												size="icon"
-												variant="destructive"
-												className="size-8"
-												onClick={() =>
-													setFormData((prev) => ({
-														...prev,
-														templateImage: null,
-													}))
-												}
-											>
-												<X className="size-4" />
-											</Button>
-										</div>
-									</div>
-								) : (
-									<button
-										type="button"
-										onClick={() => fileInputRef.current?.click()}
-										disabled={isUploading}
-										className="w-full h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/40 transition-colors"
-									>
-										{isUploading ? (
-											<Loader2 className="size-6 animate-spin mb-1" />
-										) : (
-											<>
-												<ImageIcon className="size-6 mb-1.5 opacity-40" />
-												<span className="text-xs font-semibold">
-													Upload Template Image
-												</span>
-												<span className="text-[10px] text-muted-foreground/70">
-													For flyers and nominee posters (PNG, JPG, WebP)
-												</span>
-											</>
-										)}
-									</button>
-								)}
-							</div>
-
+						{/* 1. Basic Info Tab */}
+						<TabsContent value="basic" className="space-y-4 flex-1">
 							<div className="space-y-2">
 								<Label htmlFor="category-name">Category Name *</Label>
 								<Input
 									id="category-name"
+									placeholder="e.g. Best Artist of the Year"
 									value={formData.name}
 									onChange={(e) =>
 										setFormData((prev) => ({ ...prev, name: e.target.value }))
 									}
-									placeholder="e.g., Best Male Artist, Innovator of the Year"
 									required
 								/>
 							</div>
 
 							<div className="space-y-2">
-								<Label>Description (Optional)</Label>
+								<Label>Description / Criteria</Label>
 								<RichTextEditor
 									value={formData.description}
 									onChange={(val) =>
 										setFormData((prev) => ({ ...prev, description: val }))
 									}
-									placeholder="Provide extra context or criteria for this category..."
+									placeholder="Briefly describe what this category recognizes..."
 								/>
 							</div>
 
-							<div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
-								<div className="space-y-0.5">
-									<Label>Public Vote Counts</Label>
-									<p className="text-xs text-muted-foreground">
-										Show live vote counts publicly to voters
-									</p>
-								</div>
-								<Switch
-									checked={formData.showTotalVotesPublicly}
-									onCheckedChange={(checked) =>
-										setFormData((prev) => ({
-											...prev,
-											showTotalVotesPublicly: checked,
-										}))
-									}
+							{/* Template Flyer Image */}
+							<div className="space-y-2 pt-2 border-t">
+								<Label>Nominee Flyer Template (Optional)</Label>
+								<p className="text-xs text-muted-foreground">
+									Upload a background template image to generate flyer graphics for nominees.
+								</p>
+
+								{templateDisplayUrl ? (
+									<div className="relative rounded-xl overflow-hidden border border-border aspect-video max-h-44 bg-muted flex items-center justify-center">
+										{/* eslint-disable-next-line @next/next/no-img-element */}
+										<img
+											src={templateDisplayUrl}
+											alt="Template Preview"
+											className="w-full h-full object-contain"
+										/>
+										<Button
+											type="button"
+											variant="destructive"
+											size="icon"
+											className="absolute top-2 right-2 size-7 rounded-full shadow-md"
+											onClick={() =>
+												setFormData((prev) => ({
+													...prev,
+													templateImage: null,
+												}))
+											}
+										>
+											<X className="size-3.5" />
+										</Button>
+									</div>
+								) : (
+									<div
+										onClick={() => fileInputRef.current?.click()}
+										className="border-2 border-dashed border-border/80 hover:border-primary/50 hover:bg-primary/5 transition-colors rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer text-center gap-2"
+									>
+										<div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+											<ImageIcon className="size-5" />
+										</div>
+										<div className="text-xs font-medium">
+											{isUploading ? "Uploading template..." : "Click to upload template image"}
+										</div>
+										<p className="text-[11px] text-muted-foreground">
+											PNG or JPG up to 2MB
+										</p>
+									</div>
+								)}
+
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept="image/*"
+									className="hidden"
+									onChange={handleImageUpload}
+									disabled={isUploading}
 								/>
 							</div>
 						</TabsContent>
 
-						{/* 2. Nominations Tab */}
-						<TabsContent value="nominations" className="space-y-4">
-							<div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
-								<div className="space-y-0.5">
-									<Label>Allow Public Nominations</Label>
+						{/* 2. Voting Rules Tab */}
+						<TabsContent value="voting" className="space-y-4 flex-1">
+							{!isInternal && (
+								<div className="space-y-2">
+									<Label htmlFor="vote-price">Price Per Vote (GHS / Currency)</Label>
+									<Input
+										id="vote-price"
+										type="number"
+										step="0.01"
+										min="0"
+										placeholder="0.00 (Leave 0 for Free voting)"
+										value={formData.votePrice}
+										onChange={(e) =>
+											setFormData((prev) => ({
+												...prev,
+												votePrice: Number(e.target.value),
+											}))
+										}
+									/>
 									<p className="text-xs text-muted-foreground">
-										Allow audience members to submit nominees
+										Set to 0 to allow audience to vote for free.
+									</p>
+								</div>
+							)}
+
+							{/* Live Vote Display Settings */}
+							<div className="space-y-3 p-3.5 rounded-xl border bg-muted/20">
+								<div className="flex items-center justify-between">
+									<div className="space-y-0.5">
+										<Label className="text-sm font-medium">Show Live Results Publicly</Label>
+										<p className="text-xs text-muted-foreground">
+											Display real-time voting progress publicly to voters
+										</p>
+									</div>
+									<Switch
+										checked={formData.showTotalVotesPublicly}
+										onCheckedChange={(checked) =>
+											setFormData((prev) => ({
+												...prev,
+												showTotalVotesPublicly: checked,
+											}))
+										}
+									/>
+								</div>
+
+								{formData.showTotalVotesPublicly && (
+									<div className="pt-2.5 border-t border-border/60 flex flex-col gap-2">
+										<Label className="text-xs font-medium text-muted-foreground">
+											Public Result Display Format:
+										</Label>
+										<div className="grid grid-cols-2 gap-2">
+											<button
+												type="button"
+												onClick={() =>
+													setFormData((prev) => ({
+														...prev,
+														resultDisplayType: "percentage",
+													}))
+												}
+												className={cn(
+													"flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all",
+													formData.resultDisplayType === "percentage"
+														? "border-primary bg-primary/10 text-primary font-semibold shadow-xs"
+														: "border-border/60 bg-background text-muted-foreground hover:bg-muted/50"
+												)}
+											>
+												<Percent className="size-3.5" />
+												<span>Percentage Only</span>
+											</button>
+											<button
+												type="button"
+												onClick={() =>
+													setFormData((prev) => ({
+														...prev,
+														resultDisplayType: "count",
+													}))
+												}
+												className={cn(
+													"flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all",
+													formData.resultDisplayType === "count"
+														? "border-primary bg-primary/10 text-primary font-semibold shadow-xs"
+														: "border-border/60 bg-background text-muted-foreground hover:bg-muted/50"
+												)}
+											>
+												<Hash className="size-3.5" />
+												<span>Actual Vote Count</span>
+											</button>
+										</div>
+									</div>
+								)}
+							</div>
+
+							{isInternal && (
+								<div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 flex items-center gap-2.5 text-xs text-primary">
+									<Lock className="size-4 shrink-0" />
+									<span>
+										<strong>Internal Voting Rules:</strong> Each member receives 1
+										vote per category using their confidential voting key.
+									</span>
+								</div>
+							)}
+						</TabsContent>
+
+						{/* 3. Nominations Tab */}
+						<TabsContent value="nominations" className="space-y-4 flex-1">
+							<div className="flex items-center justify-between p-3.5 rounded-xl border bg-muted/20">
+								<div className="space-y-0.5">
+									<Label className="text-sm font-medium">Allow Public Nominations</Label>
+									<p className="text-xs text-muted-foreground">
+										Allow audience members to submit nominees for this category
 									</p>
 								</div>
 								<Switch
@@ -391,12 +459,45 @@ export function CategorySheet({
 							</div>
 
 							{formData.allowPublicNomination && (
-								<>
-									<div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
+								<div className="space-y-4 p-3.5 rounded-xl border bg-muted/10">
+									<div className="space-y-2">
+										<Label htmlFor="nom-price">Nomination Submission Fee</Label>
+										<Input
+											id="nom-price"
+											type="number"
+											step="0.01"
+											min="0"
+											placeholder="0.00 (Leave 0 for Free submission)"
+											value={formData.nominationPrice}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													nominationPrice: Number(e.target.value),
+												}))
+											}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="nom-deadline">Nomination Deadline</Label>
+										<Input
+											id="nom-deadline"
+											type="datetime-local"
+											value={formData.nominationDeadline}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													nominationDeadline: e.target.value,
+												}))
+											}
+										/>
+									</div>
+
+									<div className="flex items-center justify-between pt-2">
 										<div className="space-y-0.5">
-											<Label>Require Admin Approval</Label>
-											<p className="text-xs text-muted-foreground">
-												Submitted nominees must be approved before voting
+											<Label className="text-xs font-medium">Require Organizer Approval</Label>
+											<p className="text-[11px] text-muted-foreground">
+												New nominees must be approved before appearing publicly
 											</p>
 										</div>
 										<Switch
@@ -409,124 +510,24 @@ export function CategorySheet({
 											}
 										/>
 									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="nomination-deadline">
-											Nomination Deadline
-										</Label>
-										<Input
-											id="nomination-deadline"
-											type="datetime-local"
-											value={formData.nominationDeadline}
-											onChange={(e) =>
-												setFormData((prev) => ({
-													...prev,
-													nominationDeadline: e.target.value,
-												}))
-											}
-										/>
-									</div>
-								</>
-							)}
-
-							{!isInternal && (
-								<div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
-									<div className="space-y-0.5">
-										<Label>Multiple Nominee Selections</Label>
-										<p className="text-xs text-muted-foreground">
-											Allow voters to vote for multiple nominees in this category
-										</p>
-									</div>
-									<Switch
-										checked={formData.allowMultiple}
-										onCheckedChange={(checked) =>
-											setFormData((prev) => ({
-												...prev,
-												allowMultiple: checked,
-											}))
-										}
-									/>
-								</div>
-							)}
-
-							{isInternal && (
-								<div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 flex items-center gap-2.5 text-xs text-primary">
-									<Lock className="size-4 shrink-0" />
-									<span>
-										<strong>Internal Voting Rules:</strong> Each member receives 1
-										vote per category with their confidential voting key.
-									</span>
 								</div>
 							)}
 						</TabsContent>
-
-						{/* 3. Pricing Tab (General Voting only) */}
-						{!isInternal && (
-							<TabsContent value="pricing" className="space-y-4">
-								<div className="p-3 rounded-xl border border-border/80 bg-muted/30 text-xs text-muted-foreground">
-									<p className="font-semibold text-foreground mb-0.5">
-										Flexible Voting Pricing
-									</p>
-									Set Price Per Vote to <strong>0 GHS</strong> to host completely
-									free public voting, or set an amount for paid fundraising votes.
-								</div>
-
-								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="vote-price">Price Per Vote (GHS)</Label>
-										<Input
-											id="vote-price"
-											type="number"
-											min="0"
-											step="0.1"
-											value={formData.votePrice}
-											onChange={(e) =>
-												setFormData((prev) => ({
-													...prev,
-													votePrice: parseFloat(e.target.value) || 0,
-												}))
-											}
-										/>
-										<p className="text-[10px] text-muted-foreground">
-											Set to 0 for free voting, or enter cost per vote.
-										</p>
-									</div>
-
-									<div className="space-y-2">
-										<Label htmlFor="nom-price">Nomination Fee (GHS)</Label>
-										<Input
-											id="nom-price"
-											type="number"
-											min="0"
-											step="0.1"
-											value={formData.nominationPrice}
-											onChange={(e) =>
-												setFormData((prev) => ({
-													...prev,
-													nominationPrice: parseFloat(e.target.value) || 0,
-												}))
-											}
-										/>
-										<p className="text-[10px] text-muted-foreground">
-											Fee for public nomination submissions (0 for free).
-										</p>
-									</div>
-								</div>
-							</TabsContent>
-						)}
 					</Tabs>
 
-					<SheetFooter className="pt-4 border-t mt-auto">
+					<SheetFooter className="pt-4 border-t gap-2 sm:gap-0">
 						<Button
 							type="button"
 							variant="outline"
 							onClick={() => onOpenChange(false)}
-							disabled={isPending}
+							disabled={isPending || isUploading}
 						>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isPending || isUploading}>
-							{isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
+							{(isPending || isUploading) && (
+								<Loader2 className="mr-2 size-4 animate-spin" />
+							)}
 							{editingCategory ? "Save Changes" : "Create Category"}
 						</Button>
 					</SheetFooter>
