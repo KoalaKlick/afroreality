@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
 import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero";
+import { OrgSidebarCard } from "@/components/organization/public/OrgSidebarCard";
 import { OrgDetailsFooter } from "@/components/organization/public/OrgDetailsFooter";
 import { EventsSection } from "@/components/Landing/sections/revamp-events";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
@@ -106,55 +107,82 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 
 	return (
 		<main className="min-h-screen bg-background text-foreground flex flex-col" style={brandVars}>
-			{/* 1. Organization Hero Profile */}
-			<OrgProfileHero
-				organization={{
-					id: organization.id,
-					name: organization.name,
-					slug: organization.slug,
-					description: organization.description,
-					logoUrl: organization.logoUrl,
-					bannerUrl: organization.bannerUrl,
-					websiteUrl: organization.websiteUrl,
-					contactEmail: organization.contactEmail,
-					primaryColor: organization.primaryColor || "#009A44",
-					secondaryColor: organization.secondaryColor || "#FFD100",
-					tertiaryColor: organization.tertiaryColor || "#EF3340",
-					allowJoinRequests: organization.allowJoinRequests ?? true,
-					_count: {
-						members: organization._count?.members ?? 0,
-					},
-				}}
-				baseUrl={FRONTEND_URL}
-				isUserAuthenticated={isUserAuthenticated}
-				hasPendingRequest={organization.isUserPendingJoin ?? false}
-			/>
+			{/* Mobile / Tablet View (< 5xl) */}
+			<div className="flex flex-col @5xl:hidden">
+				<OrgProfileHero
+					organization={{
+						id: organization.id,
+						name: organization.name,
+						slug: organization.slug,
+						description: organization.description,
+						logoUrl: organization.logoUrl,
+						bannerUrl: organization.bannerUrl,
+						websiteUrl: organization.websiteUrl,
+						contactEmail: organization.contactEmail,
+						primaryColor: organization.primaryColor || "#009A44",
+						secondaryColor: organization.secondaryColor || "#FFD100",
+						tertiaryColor: organization.tertiaryColor || "#EF3340",
+						allowJoinRequests: organization.allowJoinRequests ?? true,
+						_count: {
+							members: organization._count?.members ?? 0,
+						},
+					}}
+					baseUrl={FRONTEND_URL}
+					isUserAuthenticated={isUserAuthenticated}
+					hasPendingRequest={organization.isUserPendingJoin ?? false}
+				/>
 
-			<PanAfricanDivider />
+				<PanAfricanDivider />
 
-			{/* 2. Events Showcase Section (with light primary bg) */}
-			<EventsSection
-				title="Our Events."
-				useBrand
-				items={eventsWithOrg}
-			/>
+				<EventsSection
+					title="Our Events."
+					useBrand
+					items={eventsWithOrg}
+				/>
 
-			{/* 3. Organization Details Footer (Our Partners, About Org, Connect with Us) */}
-			<OrgDetailsFooter
-				organization={{
-					id: organization.id,
-					name: organization.name,
-					description: organization.description,
-					websiteUrl: organization.websiteUrl,
-					contactEmail: organization.contactEmail,
-					phone: organization.phone,
-					socialLinks: uniqueSocialLinks,
-					primaryColor: organization.primaryColor,
-				}}
-				sponsors={uniqueSponsors}
-			/>
+				<OrgDetailsFooter
+					organization={{
+						id: organization.id,
+						name: organization.name,
+						description: organization.description,
+						websiteUrl: organization.websiteUrl,
+						contactEmail: organization.contactEmail,
+						phone: organization.phone,
+						socialLinks: uniqueSocialLinks,
+						primaryColor: organization.primaryColor,
+					}}
+					sponsors={uniqueSponsors}
+				/>
+			</div>
 
-			{/* 4. Brand Footer (Black with dashed top border and logo) */}
+			{/* Large Screen Container View (@5xl+) - LinkedIn Split Pane */}
+			<div className="hidden @5xl:block max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
+				<div className="grid grid-cols-12 gap-8 items-start">
+					{/* Left Column: Sticky Profile / Details Panel */}
+					<aside className="col-span-4 sticky top-6">
+						<OrgSidebarCard
+							organization={organization}
+							socialLinks={uniqueSocialLinks}
+							sponsors={uniqueSponsors}
+							isUserAuthenticated={isUserAuthenticated}
+							hasPendingRequest={organization.isUserPendingJoin ?? false}
+						/>
+					</aside>
+
+					{/* Right Column: Scrollable Events Feed */}
+					<div className="col-span-8 space-y-6">
+						<div className="rounded-2xl border bg-card overflow-hidden">
+							<EventsSection
+								title="Our Events."
+								useBrand
+								items={eventsWithOrg}
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Brand Footer */}
 			<PoweredByFooter />
 		</main>
 	);
