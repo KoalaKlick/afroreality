@@ -417,6 +417,8 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 	const inputArray = reduceTokens(rawInputArray);
 	const depth = inputArray.length;
 
+	console.log("[USSD Core]", { text, rawInputArray, inputArray, depth });
+
 	// 2. Welcome screen (Depth 0)
 	if (depth === 0) {
 		const events = await prisma.event.findMany({
@@ -529,81 +531,119 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 export async function POST(req: NextRequest) {
 	try {
 		const contentType = req.headers.get("content-type") || "";
-		let bodyData: any = {};
-		let phoneNumber = "";
-		let rawText = "";
-		let sessionId = "";
-		let userId = "";
-		let isNewSession = false;
+		const providerParam = req.nextUrl.searchParams.get("provider") || "";
 
-		if (contentType.includes("application/json")) {
-			bodyData = await req.json();
-			phoneNumber = bodyData.phoneNumber || bodyData.msisdn || "";
-			// Prefer userData (Arkesel sends current input here) over text (AT accumulates here)
-			let textVal = bodyData.userData;
-			if (textVal === undefined) textVal = bodyData.text;
-			if (textVal === undefined) textVal = bodyData.message || "";
-			rawText = String(textVal);
-			sessionId = bodyData.sessionId || bodyData.sessionID || "";
-			userId = bodyData.userId || bodyData.userID || "";
-			const typeStr = (bodyData.type || "").toLowerCase();
-			isNewSession = bodyData.newSession === true || typeStr === "initiation";
-		} else {
-			const bodyText = await req.text();
-			const params = new URLSearchParams(bodyText);
-			bodyData = Object.fromEntries(params.entries());
-			phoneNumber =
-				params.get("phoneNumber") || params.get("msisdn") || "";
-			rawText =
-				params.get("userData") ||
-				params.get("text") ||
-				params.get("ussdString") ||
-				"";
-			sessionId =
-				params.get("sessionId") || params.get("sessionID") || "";
-			userId = params.get("userId") || params.get("userID") || "";
-			const typeStr = (params.get("type") || "").toLowerCase();
-			isNewSession =
-				params.get("newSession") === "true" || typeStr === "initiation";
-		}
+		// ─── Arkesel JSON Path ───────────────────────────────────────────────
+		// Arkesel always sends application/json with sessionID (uppercase D)
+		if (
+			contentType.includes("application/json") ||
+			providerParam === "arkesel"
+		) {
+			const body = await req.json();
+			const sessionID = body.sessionID || body.sessionId || "";
+			const userID = body.userID || body.userId || "";
+			const msisdn = body.msisdn || body.phoneNumber || "";
+			const typeStr = (body.type || "").toLowerCase();
+			const newSession =
+				body.newSession === true || typeStr === "initiation";
 
-		const isArkesel =
-			req.nextUrl.searchParams.get("provider") === "arkesel" ||
-			bodyData.sessionID !== undefined ||
-			bodyData.msisdn !== undefined ||
-			bodyData.userData !== undefined;
+			// Arkesel: userData has the current input; text may be empty or absent
+			const userData = body.userData ?? body.text ?? "";
 
-		if (isArkesel) {
-			const currentInput = normalizeArkeselInput(rawText, isNewSession);
-			let accumulatedPath = currentInput;
+			// Detect if this is truly an Arkesel request (has sessionID uppercase)
+			const isArkesel =
+				providerParam === "arkesel" ||
+				body.sessionID !== undefined ||
+				body.userData !== undefined;
 
-			if (sessionId) {
-				if (!isNewSession) {
+			console.log("[USSD POST JSON]", {
+				isArkesel,
+				providerParam,
+				sessionID,
+				msisdn,
+				userData,
+				newSession,
+				typeStr,
+				bodyKeys: Object.keys(body),
+			});
+
+			if (isArkesel) {
+				const currentInput = normalizeArkeselInput(
+					String(userData),
+					newSession,
+				);
+				let accumulatedPath = currentInput;
+
+				if (sessionID && !newSession) {
 					const state = await prisma.ussdState.findUnique({
-						where: { sessionId },
+						where: { sessionId: sessionID },
 					});
 					if (state && state.accumulatedPath) {
 						accumulatedPath = `${state.accumulatedPath}*${currentInput}`;
 					}
 				}
 
-				await prisma.ussdState.upsert({
-					where: { sessionId },
-					create: { sessionId, accumulatedPath },
-					update: { accumulatedPath },
+				if (sessionID) {
+					await prisma.ussdState.upsert({
+						where: { sessionId: sessionID },
+						create: {
+							sessionId: sessionID,
+							accumulatedPath,
+						},
+						update: { accumulatedPath },
+					});
+				}
+
+				console.log("[USSD Arkesel]", {
+					currentInput,
+					accumulatedPath,
+					newSession,
 				});
+
+				const coreResult = await handleUssdCore(
+					msisdn,
+					accumulatedPath,
+				);
+				return toArkeselResponse(
+					coreResult,
+					sessionID,
+					userID,
+					msisdn,
+				);
 			}
 
-			const coreResult = await handleUssdCore(phoneNumber, accumulatedPath);
-			return toArkeselResponse(coreResult, sessionId, userId, phoneNumber);
+			// JSON but not Arkesel — treat text as AT-style accumulated input
+			const text = body.text ?? body.userData ?? "";
+			console.log("[USSD POST JSON - AT style]", {
+				msisdn,
+				text,
+			});
+			const coreResult = await handleUssdCore(msisdn, String(text));
+			return textResponse(coreResult);
 		}
 
-		// Africa's Talking / Plain Text Standard
-		const coreResult = await handleUssdCore(phoneNumber, rawText);
+		// ─── Africa's Talking form-encoded Path ──────────────────────────────
+		// AT sends: application/x-www-form-urlencoded
+		// Fields: sessionId, serviceCode, phoneNumber, text
+		const bodyText = await req.text();
+		const params = new URLSearchParams(bodyText);
+		const phoneNumber =
+			params.get("phoneNumber") || params.get("msisdn") || "";
+		const text = params.get("text") || "";
+
+		console.log("[USSD POST form-encoded - AT]", {
+			phoneNumber,
+			text,
+			allParams: Object.fromEntries(params.entries()),
+		});
+
+		const coreResult = await handleUssdCore(phoneNumber, text);
 		return textResponse(coreResult);
 	} catch (error) {
 		console.error("[USSD Webhook Error]:", error);
-		return textResponse("END Something went wrong. Please try again later.");
+		return textResponse(
+			"END Something went wrong. Please try again later.",
+		);
 	}
 }
 
