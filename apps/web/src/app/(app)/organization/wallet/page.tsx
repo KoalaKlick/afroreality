@@ -3,7 +3,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { requireSession } from '@/lib/session';
 import { getUserOrganizations, getOrganizationById } from '@/lib/dal/organization';
-import { getOrgWallet, getOrgTransactions } from '@/lib/server-functions/wallet';
+import { getOrgWallet, getOrgTransactions, getOrgPayouts, getOrgActivityLogs } from '@/lib/server-functions/wallet';
 import { OrgWalletClient } from '@/components/organization/wallet/OrgWalletClient';
 
 export default async function OrgWalletPage({
@@ -26,9 +26,11 @@ export default async function OrgWalletPage({
     notFound();
   }
 
-  const [wallet, transactionsRes] = await Promise.all([
+  const [wallet, transactionsRes, payoutsRes, activityLogsRes] = await Promise.all([
     getOrgWallet({ data: { organizationId: organization.id } }),
     getOrgTransactions({ data: { organizationId: organization.id, page: 1, limit: 20 } }),
+    getOrgPayouts({ data: { organizationId: organization.id, page: 1, limit: 20 } }),
+    getOrgActivityLogs({ data: { organizationId: organization.id, page: 1, limit: 20 } }),
   ]);
 
   return (
@@ -37,6 +39,9 @@ export default async function OrgWalletPage({
       wallet={wallet}
       transactions={transactionsRes.items}
       totalTransactions={transactionsRes.total}
+      payouts={payoutsRes.items}
+      totalPayouts={payoutsRes.total}
+      activityLogs={activityLogsRes.items}
     />
   );
 }

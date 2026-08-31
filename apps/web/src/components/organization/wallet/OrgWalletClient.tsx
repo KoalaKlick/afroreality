@@ -38,8 +38,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/hooks/use-permissions";
 import { requestWalletWithdrawal } from "@/lib/server-functions/wallet";
-import type { Transaction, Wallet } from "@/lib/types/payment";
+import type { ActivityLogRecord, PayoutRecord, Transaction, Wallet } from "@/lib/types/payment";
 import { OrgPayoutSettings } from "./OrgPayoutSettings";
+import { PayoutsHistoryTable } from "./PayoutsHistoryTable";
 import { TransactionsTable } from "./TransactionsTable";
 import { WalletBalanceSummary } from "./WalletBalanceSummary";
 
@@ -55,6 +56,9 @@ interface OrgWalletClientProps {
 	readonly wallet: Wallet | null;
 	readonly transactions: Transaction[];
 	readonly totalTransactions: number;
+	readonly payouts?: PayoutRecord[];
+	readonly totalPayouts?: number;
+	readonly activityLogs?: ActivityLogRecord[];
 }
 
 export function OrgWalletClient({
@@ -62,6 +66,9 @@ export function OrgWalletClient({
 	wallet,
 	transactions,
 	totalTransactions,
+	payouts = [],
+	totalPayouts = 0,
+	activityLogs = [],
 }: OrgWalletClientProps) {
 	const router = useRouter();
 	const { canWithdraw } = usePermissions();
@@ -92,22 +99,19 @@ export function OrgWalletClient({
 
 	// Split transactions into accounting categories
 	const inflows = useMemo(
-		() => transactions.filter((t) => t.type === "ticket" || t.type === "vote"),
+		() => transactions.filter((t) => t.type === "credit"),
 		[transactions],
 	);
 
 	const outflows = useMemo(
-		() =>
-			transactions.filter(
-				(t) => t.type === "payout" || t.type === "withdrawal",
-			),
+		() => transactions.filter((t) => t.type === "debit"),
 		[transactions],
 	);
 
 	const totalInflowAmount = useMemo(
 		() =>
 			inflows
-				.filter((t) => t.status === "success")
+				.filter((t) => t.status === "completed")
 				.reduce((sum, t) => sum + Number(t.amount || 0), 0),
 		[inflows],
 	);
@@ -115,7 +119,7 @@ export function OrgWalletClient({
 	const totalOutflowAmount = useMemo(
 		() =>
 			outflows
-				.filter((t) => t.status === "success")
+				.filter((t) => t.status === "completed")
 				.reduce((sum, t) => sum + Number(t.amount || 0), 0),
 		[outflows],
 	);
@@ -128,9 +132,10 @@ export function OrgWalletClient({
 			const refMatch = t.reference?.toLowerCase().includes(query);
 			const descMatch = t.description?.toLowerCase().includes(query);
 			const typeMatch = t.type?.toLowerCase().includes(query);
+			const categoryMatch = t.category?.toLowerCase().includes(query);
 			const amountMatch = t.amount?.toString().includes(query);
 			const statusMatch = t.status?.toLowerCase().includes(query);
-			return refMatch || descMatch || typeMatch || amountMatch || statusMatch;
+			return refMatch || descMatch || typeMatch || categoryMatch || amountMatch || statusMatch;
 		});
 	};
 
@@ -184,6 +189,9 @@ export function OrgWalletClient({
 				data: {
 					organizationId: organization.id,
 					amount: parsedAmount,
+					bankCode: organization.paystackBankCode ?? "",
+					accountNumber: organization.paystackAccountNumber ?? "",
+					accountName: organization.paystackAccountName ?? "",
 					description: withdrawalMemo || undefined,
 				},
 			});
@@ -306,6 +314,15 @@ export function OrgWalletClient({
 										<ArrowDownToLine className="h-4 w-4" />
 										<span>Payouts (Outflows)</span>
 									</TabsTrigger>
+
+									<TabsTrigger
+										variant="afro"
+										value="payouts"
+										className="gap-1.5"
+									>
+										<Landmark className="h-4 w-4" />
+										<span>Withdrawal Details ({totalPayouts})</span>
+									</TabsTrigger>
 								</TabsList>
 
 								{/* Search Bar */}
@@ -313,7 +330,7 @@ export function OrgWalletClient({
 									<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 									<Input
 										type="search"
-										placeholder="Search transactions..."
+										placeholder="Search records..."
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
 										className="pl-8 text-sm h-9 bg-background"
@@ -364,6 +381,17 @@ export function OrgWalletClient({
 											? "No payout records match your search."
 											: "Disbursements and withdrawals to your payout account will appear here."
 									}
+									emptyVariant="payment"
+								/>
+							</TabsContent>
+
+							{/* Tab 4: Detailed Payout History */}
+							<TabsContent value="payouts" className="m-0 space-y-4">
+								<PayoutsHistoryTable
+									payouts={payouts}
+									total={totalPayouts}
+									emptyTitle="No withdrawal history"
+									emptyDescription="When you submit a withdrawal request, its destination account number, recipient, and processing status will appear here."
 									emptyVariant="payment"
 								/>
 							</TabsContent>

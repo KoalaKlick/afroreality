@@ -26,11 +26,18 @@ interface TransactionsTableProps {
 	readonly emptyVariant?: EmptyStateVariant;
 }
 
-const typeLabels: Record<string, string> = {
-	ticket: "Ticket Purchase",
-	vote: "Voting Payment",
-	payout: "Settlement Payout",
-	withdrawal: "Wallet Withdrawal",
+const categoryLabels: Record<string, string> = {
+	ticket_purchase: "Ticket Purchase",
+	vote_purchase: "Voting Payment",
+	subscription: "Subscription",
+	refund: "Refund",
+	commission_payout: "Commission Payout",
+	wallet_topup: "Wallet Top-up",
+	wallet_withdrawal: "Wallet Withdrawal",
+	transfer: "Transfer",
+	fee: "Fee",
+	bonus: "Bonus",
+	adjustment: "Adjustment",
 };
 
 export function TransactionsTable({
@@ -66,7 +73,7 @@ export function TransactionsTable({
 				),
 				cell: ({ row }) => {
 					const type = row.getValue("type") as string;
-					const isCredit = type === "ticket" || type === "vote";
+					const isCredit = type === "credit";
 					return (
 						<div className="flex items-center gap-1.5">
 							<div
@@ -96,10 +103,10 @@ export function TransactionsTable({
 					<DataTableColumnHeader column={column} title="Category" />
 				),
 				cell: ({ row }) => {
-					const type = row.original.type;
+					const category = row.original.category;
 					return (
 						<span className="text-xs font-medium text-foreground">
-							{typeLabels[type] ?? type}
+							{categoryLabels[category] ?? category}
 						</span>
 					);
 				},
@@ -114,7 +121,7 @@ export function TransactionsTable({
 					const ref = row.original.reference;
 					return (
 						<div className="flex flex-col max-w-xs truncate">
-							<span className="text-xs text-foreground truncate">{desc || typeLabels[row.original.type] || "Transaction"}</span>
+							<span className="text-xs text-foreground truncate">{desc || categoryLabels[row.original.category] || "Transaction"}</span>
 							{ref && (
 								<span className="font-mono text-[10px] text-muted-foreground truncate">
 									{ref}
@@ -133,7 +140,7 @@ export function TransactionsTable({
 					const amount = Number(row.getValue("amount") || 0);
 					const type = row.original.type;
 					const currency = row.original.currency || "GHS";
-					const isCredit = type === "ticket" || type === "vote";
+					const isCredit = type === "credit";
 					return (
 						<span
 							className={cn(
@@ -155,9 +162,9 @@ export function TransactionsTable({
 				cell: ({ row }) => {
 					const status = row.getValue("status") as string;
 					const variant =
-						status === "success"
+						status === "completed"
 							? "completed"
-							: status === "pending"
+							: status === "pending" || status === "processing"
 								? "pending"
 								: "failed";
 					return <StatusBadge variant={variant} text={status} />;

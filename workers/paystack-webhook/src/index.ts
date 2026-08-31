@@ -229,12 +229,22 @@ export default {
 			}
 
 			// 6. Organization Wallet & Transaction Ledger Updates
-			const organizationId = metadata.organizationId || metadata.orgId;
+			let organizationId = metadata.organizationId || metadata.orgId;
+			if (!organizationId) {
+				const eventId = metadata.eventId || metadata.event_id;
+				if (eventId) {
+					const eventRows = await sql`
+						SELECT organization_id FROM events WHERE id = ${eventId} LIMIT 1
+					`;
+					organizationId = eventRows[0]?.organization_id;
+				}
+			}
+
 			if (organizationId) {
 				try {
 					const baseAmount = Number(metadata.baseAmount || payment?.amount || data.amount / 100);
 					const platformFee = Number(metadata.platformFee || 0);
-					const organizerReceives = Number(metadata.organizerReceives || baseAmount - platformFee);
+					const organizerReceives = Number(metadata.organizerReceives || (baseAmount - platformFee));
 					const isSplit = metadata.isSplit === true;
 
 					if (!isSplit && organizerReceives > 0) {

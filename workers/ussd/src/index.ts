@@ -555,26 +555,31 @@ export async function handleUssdCore(
 		event = await fetchEventByCode(sql, eventCode!);
 	} else {
 		const firstInput = tokens[0];
-		const selectedIdx = Number.parseInt(firstInput, 10);
-		const maxEvents = Number.parseInt(
-			env.MAX_LISTED_EVENTS || `${MAX_LISTED_EVENTS}`,
-			10,
-		);
+		// 1. Check if firstInput directly matches an active event's ussd_code (direct dial e.g. *384*77340*104#)
+		event = await fetchEventByCode(sql, firstInput);
 
-		const listedEvents = await sql`
-			SELECT id, title, has_ussd, ussd_code, type 
-			FROM events 
-			WHERE has_ussd = true 
-			ORDER BY created_at DESC 
-			LIMIT ${maxEvents}
-		`;
-
-		if (listedEvents && selectedIdx >= 1 && selectedIdx <= listedEvents.length) {
-			event = listedEvents[selectedIdx - 1];
+		if (event) {
 			tokens.shift();
 		} else {
-			event = await fetchEventByCode(sql, firstInput);
-			tokens.shift();
+			// 2. Otherwise treat as menu index from root listed events
+			const selectedIdx = Number.parseInt(firstInput, 10);
+			const maxEvents = Number.parseInt(
+				env.MAX_LISTED_EVENTS || `${MAX_LISTED_EVENTS}`,
+				10,
+			);
+
+			const listedEvents = await sql`
+				SELECT id, title, has_ussd, ussd_code, type 
+				FROM events 
+				WHERE has_ussd = true 
+				ORDER BY created_at DESC 
+				LIMIT ${maxEvents}
+			`;
+
+			if (listedEvents && selectedIdx >= 1 && selectedIdx <= listedEvents.length) {
+				event = listedEvents[selectedIdx - 1];
+				tokens.shift();
+			}
 		}
 	}
 
@@ -659,15 +664,17 @@ async function toArkeselResponse(
 function normalizeArkeselInput(userData: string, newSession: boolean): string {
 	const cleaned = userData.replace(/[#\uFF03]+$/, "");
 	if (newSession) {
-		const baseCodes = ["*384*77340", "*920"];
+		const baseCodes = ["*384*77340", "*920*55", "*920", "*384", "*713", "*714"];
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {
 				const extra = cleaned.substring(base.length);
-				if (extra.startsWith("*")) {
-					return extra.substring(1);
-				}
-				return extra;
+				return extra.startsWith("*") ? extra.substring(1) : extra;
 			}
+		}
+		// Generic regex for *XXX*YYY*event_code
+		const match = cleaned.match(/^\*\d+(?:\*\d+)*\*(\d+(?:\*.*)?)$/);
+		if (match) {
+			return match[1];
 		}
 	}
 	return cleaned;
