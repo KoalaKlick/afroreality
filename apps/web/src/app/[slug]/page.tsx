@@ -5,7 +5,7 @@ import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero"
 import { OrgDetailsFooter } from "@/components/organization/public/OrgDetailsFooter";
 import { EventsSection } from "@/components/Landing/sections/revamp-events";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
-import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
+import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 import { getFrontendBaseUrl } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -158,8 +158,8 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 				/>
 			</div>
 
-			{/* 4. Brand Footer */}
-			<PoweredByFooter />
+			{/* 4. CTA Banner & Brand Footer */}
+			<EventCreationCTABanner orgSlug={slug} />
 		</main>
 	);
 }

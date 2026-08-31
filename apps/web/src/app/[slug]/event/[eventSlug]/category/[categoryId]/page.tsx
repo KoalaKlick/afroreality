@@ -5,7 +5,7 @@ import { getEventImageUrl } from "@/lib/image-url-utils";
 import { PublicNomineeSheet } from "@/components/event/public/PublicNomineeSheet";
 import { CategorySidebarCard } from "@/components/event/public/CategorySidebarCard";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
-import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
+import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
 import { Section } from "@/components/Landing/shared/Section";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import {
@@ -129,7 +129,7 @@ export default async function PublicCategoryPage({
 
 	return (
 		<main
-			className="min-h-[100svh] xl:h-[100svh] xl:overflow-hidden bg-background text-foreground flex flex-col justify-between"
+			className="min-h-[100svh] bg-background text-foreground flex flex-col justify-between"
 			style={brandVars}
 		>
 			{/* Mobile / Tablet View (< xl) */}
@@ -201,6 +201,68 @@ export default async function PublicCategoryPage({
 						{category.description && (
 							<div className="max-w-3xl text-sm text-muted-foreground leading-relaxed">
 								<RichTextDisplay content={category.description} />
+							</div>
+						)}
+
+						{/* Event Social Links in Category Header */}
+						{socialLinks.length > 0 && (
+							<div className="flex items-center gap-2 pt-2">
+								<span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mr-1">
+									Follow:
+								</span>
+								<div className="flex flex-wrap gap-2">
+									{socialLinks.map((link: any) => {
+										const plat = getSocialPlatform(link.url, "size-4");
+										return (
+											<a
+												key={link.id || link.url}
+												href={link.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="size-8 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
+												title={plat.name || link.url}
+											>
+												<div className="size-4 flex items-center justify-center">
+													{plat.icon}
+												</div>
+											</a>
+										);
+									})}
+								</div>
+							</div>
+						)}
+
+						{/* Sponsors in Category Header */}
+						{sponsors.length > 0 && (
+							<div className="pt-2 space-y-2">
+								<span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+									Sponsors &amp; Partners:
+								</span>
+								<div className="flex flex-wrap items-center gap-2.5">
+									{sponsors.slice(0, 8).map((sponsor: any) => {
+										const imgKey = sponsor.logoUrl || sponsor.logo;
+										const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
+										return (
+											<div
+												key={sponsor.id || sponsor.name}
+												className="h-10 px-3 py-1.5 border rounded-xl bg-card/80 backdrop-blur-xs flex items-center justify-center"
+												title={sponsor.name}
+											>
+												{imgUrl ? (
+													<img
+														src={imgUrl}
+														alt={sponsor.name}
+														className="max-h-6 max-w-[90px] object-contain"
+													/>
+												) : (
+													<span className="text-[10px] font-bold truncate max-w-[90px]">
+														{sponsor.name}
+													</span>
+												)}
+											</div>
+										);
+									})}
+								</div>
 							</div>
 						)}
 					</div>
@@ -350,11 +412,11 @@ export default async function PublicCategoryPage({
 				</Section>
 			</div>
 
-			{/* Large Screen View (xl+) - Dual Independent Scroll Panes */}
-			<div className="hidden xl:flex flex-1 min-h-0 max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-5">
-				<div className="grid grid-cols-12 gap-8 h-full min-h-0 w-full items-stretch">
-					{/* Left Column: Independent Scrollable Category Info Panel */}
-					<aside className="col-span-4 h-full min-h-0 overflow-y-auto pr-1">
+			{/* Large Screen View (xl+) */}
+			<div className="hidden xl:flex flex-1 min-h-[100svh] max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
+				<div className="grid grid-cols-12 gap-8 w-full items-start">
+					{/* Left Column: Sticky Category Info Panel */}
+					<aside className="col-span-4 sticky top-6 max-h-[calc(100svh-3rem)] overflow-y-auto pr-1">
 						<CategorySidebarCard
 							category={category}
 							event={event}
@@ -366,8 +428,8 @@ export default async function PublicCategoryPage({
 						/>
 					</aside>
 
-					{/* Right Column: Independent Scrollable Nominees Feed */}
-					<div className="col-span-8 h-full min-h-0 overflow-y-auto pr-1 space-y-6 @container/content">
+					{/* Right Column: Nominees Feed */}
+					<div className="col-span-8 space-y-6 @container/content">
 						<div
 							className="rounded-2xl bg-card p-8 transition-colors"
 							style={{
@@ -389,8 +451,8 @@ export default async function PublicCategoryPage({
 				</div>
 			</div>
 
-			{/* Brand Footer */}
-			<PoweredByFooter />
+			{/* CTA Banner & Brand Footer */}
+			<EventCreationCTABanner orgSlug={orgSlug} />
 		</main>
 	);
 }

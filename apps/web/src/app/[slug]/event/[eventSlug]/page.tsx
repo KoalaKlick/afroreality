@@ -3,7 +3,7 @@ import { getPublicEventDetails } from "@/lib/dal/public";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { Section } from "@/components/Landing/shared/Section";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
-import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
+import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
 import { EventHero } from "@/components/event/public/EventHero";
 import { EventSidebarCard } from "@/components/event/public/EventSidebarCard";
 import { EventVotingCategories } from "@/components/event/public/EventVotingCategories";
@@ -164,7 +164,7 @@ export default async function PublicEventPage({
 
 	return (
 		<main
-			className="min-h-[100svh] xl:h-[100svh] xl:overflow-hidden bg-background text-foreground flex flex-col justify-between"
+			className="min-h-[100svh] bg-background text-foreground flex flex-col justify-between"
 			style={brandVars}
 		>
 			{/* Mobile / Tablet View (< xl) */}
@@ -173,6 +173,8 @@ export default async function PublicEventPage({
 					event={event as any}
 					orgSlug={orgSlug}
 					eventSlug={eventSlug}
+					socialLinks={socialLinks}
+					sponsors={sponsors}
 				/>
 
 				{isVoting && (
@@ -212,11 +214,11 @@ export default async function PublicEventPage({
 				/>
 			</div>
 
-			{/* Large Screen View (xl+) - Dual Independent Scroll Panes */}
-			<div className="hidden xl:flex flex-1 min-h-0 max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-5">
-				<div className="grid grid-cols-12 gap-8 h-full min-h-0 w-full items-stretch">
-					{/* Left Column: Independent Scrollable Sidebar Panel */}
-					<aside className="col-span-4 h-full min-h-0 overflow-y-auto pr-1">
+			{/* Large Screen View (xl+) */}
+			<div className="hidden xl:flex flex-1 min-h-[100svh] max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
+				<div className="grid grid-cols-12 gap-8 w-full items-start">
+					{/* Left Column: Sticky Sidebar Panel */}
+					<aside className="col-span-4 sticky top-6 max-h-[calc(100svh-3rem)] overflow-y-auto pr-1">
 						<EventSidebarCard
 							event={event}
 							socialLinks={socialLinks}
@@ -227,8 +229,8 @@ export default async function PublicEventPage({
 						/>
 					</aside>
 
-					{/* Right Column: Independent Scrollable Content Feed */}
-					<div className="col-span-8 h-full min-h-0 overflow-y-auto pr-1 space-y-6">
+					{/* Right Column: Content Feed */}
+					<div className="col-span-8 space-y-6">
 						{isVoting && (
 							<div id="voting" className="rounded-2xl border bg-card overflow-hidden">
 								<EventVotingCategories
@@ -255,8 +257,8 @@ export default async function PublicEventPage({
 				</div>
 			</div>
 
-			{/* Brand Footer */}
-			<PoweredByFooter />
+			{/* CTA Banner & Brand Footer */}
+			<EventCreationCTABanner orgSlug={orgSlug} />
 		</main>
 	);
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EventInfoPill } from "@/components/shared/EventInfoPill";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { shareEvent } from "@/lib/utils/share-utils";
+import { getSocialPlatform } from "@/lib/utils/event-icons";
 
 interface EventHeroProps {
 	readonly event: {
@@ -30,9 +31,16 @@ interface EventHeroProps {
 	};
 	readonly orgSlug: string;
 	readonly eventSlug: string;
+	readonly socialLinks?: any[];
+	readonly sponsors?: any[];
 }
 
-export function EventHero({ event, orgSlug }: EventHeroProps) {
+export function EventHero({
+	event,
+	orgSlug,
+	socialLinks = [],
+	sponsors = [],
+}: EventHeroProps) {
 	const { organization } = event;
 	const heroImageUrl = getEventImageUrl(
 		event.flierUrl ||
@@ -167,6 +175,68 @@ export function EventHero({ event, orgSlug }: EventHeroProps) {
 								/>
 							)}
 						</div>
+
+						{/* Event Social Links in Header */}
+						{socialLinks.length > 0 && (
+							<div className="flex items-center gap-2 pt-2">
+								<span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mr-1">
+									Follow:
+								</span>
+								<div className="flex flex-wrap gap-2">
+									{socialLinks.map((link: any) => {
+										const plat = getSocialPlatform(link.url, "size-4");
+										return (
+											<a
+												key={link.id || link.url}
+												href={link.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="size-8 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
+												title={plat.name || link.url}
+											>
+												<div className="size-4 flex items-center justify-center">
+													{plat.icon}
+												</div>
+											</a>
+										);
+									})}
+								</div>
+							</div>
+						)}
+
+						{/* Event Sponsors in Header */}
+						{sponsors.length > 0 && (
+							<div className="pt-2 space-y-2">
+								<span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+									Official Sponsors &amp; Partners:
+								</span>
+								<div className="flex flex-wrap items-center gap-2.5">
+									{sponsors.slice(0, 8).map((sponsor: any) => {
+										const imgKey = sponsor.logoUrl || sponsor.logo;
+										const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
+										return (
+											<div
+												key={sponsor.id || sponsor.name}
+												className="h-10 px-3 py-1.5 border rounded-xl bg-card/80 backdrop-blur-xs flex items-center justify-center"
+												title={sponsor.name}
+											>
+												{imgUrl ? (
+													<img
+														src={imgUrl}
+														alt={sponsor.name}
+														className="max-h-6 max-w-[90px] object-contain"
+													/>
+												) : (
+													<span className="text-[10px] font-bold truncate max-w-[90px]">
+														{sponsor.name}
+													</span>
+												)}
+											</div>
+										);
+									})}
+								</div>
+							</div>
+						)}
 					</div>
 
 					{/* Right: Event Poster / Flier */}
