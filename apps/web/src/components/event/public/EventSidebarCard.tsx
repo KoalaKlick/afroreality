@@ -17,7 +17,6 @@ import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
-import { UssdDialPill } from "@/components/event/public/UssdDialPill";
 
 interface EventSidebarCardProps {
 	readonly event: {
@@ -64,10 +63,10 @@ export function EventSidebarCard({
 	orgSlug,
 }: EventSidebarCardProps) {
 	const bannerImage = getEventImageUrl(
-		event.flierUrl ||
-			event.bannerUrl ||
-			(event as any).flierImage ||
-			(event as any).bannerImage,
+		event.bannerUrl ||
+			event.flierUrl ||
+			(event as any).bannerImage ||
+			(event as any).flierImage,
 	);
 	const logoImage = getOrgImageUrl(event.organization.logoUrl);
 
@@ -93,6 +92,8 @@ export function EventSidebarCard({
 				.filter(Boolean)
 				.join(", ") || "Location TBA";
 
+	const primaryColor = event.organization?.primaryColor || "#009A44";
+
 	return (
 		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">
 			{/* Banner / Cover - Stays Fixed */}
@@ -107,7 +108,7 @@ export function EventSidebarCard({
 					<div
 						className="w-full h-full"
 						style={{
-							background: `linear-gradient(135deg, ${event.organization.primaryColor || "#009A44"}cc 0%, ${event.organization.secondaryColor || "#FFD100"}99 50%, ${event.organization.tertiaryColor || "#EF3340"}cc 100%)`,
+							background: `linear-gradient(135deg, ${primaryColor}cc 0%, ${event.organization.secondaryColor || "#FFD100"}99 50%, ${event.organization.tertiaryColor || "#EF3340"}cc 100%)`,
 						}}
 					/>
 				)}
@@ -163,16 +164,6 @@ export function EventSidebarCard({
 							)}
 							<span className="truncate">{locationText}</span>
 						</div>
-
-						{event.hasUssd && event.ussdCode && (
-							<div className="pt-1">
-								<UssdDialPill
-									eventTitle={event.title}
-									ussdCode={event.ussdCode}
-									primaryColor={event.organization?.primaryColor || undefined}
-								/>
-							</div>
-						)}
 					</div>
 				</div>
 
@@ -222,17 +213,15 @@ export function EventSidebarCard({
 											href={link.url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center justify-between p-2.5 rounded-xl border bg-card hover:border-primary/50 transition-colors group text-xs"
+											className="flex items-center gap-2.5 p-2 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors group"
 										>
-											<div className="flex items-center gap-2 min-w-0">
-												<div className="size-6 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
-													{provider.icon}
-												</div>
-												<span className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-													{provider.name}
-												</span>
+											<div className="size-7 rounded-md bg-muted border flex items-center justify-center shrink-0">
+												{provider.icon}
 											</div>
-											<ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+											<span className="text-xs font-medium text-foreground truncate flex-1">
+												{link.name || "View Gallery"}
+											</span>
+											<ChevronRight className="size-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
 										</a>
 									);
 								})}
@@ -245,9 +234,9 @@ export function EventSidebarCard({
 						<div className="space-y-2.5 pt-3 border-t border-dashed">
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
 								<Trophy className="size-3.5 text-primary" />
-								<span>Sponsors &amp; Partners.</span>
+								<span>Official Sponsors.</span>
 							</h3>
-							<SponsorsList sponsors={sponsors} labelPrefix="" />
+							<SponsorsList sponsors={sponsors} />
 						</div>
 					)}
 				</div>

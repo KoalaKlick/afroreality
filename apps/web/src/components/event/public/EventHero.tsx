@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, Calendar, Clock, MapPin, Info, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventInfoPill } from "@/components/shared/EventInfoPill";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { shareEvent } from "@/lib/utils/share-utils";
-import { getSocialPlatform } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
-import { UssdDialPill } from "@/components/event/public/UssdDialPill";
 
 interface EventHeroProps {
 	readonly event: {
@@ -47,11 +44,12 @@ export function EventHero({
 	sponsors = [],
 }: EventHeroProps) {
 	const { organization } = event;
+
 	const heroImageUrl = getEventImageUrl(
-		event.flierUrl ||
-			event.bannerUrl ||
-			(event as any).flierImage ||
-			(event as any).bannerImage,
+		event.bannerUrl ||
+			event.flierUrl ||
+			(event as any).bannerImage ||
+			(event as any).flierImage,
 	);
 	const orgLogoUrl = getOrgImageUrl(organization.logoUrl);
 
@@ -80,7 +78,7 @@ export function EventHero({
 			})
 		: null;
 
-	const { primaryColor, secondaryColor, tertiaryColor } = organization;
+	const primaryColor = organization.primaryColor || "#009A44";
 
 	const handleShareEvent = async () => {
 		await shareEvent({
@@ -95,8 +93,20 @@ export function EventHero({
 
 	return (
 		<div className="relative w-full overflow-hidden bg-background">
-			{/* Top Navigation Bar */}
-			<div className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-30">
+			{/* ── Top Hero Banner (matching category detail page) ── */}
+			{heroImageUrl && (
+				<div className="relative h-48 sm:h-64 md:h-80 w-full overflow-hidden bg-muted">
+					<img
+						src={heroImageUrl}
+						alt={event.title}
+						className="w-full h-full object-cover"
+					/>
+					<div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+				</div>
+			)}
+
+			{/* ── Sticky Top Navigation Bar ── */}
+			<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
 					<Link
 						href={`/${orgSlug}`}
@@ -132,107 +142,70 @@ export function EventHero({
 						</Button>
 					</div>
 				</div>
-			</div>
+			</header>
 
-			{/* Main Hero Header */}
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-					{/* Left: Event Details & Info */}
-					<div className="lg:col-span-7 space-y-6">
-						{/* Organization badge */}
-						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-semibold">
-							<span className="size-2 rounded-full bg-primary animate-pulse" />
-							<span className="text-muted-foreground">Official Event by</span>
-							<span className="font-bold text-foreground">
-								{organization.name}
-							</span>
-						</div>
+			{/* ── Main Hero Details ── */}
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+				<div className="space-y-6 max-w-4xl">
+					{/* Organization badge */}
+					<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-semibold">
+						<span
+							className="size-2 rounded-full animate-pulse"
+							style={{ backgroundColor: primaryColor }}
+						/>
+						<span className="text-muted-foreground">Official Event by</span>
+						<span className="font-bold text-foreground">
+							{organization.name}
+						</span>
+					</div>
 
-						{/* Event Title */}
-						<h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground leading-[1.1] font-millik">
-							{event.title}
-						</h1>
+					{/* Event Title */}
+					<h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground leading-[1.1] font-millik">
+						{event.title}
+					</h1>
 
-						{/* Event Metadata Pills */}
-						<div className="flex flex-wrap gap-3 pt-2">
+					{/* Event Metadata Pills */}
+					<div className="flex flex-wrap gap-3 pt-1">
+						<EventInfoPill
+							icon={Calendar}
+							label="Date"
+							value={
+								<span>
+									{dateStr}
+									{endsOnStr ? ` (Ends ${endsOnStr})` : ""}
+								</span>
+							}
+						/>
+						{timeStr && (
 							<EventInfoPill
-								icon={Calendar}
-								label="Date"
-								value={
-									<span>
-										{dateStr}
-										{endsOnStr ? ` (Ends ${endsOnStr})` : ""}
-									</span>
-								}
+								icon={Clock}
+								label="Time"
+								value={timeStr}
 							/>
-							{timeStr && (
-								<EventInfoPill
-									icon={Clock}
-									label="Time"
-									value={timeStr}
-								/>
-							)}
-							{event.venueName && (
-								<EventInfoPill
-									icon={MapPin}
-									label="Venue"
-									value={event.venueName}
-								/>
-							)}
-							{event.hasUssd && event.ussdCode && (
-								<UssdDialPill
-									eventTitle={event.title}
-									ussdCode={event.ussdCode}
-									primaryColor={organization.primaryColor || undefined}
-								/>
-							)}
-						</div>
-
-						{/* Event Social Links in Header */}
-						<SocialLinksList
-							socialLinks={socialLinks}
-							labelPrefix="Follow:"
-							iconSize="sm"
-							className="pt-2"
-						/>
-
-						{/* Event Sponsors in Header */}
-						<SponsorsList
-							sponsors={sponsors}
-							labelPrefix="Official Sponsors & Partners:"
-							className="pt-2"
-						/>
+						)}
+						{event.venueName && (
+							<EventInfoPill
+								icon={MapPin}
+								label="Venue"
+								value={event.venueName}
+							/>
+						)}
 					</div>
 
-					{/* Right: Event Poster / Flier */}
-					<div className="lg:col-span-5 flex justify-center lg:justify-end">
-						<div className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-border bg-card">
-							{heroImageUrl ? (
-								<div className="relative aspect-4/5 w-full">
-									<Image
-										src={heroImageUrl}
-										alt={event.title}
-										fill
-										className="object-cover"
-										priority
-										unoptimized
-									/>
-								</div>
-							) : (
-								<div
-									className="aspect-4/5 w-full flex flex-col items-center justify-center p-6 text-center"
-									style={{
-										background: `linear-gradient(135deg, ${primaryColor || "#009A44"}22 0%, ${secondaryColor || "#FFD100"}22 50%, ${tertiaryColor || "#EF3340"}22 100%)`,
-									}}
-								>
-									<Info className="size-12 text-muted-foreground/50 mb-3" />
-									<p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-										{event.title}
-									</p>
-								</div>
-							)}
-						</div>
-					</div>
+					{/* Event Social Links */}
+					<SocialLinksList
+						socialLinks={socialLinks}
+						labelPrefix="Follow:"
+						iconSize="sm"
+						className="pt-2"
+					/>
+
+					{/* Event Sponsors */}
+					<SponsorsList
+						sponsors={sponsors}
+						labelPrefix="Official Sponsors &amp; Partners:"
+						className="pt-2"
+					/>
 				</div>
 			</div>
 		</div>

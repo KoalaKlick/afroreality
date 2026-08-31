@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
+import { UssdFloatingWidget } from "@/components/event/public/UssdFloatingWidget";
 import { getFrontendBaseUrl } from "@/lib/utils";
 import type { Metadata } from "next";
 
@@ -437,6 +438,15 @@ export default async function PublicCategoryPage({
 
 			{/* CTA Banner & Brand Footer */}
 			<EventCreationCTABanner orgSlug={orgSlug} />
+
+			{/* Floating Bottom-Right USSD Widget */}
+			{event.hasUssd && event.ussdCode && (
+				<UssdFloatingWidget
+					eventTitle={event.title}
+					ussdCode={event.ussdCode}
+					primaryColor={primaryColor || undefined}
+				/>
+			)}
 		</main>
 	);
 }

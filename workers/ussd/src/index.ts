@@ -413,6 +413,7 @@ export async function handleUssdCore(
 	const paystackSecret = env.PAYSTACK_SECRET_KEY || "";
 
 	if (!dbUrl) {
+		console.error("[USSD] DATABASE_URL is missing. Available env keys:", Object.keys(env));
 		return textResponse("END Server misconfiguration: missing DATABASE_URL.");
 	}
 

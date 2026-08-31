@@ -10,6 +10,7 @@ import { EventVotingCategories } from "@/components/event/public/EventVotingCate
 import { EventDetailsSection } from "@/components/event/public/EventDetailsSection";
 import { PublicTicketGrid } from "@/components/event/public/PublicTicketGrid";
 import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
+import { UssdFloatingWidget } from "@/components/event/public/UssdFloatingWidget";
 import { getFrontendBaseUrl } from "@/lib/utils";
 import type { Metadata } from "next";
 
@@ -289,6 +290,15 @@ export default async function PublicEventPage({
 
 			{/* CTA Banner & Brand Footer */}
 			<EventCreationCTABanner orgSlug={orgSlug} />
+
+			{/* Floating Bottom-Right USSD Widget */}
+			{event.hasUssd && event.ussdCode && (
+				<UssdFloatingWidget
+					eventTitle={event.title}
+					ussdCode={event.ussdCode}
+					primaryColor={organization.primaryColor || undefined}
+				/>
+			)}
 		</main>
 	);
 }
