@@ -539,10 +539,11 @@ export async function POST(req: NextRequest) {
 		if (contentType.includes("application/json")) {
 			bodyData = await req.json();
 			phoneNumber = bodyData.phoneNumber || bodyData.msisdn || "";
-			rawText =
-				bodyData.text !== undefined
-					? bodyData.text
-					: bodyData.userData || bodyData.message || "";
+			// Prefer userData (Arkesel sends current input here) over text (AT accumulates here)
+			let textVal = bodyData.userData;
+			if (textVal === undefined) textVal = bodyData.text;
+			if (textVal === undefined) textVal = bodyData.message || "";
+			rawText = String(textVal);
 			sessionId = bodyData.sessionId || bodyData.sessionID || "";
 			userId = bodyData.userId || bodyData.userID || "";
 			const typeStr = (bodyData.type || "").toLowerCase();
@@ -554,8 +555,8 @@ export async function POST(req: NextRequest) {
 			phoneNumber =
 				params.get("phoneNumber") || params.get("msisdn") || "";
 			rawText =
-				params.get("text") ||
 				params.get("userData") ||
+				params.get("text") ||
 				params.get("ussdString") ||
 				"";
 			sessionId =
@@ -612,8 +613,8 @@ export async function GET(req: NextRequest) {
 		req.nextUrl.searchParams.get("msisdn") ||
 		"";
 	const rawText =
-		req.nextUrl.searchParams.get("text") ||
 		req.nextUrl.searchParams.get("userData") ||
+		req.nextUrl.searchParams.get("text") ||
 		"";
 	const sessionId =
 		req.nextUrl.searchParams.get("sessionId") ||
