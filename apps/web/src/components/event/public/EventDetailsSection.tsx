@@ -27,8 +27,8 @@ export function EventDetailsSection({
 		>
 			<div className="mx-auto">
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-					{/* Left: About (2 columns) */}
-					<div className="md:col-span-2 space-y-8 scroll-mt-10" id="details">
+					{/* Left: About (2 columns if gallery exists, otherwise full width) */}
+					<div className={galleryLinks.length > 0 ? "md:col-span-2 space-y-8 scroll-mt-10" : "md:col-span-3 space-y-8 scroll-mt-10"} id="details">
 						<div className="space-y-4">
 							<h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
 								About the Event.
@@ -43,22 +43,11 @@ export function EventDetailsSection({
 								)}
 							</div>
 						</div>
-
-						{/* Social Links with Actual SVGs & No Shadow */}
-						{socialLinks.length > 0 && (
-							<div className="space-y-4 pt-4 border-t border-dashed">
-								<h3 className="text-xs font-bold uppercase tracking-widest text-primary">
-									Event Socials.
-								</h3>
-								<SocialLinksList socialLinks={socialLinks} iconSize="md" />
-							</div>
-						)}
 					</div>
 
-					{/* Right: Gallery & Sponsors */}
-					<div className="space-y-12">
-						{/* Gallery Links with Actual SVGs & No Shadow */}
-						{galleryLinks.length > 0 && (
+					{/* Right: Galleries */}
+					{galleryLinks.length > 0 && (
+						<div className="space-y-12">
 							<div className="space-y-6">
 								<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
 									<ImageIcon className="size-5 text-primary" />
@@ -89,38 +78,8 @@ export function EventDetailsSection({
 									})}
 								</div>
 							</div>
-						)}
-
-						{/* Sponsors with No Shadow */}
-						{sponsors.length > 0 && (
-							<div className="space-y-6">
-								<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
-									<Trophy className="size-5 text-primary" />
-									<span>Sponsors &amp; Partners.</span>
-								</h3>
-								<div className="grid grid-cols-2 gap-3">
-									{sponsors.map((sponsor: any) => (
-										<div
-											key={sponsor.id || sponsor.name}
-											className="flex items-center justify-center p-3 rounded-xl border bg-card min-h-[60px]"
-										>
-											{sponsor.logoUrl ? (
-												<img
-													src={getEventImageUrl(sponsor.logoUrl)}
-													alt={sponsor.name}
-													className="max-h-8 max-w-full object-contain"
-												/>
-											) : (
-												<span className="text-xs font-bold text-center">
-													{sponsor.name}
-												</span>
-											)}
-										</div>
-									))}
-								</div>
-							</div>
-						)}
-					</div>
+						</div>
+					)}
 				</div>
 			</div>
 		</Section>

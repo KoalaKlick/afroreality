@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getOrgImageUrl, getEventImageUrl } from "@/lib/image-url-utils";
 import { getSocialPlatform } from "@/lib/utils/event-icons";
+import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 
@@ -210,24 +211,8 @@ export function OrgSidebarCard({
 
 					{/* Circular SVG Social Badges */}
 					{socialLinks.length > 0 && (
-						<div className="pt-3 border-t border-dashed flex flex-wrap gap-2">
-							{socialLinks.map((link) => {
-								const plat = getSocialPlatform(link.url, "size-4");
-								return (
-									<a
-										key={link.id || link.url}
-										href={link.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="size-8 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
-										title={plat.name || link.url}
-									>
-										<div className="size-4 flex items-center justify-center">
-											{plat.icon}
-										</div>
-									</a>
-								);
-							})}
+						<div className="pt-3 border-t border-dashed">
+							<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
 						</div>
 					)}
 				</div>

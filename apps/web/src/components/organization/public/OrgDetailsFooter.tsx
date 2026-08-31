@@ -4,6 +4,7 @@ import { Globe, Mail, Phone, Trophy } from "lucide-react";
 import { Section } from "@/components/Landing/shared/Section";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { getSocialPlatform } from "@/lib/utils/event-icons";
+import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 interface OrgDetailsFooterProps {
@@ -144,24 +145,8 @@ export function OrgDetailsFooter({
 
 					{/* Dedicated Social Links with Actual SVGs & No Shadow */}
 					{organization.socialLinks && organization.socialLinks.length > 0 && (
-						<div className="pt-6 border-t border-dashed flex flex-wrap gap-2.5">
-							{organization.socialLinks.map((link) => {
-								const plat = getSocialPlatform(link.url, "size-5");
-								return (
-									<a
-										key={link.id || link.url}
-										href={link.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="size-10 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
-										title={plat.name || link.url}
-									>
-										<div className="size-5 flex items-center justify-center">
-											{plat.icon}
-										</div>
-									</a>
-								);
-							})}
+						<div className="pt-6 border-t border-dashed">
+							<SocialLinksList socialLinks={organization.socialLinks} iconSize="md" />
 						</div>
 					)}
 				</div>
