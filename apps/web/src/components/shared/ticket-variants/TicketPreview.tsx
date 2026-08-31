@@ -132,11 +132,9 @@ function Stub({
   borderColor: string;
   label: string;
 }) {
-  const radius = side === "left" ? "rounded-l-xl" : "rounded-r-xl";
-
   return (
     <div
-      className={`w-[72px] shrink-0 flex items-center justify-center relative ${radius}`}
+      className="w-[72px] shrink-0 flex items-center justify-center relative"
       style={{ background: backgroundColor }}
     >
       <StubDash side={side} borderColor={borderColor} />
@@ -178,7 +176,7 @@ function GhostTicket({
 }) {
   return (
     <div
-      className="absolute inset-0 pointer-events-none rounded-xl"
+      className="absolute inset-0 pointer-events-none"
       style={{
         transform: `translateX(${translateX}px) translateY(${translateY}px) rotate(${rotate}deg)`,
         transformOrigin: "center center",
@@ -191,12 +189,12 @@ function GhostTicket({
       <TicketOutline color={outlineColor} />
       {/* Left stub strip */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-[72px] rounded-l-xl"
+        className="absolute left-0 top-0 bottom-0 w-[72px]"
         style={{ background: stubColor }}
       />
       {/* Right stub strip */}
       <div
-        className="absolute right-0 top-0 bottom-0 w-[72px] rounded-r-xl"
+        className="absolute right-0 top-0 bottom-0 w-[72px]"
         style={{ background: stubColor }}
       />
     </div>
@@ -215,15 +213,17 @@ function TicketShell({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className="flex flex-row bg-background items-stretch w-full h-full relative rounded-2xl overflow-hidden shadow-sm"
-      style={{
-        clipPath: `url(#${clipId})`,
-        backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
-      }}
-    >
+    <div className="relative w-full h-full">
+      <div
+        className="flex flex-row bg-background items-stretch w-full h-full relative"
+        style={{
+          clipPath: `url(#${clipId})`,
+          backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
+        }}
+      >
+        {children}
+      </div>
       <TicketOutline color={outlineColor} />
-      {children}
     </div>
   );
 }

@@ -106,7 +106,7 @@ export function PublicTicketGrid({
 
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-2 xl:">
+      <div className="grid gap-6 lg:grid-cols-2">
         {tickets.map((ticket) => {
           const primaryColor =
             ticket.primaryColor || ticket.color || orgPrimary;
@@ -117,7 +117,7 @@ export function PublicTicketGrid({
               key={ticket.id}
               type="button"
               onClick={() => setSelectedTicket(ticket)}
-              className="group text-left transition-all "
+              className="group text-left transition-all"
             >
               <div className="space-y-4">
                 <TicketRenderer
@@ -311,4 +311,3 @@ export function PublicTicketGrid({
     </>
   );
 }
-

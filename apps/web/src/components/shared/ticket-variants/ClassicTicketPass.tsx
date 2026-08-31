@@ -103,11 +103,9 @@ function Stub({
 	borderColor: string;
 	label: string;
 }) {
-	const radius = side === "left" ? "rounded-l-xl" : "rounded-r-xl";
-
 	return (
 		<div
-			className={`w-[72px] shrink-0 flex items-center justify-center relative ${radius}`}
+			className="w-[72px] shrink-0 flex items-center justify-center relative"
 			style={{ background: backgroundColor }}
 		>
 			<StubDash side={side} borderColor={borderColor} />
@@ -139,15 +137,17 @@ function TicketShell({
 	children: React.ReactNode;
 }) {
 	return (
-		<div
-			className="flex flex-row bg-background items-stretch w-full h-full relative"
-			style={{
-				clipPath: `url(#${clipId})`,
-				backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
-			}}
-		>
+		<div className="relative w-full h-full">
+			<div
+				className="flex flex-row bg-background items-stretch w-full h-full relative"
+				style={{
+					clipPath: `url(#${clipId})`,
+					backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
+				}}
+			>
+				{children}
+			</div>
 			<TicketOutline color={outlineColor} />
-			{children}
 		</div>
 	);
 }

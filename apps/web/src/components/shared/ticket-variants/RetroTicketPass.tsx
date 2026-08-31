@@ -5,6 +5,7 @@ import { QrCode } from "lucide-react";
 import { useId, useState } from "react";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades } from "@/lib/utils/color-generator";
+import { cn } from "@/lib/utils";
 import type { TicketVariantProps } from "./types";
 
 interface RetroTicketProps extends TicketVariantProps {
@@ -15,6 +16,7 @@ interface RetroTicketProps extends TicketVariantProps {
 	readonly exportMode?: boolean;
 	readonly exportSide?: "front" | "back" | "both";
 	readonly buyerName?: string;
+	readonly stacked?: boolean;
 }
 
 const RETRO_PATH =
@@ -79,6 +81,7 @@ export function RetroTicketPass({
 	exportMode = false,
 	exportSide = "both",
 	buyerName = "Valued Guest",
+	stacked = false,
 }: RetroTicketProps) {
 	const uid = useId().replace(/:/g, "");
 	const clipId = `ticket-retro-clip-${uid}`;
@@ -198,6 +201,17 @@ export function RetroTicketPass({
 					</div>
 				</div>
 			</div>
+
+			{/* Perforation Line */}
+			<div 
+				className="absolute left-[33.33%] top-0 bottom-0 w-[2px]" 
+				style={{
+					backgroundImage: 'linear-gradient(to bottom, transparent 33%, rgba(0,0,0,0.1) 0%)',
+					backgroundPosition: 'left',
+					backgroundSize: '1px 12px',
+					backgroundRepeat: 'repeat-y'
+				}}
+			/>
 		</div>
 	);
 
@@ -253,7 +267,7 @@ export function RetroTicketPass({
 
 	return (
 		<div
-			className={`cursor-pointer select-none ${className}`}
+			className={cn("cursor-pointer select-none", className)}
 			style={{ perspective: 1200 }}
 		>
 			<TicketClipPath id={clipId} />

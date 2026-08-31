@@ -291,7 +291,14 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 					tertiaryColor={tertiaryColor}
 					setTertiaryColor={setTertiaryColor}
 					logoUrl={logoUrl}
+					bannerUrl={bannerUrl}
 					orgName={name}
+					description={description}
+					websiteUrl={websiteUrl}
+					contactEmail={contactEmail}
+					phone={phone}
+					socialLinks={socialLinks}
+					slug={organization.slug}
 				/>
 
 				<OrgContactSocials

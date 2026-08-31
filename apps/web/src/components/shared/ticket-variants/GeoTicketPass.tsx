@@ -87,10 +87,9 @@ function Stub({
 	primaryShades: ColorShades;
 	label: string;
 }) {
-	const radius = side === "left" ? "rounded-l-xl" : "rounded-r-xl";
 	return (
 		<div
-			className={`w-[72px] shrink-0 flex items-center justify-center relative ${radius} overflow-hidden`}
+			className="w-[72px] shrink-0 flex items-center justify-center relative overflow-hidden"
 			style={{ background: primaryShades[700] || "#15803d" }}
 		>
 			<div
