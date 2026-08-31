@@ -61,27 +61,36 @@ function getProvider(phone: string): "mtn" | "vod" | "tgo" {
 	return "mtn";
 }
 
+/**
+ * Arkesel sends the full USSD string on newSession (e.g. "*384*77340*689#").
+ * We strip the base code so handleUssdCore sees just "689" (like AT would).
+ * On subsequent turns, Arkesel sends only the current input (e.g. "1").
+ *
+ * Mirrors: current-live-next-project/supabase/functions/ussd-arkesel/index.ts
+ */
 function normalizeArkeselInput(userData: string, newSession: boolean): string {
-	const cleaned = userData.replace(/[#\uFF03]+$/, "");
+	// Arkesel sometimes sends Fullwidth Number Sign (＃) instead of standard #
+	const cleaned = userData.replace(/[#＃]+$/, "");
+
 	if (newSession) {
 		const baseCodes = ["*384*77340", "*920*55", "*920", "*384", "*713", "*714"];
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {
 				const extra = cleaned.substring(base.length);
-				return extra.startsWith("*") ? extra.substring(1) : extra;
+				// *384*77340*689# → extra = "*689" → return "689"
+				// *384*77340# → extra = "" → return ""
+				if (extra.startsWith("*")) {
+					return extra.substring(1);
+				}
+				return extra;
 			}
-		}
-		const match = cleaned.match(/^\*\d+(?:\*\d+)*\*(\d+(?:\*.*)?)$/);
-		if (match && match[1]) {
-			return match[1];
-		}
-		if (cleaned.startsWith("*")) {
-			const parts = cleaned.split("*").filter(Boolean);
-			if (parts.length > 0) return parts[parts.length - 1] || "";
 		}
 	}
 	return cleaned;
 }
+
+// ─── Token Navigation ───────────────────────────────────────────────────────
+// Mirrors: current-live-next-project/supabase/functions/_shared/ussd-handler.ts
 
 function reduceTokens(tokens: string[]): string[] {
 	const stack: string[] = [];
@@ -153,7 +162,26 @@ function buildPaginatedMenu(
 	return menu;
 }
 
+// ─── Prisma Event Select ────────────────────────────────────────────────────
+// Mirrors: _shared/ussd-handler.ts EVENT_SELECT
+// We fetch votingOptions at event level (like the Supabase query) so we can
+// filter by category_id in handleVotingFlow.
+
+const EVENT_INCLUDE = {
+	votingCategories: true,
+	votingOptions: true,
+	ticketTypes: true,
+} as const;
+
+async function fetchEventByCode(code: string) {
+	return prisma.event.findFirst({
+		where: { ussdCode: code, hasUssd: true },
+		include: EVENT_INCLUDE,
+	});
+}
+
 // ─── Payment Initiation Helper ───────────────────────────────────────────────
+// Mirrors: _shared/ussd-handler.ts processPayment
 
 async function processPayment(
 	event: any,
@@ -275,6 +303,8 @@ async function processPayment(
 }
 
 // ─── Flow Handlers ───────────────────────────────────────────────────────────
+// Mirrors: _shared/ussd-handler.ts handleVotingFlow / handleTicketFlow
+// Key: nominees come from event.votingOptions filtered by category_id
 
 async function handleVotingFlow(
 	event: any,
@@ -301,8 +331,14 @@ async function handleVotingFlow(
 
 	tokens = catSelection.remainingTokens;
 
-	const nominees = (selectedCategory.votingOptions || [])
-		.filter((n: any) => n.status === "approved" || !n.status)
+	// Filter nominees from event-level votingOptions by category_id
+	// (mirrors reference: event.voting_options filtered by n.category_id === selectedCategory.id)
+	const nominees = (event.votingOptions || [])
+		.filter(
+			(n: any) =>
+				n.categoryId === selectedCategory.id &&
+				(n.status === "approved" || !n.status),
+		)
 		.sort((a: any, b: any) => (a.orderIdx ?? 0) - (b.orderIdx ?? 0));
 
 	if (nominees.length === 0) return `END No nominees in ${selectedCategory.name}.`;
@@ -357,7 +393,7 @@ async function handleTicketFlow(
 			`${event.title}\nSelect Ticket:`,
 			tickets,
 			tktSelection.page,
-			(tkt, idx) => `${idx}. ${tkt.name} - GHS ${Number(tkt.price).toFixed(2)}\n`,
+			(tkt, idx) => `${idx}. ${tkt.name} - GHS ${tkt.price}\n`,
 		);
 	}
 
@@ -384,7 +420,9 @@ async function handleTicketFlow(
 	);
 }
 
-// ─── Core USSD Router ─────────────────────────────────────────────────────────
+// ─── Core USSD Router (provider-agnostic) ────────────────────────────────────
+// Both AT and Arkesel entrypoints call this after parsing their payloads.
+// Mirrors: _shared/ussd-handler.ts handleUssdRequest
 
 async function handleUssdCore(phoneNumber: string, text: string): Promise<string> {
 	// 1. Pending session / OTP resumption check (within last 5 mins)
@@ -440,65 +478,54 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 		return menu;
 	}
 
+	// 3. Resolve event
+	// Mirrors reference: _shared/ussd-handler.ts lines 353-382
 	let tokens = [...inputArray];
 	let event: any = null;
 
 	if (tokens[0] === ENTER_CODE_OPTION) {
+		// User chose "0. Enter code" from the welcome screen
 		tokens.shift();
 		if (tokens.length === 0) {
 			return "CON Enter event code:\n0. Back";
 		}
-		const eventCode = tokens.shift();
-		event = await prisma.event.findFirst({
-			where: { ussdCode: eventCode, hasUssd: true },
-			include: {
-				votingCategories: {
-					include: { votingOptions: true },
-				},
-				ticketTypes: true,
-			},
-		});
+		const eventCode = tokens.shift()!;
+		event = await fetchEventByCode(eventCode);
 	} else {
 		const firstInput = tokens[0] || "";
-		// Direct lookup by event ussdCode (e.g. *384*77340*689#)
-		event = await prisma.event.findFirst({
-			where: { ussdCode: firstInput, hasUssd: true },
-			include: {
-				votingCategories: {
-					include: { votingOptions: true },
-				},
-				ticketTypes: true,
-			},
+		const selectedIdx = Number.parseInt(firstInput, 10);
+
+		// Try listed-index first (user picked from the welcome menu)
+		const listedEvents = await prisma.event.findMany({
+			where: { hasUssd: true },
+			include: EVENT_INCLUDE,
+			orderBy: { createdAt: "desc" },
+			take: MAX_LISTED_EVENTS,
 		});
 
-		if (event) {
+		if (listedEvents && selectedIdx >= 1 && selectedIdx <= listedEvents.length) {
+			// Matched a listed event by its menu index
+			event = listedEvents[selectedIdx - 1];
 			tokens.shift();
 		} else {
-			// Listed menu index lookup
-			const selectedIdx = Number.parseInt(firstInput, 10);
-			const listedEvents = await prisma.event.findMany({
-				where: { hasUssd: true },
-				include: {
-					votingCategories: {
-						include: { votingOptions: true },
-					},
-					ticketTypes: true,
-				},
-				orderBy: { createdAt: "desc" },
-				take: MAX_LISTED_EVENTS,
-			});
-
-			if (listedEvents && selectedIdx >= 1 && selectedIdx <= listedEvents.length) {
-				event = listedEvents[selectedIdx - 1];
-				tokens.shift();
-			}
+			// Fallback: treat firstInput as a ussdCode (deep-link like *384*77340*689#)
+			event = await fetchEventByCode(firstInput);
+			tokens.shift();
 		}
 	}
+
+	console.log("[USSD Core] Event resolved:", {
+		eventId: event?.id,
+		eventTitle: event?.title,
+		eventType: event?.type,
+		remainingTokens: tokens,
+	});
 
 	if (!event) {
 		return "END Event not found. Check your code.";
 	}
 
+	// 4. Route by event type
 	const eventType = event.type;
 
 	if (eventType === "voting") {
@@ -526,39 +553,33 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 	return "END Unsupported event type.";
 }
 
-// ─── Entrypoints (POST & GET) ────────────────────────────────────────────────
+// ─── Entrypoints ─────────────────────────────────────────────────────────────
+// Mirrors the reference project's two separate endpoints:
+//   ussd/index.ts          → Africa's Talking (form-encoded, text is accumulated)
+//   ussd-arkesel/index.ts  → Arkesel (JSON, session accumulation via DB)
 
 export async function POST(req: NextRequest) {
 	try {
 		const contentType = req.headers.get("content-type") || "";
 		const providerParam = req.nextUrl.searchParams.get("provider") || "";
 
-		// ─── Arkesel JSON Path ───────────────────────────────────────────────
-		// Arkesel always sends application/json with sessionID (uppercase D)
-		if (
-			contentType.includes("application/json") ||
-			providerParam === "arkesel"
-		) {
+		// ─── Arkesel Path (JSON) ─────────────────────────────────────────
+		// Mirrors: ussd-arkesel/index.ts serve() handler
+		if (providerParam === "arkesel" || contentType.includes("application/json")) {
 			const body = await req.json();
+
 			const sessionID = body.sessionID || body.sessionId || "";
 			const userID = body.userID || body.userId || "";
 			const msisdn = body.msisdn || body.phoneNumber || "";
+
 			const typeStr = (body.type || "").toLowerCase();
-			const newSession =
-				body.newSession === true || typeStr === "initiation";
+			const newSession = body.newSession === true || typeStr === "initiation";
 
-			// Arkesel: userData has the current input; text may be empty or absent
-			const userData = body.userData ?? body.text ?? "";
+			// Mirrors reference line 75: body.userData || body.text
+			let userData = body.userData || body.text;
+			if (userData === undefined) userData = "";
 
-			// Detect if this is truly an Arkesel request (has sessionID uppercase)
-			const isArkesel =
-				providerParam === "arkesel" ||
-				body.sessionID !== undefined ||
-				body.userData !== undefined;
-
-			console.log("[USSD POST JSON]", {
-				isArkesel,
-				providerParam,
+			console.log("[USSD POST Arkesel]", {
 				sessionID,
 				msisdn,
 				userData,
@@ -567,135 +588,103 @@ export async function POST(req: NextRequest) {
 				bodyKeys: Object.keys(body),
 			});
 
-			if (isArkesel) {
-				const currentInput = normalizeArkeselInput(
-					String(userData),
-					newSession,
-				);
-				let accumulatedPath = currentInput;
+			const currentInput = normalizeArkeselInput(String(userData), newSession);
 
-				if (sessionID && !newSession) {
-					const state = await prisma.ussdState.findUnique({
-						where: { sessionId: sessionID },
-					});
-					if (state && state.accumulatedPath) {
-						accumulatedPath = `${state.accumulatedPath}*${currentInput}`;
-					}
-				}
+			let accumulatedPath = currentInput;
 
-				if (sessionID) {
-					await prisma.ussdState.upsert({
-						where: { sessionId: sessionID },
-						create: {
-							sessionId: sessionID,
-							accumulatedPath,
-						},
-						update: { accumulatedPath },
-					});
-				}
-
-				console.log("[USSD Arkesel]", {
-					currentInput,
-					accumulatedPath,
-					newSession,
+			// Mirrors reference lines 100-110: accumulate path across turns
+			if (!newSession && sessionID) {
+				const state = await prisma.ussdState.findUnique({
+					where: { sessionId: sessionID },
 				});
-
-				const coreResult = await handleUssdCore(
-					msisdn,
-					accumulatedPath,
-				);
-				return toArkeselResponse(
-					coreResult,
-					sessionID,
-					userID,
-					msisdn,
-				);
+				if (state && state.accumulatedPath) {
+					accumulatedPath = state.accumulatedPath + "*" + currentInput;
+				}
 			}
 
-			// JSON but not Arkesel — treat text as AT-style accumulated input
-			const text = body.text ?? body.userData ?? "";
-			console.log("[USSD POST JSON - AT style]", {
-				msisdn,
-				text,
+			// Save the new accumulated state
+			if (sessionID) {
+				await prisma.ussdState.upsert({
+					where: { sessionId: sessionID },
+					create: { sessionId: sessionID, accumulatedPath },
+					update: { accumulatedPath },
+				});
+			}
+
+			console.log("[USSD Arkesel]", {
+				currentInput,
+				accumulatedPath,
+				newSession,
 			});
-			const coreResult = await handleUssdCore(msisdn, String(text));
-			return textResponse(coreResult);
+
+			// Process using the shared handler with the accumulated path
+			const coreResult = await handleUssdCore(msisdn, accumulatedPath);
+			return toArkeselResponse(coreResult, sessionID, userID, msisdn);
 		}
 
-		// ─── Africa's Talking form-encoded Path ──────────────────────────────
+		// ─── Africa's Talking Path (form-encoded) ────────────────────────
+		// Mirrors: ussd/index.ts serve() handler
 		// AT sends: application/x-www-form-urlencoded
 		// Fields: sessionId, serviceCode, phoneNumber, text
+		// text is already accumulated across turns by AT
 		const bodyText = await req.text();
 		const params = new URLSearchParams(bodyText);
-		const phoneNumber =
-			params.get("phoneNumber") || params.get("msisdn") || "";
+		const phoneNumber = params.get("phoneNumber") || "";
 		const text = params.get("text") || "";
 
-		console.log("[USSD POST form-encoded - AT]", {
-			phoneNumber,
-			text,
-			allParams: Object.fromEntries(params.entries()),
-		});
+		console.log("[USSD POST AT]", { phoneNumber, text });
 
 		const coreResult = await handleUssdCore(phoneNumber, text);
 		return textResponse(coreResult);
 	} catch (error) {
 		console.error("[USSD Webhook Error]:", error);
-		return textResponse(
-			"END Something went wrong. Please try again later.",
-		);
+		return textResponse("END Something went wrong. Please try again later.");
 	}
 }
 
 export async function GET(req: NextRequest) {
-	const phoneNumber =
-		req.nextUrl.searchParams.get("phoneNumber") ||
-		req.nextUrl.searchParams.get("msisdn") ||
-		"";
-	const rawText =
-		req.nextUrl.searchParams.get("userData") ||
-		req.nextUrl.searchParams.get("text") ||
-		"";
-	const sessionId =
-		req.nextUrl.searchParams.get("sessionId") ||
-		req.nextUrl.searchParams.get("sessionID") ||
-		"";
-	const userId =
-		req.nextUrl.searchParams.get("userId") ||
-		req.nextUrl.searchParams.get("userID") ||
-		"";
-	const isNewSession =
-		req.nextUrl.searchParams.get("newSession") === "true";
+	try {
+		const providerParam = req.nextUrl.searchParams.get("provider") || "";
 
-	const isArkesel =
-		req.nextUrl.searchParams.get("provider") === "arkesel" ||
-		Boolean(sessionId && userId);
+		if (providerParam === "arkesel") {
+			const sessionID = req.nextUrl.searchParams.get("sessionID") || req.nextUrl.searchParams.get("sessionId") || "";
+			const userID = req.nextUrl.searchParams.get("userID") || req.nextUrl.searchParams.get("userId") || "";
+			const msisdn = req.nextUrl.searchParams.get("msisdn") || req.nextUrl.searchParams.get("phoneNumber") || "";
+			const userData = req.nextUrl.searchParams.get("userData") || req.nextUrl.searchParams.get("text") || "";
+			const isNewSession = req.nextUrl.searchParams.get("newSession") === "true";
 
-	if (isArkesel) {
-		const currentInput = normalizeArkeselInput(rawText, isNewSession);
-		let accumulatedPath = currentInput;
+			const currentInput = normalizeArkeselInput(userData, isNewSession);
+			let accumulatedPath = currentInput;
 
-		if (sessionId) {
-			if (!isNewSession) {
+			if (!isNewSession && sessionID) {
 				const state = await prisma.ussdState.findUnique({
-					where: { sessionId },
+					where: { sessionId: sessionID },
 				});
 				if (state && state.accumulatedPath) {
-					accumulatedPath = `${state.accumulatedPath}*${currentInput}`;
+					accumulatedPath = state.accumulatedPath + "*" + currentInput;
 				}
 			}
 
-			await prisma.ussdState.upsert({
-				where: { sessionId },
-				create: { sessionId, accumulatedPath },
-				update: { accumulatedPath },
-			});
+			if (sessionID) {
+				await prisma.ussdState.upsert({
+					where: { sessionId: sessionID },
+					create: { sessionId: sessionID, accumulatedPath },
+					update: { accumulatedPath },
+				});
+			}
+
+			const coreResult = await handleUssdCore(msisdn, accumulatedPath);
+			return toArkeselResponse(coreResult, sessionID, userID, msisdn);
 		}
 
-		const coreResult = await handleUssdCore(phoneNumber, accumulatedPath);
-		return toArkeselResponse(coreResult, sessionId, userId, phoneNumber);
-	}
+		// AT via GET (unlikely but supported)
+		const phoneNumber = req.nextUrl.searchParams.get("phoneNumber") || "";
+		const text = req.nextUrl.searchParams.get("text") || "";
 
-	const coreResult = await handleUssdCore(phoneNumber, rawText);
-	return textResponse(coreResult);
+		const coreResult = await handleUssdCore(phoneNumber, text);
+		return textResponse(coreResult);
+	} catch (error) {
+		console.error("[USSD GET Error]:", error);
+		return textResponse("END Something went wrong. Please try again later.");
+	}
 }
