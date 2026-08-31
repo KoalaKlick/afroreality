@@ -8,6 +8,8 @@ import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
 import { Section } from "@/components/Landing/shared/Section";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
+import { SocialLinksList } from "@/components/shared/SocialLinksList";
+import { SponsorsList } from "@/components/shared/SponsorsList";
 import {
 	ChevronRight,
 	Trophy,
@@ -99,7 +101,36 @@ export default async function PublicCategoryPage({
 
 	const sponsors = event.sponsors || [];
 	const galleryLinks = event.galleryLinks || [];
-	const socialLinks = event.socialLinks || [];
+	const eventSocialLinks = event.socialLinks || [];
+	const orgSocialLinks = organization.socialLinks || [];
+
+	const socialLinksMap = new Map<string, any>();
+	const normalizeUrl = (url: string) => {
+		try {
+			const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+			return (u.hostname + u.pathname).toLowerCase().replace(/\/$/, "");
+		} catch {
+			return url.toLowerCase().trim();
+		}
+	};
+
+	for (const link of eventSocialLinks) {
+		if (link.url) socialLinksMap.set(normalizeUrl(link.url), link);
+	}
+	for (const link of orgSocialLinks) {
+		if (link.url && !socialLinksMap.has(normalizeUrl(link.url))) {
+			socialLinksMap.set(normalizeUrl(link.url), link);
+		}
+	}
+	if (organization.websiteUrl && !socialLinksMap.has(normalizeUrl(organization.websiteUrl))) {
+		socialLinksMap.set(normalizeUrl(organization.websiteUrl), {
+			id: "org-website",
+			url: organization.websiteUrl,
+			platform: "Website",
+		});
+	}
+
+	const socialLinks = Array.from(socialLinksMap.values());
 
 	const nomineeContent = (
 		<PublicNomineeSheet
@@ -205,66 +236,19 @@ export default async function PublicCategoryPage({
 						)}
 
 						{/* Event Social Links in Category Header */}
-						{socialLinks.length > 0 && (
-							<div className="flex items-center gap-2 pt-2">
-								<span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mr-1">
-									Follow:
-								</span>
-								<div className="flex flex-wrap gap-2">
-									{socialLinks.map((link: any) => {
-										const plat = getSocialPlatform(link.url, "size-4");
-										return (
-											<a
-												key={link.id || link.url}
-												href={link.url}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="size-8 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
-												title={plat.name || link.url}
-											>
-												<div className="size-4 flex items-center justify-center">
-													{plat.icon}
-												</div>
-											</a>
-										);
-									})}
-								</div>
-							</div>
-						)}
+						<SocialLinksList
+							socialLinks={socialLinks}
+							labelPrefix="Follow:"
+							iconSize="sm"
+							className="pt-2"
+						/>
 
 						{/* Sponsors in Category Header */}
-						{sponsors.length > 0 && (
-							<div className="pt-2 space-y-2">
-								<span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-									Sponsors &amp; Partners:
-								</span>
-								<div className="flex flex-wrap items-center gap-2.5">
-									{sponsors.slice(0, 8).map((sponsor: any) => {
-										const imgKey = sponsor.logoUrl || sponsor.logo;
-										const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
-										return (
-											<div
-												key={sponsor.id || sponsor.name}
-												className="h-10 px-3 py-1.5 border rounded-xl bg-card/80 backdrop-blur-xs flex items-center justify-center"
-												title={sponsor.name}
-											>
-												{imgUrl ? (
-													<img
-														src={imgUrl}
-														alt={sponsor.name}
-														className="max-h-6 max-w-[90px] object-contain"
-													/>
-												) : (
-													<span className="text-[10px] font-bold truncate max-w-[90px]">
-														{sponsor.name}
-													</span>
-												)}
-											</div>
-										);
-									})}
-								</div>
-							</div>
-						)}
+						<SponsorsList
+							sponsors={sponsors}
+							labelPrefix="Sponsors & Partners:"
+							className="pt-2"
+						/>
 					</div>
 				</section>
 

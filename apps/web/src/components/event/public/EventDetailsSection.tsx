@@ -2,6 +2,7 @@
 
 import { Section } from "@/components/Landing/shared/Section";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
+import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { ImageIcon, ChevronRight, Trophy } from "lucide-react";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
@@ -49,25 +50,7 @@ export function EventDetailsSection({
 								<h3 className="text-xs font-bold uppercase tracking-widest text-primary">
 									Event Socials.
 								</h3>
-								<div className="flex flex-wrap gap-2.5">
-									{socialLinks.map((link: any) => {
-										const plat = getSocialPlatform(link.url, "size-5");
-										return (
-											<a
-												key={link.id || link.url}
-												href={link.url}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="size-10 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
-												title={plat.name || link.url}
-											>
-												<div className="size-5 flex items-center justify-center">
-													{plat.icon}
-												</div>
-											</a>
-										);
-									})}
-								</div>
+								<SocialLinksList socialLinks={socialLinks} iconSize="md" />
 							</div>
 						)}
 					</div>

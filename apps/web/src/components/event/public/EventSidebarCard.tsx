@@ -13,6 +13,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
+import { SocialLinksList } from "@/components/shared/SocialLinksList";
+import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 
@@ -187,25 +189,7 @@ export function EventSidebarCard({
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
 								Event Socials.
 							</h3>
-							<div className="flex flex-wrap gap-2">
-								{socialLinks.map((link: any) => {
-									const plat = getSocialPlatform(link.url, "size-4");
-									return (
-										<a
-											key={link.id || link.url}
-											href={link.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="size-8 rounded-full border bg-card flex items-center justify-center hover:bg-primary/10 hover:border-primary transition-all"
-											title={plat.name || link.url}
-										>
-											<div className="size-4 flex items-center justify-center">
-												{plat.icon}
-											</div>
-										</a>
-									);
-								})}
-							</div>
+							<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
 						</div>
 					)}
 
@@ -250,27 +234,7 @@ export function EventSidebarCard({
 								<Trophy className="size-3.5 text-primary" />
 								<span>Sponsors &amp; Partners.</span>
 							</h3>
-							<div className="grid grid-cols-3 gap-2">
-								{sponsors.slice(0, 9).map((sponsor: any) => (
-									<div
-										key={sponsor.id || sponsor.name}
-										className="flex items-center justify-center p-2 rounded-lg border bg-card h-12"
-										title={sponsor.name}
-									>
-										{sponsor.logoUrl ? (
-											<img
-												src={getEventImageUrl(sponsor.logoUrl)}
-												alt={sponsor.name}
-												className="max-h-6 max-w-full object-contain"
-											/>
-										) : (
-											<span className="text-[7px] font-bold text-center leading-tight truncate">
-												{sponsor.name}
-											</span>
-										)}
-									</div>
-								))}
-							</div>
+							<SponsorsList sponsors={sponsors} labelPrefix="" />
 						</div>
 					)}
 				</div>

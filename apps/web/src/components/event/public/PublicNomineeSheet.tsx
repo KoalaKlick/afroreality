@@ -115,7 +115,7 @@ export function NomineeGrid({
 	return (
 		<>
 			<div className="grid grid-cols-1 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
-				{nominees.concat(nominees).map((nominee) => {
+				{nominees.map((nominee, index) => {
 					const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
 					const votePercentage =
 						totalCategoryVotes > 0
@@ -124,7 +124,7 @@ export function NomineeGrid({
 
 					return (
 						<div
-							key={nominee.id}
+							key={`${nominee.id}-${index}`}
 							className="group relative flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-4 transition-all duration-300 hover:border-primary/50 hover:shadow-lg shadow-xs"
 						>
 							<div

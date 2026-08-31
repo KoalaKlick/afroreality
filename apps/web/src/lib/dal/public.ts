@@ -104,6 +104,11 @@ export async function getPublicEventDetails(
 						contactEmail: true,
 						websiteUrl: true,
 						phone: true,
+						socialLinks: {
+							orderBy: {
+								createdAt: "asc",
+							},
+						},
 					},
 				},
 				ticketTypes: {
@@ -211,6 +216,11 @@ export async function getPublicCategoryDetails(
 						contactEmail: true,
 						websiteUrl: true,
 						phone: true,
+						socialLinks: {
+							orderBy: {
+								createdAt: "asc",
+							},
+						},
 					},
 				},
 				sponsors: {

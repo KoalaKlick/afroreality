@@ -89,7 +89,37 @@ export default async function PublicEventPage({
 	const votingCategories = event.votingCategories || [];
 	const sponsors = event.sponsors || [];
 	const galleryLinks = event.galleryLinks || [];
-	const socialLinks = event.socialLinks || [];
+	const eventSocialLinks = event.socialLinks || [];
+	const orgSocialLinks = organization.socialLinks || [];
+
+	// Merge event & organization social links so organizer handles repeat on the event page
+	const socialLinksMap = new Map<string, any>();
+	const normalizeUrl = (url: string) => {
+		try {
+			const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+			return (u.hostname + u.pathname).toLowerCase().replace(/\/$/, "");
+		} catch {
+			return url.toLowerCase().trim();
+		}
+	};
+
+	for (const link of eventSocialLinks) {
+		if (link.url) socialLinksMap.set(normalizeUrl(link.url), link);
+	}
+	for (const link of orgSocialLinks) {
+		if (link.url && !socialLinksMap.has(normalizeUrl(link.url))) {
+			socialLinksMap.set(normalizeUrl(link.url), link);
+		}
+	}
+	if (organization.websiteUrl && !socialLinksMap.has(normalizeUrl(organization.websiteUrl))) {
+		socialLinksMap.set(normalizeUrl(organization.websiteUrl), {
+			id: "org-website",
+			url: organization.websiteUrl,
+			platform: "Website",
+		});
+	}
+
+	const socialLinks = Array.from(socialLinksMap.values());
 
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
 
