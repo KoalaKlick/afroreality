@@ -135,7 +135,7 @@ export function EventSidebarCard({
 							<span className="truncate">{event.organization.name}</span>
 						</Link>
 
-						<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug">
+						<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug font-millik">
 							{event.title}
 						</h1>
 					</div>

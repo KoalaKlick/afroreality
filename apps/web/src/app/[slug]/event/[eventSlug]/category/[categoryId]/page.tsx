@@ -194,7 +194,7 @@ export default async function PublicCategoryPage({
 							)}
 						</div>
 
-						<h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight uppercase">
+						<h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight uppercase font-millik">
 							{category.name}
 						</h1>
 

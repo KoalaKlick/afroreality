@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CalendarDays } from "lucide-react";
 import { AfroTixLogo } from "@/components/shared/AfroTixLogo";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface EventCreationCTABannerProps {
 	readonly className?: string;
@@ -12,6 +13,7 @@ interface EventCreationCTABannerProps {
 
 export function EventCreationCTABanner({
 	className = "",
+	orgSlug,
 }: EventCreationCTABannerProps) {
 	return (
 		<footer className={`w-full ${className}`}>
@@ -24,52 +26,43 @@ export function EventCreationCTABanner({
 					aria-hidden="true"
 					className="absolute inset-0 w-full h-full object-cover object-center"
 				/>
-				{/* Subtle dark scrim so inner card pops */}
+				{/* Subtle dark scrim so inner Card pops */}
 				<div className="absolute inset-0 bg-black/40" />
 
-				{/* Inner white container — everything lives here */}
+				{/* Inner container — reusable Card holds everything */}
 				<div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="relative bg-background rounded-3xl shadow-2xl overflow-hidden min-h-[340px] sm:min-h-[380px]">
+					<Card className="relative overflow-hidden min-h-[340px] sm:min-h-[380px] rounded-3xl shadow-2xl gap-0 py-0">
 
-						{/* Left: Text content */}
+						{/* Left: Text + buttons */}
 						<div className="relative z-10 flex flex-col justify-center px-8 py-10 sm:px-12 sm:py-12 lg:px-16 max-w-xl space-y-5">
-							<h2 className="text-2xl sm:text-3xl md:text-[38px] font-black leading-tight tracking-tight text-foreground">
+							<h2 className="text-2xl sm:text-3xl md:text-[38px] font-black leading-tight tracking-tight text-foreground font-millik">
 								Ready to Create Your Next{" "}
-								<span
-									className="bg-clip-text text-transparent"
-									style={{
-										backgroundImage:
-											"linear-gradient(135deg, var(--color-brand-primary, #e05c00), var(--color-brand-secondary, #FFD100))",
-									}}
-								>
-									Unforgettable Event?
-								</span>
+								<span className="text-primary">Unforgettable Event?</span>
 							</h2>
 
-							<p className="text-muted-foreground text-sm sm:text-base font-medium leading-relaxed">
+							<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
 								Join thousands of event organizers who trust AfroReality to power
 								their events. Start free — no credit card required.
 							</p>
 
-							<div className="pt-1">
-								<Button
-									asChild
-									size="lg"
-									className="h-12 px-7 rounded-xl font-bold transition-all group gap-2 shadow-md hover:shadow-lg text-white"
-									style={{
-										background:
-											"linear-gradient(135deg, var(--color-brand-primary, #e05c00), var(--color-brand-secondary, #FFD100))",
-									}}
-								>
+							<div className="flex flex-wrap gap-3 pt-1">
+								<Button asChild size="lg" variant="default" className="group gap-2">
 									<Link href="/register">
 										<span>Create Your First Event</span>
 										<ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
 									</Link>
 								</Button>
+
+								<Button asChild size="lg" variant="outline" className="group gap-2">
+									<Link href={orgSlug ? `/${orgSlug}` : "/events"}>
+										<CalendarDays className="size-4" />
+										<span>See All Events</span>
+									</Link>
+								</Button>
 							</div>
 						</div>
 
-						{/* Right: 3 people images, absolutely positioned inside the white card */}
+						{/* Right: 3 people images absolutely inside the Card */}
 						<div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
 							{/* Person 3 – back (dancing woman) */}
 							<img
@@ -96,7 +89,7 @@ export function EventCreationCTABanner({
 								loading="lazy"
 							/>
 						</div>
-					</div>
+					</Card>
 				</div>
 			</div>
 
@@ -118,4 +111,3 @@ export function EventCreationCTABanner({
 		</footer>
 	);
 }
-

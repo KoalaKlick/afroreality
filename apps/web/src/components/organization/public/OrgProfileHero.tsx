@@ -100,7 +100,7 @@ export function OrgProfileHero({
 
 					{/* Stats & Actions */}
 					<div className="flex-1 space-y-2 text-center md:text-left">
-						<h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-foreground">
+						<h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-foreground font-millik">
 							{organization.name}
 						</h1>
 						<div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-muted-foreground font-medium">

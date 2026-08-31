@@ -144,7 +144,7 @@ export function EventHero({
 						</div>
 
 						{/* Event Title */}
-						<h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground leading-[1.1]">
+						<h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground leading-[1.1] font-millik">
 							{event.title}
 						</h1>
 

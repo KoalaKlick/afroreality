@@ -107,7 +107,7 @@ export function CategorySidebarCard({
 							)}
 						</div>
 
-						<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug">
+						<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug font-millik">
 							{category.name}
 						</h1>
 
