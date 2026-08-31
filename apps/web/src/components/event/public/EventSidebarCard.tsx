@@ -89,9 +89,9 @@ export function EventSidebarCard({
 				.join(", ") || "Location TBA";
 
 	return (
-		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col">
-			{/* Banner / Cover */}
-			<div className="relative h-44 w-full overflow-hidden bg-muted">
+		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">
+			{/* Banner / Cover - Stays Fixed */}
+			<div className="relative h-44 shrink-0 w-full overflow-hidden bg-muted">
 				{bannerImage ? (
 					<img
 						src={bannerImage}
@@ -114,74 +114,76 @@ export function EventSidebarCard({
 				</div>
 			</div>
 
-			{/* Info & Meta */}
-			<div className="p-6 space-y-6">
-				{/* Org Link & Event Title */}
-				<div className="space-y-2">
-					<Link
-						href={`/${orgSlug}`}
-						className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors group"
-					>
-						{logoImage ? (
-							<img
-								src={logoImage}
-								alt={event.organization.name}
-								className="size-4 rounded-full object-cover border"
-							/>
-						) : (
-							<Building2 className="size-3.5" />
+			{/* Info & Meta Header - Stays Fixed */}
+			<div className="p-6 flex flex-col flex-1 min-h-0 space-y-5 overflow-hidden">
+				<div className="space-y-3 shrink-0">
+					{/* Org Link & Event Title */}
+					<div className="space-y-2">
+						<Link
+							href={`/${orgSlug}`}
+							className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors group"
+						>
+							{logoImage ? (
+								<img
+									src={logoImage}
+									alt={event.organization.name}
+									className="size-4 rounded-full object-cover border"
+								/>
+							) : (
+								<Building2 className="size-3.5" />
+							)}
+							<span className="truncate">{event.organization.name}</span>
+						</Link>
+
+						<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug">
+							{event.title}
+						</h1>
+					</div>
+
+					{/* Event Meta Details */}
+					<div className="space-y-2 text-xs text-muted-foreground">
+						{formattedDate && (
+							<div className="flex items-center gap-2.5">
+								<Calendar className="size-3.5 text-primary shrink-0" />
+								<span>
+									{formattedDate} {formattedTime ? `at ${formattedTime}` : ""}
+								</span>
+							</div>
 						)}
-						<span className="truncate">{event.organization.name}</span>
-					</Link>
-
-					<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug">
-						{event.title}
-					</h1>
-				</div>
-
-				{/* Event Meta Details */}
-				<div className="space-y-2 text-xs text-muted-foreground">
-					{formattedDate && (
 						<div className="flex items-center gap-2.5">
-							<Calendar className="size-3.5 text-primary shrink-0" />
-							<span>
-								{formattedDate} {formattedTime ? `at ${formattedTime}` : ""}
-							</span>
+							{event.isVirtual ? (
+								<Globe className="size-3.5 text-primary shrink-0" />
+							) : (
+								<MapPin className="size-3.5 text-primary shrink-0" />
+							)}
+							<span className="truncate">{locationText}</span>
 						</div>
-					)}
-					<div className="flex items-center gap-2.5">
-						{event.isVirtual ? (
-							<Globe className="size-3.5 text-primary shrink-0" />
-						) : (
-							<MapPin className="size-3.5 text-primary shrink-0" />
-						)}
-						<span className="truncate">{locationText}</span>
 					</div>
 				</div>
 
-				<PanAfricanDivider />
+				<PanAfricanDivider className="shrink-0" />
 
-				{/* About Event */}
-				<div className="space-y-2.5">
-					<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
-						About the Event.
-					</h3>
-					<div className="text-xs text-muted-foreground leading-relaxed">
-						{event.description ? (
-							<RichTextDisplay content={event.description} />
-						) : (
-							<p className="italic text-muted-foreground/60">
-								No description provided for this event.
-							</p>
-						)}
+				{/* Scrollable Body: About Event, Socials, Galleries, Sponsors */}
+				<div className="flex-1 min-h-0 overflow-y-auto pr-1.5 space-y-5 custom-scrollbar">
+					{/* About Event */}
+					<div className="space-y-2">
+						<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
+							About the Event.
+						</h3>
+						<div className="text-xs text-muted-foreground leading-relaxed">
+							{event.description ? (
+								<RichTextDisplay content={event.description} />
+							) : (
+								<p className="italic text-muted-foreground/60">
+									No description provided for this event.
+								</p>
+							)}
+						</div>
 					</div>
-				</div>
 
-				{/* Event Social Links */}
-				{socialLinks.length > 0 && (
-					<>
-						<PanAfricanDivider />
-						<div className="space-y-2.5">
+					{/* Event Social Links */}
+					{socialLinks.length > 0 && (
+						<div className="space-y-2.5 pt-3 border-t border-dashed">
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
 								Event Socials.
 							</h3>
@@ -205,14 +207,11 @@ export function EventSidebarCard({
 								})}
 							</div>
 						</div>
-					</>
-				)}
+					)}
 
-				{/* Galleries */}
-				{galleryLinks.length > 0 && (
-					<>
-						<PanAfricanDivider />
-						<div className="space-y-2.5">
+					{/* Galleries */}
+					{galleryLinks.length > 0 && (
+						<div className="space-y-2.5 pt-3 border-t border-dashed">
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
 								<ImageIcon className="size-3.5 text-primary" />
 								<span>Galleries.</span>
@@ -242,14 +241,11 @@ export function EventSidebarCard({
 								})}
 							</div>
 						</div>
-					</>
-				)}
+					)}
 
-				{/* Sponsors */}
-				{sponsors.length > 0 && (
-					<>
-						<PanAfricanDivider />
-						<div className="space-y-2.5">
+					{/* Sponsors */}
+					{sponsors.length > 0 && (
+						<div className="space-y-2.5 pt-3 border-t border-dashed">
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
 								<Trophy className="size-3.5 text-primary" />
 								<span>Sponsors &amp; Partners.</span>
@@ -276,8 +272,8 @@ export function EventSidebarCard({
 								))}
 							</div>
 						</div>
-					</>
-				)}
+					)}
+				</div>
 			</div>
 		</div>
 	);

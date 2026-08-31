@@ -94,12 +94,12 @@ export function NomineeGrid({
 
 	return (
 		<>
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-				{nominees.map((nominee) => {
+			<div className="grid grid-cols-1 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
+				{nominees.concat(nominees).map((nominee) => {
 					return (
 						<div
 							key={nominee.id}
-							className="group relative flex flex-col justify-between rounded-2xl border bg-card p-4 transition-all duration-300 hover:border-primary/50"
+							className="group relative flex flex-col justify-between rounded-2xl border border-transparent bg-card p-4 transition-all duration-300 hover:border-primary/50"
 						>
 							<div
 								onClick={() => handleOpenSheet(nominee)}

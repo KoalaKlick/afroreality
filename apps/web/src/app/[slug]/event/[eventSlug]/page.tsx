@@ -167,11 +167,11 @@ export default async function PublicEventPage({
 
 	return (
 		<main
-			className="@container min-h-[100svh] @5xl:h-[100svh] @5xl:overflow-hidden bg-background text-foreground flex flex-col justify-between"
+			className="min-h-[100svh] xl:h-[100svh] xl:overflow-hidden bg-background text-foreground flex flex-col justify-between"
 			style={brandVars}
 		>
-			{/* Mobile / Tablet View (< 5xl) */}
-			<div className="flex flex-col @5xl:hidden flex-1">
+			{/* Mobile / Tablet View (< xl) */}
+			<div className="flex flex-col xl:hidden flex-1">
 				<EventHero
 					event={event as any}
 					orgSlug={orgSlug}
@@ -215,8 +215,8 @@ export default async function PublicEventPage({
 				/>
 			</div>
 
-			{/* Large Screen Container View (@5xl+) - Dual Independent Scroll Panes */}
-			<div className="hidden @5xl:flex flex-1 min-h-0 max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-5">
+			{/* Large Screen View (xl+) - Dual Independent Scroll Panes */}
+			<div className="hidden xl:flex flex-1 min-h-0 max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-5">
 				<div className="grid grid-cols-12 gap-8 h-full min-h-0 w-full items-stretch">
 					{/* Left Column: Independent Scrollable Sidebar Panel */}
 					<aside className="col-span-4 h-full min-h-0 overflow-y-auto pr-1">

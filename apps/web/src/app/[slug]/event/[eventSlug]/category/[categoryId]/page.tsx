@@ -124,13 +124,28 @@ export default async function PublicCategoryPage({
 		/>
 	);
 
+	const heroImg = getEventImageUrl(
+		category.templateImage || event.flierUrl || event.bannerUrl || (event as any).flierImage
+	);
+
 	return (
 		<main
-			className="@container min-h-[100svh] @5xl:h-[100svh] @5xl:overflow-hidden bg-background text-foreground flex flex-col justify-between"
+			className="min-h-[100svh] xl:h-[100svh] xl:overflow-hidden bg-background text-foreground flex flex-col justify-between"
 			style={brandVars}
 		>
-			{/* Mobile / Tablet View (< 5xl) */}
-			<div className="flex flex-col @5xl:hidden flex-1">
+			{/* Mobile / Tablet View (< xl) */}
+			<div className="flex flex-col xl:hidden flex-1 @container/content">
+				{heroImg && (
+					<div className="relative h-48 sm:h-64 w-full overflow-hidden bg-muted">
+						<img
+							src={heroImg}
+							alt={category.name}
+							className="w-full h-full object-cover"
+						/>
+						<div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+					</div>
+				)}
+
 				<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs">
 						<div className="flex items-center gap-2 truncate">
@@ -336,8 +351,8 @@ export default async function PublicCategoryPage({
 				</Section>
 			</div>
 
-			{/* Large Screen Container View (@5xl+) - Dual Independent Scroll Panes */}
-			<div className="hidden @5xl:flex flex-1 min-h-0 max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-5">
+			{/* Large Screen View (xl+) - Dual Independent Scroll Panes */}
+			<div className="hidden xl:flex flex-1 min-h-0 max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-5">
 				<div className="grid grid-cols-12 gap-8 h-full min-h-0 w-full items-stretch">
 					{/* Left Column: Independent Scrollable Category Info Panel */}
 					<aside className="col-span-4 h-full min-h-0 overflow-y-auto pr-1">
@@ -353,7 +368,7 @@ export default async function PublicCategoryPage({
 					</aside>
 
 					{/* Right Column: Independent Scrollable Nominees Feed */}
-					<div className="col-span-8 h-full min-h-0 overflow-y-auto pr-1 space-y-6">
+					<div className="col-span-8 h-full min-h-0 overflow-y-auto pr-1 space-y-6 @container/content">
 						<div
 							className="rounded-2xl border bg-card p-8 transition-colors"
 							style={{

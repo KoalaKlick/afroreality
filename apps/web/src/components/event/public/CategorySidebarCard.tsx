@@ -63,13 +63,15 @@ export function CategorySidebarCard({
 }: CategorySidebarCardProps) {
 	const isInternalVoting = event.votingMode === "internal";
 	const orgLogo = getOrgImageUrl(event.organization.logoUrl);
-	const templateImg = getEventImageUrl(category.templateImage || event.flierUrl);
+	const templateImg = getEventImageUrl(
+		category.templateImage || event.flierUrl || event.bannerUrl || (event as any).flierImage
+	);
 
 	return (
-		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col">
-			{/* Template / Cover Header */}
+		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">
+			{/* Template / Cover Header - Stays Fixed */}
 			{templateImg && (
-				<div className="relative h-36 w-full overflow-hidden bg-muted">
+				<div className="relative h-36 shrink-0 w-full overflow-hidden bg-muted">
 					<img
 						src={templateImg}
 						alt={category.name}
@@ -78,9 +80,9 @@ export function CategorySidebarCard({
 				</div>
 			)}
 
-			<div className="p-6 space-y-6">
-				{/* Back link & Event context */}
-				<div className="space-y-3">
+			<div className="p-6 flex flex-col flex-1 min-h-0 space-y-5 overflow-hidden">
+				{/* Back link & Event context - Stays Fixed */}
+				<div className="space-y-3 shrink-0">
 					<Button asChild variant="ghost" size="sm" className="h-8 -ml-2 gap-1.5 text-xs">
 						<Link href={`/${orgSlug}/event/${eventSlug}`}>
 							<ArrowLeft className="size-3.5" /> Back to Event
@@ -117,7 +119,7 @@ export function CategorySidebarCard({
 								<img
 									src={orgLogo}
 									alt={event.organization.name}
-									className="size-3.5 rounded-full object-cover"
+									className="size-3.5 rounded-full object-cover border"
 								/>
 							) : (
 								<Building2 className="size-3" />
@@ -127,29 +129,29 @@ export function CategorySidebarCard({
 					</div>
 				</div>
 
-				<PanAfricanDivider />
+				<PanAfricanDivider className="shrink-0" />
 
-				{/* About Category */}
-				<div className="space-y-2.5">
-					<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
-						About Category.
-					</h3>
-					<div className="text-xs text-muted-foreground leading-relaxed">
-						{category.description ? (
-							<RichTextDisplay content={category.description} />
-						) : (
-							<p className="italic text-muted-foreground/60">
-								Vote for your favorite candidate or submit an exceptional nominee to win!
-							</p>
-						)}
+				{/* Scrollable Body: About Category, Socials, Sponsors */}
+				<div className="flex-1 min-h-0 overflow-y-auto pr-1.5 space-y-5 custom-scrollbar">
+					{/* About Category */}
+					<div className="space-y-2">
+						<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
+							About Category.
+						</h3>
+						<div className="text-xs text-muted-foreground leading-relaxed">
+							{category.description ? (
+								<RichTextDisplay content={category.description} />
+							) : (
+								<p className="italic text-muted-foreground/60">
+									Vote for your favorite candidate or submit an exceptional nominee to win!
+								</p>
+							)}
+						</div>
 					</div>
-				</div>
 
-				{/* Event Socials */}
-				{socialLinks.length > 0 && (
-					<>
-						<PanAfricanDivider />
-						<div className="space-y-2.5">
+					{/* Event Socials */}
+					{socialLinks.length > 0 && (
+						<div className="space-y-2.5 pt-3 border-t border-dashed">
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
 								Event Socials.
 							</h3>
@@ -173,14 +175,11 @@ export function CategorySidebarCard({
 								})}
 							</div>
 						</div>
-					</>
-				)}
+					)}
 
-				{/* Sponsors */}
-				{sponsors.length > 0 && (
-					<>
-						<PanAfricanDivider />
-						<div className="space-y-2.5">
+					{/* Sponsors */}
+					{sponsors.length > 0 && (
+						<div className="space-y-2.5 pt-3 border-t border-dashed">
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
 								<Trophy className="size-3.5 text-primary" />
 								<span>Sponsors.</span>
@@ -207,8 +206,8 @@ export function CategorySidebarCard({
 								))}
 							</div>
 						</div>
-					</>
-				)}
+					)}
+				</div>
 			</div>
 		</div>
 	);
