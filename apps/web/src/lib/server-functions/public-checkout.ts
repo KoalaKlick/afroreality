@@ -37,321 +37,374 @@ export async function initiatePublicTicketCheckout({
 }: {
 	data: PublicTicketCheckoutInput;
 }) {
-	const { eventId, ticketTypeId, quantity, buyerName, buyerEmail, buyerPhone } =
-		data;
+	try {
+		const { eventId, ticketTypeId, quantity, buyerName, buyerEmail, buyerPhone } =
+			data;
 
-	if (!buyerName || !buyerEmail || quantity < 1) {
-		throw new Error("Missing required checkout information.");
-	}
-
-	const ticketType = await prisma.ticketType.findUnique({
-		where: { id: ticketTypeId },
-		include: {
-			event: {
-				include: { organization: true },
-			},
-		},
-	});
-
-	if (!ticketType || ticketType.eventId !== eventId) {
-		throw new Error("Ticket type not found.");
-	}
-
-	if (ticketType.status !== "available") {
-		throw new Error("This ticket tier is currently not available for purchase.");
-	}
-
-	if (
-		ticketType.quantityTotal &&
-		ticketType.quantitySold + quantity > ticketType.quantityTotal
-	) {
-		throw new Error("Sorry, not enough tickets available in this tier.");
-	}
-
-	const unitPrice = Number(ticketType.price);
-	const totalAmount = unitPrice * quantity;
-	const isFree = totalAmount === 0;
-
-	const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-
-	// Create Ticket Order
-	const order = await prisma.ticketOrder.create({
-		data: {
-			orderNumber,
-			eventId,
-			buyerName,
-			buyerPhone,
-			subtotal: totalAmount,
-			discountAmount: 0,
-			fees: 0,
-			status: isFree ? "completed" : "pending",
-		},
-	});
-
-	if (isFree) {
-		// Generate Tickets immediately
-		const tickets = [];
-		for (let i = 0; i < quantity; i++) {
-			const ticketCode = `TIX-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-			const ticket = await prisma.ticket.create({
-				data: {
-					orderId: order.id,
-					ticketTypeId,
-					eventId,
-					ticketCode,
-					attendeeName: buyerName,
-					attendeeEmail: buyerEmail,
-					attendeePhone: buyerPhone,
-					checkInStatus: "not_checked_in",
-				},
-			});
-
-			const token = createTicketToken(ticket.id, ticket.ticketCode);
-			tickets.push({
-				id: ticket.id,
-				ticketCode: ticket.ticketCode,
-				token,
-			});
+		if (!buyerName || !buyerEmail || quantity < 1) {
+			return {
+				success: false,
+				error: "Missing required checkout information.",
+			};
 		}
 
-		// Increment sold count
-		await prisma.ticketType.update({
+		const ticketType = await prisma.ticketType.findUnique({
 			where: { id: ticketTypeId },
-			data: {
-				quantitySold: { increment: quantity },
+			include: {
+				event: {
+					include: { organization: true },
+				},
 			},
 		});
 
-		
+		if (!ticketType || ticketType.eventId !== eventId) {
+			return {
+				success: false,
+				error: "Ticket tier not found for this event.",
+			};
+		}
+
+		if (ticketType.status !== "available") {
+			return {
+				success: false,
+				error: "This ticket tier is currently not available for purchase.",
+			};
+		}
+
+		if (
+			ticketType.quantityTotal &&
+			ticketType.quantitySold + quantity > ticketType.quantityTotal
+		) {
+			return {
+				success: false,
+				error: "Sorry, not enough tickets available in this tier.",
+			};
+		}
+
+		const unitPrice = Number(ticketType.price);
+		const totalAmount = unitPrice * quantity;
+		const isFree = totalAmount === 0;
+
+		const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+		// Create Ticket Order
+		const order = await prisma.ticketOrder.create({
+			data: {
+				orderNumber,
+				eventId,
+				buyerName,
+				buyerPhone,
+				subtotal: totalAmount,
+				discountAmount: 0,
+				fees: 0,
+				status: isFree ? "completed" : "pending",
+			},
+		});
+
+		if (isFree) {
+			// Generate Tickets immediately
+			const tickets = [];
+			for (let i = 0; i < quantity; i++) {
+				const ticketCode = `TIX-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+				const ticket = await prisma.ticket.create({
+					data: {
+						orderId: order.id,
+						ticketTypeId,
+						eventId,
+						ticketCode,
+						attendeeName: buyerName,
+						attendeeEmail: buyerEmail,
+						attendeePhone: buyerPhone,
+						checkInStatus: "not_checked_in",
+					},
+				});
+
+				const token = createTicketToken(ticket.id, ticket.ticketCode);
+				tickets.push({
+					id: ticket.id,
+					ticketCode: ticket.ticketCode,
+					token,
+				});
+			}
+
+			// Increment sold count
+			await prisma.ticketType.update({
+				where: { id: ticketTypeId },
+				data: {
+					quantitySold: { increment: quantity },
+				},
+			});
+
+			return {
+				success: true,
+				isFree: true,
+				orderId: order.id,
+				orderNumber,
+				tickets,
+				viewUrl: `/ticket/view?token=${tickets[0]?.token}`,
+			};
+		}
+
+		// Paid Ticket: Initialize Paystack Transaction
+		const callbackUrl = `${
+			process.env.NEXT_PUBLIC_APP_URL ||
+			process.env.NEXT_PUBLIC_DOMAIN_URL ||
+			"https://afroreality.com"
+		}/payment/callback`;
+
+		const paystackRes = await paystack.transaction.initialize({
+			email: buyerEmail,
+			amount: Math.round(totalAmount * 100),
+			currency: ticketType.currency || "GHS",
+			callback_url: callbackUrl,
+			metadata: {
+				purpose: "ticket_purchase",
+				orderId: order.id,
+				orderNumber,
+				eventId,
+				ticketTypeId,
+				quantity,
+				buyerName,
+				buyerEmail,
+				buyerPhone,
+				orgSlug: ticketType.event.organization.slug,
+				eventSlug: ticketType.event.slug,
+			},
+		});
+
+		if (!paystackRes?.status || !paystackRes?.data) {
+			return {
+				success: false,
+				error:
+					paystackRes?.message ||
+					"Failed to initialize payment gateway. Please ensure payment settings are configured.",
+			};
+		}
 
 		return {
 			success: true,
-			isFree: true,
+			isFree: false,
 			orderId: order.id,
 			orderNumber,
-			tickets,
-			viewUrl: `/ticket/view?token=${tickets[0]?.token}`,
+			authorizationUrl: paystackRes.data.authorization_url,
+			accessCode: paystackRes.data.access_code,
+			reference: paystackRes.data.reference,
+		};
+	} catch (err: any) {
+		console.error("Public Ticket Checkout Error:", err);
+		return {
+			success: false,
+			error: err.message || "An unexpected error occurred during ticket checkout.",
 		};
 	}
-
-	// Paid Ticket: Initialize Paystack Transaction
-	const callbackUrl = `${
-		process.env.NEXT_PUBLIC_APP_URL ||
-		process.env.NEXT_PUBLIC_DOMAIN_URL ||
-		"https://afroreality.com"
-	}/payment/callback`;
-
-	const paystackRes = await paystack.transaction.initialize({
-		email: buyerEmail,
-		amount: Math.round(totalAmount * 100),
-		currency: ticketType.currency || "GHS",
-		callback_url: callbackUrl,
-		metadata: {
-			purpose: "ticket_purchase",
-			orderId: order.id,
-			orderNumber,
-			eventId,
-			ticketTypeId,
-			quantity,
-			buyerName,
-			buyerEmail,
-			buyerPhone,
-			orgSlug: ticketType.event.organization.slug,
-			eventSlug: ticketType.event.slug,
-		},
-	});
-
-	if (!paystackRes.status || !paystackRes.data) {
-		throw new Error(
-			paystackRes.message || "Failed to initialize secure payment gateway.",
-		);
-	}
-
-	return {
-		success: true,
-		isFree: false,
-		orderId: order.id,
-		orderNumber,
-		authorizationUrl: paystackRes.data.authorization_url,
-		accessCode: paystackRes.data.access_code,
-		reference: paystackRes.data.reference,
-	};
 }
 
 /**
  * 2. Public / Internal Voting Checkout
  */
 export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
-	const {
-		eventId,
-		categoryId,
-		optionId,
-		voteCount = 1,
-		voterEmail,
-		voterPhone,
-		voterKey,
-	} = data;
+	try {
+		const {
+			eventId,
+			categoryId,
+			optionId,
+			voteCount = 1,
+			voterEmail,
+			voterPhone,
+			voterKey,
+		} = data;
 
-	const category = await prisma.votingCategory.findUnique({
-		where: { id: categoryId },
-		include: {
-			event: {
-				include: { organization: true },
+		if (!eventId || !categoryId || !optionId) {
+			return {
+				success: false,
+				error: "Missing required voting parameters.",
+			};
+		}
+
+		const category = await prisma.votingCategory.findUnique({
+			where: { id: categoryId },
+			include: {
+				event: {
+					include: { organization: true },
+				},
+				votingOptions: {
+					where: { id: optionId },
+				},
 			},
-			votingOptions: {
+		});
+
+		if (!category || category.eventId !== eventId) {
+			return {
+				success: false,
+				error: "Voting category not found.",
+			};
+		}
+
+		const nominee = category.votingOptions[0];
+		if (!nominee) {
+			return {
+				success: false,
+				error: "Nominee not found in this category.",
+			};
+		}
+
+		const isInternalVoting =
+			(category.event as any).votingMode === "internal" || !!voterKey;
+
+		if (isInternalVoting) {
+			if (!voterKey) {
+				return {
+					success: false,
+					error: "Confidential voter key is required for internal voting.",
+				};
+			}
+
+			// Verify member voter key
+			const member = await prisma.eventMember.findFirst({
+				where: {
+					eventId,
+					uniqueCode: voterKey.toUpperCase().trim(),
+				},
+			});
+
+			if (!member) {
+				return {
+					success: false,
+					error: "Invalid or unrecognized voter key.",
+				};
+			}
+
+			// Check if member already voted in this category
+			const existingVote = await prisma.vote.findFirst({
+				where: {
+					categoryId,
+					eventMemberId: member.id,
+				},
+			});
+
+			if (existingVote) {
+				return {
+					success: false,
+					error: "You have already cast your ballot for this category.",
+				};
+			}
+
+			// Record Ballot
+			await prisma.vote.create({
+				data: {
+					eventId,
+					categoryId,
+					optionId,
+					eventMemberId: member.id,
+					voteCount: 1,
+				},
+			});
+
+			await prisma.votingOption.update({
 				where: { id: optionId },
-			},
-		},
-	});
+				data: {
+					votesCount: { increment: 1 },
+				},
+			});
 
-	if (!category || category.eventId !== eventId) {
-		throw new Error("Voting category not found.");
-	}
+			await prisma.eventMember.update({
+				where: { id: member.id },
+				data: { status: "voted" },
+			});
 
-	const nominee = category.votingOptions[0];
-	if (!nominee) {
-		throw new Error("Nominee not found in this category.");
-	}
-
-	const isInternalVoting =
-		(category.event as any).votingMode === "internal" || !!voterKey;
-
-	if (isInternalVoting) {
-		if (!voterKey) {
-			throw new Error("Confidential voter key is required for internal voting.");
+			return {
+				success: true,
+				isInternal: true,
+				message: "Ballot cast successfully.",
+			};
 		}
 
-		// Verify member voter key
-		const member = await prisma.eventMember.findFirst({
-			where: {
-				eventId,
-				uniqueCode: voterKey.toUpperCase().trim(),
-			},
-		});
+		// General Voting: Free or Paid
+		const votePrice = Number(category.votePrice || 0);
+		const totalAmount = votePrice * voteCount;
+		const isFree = totalAmount === 0;
 
-		if (!member) {
-			throw new Error("Invalid or unrecognized voter key.");
+		if (isFree) {
+			await prisma.vote.create({
+				data: {
+					eventId,
+					categoryId,
+					optionId,
+					voteCount,
+					voterEmail,
+					voterPhone,
+				},
+			});
+
+			await prisma.votingOption.update({
+				where: { id: optionId },
+				data: {
+					votesCount: { increment: voteCount },
+				},
+			});
+
+			return {
+				success: true,
+				isFree: true,
+				message: `${voteCount} free vote(s) cast successfully.`,
+			};
 		}
 
-		// Check if member already voted in this category
-		const existingVote = await prisma.vote.findFirst({
-			where: {
-				categoryId,
-				eventMemberId: member.id,
-			},
-		});
-
-		if (existingVote) {
-			throw new Error("You have already cast your ballot for this category.");
+		// Paid Vote: Initialize Paystack
+		if (!voterEmail) {
+			return {
+				success: false,
+				error: "Email is required for payment receipt.",
+			};
 		}
 
-		// Record Ballot
-		await prisma.vote.create({
-			data: {
-				eventId,
-				categoryId,
-				optionId,
-				eventMemberId: member.id,
-				voteCount: 1,
-			},
-		});
+		const callbackUrl = `${
+			process.env.NEXT_PUBLIC_APP_URL ||
+			process.env.NEXT_PUBLIC_DOMAIN_URL ||
+			"https://afroreality.com"
+		}/payment/callback`;
 
-		await prisma.votingOption.update({
-			where: { id: optionId },
-			data: {
-				votesCount: { increment: 1 },
-			},
-		});
-
-		await prisma.eventMember.update({
-			where: { id: member.id },
-			data: { status: "voted" },
-		});
-
-		
-
-		return {
-			success: true,
-			isInternal: true,
-			message: "Ballot cast successfully.",
-		};
-	}
-
-	// General Voting: Free or Paid
-	const votePrice = Number(category.votePrice || 0);
-	const totalAmount = votePrice * voteCount;
-	const isFree = totalAmount === 0;
-
-	if (isFree) {
-		await prisma.vote.create({
-			data: {
+		const paystackRes = await paystack.transaction.initialize({
+			email: voterEmail,
+			amount: Math.round(totalAmount * 100),
+			currency: "GHS",
+			callback_url: callbackUrl,
+			metadata: {
+				purpose: "vote_purchase",
 				eventId,
 				categoryId,
 				optionId,
 				voteCount,
 				voterEmail,
 				voterPhone,
+				orgSlug: category.event.organization.slug,
+				eventSlug: category.event.slug,
 			},
 		});
 
-		await prisma.votingOption.update({
-			where: { id: optionId },
-			data: {
-				votesCount: { increment: voteCount },
-			},
-		});
-
-		
+		if (!paystackRes?.status || !paystackRes?.data) {
+			return {
+				success: false,
+				error:
+					paystackRes?.message ||
+					"Failed to initialize payment gateway. Please ensure payment settings are configured.",
+			};
+		}
 
 		return {
 			success: true,
-			isFree: true,
-			message: `${voteCount} free vote(s) cast successfully.`,
+			isPaid: true,
+			authorizationUrl: paystackRes.data.authorization_url,
+			accessCode: paystackRes.data.access_code,
+			reference: paystackRes.data.reference,
+		};
+	} catch (err: any) {
+		console.error("Public Vote Error:", err);
+		return {
+			success: false,
+			error: err.message || "An unexpected error occurred during vote checkout.",
 		};
 	}
-
-	// Paid Vote: Initialize Paystack
-	if (!voterEmail) {
-		throw new Error("Email is required for payment receipt.");
-	}
-
-	const callbackUrl = `${
-		process.env.NEXT_PUBLIC_APP_URL ||
-		process.env.NEXT_PUBLIC_DOMAIN_URL ||
-		"https://afroreality.com"
-	}/payment/callback`;
-
-	const paystackRes = await paystack.transaction.initialize({
-		email: voterEmail,
-		amount: Math.round(totalAmount * 100),
-		currency: "GHS",
-		callback_url: callbackUrl,
-		metadata: {
-			purpose: "vote_purchase",
-			eventId,
-			categoryId,
-			optionId,
-			voteCount,
-			voterEmail,
-			voterPhone,
-			orgSlug: category.event.organization.slug,
-			eventSlug: category.event.slug,
-		},
-	});
-
-	if (!paystackRes.status || !paystackRes.data) {
-		throw new Error(
-			paystackRes.message || "Failed to initialize payment gateway.",
-		);
-	}
-
-	return {
-		success: true,
-		isPaid: true,
-		authorizationUrl: paystackRes.data.authorization_url,
-		accessCode: paystackRes.data.access_code,
-		reference: paystackRes.data.reference,
-	};
 }
 
 /**

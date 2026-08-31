@@ -95,7 +95,7 @@ export function NomineeGrid({
 	return (
 		<>
 			<div className="grid grid-cols-1 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
-				{nominees.concat(nominees).map((nominee) => {
+				{nominees.map((nominee) => {
 					return (
 						<div
 							key={nominee.id}

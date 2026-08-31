@@ -121,6 +121,12 @@ export function VotePaymentModal({
 				},
 			});
 
+			if (!result || !result.success) {
+				setStep("error");
+				setErrorMsg(result?.error || "Failed to submit vote. Please try again.");
+				return;
+			}
+
 			if (result.isInternal || result.isFree) {
 				setStep("success");
 				toast.success("Vote cast successfully!");
@@ -128,11 +134,12 @@ export function VotePaymentModal({
 			} else if (result.authorizationUrl) {
 				window.location.href = result.authorizationUrl;
 			} else {
-				throw new Error("Unable to complete vote.");
+				setStep("error");
+				setErrorMsg("Unable to redirect to payment gateway.");
 			}
 		} catch (err: any) {
 			setStep("error");
-			setErrorMsg(err.message || "Failed to submit vote. Please try again.");
+			setErrorMsg(err?.message || "Failed to submit vote. Please try again.");
 		} finally {
 			setLoading(false);
 		}
