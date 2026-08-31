@@ -32,6 +32,7 @@ interface PublicRegistrationFormProps {
 	readonly orgSlug: string;
 	readonly eventSlug: string;
 	readonly trigger?: React.ReactNode;
+	readonly brandVars?: React.CSSProperties;
 }
 
 export function PublicRegistrationForm({
@@ -40,6 +41,7 @@ export function PublicRegistrationForm({
 	orgSlug,
 	eventSlug,
 	trigger,
+	brandVars,
 }: PublicRegistrationFormProps) {
 	const [open, setOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
@@ -108,7 +110,10 @@ export function PublicRegistrationForm({
 				)}
 			</SheetTrigger>
 
-			<SheetContent className="sm:max-w-md p-6 overflow-y-auto">
+			<SheetContent
+				className="sm:max-w-md p-6 overflow-y-auto"
+				style={brandVars}
+			>
 				<SheetHeader>
 					<SheetTitle className="text-lg font-bold">
 						Register for Event

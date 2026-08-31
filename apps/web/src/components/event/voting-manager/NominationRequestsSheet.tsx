@@ -10,6 +10,7 @@ import { Check, X, User, Mail, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { approveNomination, rejectNomination } from "@/lib/server-functions/voting-options";
 import { getEventImageUrl } from "@/lib/image-url-utils";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { getErrorMessage, formatDate } from "@/lib/utils";
 
 export interface NominationOption {
@@ -169,9 +170,10 @@ export function NominationRequestsSheet({
 								</div>
 
 								{option.description && (
-									<p className="text-sm text-muted-foreground line-clamp-2">
-										{option.description}
-									</p>
+									<RichTextDisplay
+										content={option.description}
+										className="text-sm text-muted-foreground line-clamp-2"
+									/>
 								)}
 
 								<div className="flex items-center gap-4 text-xs text-muted-foreground">

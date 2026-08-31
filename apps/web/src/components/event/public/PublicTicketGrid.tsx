@@ -104,6 +104,12 @@ export function PublicTicketGrid({
   const orgSecondary =
     organization.secondaryColor || "var(--color-brand-tertiary)";
 
+  const brandVars = {
+    "--color-brand-primary": organization.primaryColor || "#009A44",
+    "--color-brand-secondary": organization.secondaryColor || "#FFD100",
+    "--color-brand-tertiary": (organization as any).tertiaryColor || "#EF3340",
+  } as React.CSSProperties;
+
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-2">
@@ -174,7 +180,10 @@ export function PublicTicketGrid({
           if (!open) setSelectedTicket(null);
         }}
       >
-        <SheetContent className="flex h-full w-full flex-col gap-0 p-0 sm:max-w-lg">
+        <SheetContent
+          className="flex h-full w-full flex-col gap-0 p-0 sm:max-w-lg"
+          style={brandVars}
+        >
           {selectedTicket && (
             <>
               <SheetHeader className="border-b px-6 py-4">
@@ -307,6 +316,8 @@ export function PublicTicketGrid({
           orgSlug,
           eventSlug,
         }}
+        organization={organization}
+        brandVars={brandVars}
       />
     </>
   );

@@ -7,6 +7,7 @@ import { Section } from "@/components/Landing/shared/Section";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
 import { getEventImageUrl } from "@/lib/image-url-utils";
+import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 interface EventVotingCategoriesProps {
 	readonly categories: any[];
@@ -71,9 +72,10 @@ export function EventVotingCategories({
 									</div>
 
 									{!category.templateImage && category.description && (
-										<p className="text-sm text-muted-foreground line-clamp-2 mb-6">
-											{category.description}
-										</p>
+										<RichTextDisplay
+											content={category.description}
+											className="text-sm text-muted-foreground line-clamp-2 mb-6"
+										/>
 									)}
 
 									<div className="mt-auto pt-4">

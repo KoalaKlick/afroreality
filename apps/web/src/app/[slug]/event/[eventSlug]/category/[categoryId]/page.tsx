@@ -117,6 +117,7 @@ export default async function PublicCategoryPage({
 			}}
 			eventId={event.id}
 			votingMode={event.votingMode || "general"}
+			brandVars={brandVars}
 			orgSlug={orgSlug}
 			eventSlug={eventSlug}
 		/>
