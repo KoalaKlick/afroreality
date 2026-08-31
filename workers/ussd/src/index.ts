@@ -659,6 +659,10 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 		if (match) {
 			return match[1];
 		}
+		if (cleaned.startsWith("*")) {
+			const parts = cleaned.split("*").filter(Boolean);
+			if (parts.length > 0) return parts[parts.length - 1] || "";
+		}
 	}
 	return cleaned;
 }
