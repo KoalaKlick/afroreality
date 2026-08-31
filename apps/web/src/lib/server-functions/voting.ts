@@ -3,6 +3,7 @@ import { prisma } from '@repo/db';
 import { revalidatePath } from 'next/cache';
 import { requireSession } from '../session';
 import { serializeJsonSafe } from '../utils';
+import { MIN_VOTE_PRICE } from '../constants/pricing';
 
 export async function getVotingCategories({ data }: { data: { eventId: string } }): Promise<any[]> {
   await requireSession();
@@ -23,6 +24,17 @@ export async function getVotingCategories({ data }: { data: { eventId: string } 
 
 export async function createVotingCategory({ data }: { data: any }): Promise<any> {
   await requireSession();
+
+  // Enforce minimum vote price for general (non-internal) voting
+  const isInternal = data.votingMode === 'internal';
+  const votePriceNum = Number(data.votePrice) || 0;
+  if (!isInternal && votePriceNum < MIN_VOTE_PRICE) {
+    throw new Error(`General voting requires a minimum vote price of ${MIN_VOTE_PRICE} GHS`);
+  }
+  if (votePriceNum > 0 && votePriceNum < MIN_VOTE_PRICE) {
+    throw new Error(`Vote price must be at least ${MIN_VOTE_PRICE} GHS`);
+  }
+
   const category = await prisma.votingCategory.create({
     data: {
       eventId: data.eventId,
@@ -49,7 +61,19 @@ export async function createVotingCategory({ data }: { data: any }): Promise<any
 
 export async function updateVotingCategory({ data }: { data: any }): Promise<any> {
   await requireSession();
-  const { id, eventId, ...rest } = data;
+  const { id, eventId, votingMode, ...rest } = data;
+
+  // Enforce minimum vote price for general (non-internal) voting
+  if (rest.votePrice !== undefined) {
+    const votePriceNum = Number(rest.votePrice) || 0;
+    const isInternal = votingMode === 'internal';
+    if (!isInternal && votePriceNum < MIN_VOTE_PRICE) {
+      throw new Error(`General voting requires a minimum vote price of ${MIN_VOTE_PRICE} GHS`);
+    }
+    if (votePriceNum > 0 && votePriceNum < MIN_VOTE_PRICE) {
+      throw new Error(`Vote price must be at least ${MIN_VOTE_PRICE} GHS`);
+    }
+  }
 
   const updateData: any = {};
   if (rest.name !== undefined) updateData.name = rest.name.trim();

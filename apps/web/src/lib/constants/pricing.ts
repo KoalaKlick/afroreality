@@ -137,14 +137,14 @@ export interface PricingDefaults {
 export const MIN_PRICING: PricingDefaults = {
 	vote: 0.5,
 	nomination: 0.0,
-	ticket: 0,
+	ticket: 1,
 	paidTicket: 1.0,
 };
 
 export const DEFAULT_PRICING: PricingDefaults = {
 	vote: 0.5,
 	nomination: 2.0,
-	ticket: 0,
+	ticket: 1,
 };
 
 export const MIN_VOTE_PRICE: number = MIN_PRICING.vote;

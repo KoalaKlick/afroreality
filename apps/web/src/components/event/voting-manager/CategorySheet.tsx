@@ -24,6 +24,7 @@ import {
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { getErrorMessage, cn } from "@/lib/utils";
+import { MIN_VOTE_PRICE, DEFAULT_VOTE_PRICE } from "@/lib/constants/pricing";
 
 export interface CategoryItem {
 	id: string;
@@ -86,7 +87,7 @@ export function CategorySheet({
 		name: "",
 		description: "",
 		templateImage: "" as string | null,
-		votePrice: isInternal ? 0 : 0,
+		votePrice: isInternal ? 0 : DEFAULT_VOTE_PRICE,
 		nominationPrice: 0,
 		maxVotesPerUser: isInternal ? 1 : 10,
 		allowPublicNomination: false,
@@ -136,7 +137,7 @@ export function CategorySheet({
 				name: "",
 				description: "",
 				templateImage: null,
-				votePrice: 0,
+				votePrice: isInternal ? 0 : DEFAULT_VOTE_PRICE,
 				nominationPrice: 0,
 				maxVotesPerUser: isInternal ? 1 : 10,
 				allowPublicNomination: false,
@@ -169,6 +170,13 @@ export function CategorySheet({
 		const votePriceNum = isInternal ? 0 : Math.max(0, Number(formData.votePrice) || 0);
 		const nomPriceNum = isInternal ? 0 : Math.max(0, Number(formData.nominationPrice) || 0);
 
+		if (!isInternal && votePriceNum < MIN_VOTE_PRICE) {
+			toast.error(
+				`General voting requires a minimum vote price of ${MIN_VOTE_PRICE.toFixed(2)} GHS`,
+			);
+			return;
+		}
+
 		startTransition(async () => {
 			try {
 				const existingTemplateConfig = editingCategory?.templateConfig || {};
@@ -193,6 +201,7 @@ export function CategorySheet({
 							showTotalVotesPublicly: formData.showTotalVotesPublicly,
 							showFinalImage: formData.showFinalImage,
 							nominationDeadline: formData.nominationDeadline || null,
+							votingMode: isInternal ? "internal" : "general",
 						},
 					});
 					toast.success("Category updated successfully");
@@ -212,6 +221,7 @@ export function CategorySheet({
 							showTotalVotesPublicly: formData.showTotalVotesPublicly,
 							showFinalImage: formData.showFinalImage,
 							nominationDeadline: formData.nominationDeadline || undefined,
+							votingMode: isInternal ? "internal" : "general",
 						},
 					});
 					toast.success("Category created successfully");
@@ -344,8 +354,8 @@ export function CategorySheet({
 										id="vote-price"
 										type="number"
 										step="0.01"
-										min="0"
-										placeholder="0.00 (Leave 0 for Free voting)"
+										min={MIN_VOTE_PRICE}
+										placeholder={`${MIN_VOTE_PRICE.toFixed(2)} (minimum for general voting)`}
 										value={formData.votePrice}
 										onChange={(e) =>
 											setFormData((prev) => ({
@@ -355,7 +365,7 @@ export function CategorySheet({
 										}
 									/>
 									<p className="text-xs text-muted-foreground">
-										Set to 0 to allow audience to vote for free.
+										Minimum {MIN_VOTE_PRICE.toFixed(2)} GHS for general/public voting.
 									</p>
 								</div>
 							)}

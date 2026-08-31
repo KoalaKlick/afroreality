@@ -43,6 +43,7 @@ import { getErrorMessage } from "@/lib/utils";
 import {
 	DEFAULT_TICKET_PRICE,
 	MIN_TICKET_PRICE,
+	MIN_PAID_TICKET_PRICE,
 } from "@/lib/constants/pricing";
 
 export interface TicketTypeItem {
@@ -150,6 +151,12 @@ export function TicketTypeSheet({
 		const priceNum = Number(formData.price);
 		if (Number.isNaN(priceNum) || priceNum < 0) {
 			toast.error("Ticket price cannot be negative");
+			return;
+		}
+		if (priceNum > 0 && priceNum < MIN_PAID_TICKET_PRICE) {
+			toast.error(
+				`Paid tickets must be at least ${MIN_PAID_TICKET_PRICE.toFixed(2)} GHS. Set to 0 for a free ticket.`,
+			);
 			return;
 		}
 
@@ -311,7 +318,8 @@ export function TicketTypeSheet({
 										required
 									/>
 									<p className="text-[10px] text-muted-foreground">
-										Set to 0 for a free ticket.
+										Set to 0 for a free ticket. Paid tickets must be at least{" "}
+										{MIN_PAID_TICKET_PRICE.toFixed(2)} GHS.
 									</p>
 								</div>
 

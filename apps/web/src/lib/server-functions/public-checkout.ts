@@ -177,6 +177,39 @@ export async function initiatePublicTicketCheckout({
 			};
 		}
 
+		// Create Payment record for webhook reconciliation
+		const payment = await prisma.payment.create({
+			data: {
+				reference: paystackRes.data.reference,
+				email: buyerEmail,
+				purpose: "ticket_purchase",
+				amount: totalAmount,
+				currency: "GHS",
+				provider: "paystack",
+				status: "pending",
+				metadata: {
+					ticketOrderId: order.id,
+					orderNumber,
+					eventId,
+					ticketTypeId,
+					ticketTypeName: ticketType.name,
+					quantity,
+					buyerName,
+					buyerEmail,
+					buyerPhone,
+					orgSlug: ticketType.event.organization.slug,
+					eventSlug: ticketType.event.slug,
+					sourcePath: `/${ticketType.event.organization.slug}/event/${ticketType.event.slug}`,
+				},
+			},
+		});
+
+		// Link payment to order
+		await prisma.ticketOrder.update({
+			where: { id: order.id },
+			data: { paymentId: payment.id },
+		});
+
 		return {
 			success: true,
 			isFree: false,
@@ -383,6 +416,32 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			};
 		}
 
+		// Create Payment record for webhook reconciliation
+		await prisma.payment.create({
+			data: {
+				reference: paystackRes.data.reference,
+				email: voterEmail,
+				purpose: "vote_purchase",
+				amount: totalAmount,
+				currency: "GHS",
+				provider: "paystack",
+				status: "pending",
+				metadata: {
+					eventId,
+					categoryId,
+					categoryName: category.name,
+					optionId,
+					nomineeName: nominee.optionText,
+					voteCount,
+					voterEmail,
+					voterPhone,
+					orgSlug: category.event.organization.slug,
+					eventSlug: category.event.slug,
+					sourcePath: `/${category.event.organization.slug}/event/${category.event.slug}/category/${categoryId}`,
+				},
+			},
+		});
+
 		return {
 			success: true,
 			isPaid: true,
@@ -513,4 +572,66 @@ export async function verifyAndCheckInTicket({
 		ticket,
 	};
 }
+
+/**
+ * 4. Payment Callback Status Lookup
+ */
+export async function getPaymentStatusByReference({
+	reference,
+}: {
+	reference: string;
+}) {
+	try {
+		if (!reference) {
+			return { success: false, error: "Payment reference is required." };
+		}
+
+		const payment = await prisma.payment.findUnique({
+			where: { reference },
+			include: {
+				ticketOrders: {
+					include: {
+						tickets: true,
+					},
+				},
+			},
+		});
+
+		if (!payment) {
+			return { success: false, error: "Payment not found." };
+		}
+
+		const metadata = (payment.metadata as any) || {};
+		const ticketOrder = payment.ticketOrders?.[0];
+		const tickets = (ticketOrder?.tickets || []).map((t) => ({
+			id: t.id,
+			ticketCode: t.ticketCode,
+			token: createTicketToken(t.id, t.ticketCode),
+		}));
+
+		return {
+			success: true,
+			payment: {
+				id: payment.id,
+				reference: payment.reference,
+				status: payment.status, // "pending" | "completed" | "failed"
+				amount: Number(payment.amount),
+				currency: payment.currency,
+				purpose: payment.purpose,
+				metadata,
+				tickets,
+				viewUrl: tickets[0]?.token
+					? `/ticket/view?token=${tickets[0].token}`
+					: undefined,
+			},
+		};
+	} catch (err: any) {
+		console.error("Get Payment Status Error:", err);
+		return {
+			success: false,
+			error: err.message || "Failed to fetch payment status.",
+		};
+	}
+}
+
 

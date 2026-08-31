@@ -3,6 +3,7 @@ import { prisma } from '@repo/db';
 import { revalidatePath } from 'next/cache';
 import { requireSession } from '../session';
 import { serializeJsonSafe } from '../utils';
+import { MIN_PAID_TICKET_PRICE } from '../constants/pricing';
 
 export async function getEventTickets({ data }: { data: { organizationId?: string; eventId: string } }): Promise<any[]> {
   await requireSession();
@@ -28,6 +29,12 @@ export async function createTicketType({ data }: { data: any }): Promise<any> {
     ? (data.quantityTotal === '' ? null : Number(data.quantityTotal))
     : (data.quantity !== undefined && data.quantity !== null && data.quantity !== '' ? Number(data.quantity) : null);
 
+  // Enforce minimum paid ticket price
+  const price = data.price !== undefined ? Number(data.price) : 0;
+  if (price > 0 && price < MIN_PAID_TICKET_PRICE) {
+    throw new Error(`Paid tickets must be at least ${MIN_PAID_TICKET_PRICE} GHS. Set to 0 for a free ticket.`);
+  }
+
   const salesStart = data.salesStart
     ? new Date(data.salesStart)
     : (data.saleStart ? new Date(data.saleStart) : null);
@@ -41,7 +48,7 @@ export async function createTicketType({ data }: { data: any }): Promise<any> {
       eventId: data.eventId,
       name: (data.name || 'General Admission').trim(),
       description: data.description || null,
-      price: data.price !== undefined ? Number(data.price) : 0,
+      price: price,
       currency: data.currency || 'GHS',
       quantityTotal: quantityTotal,
       salesStart: salesStart,
@@ -68,7 +75,13 @@ export async function updateTicketType({ data }: { data: any }): Promise<any> {
   const updateData: any = {};
   if (rest.name !== undefined) updateData.name = rest.name.trim();
   if (rest.description !== undefined) updateData.description = rest.description || null;
-  if (rest.price !== undefined) updateData.price = Number(rest.price);
+  if (rest.price !== undefined) {
+    const priceVal = Number(rest.price);
+    if (priceVal > 0 && priceVal < MIN_PAID_TICKET_PRICE) {
+      throw new Error(`Paid tickets must be at least ${MIN_PAID_TICKET_PRICE} GHS. Set to 0 for a free ticket.`);
+    }
+    updateData.price = priceVal;
+  }
   if (rest.currency !== undefined) updateData.currency = rest.currency;
   if (rest.quantityTotal !== undefined) updateData.quantityTotal = rest.quantityTotal ? Number(rest.quantityTotal) : null;
   if (rest.salesStart !== undefined) updateData.salesStart = rest.salesStart ? new Date(rest.salesStart) : null;
