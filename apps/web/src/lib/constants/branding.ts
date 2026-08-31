@@ -1,5 +1,6 @@
 // src/lib/constants/branding.ts
 // Branding constants for the application
+import { getFrontendBaseUrl } from "../utils";
 
 export const PROJ_NAME =
 	(typeof process !== "undefined" &&
@@ -10,23 +11,10 @@ export const PROJ_NAME =
 	"AfroReality";
 
 export function getCleanDomain(): string {
-	const raw =
-		(typeof process !== "undefined" &&
-			(process.env.NEXT_PUBLIC_FRONTEND_URL ||
-				process.env.FRONTEND_URL ||
-				process.env.NEXT_PUBLIC_APP_URL ||
-				process.env.NEXT_PUBLIC_DOMAIN_URL ||
-				process.env.BASE_URL)) ||
-		"";
-
+	const raw = getFrontendBaseUrl();
 	if (raw) {
 		return raw.replace(/^https?:\/\//, "").replace(/\/$/, "");
 	}
-
-	if (typeof window !== "undefined" && window.location.host) {
-		return window.location.host;
-	}
-
 	return "afroreality.com";
 }
 

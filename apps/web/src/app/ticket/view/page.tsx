@@ -4,6 +4,7 @@ import { verifyTicketToken } from "@/lib/ticket-crypto";
 import { prisma } from "@repo/db";
 import { TicketRenderer } from "@/components/shared/ticket-variants/TicketRenderer";
 import { TicketDownloadButton } from "./TicketDownloadButton";
+import { getFrontendBaseUrl } from "@/lib/utils";
 import { AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
@@ -86,11 +87,7 @@ export default async function TicketViewPage({
 	const secondaryColor =
 		ticketType.secondaryColor || organization.secondaryColor || "#FFD100";
 
-	const verifyUrl = `${
-		process.env.NEXT_PUBLIC_APP_URL ||
-		process.env.NEXT_PUBLIC_DOMAIN_URL ||
-		"https://afroreality.com"
-	}/ticket/verify?token=${token}`;
+	const verifyUrl = `${getFrontendBaseUrl()}/ticket/verify?token=${token}`;
 
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col">

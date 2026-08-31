@@ -10,6 +10,7 @@ import { EventVotingCategories } from "@/components/event/public/EventVotingCate
 import { EventDetailsSection } from "@/components/event/public/EventDetailsSection";
 import { PublicTicketGrid } from "@/components/event/public/PublicTicketGrid";
 import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
+import { getFrontendBaseUrl } from "@/lib/utils";
 import type { Metadata } from "next";
 
 interface PublicEventPageProps {
@@ -19,11 +20,7 @@ interface PublicEventPageProps {
 	}>;
 }
 
-const BASE_URL =
-	process.env.NEXT_PUBLIC_APP_URL ||
-	process.env.NEXT_PUBLIC_DOMAIN_URL ||
-	process.env.BASE_URL ||
-	"https://afroreality.com";
+const BASE_URL = getFrontendBaseUrl();
 
 export async function generateMetadata({
 	params,

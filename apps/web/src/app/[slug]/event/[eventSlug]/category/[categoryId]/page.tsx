@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
+import { getFrontendBaseUrl } from "@/lib/utils";
 import type { Metadata } from "next";
 
 interface CategoryPageProps {
@@ -28,10 +29,7 @@ interface CategoryPageProps {
 	}>;
 }
 
-const BASE_URL =
-	process.env.NEXT_PUBLIC_APP_URL ||
-	process.env.NEXT_PUBLIC_DOMAIN_URL ||
-	"https://afroreality.com";
+const BASE_URL = getFrontendBaseUrl();
 
 export async function generateMetadata({
 	params,

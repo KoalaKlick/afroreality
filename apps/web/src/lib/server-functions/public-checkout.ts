@@ -2,6 +2,7 @@
 import { prisma } from "@repo/db";
 import { createTicketToken, verifyTicketToken } from "@/lib/ticket-crypto";
 import { paystack } from "@/lib/paystack";
+import { getFrontendBaseUrl } from "@/lib/utils";
 
 interface PublicTicketCheckoutInput {
 	eventId: string;
@@ -145,11 +146,7 @@ export async function initiatePublicTicketCheckout({
 		}
 
 		// Paid Ticket: Initialize Paystack Transaction
-		const callbackUrl = `${
-			process.env.NEXT_PUBLIC_APP_URL ||
-			process.env.NEXT_PUBLIC_DOMAIN_URL ||
-			"https://afroreality.com"
-		}/payment/callback`;
+		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
 
 		const paystackRes = await paystack.transaction.initialize({
 			email: buyerEmail,
@@ -357,11 +354,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			};
 		}
 
-		const callbackUrl = `${
-			process.env.NEXT_PUBLIC_APP_URL ||
-			process.env.NEXT_PUBLIC_DOMAIN_URL ||
-			"https://afroreality.com"
-		}/payment/callback`;
+		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
 
 		const paystackRes = await paystack.transaction.initialize({
 			email: voterEmail,
