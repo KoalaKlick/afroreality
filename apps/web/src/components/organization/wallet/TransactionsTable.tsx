@@ -114,19 +114,34 @@ export function TransactionsTable({
 			{
 				accessorKey: "description",
 				header: ({ column }) => (
-					<DataTableColumnHeader column={column} title="Description / Reference" />
+					<DataTableColumnHeader column={column} title="Description" />
 				),
 				cell: ({ row }) => {
-					const desc = row.getValue("description") as string | null;
-					const ref = row.original.reference;
+					const rawDesc = row.getValue("description") as string | null;
+					const category = row.original.category;
+					
+					// Format friendly description without raw tokens
+					let displayDesc = rawDesc || categoryLabels[category] || "Transaction";
+					displayDesc = displayDesc
+						.replace(/vote_purchase/gi, "Voting")
+						.replace(/ticket_purchase/gi, "Ticket Purchase")
+						.replace(/wallet_topup/gi, "Wallet Top-up")
+						.replace(/wallet_withdrawal/gi, "Withdrawal")
+						.replace(/:\s*Ref\s+[a-zA-Z0-9_\-]+/gi, "")
+						.replace(/Ref\s+[a-zA-Z0-9_\-]+/gi, "")
+						.replace(/WDR-[a-zA-Z0-9_\-]+/gi, "")
+						.replace(/TXN-[a-zA-Z0-9_\-]+/gi, "")
+						.trim();
+
+					if (!displayDesc) {
+						displayDesc = categoryLabels[category] ?? "Transaction";
+					}
+
 					return (
-						<div className="flex flex-col max-w-xs truncate">
-							<span className="text-xs text-foreground truncate">{desc || categoryLabels[row.original.category] || "Transaction"}</span>
-							{ref && (
-								<span className="font-mono text-[10px] text-muted-foreground truncate">
-									{ref}
-								</span>
-							)}
+						<div className="flex flex-col max-w-sm truncate">
+							<span className="text-xs font-medium text-foreground truncate">
+								{displayDesc}
+							</span>
 						</div>
 					);
 				},

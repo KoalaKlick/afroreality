@@ -8,7 +8,8 @@
     "build": "echo 'Worker build complete'"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4"
+    "@neondatabase/serverless": "^0.10.4",
+    "@repo/pricing": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260702.1",

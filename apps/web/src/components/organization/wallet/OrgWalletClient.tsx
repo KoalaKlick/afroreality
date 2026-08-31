@@ -86,9 +86,12 @@ export function OrgWalletClient({
 	const [withdrawalMemo, setWithdrawalMemo] = useState("");
 	const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState(false);
 
-	const availableBalance = wallet?.balance ?? 0;
+	const availableBalance = Math.max(
+		0,
+		(wallet?.balance ?? 0) - (wallet?.pendingDebits ?? 0),
+	);
 	const pendingBalance =
-		(wallet?.pendingCredits ?? 0) - (wallet?.pendingDebits ?? 0);
+		(wallet?.pendingCredits ?? 0) + (wallet?.pendingDebits ?? 0);
 	const currency = wallet?.currency ?? "GHS";
 
 	const hasPayoutAccount = !!(
@@ -263,6 +266,49 @@ export function OrgWalletClient({
 						)}
 					</div>
 				</div>
+
+				{/* Destination Account Notification / Info */}
+				{hasPayoutAccount ? (
+					<div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-lg border border-border/80 bg-card/60 text-xs">
+						<div className="flex items-center gap-3">
+							<div className="size-8 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+								<Landmark className="size-4" />
+							</div>
+							<div>
+								<div className="font-semibold text-foreground flex items-center gap-1.5">
+									<span>Payout Account:</span>
+									<span className="font-medium text-emerald-700 dark:text-emerald-400">{organization.paystackAccountName}</span>
+								</div>
+								<div className="text-muted-foreground font-mono text-[11px]">
+									{organization.paystackAccountNumber} {organization.paystackBankCode ? `• Bank/MoMo: ${organization.paystackBankCode}` : ""}
+								</div>
+							</div>
+						</div>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setIsPayoutDrawerOpen(true)}
+							className="text-xs h-7 text-primary hover:text-primary"
+						>
+							Change Account
+						</Button>
+					</div>
+				) : (
+					<div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-lg border border-amber-300 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/30 text-xs">
+						<div className="flex items-center gap-2.5 text-amber-800 dark:text-amber-300">
+							<Landmark className="size-4 shrink-0" />
+							<span>No payout account configured yet. Add your Mobile Money or Bank Account to disburse withdrawals.</span>
+						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setIsPayoutDrawerOpen(true)}
+							className="text-xs h-7 border-amber-300 dark:border-amber-800"
+						>
+							Configure Payout Account
+						</Button>
+					</div>
+				)}
 
 				{/* 1. Stats at the Top (Outside Tabs) */}
 				<WalletBalanceSummary

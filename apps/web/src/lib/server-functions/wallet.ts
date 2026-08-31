@@ -79,9 +79,16 @@ export async function getOrgWallet({
 									? "vote_purchase"
 									: "wallet_topup";
 
+						const cleanLabel =
+							p.purpose === "ticket_purchase"
+								? "Ticket Purchase"
+								: p.purpose === "vote_purchase"
+									? "Voting Payment"
+									: "Wallet Top-up";
+
 						await prisma.transaction.create({
 							data: {
-								reference: `TXN-${p.reference}-${Date.now().toString().slice(-4)}`,
+								reference: `TXN-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`,
 								walletId: wallet.id,
 								paymentId: p.id,
 								type: "credit",
@@ -92,7 +99,7 @@ export async function getOrgWallet({
 								feeAmount: platformFee,
 								balanceBefore: wallet.balance,
 								balanceAfter: Number(wallet.balance) + totalToAdd,
-								description: `Payment received for ${p.purpose}: Ref ${p.reference}`,
+								description: `${cleanLabel} Revenue`,
 								completedAt: p.verifiedAt || new Date(),
 							},
 						});
@@ -114,13 +121,18 @@ export async function getOrgWallet({
 		console.warn("[WALLET-SYNC-WARN]", reconcileErr);
 	}
 
+	const balanceNum = Number(wallet.balance);
+	const pendingDebitsNum = Number(wallet.pendingDebits);
+	const pendingCreditsNum = Number(wallet.pendingCredits);
+
 	return serializeJsonSafe({
 		id: wallet.id,
 		organizationId: wallet.organizationId,
-		balance: Number(wallet.balance),
+		balance: balanceNum,
+		availableBalance: Math.max(0, balanceNum - pendingDebitsNum),
 		currency: wallet.currency,
-		pendingCredits: Number(wallet.pendingCredits),
-		pendingDebits: Number(wallet.pendingDebits),
+		pendingCredits: pendingCreditsNum,
+		pendingDebits: pendingDebitsNum,
 	});
 }
 
@@ -232,9 +244,9 @@ export async function requestWalletWithdrawal({
 				status: "pending",
 				amount: withdrawalAmount,
 				currency: wallet.currency,
-				description: data.description ?? "Wallet withdrawal request",
+				description: data.description?.trim() || `Withdrawal to ${data.accountNumber}`,
 				balanceBefore: Number(wallet.balance),
-				balanceAfter: Number(wallet.balance),
+				balanceAfter: Math.max(0, Number(wallet.balance) - withdrawalAmount),
 			},
 		});
 

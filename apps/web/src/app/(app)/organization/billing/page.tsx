@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import React from "react";
 import { notFound } from "next/navigation";
 import { CreditCard } from "lucide-react";
+import { prisma } from "@repo/db";
 import { requireSession } from "@/lib/session";
 import { getUserOrganizations, getOrganizationById } from "@/lib/dal/organization";
 import {
@@ -40,9 +41,18 @@ export default async function OrgBillingPage({
 		notFound();
 	}
 
-	const currentPlan = "essential";
-	const communicationCredits = 0;
-	const isVerifiedPartner = false;
+	const profile = await prisma.profile.findUnique({
+		where: { id: session.userId },
+		select: {
+			pricingPlan: true,
+			communicationCredits: true,
+			isVerifiedPartner: true,
+		},
+	});
+
+	const currentPlan = profile?.pricingPlan || "essential";
+	const communicationCredits = Number(profile?.communicationCredits || 0);
+	const isVerifiedPartner = profile?.isVerifiedPartner || false;
 
 	return (
 		<>

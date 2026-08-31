@@ -112,6 +112,9 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@repo/pricing':
+        specifier: workspace:*
+        version: link:../../packages/pricing
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -328,6 +331,15 @@ importers:
         specifier: 8.67.0
         version: 8.67.0(@typescript/typescript6@6.0.2)(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(supports-color@10.2.2)
 
+  packages/pricing:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/tailwind-config:
     devDependencies:
       postcss:
@@ -407,6 +419,9 @@ importers:
       '@neondatabase/serverless':
         specifier: ^0.10.4
         version: 0.10.4
+      '@repo/pricing':
+        specifier: workspace:*
+        version: link:../../packages/pricing
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260702.1

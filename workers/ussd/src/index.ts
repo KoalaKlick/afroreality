@@ -1,4 +1,11 @@
 import { neon } from "@neondatabase/serverless";
+import {
+	computeChargeAmount,
+	PLATFORM_FEES,
+	PAYSTACK_FEE_RATE,
+	PAYSTACK_FEE_CAP,
+	toPesewas,
+} from "@repo/pricing";
 
 export interface Env {
 	DATABASE_URL: string;
@@ -180,32 +187,6 @@ export async function submitOtp(
 	}
 }
 
-export const PAYSTACK_FEE_RATE = 0.0195;
-export const PAYSTACK_FEE_CAP = 100;
-
-export function computeChargeAmount(baseAmount: number): {
-	totalToCharge: number;
-	paystackFee: number;
-	baseAmount: number;
-} {
-	const amount = Number(baseAmount) || 0;
-	if (amount <= 0) return { totalToCharge: 0, paystackFee: 0, baseAmount: 0 };
-	const uncappedCharge = amount / (1 - PAYSTACK_FEE_RATE);
-	const uncappedFee = Math.round(uncappedCharge * PAYSTACK_FEE_RATE * 100) / 100;
-	if (uncappedFee <= PAYSTACK_FEE_CAP) {
-		return {
-			totalToCharge: Math.round(uncappedCharge * 100) / 100,
-			paystackFee: uncappedFee,
-			baseAmount: amount,
-		};
-	}
-	return {
-		totalToCharge: Math.round((amount + PAYSTACK_FEE_CAP) * 100) / 100,
-		paystackFee: PAYSTACK_FEE_CAP,
-		baseAmount: amount,
-	};
-}
-
 export async function processPayment(
 	sql: any,
 	event: any,
@@ -269,6 +250,8 @@ export async function processPayment(
 				phone_number: phoneNumber,
 				phone: phoneNumber,
 				baseAmount,
+				platformFee: feeCalc.platformFee,
+				organizerReceives: feeCalc.organizerReceives,
 				paystackFee: feeCalc.paystackFee,
 				totalToCharge: totalAmountGHS,
 			})}, NOW(), NOW())

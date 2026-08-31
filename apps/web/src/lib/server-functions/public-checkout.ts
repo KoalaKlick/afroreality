@@ -110,10 +110,13 @@ export async function initiatePublicTicketCheckout({
 
 		const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-		// Compute Paystack Fee Surcharge
-		const feeCalc = computeChargeAmount(baseAmount);
+		// Compute Platform Fee & Paystack Surcharge based on single source of truth
+		const feeCalc = computeChargeAmount(baseAmount, "ticket");
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
+		const platformFee = feeCalc.platformFee;
+		const organizerReceives = feeCalc.organizerReceives;
+		const splitChargePesewas = feeCalc.splitChargePesewas;
 		const organization = ticketType.event.organization;
 		const subaccountCode = (organization as any)?.subaccountCode || null;
 
@@ -184,7 +187,8 @@ export async function initiatePublicTicketCheckout({
 			currency: ticketType.currency || "GHS",
 			callback_url: callbackUrl,
 			subaccount: subaccountCode || undefined,
-			transaction_charge: subaccountCode && paystackFee > 0 ? toPesewas(paystackFee) : undefined,
+			bearer: subaccountCode ? "account" : undefined,
+			transaction_charge: subaccountCode && splitChargePesewas > 0 ? splitChargePesewas : undefined,
 			metadata: {
 				purpose: "ticket_purchase",
 				ticketOrderId: order.id,
@@ -201,6 +205,8 @@ export async function initiatePublicTicketCheckout({
 				orgSlug: organization.slug,
 				eventSlug: ticketType.event.slug,
 				baseAmount,
+				platformFee,
+				organizerReceives,
 				paystackFee,
 				totalToCharge,
 				isSplit: !!subaccountCode,
@@ -438,9 +444,12 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			};
 		}
 
-		const feeCalc = computeChargeAmount(baseAmount);
+		const feeCalc = computeChargeAmount(baseAmount, "vote");
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
+		const platformFee = feeCalc.platformFee;
+		const organizerReceives = feeCalc.organizerReceives;
+		const splitChargePesewas = feeCalc.splitChargePesewas;
 		const organization = category.event.organization;
 		const subaccountCode = (organization as any)?.subaccountCode || null;
 
@@ -452,7 +461,8 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			currency: "GHS",
 			callback_url: callbackUrl,
 			subaccount: subaccountCode || undefined,
-			transaction_charge: subaccountCode && paystackFee > 0 ? toPesewas(paystackFee) : undefined,
+			bearer: subaccountCode ? "account" : undefined,
+			transaction_charge: subaccountCode && splitChargePesewas > 0 ? splitChargePesewas : undefined,
 			metadata: {
 				purpose: "voting",
 				eventId,
@@ -468,6 +478,8 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 				orgSlug: organization.slug,
 				eventSlug: category.event.slug,
 				baseAmount,
+				platformFee,
+				organizerReceives,
 				paystackFee,
 				totalToCharge,
 				isSplit: !!subaccountCode,

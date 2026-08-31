@@ -70,6 +70,7 @@ export interface ActivityLogRecord {
 export interface Wallet {
   id?: string;
   balance: number;
+  availableBalance?: number;
   currency: string;
   pendingCredits?: number;
   pendingDebits?: number;
