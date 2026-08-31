@@ -370,7 +370,7 @@ export default async function PublicCategoryPage({
 					{/* Right Column: Independent Scrollable Nominees Feed */}
 					<div className="col-span-8 h-full min-h-0 overflow-y-auto pr-1 space-y-6 @container/content">
 						<div
-							className="rounded-2xl border bg-card p-8 transition-colors"
+							className="rounded-2xl bg-card p-8 transition-colors"
 							style={{
 								backgroundColor:
 									"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
