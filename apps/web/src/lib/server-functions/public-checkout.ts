@@ -1,10 +1,13 @@
 "use server";
-import { prisma } from "@repo/db";
-import { createTicketToken, verifyTicketToken } from "@/lib/ticket-crypto";
-import { paystack } from "@/lib/paystack";
-import { getFrontendBaseUrl } from "@/lib/utils";
 
-interface PublicTicketCheckoutInput {
+import { prisma } from "@repo/db";
+import { paystack } from "@/lib/paystack";
+import { createTicketToken, verifyTicketToken } from "@/lib/ticket-crypto";
+import { getFrontendBaseUrl } from "@/lib/utils";
+import { computeChargeAmount, toPesewas, round2 } from "@/lib/utils/pricing";
+import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
+
+export interface PublicTicketCheckoutInput {
 	eventId: string;
 	ticketTypeId: string;
 	quantity: number;
@@ -13,25 +16,24 @@ interface PublicTicketCheckoutInput {
 	buyerPhone?: string;
 }
 
-interface PublicVoteInput {
+export interface PublicVoteInput {
 	eventId: string;
 	categoryId: string;
 	optionId: string;
-	voteCount?: number;
+	voteCount: number;
 	voterEmail?: string;
 	voterPhone?: string;
-	voterKey?: string;
+	voterKey?: string; // for internal voting
 }
 
-interface VerifyTicketInput {
+export interface VerifyTicketInput {
 	token?: string;
 	ticketCode?: string;
 	action?: "check_in" | "check_out" | "status";
 }
 
 /**
- * 1. Public Ticket Checkout
- * Handles Free RSVP / Immediate Ticket issuance or Paystack payment authorization
+ * 1. Public Ticket Checkout (Free or Paid with Paystack Surcharge & Subaccount Split)
  */
 export async function initiatePublicTicketCheckout({
 	data,
@@ -39,21 +41,37 @@ export async function initiatePublicTicketCheckout({
 	data: PublicTicketCheckoutInput;
 }) {
 	try {
-		const { eventId, ticketTypeId, quantity, buyerName, buyerEmail, buyerPhone } =
-			data;
+		const {
+			eventId,
+			ticketTypeId,
+			quantity = 1,
+			buyerName,
+			buyerEmail,
+			buyerPhone,
+		} = data;
 
-		if (!buyerName || !buyerEmail || quantity < 1) {
+		if (!eventId || !ticketTypeId || !buyerEmail || !buyerName) {
 			return {
 				success: false,
-				error: "Missing required checkout information.",
+				error: "Please provide all required attendee and ticket details.",
 			};
 		}
 
+		if (quantity <= 0) {
+			return {
+				success: false,
+				error: "Quantity must be at least 1.",
+			};
+		}
+
+		// Fetch ticket type and event organization
 		const ticketType = await prisma.ticketType.findUnique({
 			where: { id: ticketTypeId },
 			include: {
 				event: {
-					include: { organization: true },
+					include: {
+						organization: true,
+					},
 				},
 			},
 		});
@@ -72,41 +90,53 @@ export async function initiatePublicTicketCheckout({
 			};
 		}
 
-		if (
-			ticketType.quantityTotal &&
-			ticketType.quantitySold + quantity > ticketType.quantityTotal
-		) {
-			return {
-				success: false,
-				error: "Sorry, not enough tickets available in this tier.",
-			};
+		// Check capacity / limit
+		if (ticketType.quantityTotal != null) {
+			const remaining = ticketType.quantityTotal - ticketType.quantitySold;
+			if (quantity > remaining) {
+				return {
+					success: false,
+					error:
+						remaining > 0
+							? `Only ${remaining} ticket(s) remaining for ${ticketType.name}.`
+							: `This ticket tier is sold out.`,
+				};
+			}
 		}
 
-		const unitPrice = Number(ticketType.price);
-		const totalAmount = unitPrice * quantity;
-		const isFree = totalAmount === 0;
+		const unitPrice = Number(ticketType.price || 0);
+		const baseAmount = unitPrice * quantity;
+		const isFree = baseAmount === 0;
 
-		const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+		const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-		// Create Ticket Order
+		// Compute Paystack Fee Surcharge
+		const feeCalc = computeChargeAmount(baseAmount);
+		const totalToCharge = feeCalc.totalToCharge;
+		const paystackFee = feeCalc.paystackFee;
+		const organization = ticketType.event.organization;
+		const subaccountCode = (organization as any)?.subaccountCode || null;
+
+		// Create Pending Ticket Order
 		const order = await prisma.ticketOrder.create({
 			data: {
-				orderNumber,
 				eventId,
+				orderNumber,
 				buyerName,
-				buyerPhone,
-				subtotal: totalAmount,
+				buyerPhone: buyerPhone || null,
+				subtotal: baseAmount,
 				discountAmount: 0,
-				fees: 0,
+				fees: paystackFee,
 				status: isFree ? "completed" : "pending",
 			},
 		});
 
 		if (isFree) {
-			// Generate Tickets immediately
+			// Generate Free Tickets immediately
 			const tickets = [];
 			for (let i = 0; i < quantity; i++) {
-				const ticketCode = `TIX-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+				const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+				const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
 				const ticket = await prisma.ticket.create({
 					data: {
 						orderId: order.id,
@@ -127,7 +157,7 @@ export async function initiatePublicTicketCheckout({
 				});
 			}
 
-			// Increment sold count
+			// Increment sold count atomically
 			await prisma.ticketType.update({
 				where: { id: ticketTypeId },
 				data: {
@@ -145,26 +175,36 @@ export async function initiatePublicTicketCheckout({
 			};
 		}
 
-		// Paid Ticket: Initialize Paystack Transaction
+		// Paid Ticket: Initialize Paystack Transaction with exact surcharge & subaccount routing
 		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
 
 		const paystackRes = await paystack.transaction.initialize({
 			email: buyerEmail,
-			amount: Math.round(totalAmount * 100),
+			amount: toPesewas(totalToCharge),
 			currency: ticketType.currency || "GHS",
 			callback_url: callbackUrl,
+			subaccount: subaccountCode || undefined,
+			transaction_charge: subaccountCode && paystackFee > 0 ? toPesewas(paystackFee) : undefined,
 			metadata: {
 				purpose: "ticket_purchase",
+				ticketOrderId: order.id,
 				orderId: order.id,
 				orderNumber,
 				eventId,
 				ticketTypeId,
+				ticketTypeName: ticketType.name,
 				quantity,
 				buyerName,
 				buyerEmail,
 				buyerPhone,
-				orgSlug: ticketType.event.organization.slug,
+				organizationId: organization.id,
+				orgSlug: organization.slug,
 				eventSlug: ticketType.event.slug,
+				baseAmount,
+				paystackFee,
+				totalToCharge,
+				isSplit: !!subaccountCode,
+				sourcePath: `/${organization.slug}/event/${ticketType.event.slug}`,
 			},
 		});
 
@@ -183,12 +223,13 @@ export async function initiatePublicTicketCheckout({
 				reference: paystackRes.data.reference,
 				email: buyerEmail,
 				purpose: "ticket_purchase",
-				amount: totalAmount,
+				amount: totalToCharge,
 				currency: "GHS",
 				provider: "paystack",
 				status: "pending",
 				metadata: {
 					ticketOrderId: order.id,
+					orderId: order.id,
 					orderNumber,
 					eventId,
 					ticketTypeId,
@@ -197,9 +238,14 @@ export async function initiatePublicTicketCheckout({
 					buyerName,
 					buyerEmail,
 					buyerPhone,
-					orgSlug: ticketType.event.organization.slug,
+					organizationId: organization.id,
+					orgSlug: organization.slug,
 					eventSlug: ticketType.event.slug,
-					sourcePath: `/${ticketType.event.organization.slug}/event/${ticketType.event.slug}`,
+					baseAmount,
+					paystackFee,
+					totalToCharge,
+					isSplit: !!subaccountCode,
+					sourcePath: `/${organization.slug}/event/${ticketType.event.slug}`,
 				},
 			},
 		});
@@ -218,6 +264,11 @@ export async function initiatePublicTicketCheckout({
 			authorizationUrl: paystackRes.data.authorization_url,
 			accessCode: paystackRes.data.access_code,
 			reference: paystackRes.data.reference,
+			feeBreakdown: {
+				baseAmount,
+				paystackFee,
+				totalToCharge,
+			},
 		};
 	} catch (err: any) {
 		console.error("Public Ticket Checkout Error:", err);
@@ -350,8 +401,8 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 
 		// General Voting: Free or Paid
 		const votePrice = Number(category.votePrice || 0);
-		const totalAmount = votePrice * voteCount;
-		const isFree = totalAmount === 0;
+		const baseAmount = votePrice * voteCount;
+		const isFree = baseAmount === 0;
 
 		if (isFree) {
 			await prisma.vote.create({
@@ -379,7 +430,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			};
 		}
 
-		// Paid Vote: Initialize Paystack
+		// Paid Vote: Initialize Paystack with surcharge
 		if (!voterEmail) {
 			return {
 				success: false,
@@ -387,23 +438,40 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			};
 		}
 
+		const feeCalc = computeChargeAmount(baseAmount);
+		const totalToCharge = feeCalc.totalToCharge;
+		const paystackFee = feeCalc.paystackFee;
+		const organization = category.event.organization;
+		const subaccountCode = (organization as any)?.subaccountCode || null;
+
 		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
 
 		const paystackRes = await paystack.transaction.initialize({
 			email: voterEmail,
-			amount: Math.round(totalAmount * 100),
+			amount: toPesewas(totalToCharge),
 			currency: "GHS",
 			callback_url: callbackUrl,
+			subaccount: subaccountCode || undefined,
+			transaction_charge: subaccountCode && paystackFee > 0 ? toPesewas(paystackFee) : undefined,
 			metadata: {
-				purpose: "vote_purchase",
+				purpose: "voting",
 				eventId,
 				categoryId,
+				categoryName: category.name,
 				optionId,
+				votingOptionId: optionId,
+				nomineeName: nominee.optionText,
 				voteCount,
 				voterEmail,
 				voterPhone,
-				orgSlug: category.event.organization.slug,
+				organizationId: organization.id,
+				orgSlug: organization.slug,
 				eventSlug: category.event.slug,
+				baseAmount,
+				paystackFee,
+				totalToCharge,
+				isSplit: !!subaccountCode,
+				sourcePath: `/${organization.slug}/event/${category.event.slug}/category/${categoryId}`,
 			},
 		});
 
@@ -422,22 +490,29 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 				reference: paystackRes.data.reference,
 				email: voterEmail,
 				purpose: "vote_purchase",
-				amount: totalAmount,
+				amount: totalToCharge,
 				currency: "GHS",
 				provider: "paystack",
 				status: "pending",
 				metadata: {
+					purpose: "voting",
 					eventId,
 					categoryId,
 					categoryName: category.name,
 					optionId,
+					votingOptionId: optionId,
 					nomineeName: nominee.optionText,
 					voteCount,
 					voterEmail,
 					voterPhone,
-					orgSlug: category.event.organization.slug,
+					organizationId: organization.id,
+					orgSlug: organization.slug,
 					eventSlug: category.event.slug,
-					sourcePath: `/${category.event.organization.slug}/event/${category.event.slug}/category/${categoryId}`,
+					baseAmount,
+					paystackFee,
+					totalToCharge,
+					isSplit: !!subaccountCode,
+					sourcePath: `/${organization.slug}/event/${category.event.slug}/category/${categoryId}`,
 				},
 			},
 		});
@@ -448,6 +523,11 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			authorizationUrl: paystackRes.data.authorization_url,
 			accessCode: paystackRes.data.access_code,
 			reference: paystackRes.data.reference,
+			feeBreakdown: {
+				baseAmount,
+				paystackFee,
+				totalToCharge,
+			},
 		};
 	} catch (err: any) {
 		console.error("Public Vote Error:", err);
@@ -574,7 +654,7 @@ export async function verifyAndCheckInTicket({
 }
 
 /**
- * 4. Payment Callback Status Lookup
+ * 4. Payment Callback Status Lookup & Secure Direct Verification
  */
 export async function getPaymentStatusByReference({
 	reference,
@@ -601,102 +681,16 @@ export async function getPaymentStatusByReference({
 			return { success: false, error: "Payment not found." };
 		}
 
-		let metadata = (payment.metadata as any) || {};
-
-		// If payment is pending, verify directly with Paystack API (handles test mode & localhost webhook delays)
+		// If payment is pending, verify directly with Paystack API and atomically fulfill
 		if (payment.status !== "completed") {
 			try {
 				const verifyRes = await paystack.transaction.verify(reference);
 				if (verifyRes?.status && verifyRes?.data?.status === "success") {
-					// 1. Mark payment completed
-					payment = await prisma.payment.update({
-						where: { id: payment.id },
-						data: {
-							status: "completed",
-							verifiedAt: new Date(),
-							paystackTransactionId: String(verifyRes.data.id || ""),
-						},
-						include: {
-							ticketOrders: {
-								include: {
-									tickets: true,
-								},
-							},
-						},
+					// Delegate to single-source-of-truth fulfillment helper
+					await fulfillSuccessfulPayment({
+						reference,
+						paystackData: verifyRes.data,
 					});
-
-					// 2. Fulfill Ticket Order if applicable
-					if (payment.purpose === "ticket_purchase") {
-						const ticketOrderId =
-							metadata.ticketOrderId || payment.ticketOrders?.[0]?.id;
-						if (ticketOrderId) {
-							const existingOrder = await prisma.ticketOrder.findUnique({
-								where: { id: ticketOrderId },
-								include: { tickets: true },
-							});
-
-							if (existingOrder) {
-								await prisma.ticketOrder.update({
-									where: { id: ticketOrderId },
-									data: { status: "completed" },
-								});
-
-								// Generate ticket passes if not yet created
-								if (
-									existingOrder.tickets.length === 0 &&
-									metadata.ticketTypeId
-								) {
-									const qty = Number(metadata.quantity) || 1;
-									for (let i = 0; i < qty; i++) {
-										const ticketCode = `TIX-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-										await prisma.ticket.create({
-											data: {
-												orderId: ticketOrderId,
-												ticketTypeId: metadata.ticketTypeId,
-												eventId: metadata.eventId || existingOrder.eventId,
-												ticketCode,
-												attendeeName: metadata.buyerName,
-												attendeeEmail: metadata.buyerEmail,
-												checkInStatus: "not_checked_in",
-											},
-										});
-									}
-
-									await prisma.ticketType.update({
-										where: { id: metadata.ticketTypeId },
-										data: { quantitySold: { increment: qty } },
-									});
-								}
-							}
-						}
-					}
-
-					// 3. Fulfill Vote if applicable
-					if (payment.purpose === "vote_purchase") {
-						const existingVote = await prisma.vote.findFirst({
-							where: { paymentId: payment.id },
-						});
-
-						if (!existingVote && metadata.optionId && metadata.eventId) {
-							const voteCount = Number(metadata.voteCount) || 1;
-							await prisma.vote.create({
-								data: {
-									eventId: metadata.eventId,
-									categoryId: metadata.categoryId || null,
-									optionId: metadata.optionId,
-									paymentId: payment.id,
-									voteCount,
-									voterEmail: metadata.voterEmail,
-									voterPhone: metadata.voterPhone,
-								},
-							});
-
-							await prisma.votingOption.update({
-								where: { id: metadata.optionId },
-								data: { votesCount: { increment: voteCount } },
-							});
-						}
-					}
 
 					// Re-fetch updated payment with tickets
 					const refreshed = await prisma.payment.findUnique({
@@ -731,6 +725,7 @@ export async function getPaymentStatusByReference({
 			}
 		}
 
+		const metadata = (payment.metadata as any) || {};
 		const ticketOrder = payment.ticketOrders?.[0];
 		const tickets = (ticketOrder?.tickets || []).map((t) => ({
 			id: t.id,
@@ -743,7 +738,7 @@ export async function getPaymentStatusByReference({
 			payment: {
 				id: payment.id,
 				reference: payment.reference,
-				status: payment.status, // "pending" | "completed" | "failed"
+				status: payment.status,
 				amount: Number(payment.amount),
 				currency: payment.currency,
 				purpose: payment.purpose,
@@ -762,5 +757,3 @@ export async function getPaymentStatusByReference({
 		};
 	}
 }
-
-

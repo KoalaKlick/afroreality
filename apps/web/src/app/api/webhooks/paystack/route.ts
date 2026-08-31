@@ -1,54 +1,45 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@repo/db";
 import crypto from "crypto";
+import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 
 export async function POST(req: Request) {
-  try {
-    const bodyText = await req.text();
-    const signature = req.headers.get("x-paystack-signature");
-    const secret = process.env.PAYSTACK_SECRET_KEY || "";
+	try {
+		const bodyText = await req.text();
+		const signature = req.headers.get("x-paystack-signature");
+		const secret = process.env.PAYSTACK_SECRET_KEY || "";
 
-    if (secret && signature) {
-      const hash = crypto
-        .createHmac("sha512", secret)
-        .update(bodyText)
-        .digest("hex");
-      if (hash !== signature) {
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
-    }
+		// Verify HMAC SHA512 Signature
+		if (secret) {
+			if (!signature) {
+				return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+			}
+			const hash = crypto
+				.createHmac("sha512", secret)
+				.update(bodyText)
+				.digest("hex");
+			if (hash !== signature) {
+				return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+			}
+		}
 
-    const event = JSON.parse(bodyText);
+		const event = JSON.parse(bodyText);
 
-    if (event.event === "charge.success") {
-      const data = event.data;
-      const reference = data.reference;
+		// Only process successful charges
+		if (event.event === "charge.success" && event.data?.status === "success") {
+			const data = event.data;
+			const reference = data.reference;
 
-      const payment = await prisma.payment.findUnique({
-        where: { reference },
-      });
+			if (reference) {
+				await fulfillSuccessfulPayment({
+					reference,
+					paystackData: data,
+				});
+			}
+		}
 
-      if (payment) {
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: { status: "completed" },
-        });
-
-        const meta = (payment.metadata as any) || {};
-        const ticketOrderId = meta.ticketOrderId;
-
-        if (ticketOrderId) {
-          await prisma.ticketOrder.update({
-            where: { id: ticketOrderId },
-            data: { status: "completed" },
-          });
-        }
-      }
-    }
-
-    return NextResponse.json({ received: true });
-  } catch (error: any) {
-    console.error("Paystack webhook error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+		return NextResponse.json({ received: true });
+	} catch (error: any) {
+		console.error("Paystack webhook error:", error);
+		return NextResponse.json({ error: error.message }, { status: 500 });
+	}
 }

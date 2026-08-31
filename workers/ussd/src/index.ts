@@ -180,6 +180,32 @@ export async function submitOtp(
 	}
 }
 
+export const PAYSTACK_FEE_RATE = 0.0195;
+export const PAYSTACK_FEE_CAP = 100;
+
+export function computeChargeAmount(baseAmount: number): {
+	totalToCharge: number;
+	paystackFee: number;
+	baseAmount: number;
+} {
+	const amount = Number(baseAmount) || 0;
+	if (amount <= 0) return { totalToCharge: 0, paystackFee: 0, baseAmount: 0 };
+	const uncappedCharge = amount / (1 - PAYSTACK_FEE_RATE);
+	const uncappedFee = Math.round(uncappedCharge * PAYSTACK_FEE_RATE * 100) / 100;
+	if (uncappedFee <= PAYSTACK_FEE_CAP) {
+		return {
+			totalToCharge: Math.round(uncappedCharge * 100) / 100,
+			paystackFee: uncappedFee,
+			baseAmount: amount,
+		};
+	}
+	return {
+		totalToCharge: Math.round((amount + PAYSTACK_FEE_CAP) * 100) / 100,
+		paystackFee: PAYSTACK_FEE_CAP,
+		baseAmount: amount,
+	};
+}
+
 export async function processPayment(
 	sql: any,
 	event: any,
@@ -194,7 +220,10 @@ export async function processPayment(
 		return textResponse("END Invalid number. Try again.");
 	}
 
-	const amountGHS = Number(price) * quantity;
+	const baseAmount = Number(price) * quantity;
+	const feeCalc = computeChargeAmount(baseAmount);
+	const totalAmountGHS = feeCalc.totalToCharge;
+	const amountPesewas = Math.round(totalAmountGHS * 100);
 
 	if (otpStr) {
 		const pendingSessions = await sql`
@@ -220,12 +249,35 @@ export async function processPayment(
 	try {
 		await sql`
 			INSERT INTO ussd_sessions (reference, phone_number, event_id, option_id, quantity, amount, status)
-			VALUES (${reference}, ${phoneNumber}, ${event.id}, ${optionId}, ${quantity}, ${amountGHS}, 'pending')
+			VALUES (${reference}, ${phoneNumber}, ${event.id}, ${optionId}, ${quantity}, ${totalAmountGHS}, 'pending')
+		`;
+
+		// Also create record in payments table for webhook reconciliation
+		await sql`
+			INSERT INTO payments (reference, email, purpose, amount, currency, provider, status, metadata, created_at, updated_at)
+			VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@afroreality.com`}, ${event.type === "voting" ? "voting" : "ticket_purchase"}, ${totalAmountGHS}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
+				source: "ussd",
+				channel: "ussd",
+				event_id: event.id,
+				eventId: event.id,
+				option_id: optionId,
+				optionId: optionId,
+				votingOptionId: optionId,
+				ticketTypeId: optionId,
+				quantity,
+				voteCount: quantity,
+				phone_number: phoneNumber,
+				phone: phoneNumber,
+				baseAmount,
+				paystackFee: feeCalc.paystackFee,
+				totalToCharge: totalAmountGHS,
+			})}, NOW(), NOW())
+			ON CONFLICT (reference) DO NOTHING
 		`;
 
 		if (!paystackSecret) {
 			return textResponse(
-				`END Payment of GHS ${amountGHS.toFixed(2)} recorded. Reference: ${reference}`,
+				`END Payment of GHS ${totalAmountGHS.toFixed(2)} recorded. Reference: ${reference}`,
 			);
 		}
 
@@ -236,8 +288,8 @@ export async function processPayment(
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				amount: Math.round(amountGHS * 100),
-				email: `${normalizePhone(phoneNumber)}@afrotix.com`,
+				amount: amountPesewas,
+				email: `${normalizePhone(phoneNumber)}@afroreality.com`,
 				currency: "GHS",
 				reference,
 				mobile_money: {
@@ -246,10 +298,20 @@ export async function processPayment(
 				},
 				metadata: {
 					source: "ussd",
+					channel: "ussd",
 					event_id: event.id,
+					eventId: event.id,
 					option_id: optionId,
+					optionId: optionId,
+					votingOptionId: optionId,
+					ticketTypeId: optionId,
 					quantity,
+					voteCount: quantity,
 					phone_number: phoneNumber,
+					phone: phoneNumber,
+					baseAmount,
+					paystackFee: feeCalc.paystackFee,
+					totalToCharge: totalAmountGHS,
 				},
 			}),
 		});
