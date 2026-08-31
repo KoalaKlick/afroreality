@@ -114,7 +114,6 @@ export async function initiatePublicTicketCheckout({
 						ticketCode,
 						attendeeName: buyerName,
 						attendeeEmail: buyerEmail,
-						attendeePhone: buyerPhone,
 						checkInStatus: "not_checked_in",
 					},
 				});

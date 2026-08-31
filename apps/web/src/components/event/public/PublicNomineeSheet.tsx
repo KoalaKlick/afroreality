@@ -286,7 +286,7 @@ export function PublicNomineeSheet({
 		<div className="space-y-8">
 			{/* Public Nomination Banner */}
 			{category.allowPublicNomination && (
-				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl border bg-card text-foreground">
+				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-lg bg-card text-foreground">
 					<div className="space-y-1 text-center sm:text-left">
 						<h4 className="font-black text-sm uppercase tracking-tight flex items-center justify-center sm:justify-start gap-2">
 							<Sparkles className="size-4 text-primary" />
