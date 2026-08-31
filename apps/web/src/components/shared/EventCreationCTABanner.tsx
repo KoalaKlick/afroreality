@@ -31,18 +31,17 @@ export function EventCreationCTABanner({
 
 				{/* Inner container — reusable Card holds everything */}
 				<div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-					<Card className="relative overflow-hidden rounded-3xl shadow-2xl gap-0 py-0 flex flex-col md:flex-row justify-between">
+					<Card className="relative rounded-3xl shadow-2xl gap-0 py-0 flex flex-col md:flex-row justify-between">
 
 					{/* Left: Text + buttons */}
 					<div className="max-w-xl flex-1 flex flex-col justify-center px-6 md:pr-0 space-y-4 py-6 sm:px-12 sm:py-10 lg:px-16">
-						<h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight text-foreground font-millik">
-							Ready to Create Your Next{" "}
-							<span className="text-primary">Unforgettable Event?</span>
+						<h2 className="text-3xl sm:text-5xl md:text-5xl font-black leading-tight tracking-tight text-foreground font-millik">
+							About  <span className="text-primary">Unforgettable</span> Events ?
 						</h2>
 
 						<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
 							Join thousands of event organizers who trust AfroReality to power
-							their events. Start free — no credit card required.
+							their events
 						</p>
 
 						<div className="flex flex-wrap gap-3 pt-1">
@@ -63,7 +62,7 @@ export function EventCreationCTABanner({
 					</div>
 
 					{/* Right: 3 people images — @container for responsive placement */}
-					<div className="flex-1 grow relative min-h-72 @container pointer-events-none select-none overflow-hidden">
+					<div className="flex-1 grow relative min-h-72 @container pointer-events-none select-none">
 						{/* Person 3 – back (dancing woman) */}
 						<img
 							src="/landing/cta/create-event-3.webp"
@@ -73,19 +72,19 @@ export function EventCreationCTABanner({
 							loading="lazy"
 						/>
 						{/* Person 2 – middle (guitarist) */}
-						<img
+						{/* <img
 							src="/landing/cta/create-event-2.webp"
 							alt=""
 							aria-hidden="true"
-							className="absolute bottom-0 z-[2] right-[25%] md:right-[33%] w-auto h-[90%] object-cover drop-shadow-xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
+							className="absolute bottom-0 z-[3] right-[25%] md:right-[0%] w-auto h-[90%] object-cover drop-shadow-xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
 							loading="lazy"
-						/>
+						/> */}
 						{/* Person 1 – front right (celebrating organiser) */}
 						<img
 							src="/landing/cta/create-event-1.webp"
 							alt=""
 							aria-hidden="true"
-							className="absolute bottom-0 z-[3] right-[-7%] @min-md:-right-[8%] w-auto h-[90%] object-cover lg:w-78 drop-shadow-2xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
+							className="absolute bottom-0 z-[2] right-[-7%] @min-md:right-[-16%] w-auto h-[110%] object-cover @lg:w-100 drop-shadow-2xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
 							loading="lazy"
 						/>
 					</div>
