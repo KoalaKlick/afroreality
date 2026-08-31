@@ -262,7 +262,7 @@ export default async function PublicEventPage({
 					{/* Right Column: Content Feed */}
 					<div className="col-span-8 space-y-6">
 						{isVoting && (
-							<div id="voting" className="rounded-2xl border bg-card overflow-hidden">
+							<div id="voting" className="rounded-2xl bg-card overflow-hidden">
 								<EventVotingCategories
 									categories={votingCategories}
 									orgSlug={orgSlug}

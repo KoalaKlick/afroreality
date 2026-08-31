@@ -50,13 +50,13 @@ export function SponsorsList({
 
 						const TriggerContent = (
 							<div
-								className="size-9 rounded-xl border border-border/80 bg-card p-1.5 flex items-center justify-center hover:border-primary/50 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+								className="size-9 border border-border/80 bg-card p-0.5 flex items-center justify-center hover:border-primary/50 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer shrink-0"
 							>
 								{imgUrl ? (
 									<img
 										src={imgUrl}
 										alt={sponsorName}
-										className="w-full h-full object-contain rounded-lg"
+										className="w-full h-full object-contain "
 									/>
 								) : (
 									<Award className="size-4 text-muted-foreground/60" />

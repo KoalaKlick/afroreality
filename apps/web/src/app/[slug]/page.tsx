@@ -3,7 +3,7 @@ import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
 import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero";
 import { OrgDetailsFooter } from "@/components/organization/public/OrgDetailsFooter";
-import { EventsSection } from "@/components/Landing/sections/revamp-events";
+import { OrgEventsListSection } from "@/components/organization/public/OrgEventsListSection";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
@@ -135,10 +135,10 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 
 				{/* 2. Events Showcase Section (with light primary bg) */}
 				<div className="flex-1">
-					<EventsSection
+					<OrgEventsListSection
 						title="Our Events."
-						useBrand
-						items={eventsWithOrg}
+						events={eventsWithOrg}
+						organizationSlug={slug}
 					/>
 				</div>
 

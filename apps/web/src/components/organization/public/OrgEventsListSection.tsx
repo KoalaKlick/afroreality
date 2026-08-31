@@ -1,0 +1,75 @@
+"use client";
+
+import { OrgPublicEventCard } from "./OrgPublicEventCard";
+import { Section } from "@/components/Landing/shared/Section";
+import { NoEventsIllustration } from "@/components/common/NoEventsIllustration";
+import type { Event } from "@repo/db";
+
+interface OrgEventsListSectionProps {
+	readonly title?: string;
+	readonly events: (Event & {
+		organization?: {
+			slug: string;
+			name: string;
+		};
+	})[];
+	readonly organizationSlug: string;
+}
+
+export function OrgEventsListSection({
+	title = "Our Events.",
+	events = [],
+	organizationSlug,
+}: OrgEventsListSectionProps) {
+	if (events.length === 0) {
+		return (
+			<Section
+				id="events"
+				className="py-16 md:py-20"
+				style={{
+					backgroundColor:
+						"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+				}}
+			>
+				<h2 className="text-3xl md:text-5xl font-black text-center uppercase mb-12 tracking-tight font-millik">
+					{title}
+				</h2>
+				<div className="flex flex-col items-center justify-center text-center py-8">
+					<NoEventsIllustration className="w-60 h-auto mb-6" />
+					<p className="text-lg font-bold text-foreground">No events yet.</p>
+					<p className="text-sm text-muted-foreground mt-1">
+						Check back soon for upcoming events from this organization.
+					</p>
+				</div>
+			</Section>
+		);
+	}
+
+	return (
+		<Section
+			id="events"
+			className="py-16 md:py-20 @container overflow-hidden transition-colors "
+			style={{
+				backgroundColor:
+					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+			}}
+		>
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<h2 className="text-3xl md:text-5xl font-black text-center uppercase mb-12 md:mb-16 tracking-tight font-millik">
+					{title}
+				</h2>
+
+				{/* Responsive grid for the cards */}
+				<div className="grid grid-cols-1 @2xl:grid-cols-2 @4xl:grid-cols-3 @5xl:grid-cols-3 gap-6 lg:gap-8">
+					{events.map((event) => (
+						<OrgPublicEventCard
+							key={event.id}
+							event={event}
+							organizationSlug={organizationSlug}
+						/>
+					))}
+				</div>
+			</div>
+		</Section>
+	);
+}

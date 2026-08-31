@@ -17,12 +17,15 @@ import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
+import { UssdDialPill } from "@/components/event/public/UssdDialPill";
 
 interface EventSidebarCardProps {
 	readonly event: {
 		id: string;
 		title: string;
 		slug: string;
+		hasUssd?: boolean | null;
+		ussdCode?: string | null;
 		description: string | null;
 		flierUrl?: string | null;
 		bannerUrl?: string | null;
@@ -160,6 +163,16 @@ export function EventSidebarCard({
 							)}
 							<span className="truncate">{locationText}</span>
 						</div>
+
+						{event.hasUssd && event.ussdCode && (
+							<div className="pt-1">
+								<UssdDialPill
+									eventTitle={event.title}
+									ussdCode={event.ussdCode}
+									primaryColor={event.organization?.primaryColor || undefined}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 

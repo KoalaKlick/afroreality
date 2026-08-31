@@ -43,10 +43,10 @@ export function EventVotingCategories({
 							<Link
 								key={category.id}
 								href={`/${orgSlug}/event/${eventSlug}/category/${category.id}`}
-								className="group flex flex-col rounded-2xl border bg-card transition-all duration-300 relative hover:border-primary/50 hover:shadow-md"
+								className="group flex flex-col rounded-lg border bg-card transition-all duration-300 relative hover:border-primary/50 hover:shadow-md"
 							>
 								{category.templateImage && (
-									<div className="relative w-full h-48 shrink-0 overflow-hidden bg-muted rounded-t-2xl">
+									<div className="relative w-full h-48 shrink-0 overflow-hidden bg-muted rounded-t-lg">
 										<Image
 											src={getEventImageUrl(category.templateImage) || ""}
 											alt={category.name}

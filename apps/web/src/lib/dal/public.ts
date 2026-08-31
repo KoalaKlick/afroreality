@@ -1,4 +1,5 @@
 import { prisma } from "@repo/db";
+import { getSession } from "@/lib/session";
 
 function sanitizePrismaData<T>(data: T): T {
 	if (!data) return data;
@@ -13,10 +14,50 @@ function sanitizePrismaData<T>(data: T): T {
 	);
 }
 
+/**
+ * Checks if a user is an organizer (owner, admin, or member) of the given organization.
+ */
+async function isUserOrgOrganizer(
+	slugOrId: string,
+	userId?: string | null,
+): Promise<boolean> {
+	if (!userId) return false;
+
+	try {
+		const org = await prisma.organization.findFirst({
+			where: {
+				OR: [{ slug: slugOrId }, { id: slugOrId }],
+			},
+			select: {
+				id: true,
+				createdBy: true,
+				team: {
+					where: { userId },
+					select: { id: true, role: true },
+				},
+			},
+		});
+
+		if (!org) return false;
+		return org.createdBy === userId || org.team.length > 0;
+	} catch {
+		return false;
+	}
+}
+
 export async function getPublicOrganizationProfile(
 	slug: string,
+	userId?: string | null,
 ): Promise<any> {
 	try {
+		let currentUserId = userId;
+		if (currentUserId === undefined) {
+			const session = await getSession();
+			currentUserId = session?.userId ?? null;
+		}
+
+		const isOrganizer = await isUserOrgOrganizer(slug, currentUserId);
+
 		const org = await prisma.organization.findUnique({
 			where: { slug },
 			include: {
@@ -32,9 +73,16 @@ export async function getPublicOrganizationProfile(
 					},
 				},
 				events: {
-					where: {
-						isPublic: true,
-					},
+					// Organizers see all events (including drafts and hidden/isPublic: false).
+					// The public only sees published/active events where visibility is on (isPublic: true).
+					where: isOrganizer
+						? undefined
+						: {
+								isPublic: true,
+								status: {
+									not: "draft",
+								},
+						  },
 					orderBy: {
 						startDate: "desc",
 					},
@@ -67,8 +115,9 @@ export async function getPublicOrganizationProfile(
 			...sanitized,
 			_count: {
 				members: sanitized._count?.team ?? 0,
-				events: sanitized._count?.events ?? 0,
+				events: sanitized.events?.length ?? 0,
 			},
+			isOrganizer,
 			isUserPendingJoin: false,
 		};
 	} catch (error) {
@@ -80,16 +129,32 @@ export async function getPublicOrganizationProfile(
 export async function getPublicEventDetails(
 	orgSlug: string,
 	eventSlug: string,
+	userId?: string | null,
 ): Promise<any> {
 	try {
-		const event = await prisma.event.findFirst({
-			where: {
-				slug: eventSlug,
-				isPublic: true,
-				organization: {
-					slug: orgSlug,
-				},
+		let currentUserId = userId;
+		if (currentUserId === undefined) {
+			const session = await getSession();
+			currentUserId = session?.userId ?? null;
+		}
+
+		const isOrganizer = await isUserOrgOrganizer(orgSlug, currentUserId);
+
+		// Non-organizers must satisfy: isPublic === true AND status !== 'draft'
+		const eventWhere: any = {
+			slug: eventSlug,
+			organization: {
+				slug: orgSlug,
 			},
+		};
+
+		if (!isOrganizer) {
+			eventWhere.isPublic = true;
+			eventWhere.status = { not: "draft" };
+		}
+
+		const event = await prisma.event.findFirst({
+			where: eventWhere,
 			include: {
 				organization: {
 					select: {
@@ -174,6 +239,7 @@ export async function getPublicEventDetails(
 
 		return {
 			...sanitized,
+			isOrganizer,
 			votingCategories: sanitizedVotingCategories,
 			ticketTypes: sanitizedTicketTypes,
 			votingMode:
@@ -192,16 +258,31 @@ export async function getPublicCategoryDetails(
 	orgSlug: string,
 	eventSlug: string,
 	categoryId: string,
+	userId?: string | null,
 ): Promise<any> {
 	try {
-		const event = await prisma.event.findFirst({
-			where: {
-				slug: eventSlug,
-				isPublic: true,
-				organization: {
-					slug: orgSlug,
-				},
+		let currentUserId = userId;
+		if (currentUserId === undefined) {
+			const session = await getSession();
+			currentUserId = session?.userId ?? null;
+		}
+
+		const isOrganizer = await isUserOrgOrganizer(orgSlug, currentUserId);
+
+		const eventWhere: any = {
+			slug: eventSlug,
+			organization: {
+				slug: orgSlug,
 			},
+		};
+
+		if (!isOrganizer) {
+			eventWhere.isPublic = true;
+			eventWhere.status = { not: "draft" };
+		}
+
+		const event = await prisma.event.findFirst({
+			where: eventWhere,
 			include: {
 				organization: {
 					select: {
@@ -266,6 +347,7 @@ export async function getPublicCategoryDetails(
 		const sanitizedCategory = sanitizePrismaData(category);
 
 		return {
+			isOrganizer,
 			event: {
 				...sanitizedEvent,
 				votingMode: (sanitizedEvent as any).votingMode || "general",

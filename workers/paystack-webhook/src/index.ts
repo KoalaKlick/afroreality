@@ -69,23 +69,33 @@ export default {
 				const sql = neon(env.DATABASE_URL);
 
 				// Update USSD session if exists
-				if (reference.startsWith("USSD_") || metadata.source === "ussd") {
+				if (
+					reference.startsWith("USSD_") ||
+					reference.startsWith("USSD-") ||
+					metadata.source === "ussd" ||
+					metadata.channel === "ussd"
+				) {
 					await sql`
 						UPDATE ussd_sessions 
 						SET status = 'completed', updated_at = NOW() 
 						WHERE reference = ${reference}
 					`;
 
-					if (metadata.option_id && metadata.quantity) {
+					const optionId = metadata.option_id || metadata.votingOptionId;
+					const quantity = metadata.quantity || metadata.voteCount || 1;
+					const eventId = metadata.event_id || metadata.eventId;
+					const phone = metadata.phone_number || metadata.phone || data.customer?.phone;
+
+					if (optionId && quantity) {
 						// Record Vote
 						await sql`
 							INSERT INTO votes (event_id, option_id, vote_count, voter_phone, created_at)
-							VALUES (${metadata.event_id}, ${metadata.option_id}, ${metadata.quantity}, ${metadata.phone_number}, NOW())
+							VALUES (${eventId}, ${optionId}, ${quantity}, ${phone}, NOW())
 						`;
 						await sql`
 							UPDATE voting_options 
-							SET votes_count = votes_count + ${metadata.quantity}, updated_at = NOW()
-							WHERE id = ${metadata.option_id}
+							SET votes_count = votes_count + ${quantity}, updated_at = NOW()
+							WHERE id = ${optionId}
 						`;
 					}
 				}

@@ -3,7 +3,8 @@
 import { cn } from "@/lib/utils";
 import type { Event } from "@repo/db";
 import { getEventImageUrl } from "@/lib/image-url-utils";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Heart } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface PublicEventCardProps {
@@ -12,99 +13,132 @@ interface PublicEventCardProps {
 	readonly className?: string;
 }
 
+/** Status badge color map */
+function getStatusStyle(status: string) {
+	switch (status) {
+		case "ended":
+			return "bg-red-50 text-red-500 border-red-100";
+		case "ongoing":
+			return "bg-green-50 text-green-600 border-green-100";
+		case "published":
+			return "bg-blue-50 text-blue-600 border-blue-100";
+		case "cancelled":
+			return "bg-zinc-100 text-zinc-500 border-zinc-200";
+		case "draft":
+			return "bg-amber-50 text-amber-600 border-amber-100";
+		default:
+			return "bg-muted text-muted-foreground border-border";
+	}
+}
+
+function formatDateRange(start: Date | null, end: Date | null) {
+	const opts: Intl.DateTimeFormatOptions = {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	};
+
+	if (!start) return "Date TBD";
+
+	const startStr = new Date(start).toLocaleDateString("en-GB", opts);
+
+	if (!end) return startStr;
+
+	const s = new Date(start);
+	const e = new Date(end);
+
+	// Same day → single date
+	if (s.toDateString() === e.toDateString()) return startStr;
+
+	const endStr = e.toLocaleDateString("en-GB", opts);
+	return `${startStr} - ${endStr}`;
+}
+
 export function PublicEventCard({
 	event,
 	organizationSlug,
 	className,
 }: PublicEventCardProps) {
-	// Generate an accent color based on event type
-	const accentColors = {
-		voting: "text-brand-tertiary",
-		ticketed: "text-brand-secondary",
-		standard: "text-brand-primary",
-		hybrid: "text-brand-primary",
-	};
-
-	const colorClass =
-		accentColors[event.type as keyof typeof accentColors] ??
-		"text-brand-primary";
 	const coverImageUrl =
 		getEventImageUrl(event.flierImage) || "/landing/a.webp";
 	const eventDetailsHref = `/${organizationSlug}/event/${event.slug}`;
+	const locationParts = [event.venueCity, event.venueCountry].filter(Boolean);
+	const locationStr =
+		event.venueName ||
+		(locationParts.length > 0 ? locationParts.join(", ") : null);
 
 	return (
-		<Link
-			href={eventDetailsHref}
-			className={cn(
-				"group relative block cursor-pointer overflow-hidden rounded-2xl aspect-4/3 border border-border/60 shadow-xs hover:shadow-xl transition-all duration-300",
-				className,
-			)}
-		>
-			{/* Background image */}
-			<div
-				className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-				style={{ backgroundImage: `url(${coverImageUrl})` }}
-			/>
-
-			{/* Dark gradient overlay */}
-			<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-colors group-hover:from-black/80" />
-
-			{/* Side accent (derived from landing page style) */}
-			<svg
-				className={cn(
-					"absolute right-0 top-0 h-full w-24 z-10 opacity-80",
-					colorClass,
-				)}
-				viewBox="0 0 210 297"
-				preserveAspectRatio="none"
-				aria-hidden="true"
+		<div className={cn("@container", className)}>
+			<Link
+				href={eventDetailsHref}
+				className="group flex flex-col @sm:flex-row rounded-2xl border border-border/60 bg-card shadow-xs hover:shadow-lg transition-all duration-300 overflow-hidden"
 			>
-				<path
-					d="M 179.69167,0.37081617 196.23673,146.38046 179.15249,297.0266 l 31.2116,0.35696 V 0.01812264 Z"
-					fill="currentColor"
-				/>
-			</svg>
+				{/* ── Text content ── */}
+				<div className="flex-1 flex flex-col justify-between p-5 @sm:p-6 order-2 @sm:order-1">
+					{/* Date */}
+					<div className="space-y-2">
+						<div className="flex items-center gap-1.5 text-xs text-primary font-medium">
+							<Calendar className="size-3.5 shrink-0" />
+							<span>
+								{formatDateRange(event.startDate, event.endDate)}
+							</span>
+						</div>
 
-			{/* Content */}
-			<div className="absolute inset-0 p-5 pr-10 flex flex-col justify-end text-white z-20">
-				<div className="space-y-1 mb-3">
-					<h3 className="font-black uppercase text-lg leading-tight tracking-tight drop-shadow-xs">
-						{event.title}
-					</h3>
-					<div className="flex items-center gap-2 text-white/80 text-xs">
-						<Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
-						<span>
-							{event.startDate
-								? new Date(event.startDate).toLocaleDateString("en-US", {
-										month: "short",
-										day: "numeric",
-										year: "numeric",
-									})
-								: "Date TBD"}
-						</span>
+						{/* Title */}
+						<h3 className="text-base @sm:text-lg font-bold text-foreground leading-snug tracking-tight line-clamp-2 group-hover:text-primary transition-colors">
+							{event.title}
+						</h3>
+
+						{/* Location */}
+						{locationStr && (
+							<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+								<MapPin className="size-3.5 shrink-0" />
+								<span className="truncate">{locationStr}</span>
+							</div>
+						)}
 					</div>
-					{event.venueName && (
-						<div className="flex items-center gap-2 text-white/80 text-xs">
-							<MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-							<span className="truncate">{event.venueName}</span>
+
+					{/* Status badge — bottom left */}
+					{event.status && (
+						<div className="mt-4 @sm:mt-auto @sm:pt-4">
+							<span
+								className={cn(
+									"inline-block text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full border",
+									getStatusStyle(event.status),
+								)}
+							>
+								{event.status}
+							</span>
 						</div>
 					)}
 				</div>
 
-				<div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
-					<span
-						className={cn(
-							"text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-white/10 backdrop-blur-md tracking-widest border border-white/10",
-							colorClass,
-						)}
+				{/* ── Image ── */}
+				<div className="relative @sm:w-[45%] @sm:max-w-[280px] shrink-0 aspect-[4/3] @sm:aspect-auto order-1 @sm:order-2 overflow-hidden">
+					<Image
+						src={coverImageUrl}
+						alt={event.title}
+						fill
+						className="object-cover transition-transform duration-500 group-hover:scale-105"
+						sizes="(max-width: 640px) 100vw, 280px"
+						unoptimized
+					/>
+
+					{/* Heart icon overlay */}
+					<button
+						type="button"
+						className="absolute top-3 right-3 z-10 size-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white hover:scale-110 transition-all duration-200 pointer-events-auto"
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							// TODO: favorite/wishlist logic
+						}}
+						aria-label="Add to favorites"
 					>
-						{event.type}
-					</span>
-					<span className="text-[11px] font-bold uppercase underline underline-offset-4 hover:text-white transition-colors">
-						View Details →
-					</span>
+						<Heart className="size-4 text-foreground/70" />
+					</button>
 				</div>
-			</div>
-		</Link>
+			</Link>
+		</div>
 	);
 }

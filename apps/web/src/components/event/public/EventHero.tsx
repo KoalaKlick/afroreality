@@ -10,6 +10,7 @@ import { shareEvent } from "@/lib/utils/share-utils";
 import { getSocialPlatform } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
+import { UssdDialPill } from "@/components/event/public/UssdDialPill";
 
 interface EventHeroProps {
 	readonly event: {
@@ -22,6 +23,8 @@ interface EventHeroProps {
 		venueName?: string | null;
 		bannerUrl?: string | null;
 		flierUrl?: string | null;
+		hasUssd?: boolean | null;
+		ussdCode?: string | null;
 		organization: {
 			name: string;
 			slug: string;
@@ -174,6 +177,13 @@ export function EventHero({
 									icon={MapPin}
 									label="Venue"
 									value={event.venueName}
+								/>
+							)}
+							{event.hasUssd && event.ussdCode && (
+								<UssdDialPill
+									eventTitle={event.title}
+									ussdCode={event.ussdCode}
+									primaryColor={organization.primaryColor || undefined}
 								/>
 							)}
 						</div>
