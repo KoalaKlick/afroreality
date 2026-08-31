@@ -50,6 +50,12 @@ interface PublicTicketPaymentModalProps {
 		readonly orgSlug: string;
 		readonly eventSlug: string;
 	};
+	readonly organization?: {
+		readonly primaryColor?: string | null;
+		readonly secondaryColor?: string | null;
+		readonly tertiaryColor?: string | null;
+	};
+	readonly brandVars?: React.CSSProperties;
 }
 
 type ModalStep = "checkout" | "processing" | "success" | "error";
@@ -60,6 +66,8 @@ export function PublicTicketPaymentModal({
 	onOpenChange,
 	event,
 	routing,
+	organization,
+	brandVars,
 }: PublicTicketPaymentModalProps) {
 	const router = useRouter();
 
@@ -144,9 +152,17 @@ export function PublicTicketPaymentModal({
 		}
 	}
 
+	const computedBrandVars =
+		brandVars ||
+		({
+			"--color-brand-primary": organization?.primaryColor || "#009A44",
+			"--color-brand-secondary": organization?.secondaryColor || "#FFD100",
+			"--color-brand-tertiary": organization?.tertiaryColor || "#EF3340",
+		} as React.CSSProperties);
+
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="sm:max-w-md p-6">
+			<DialogContent className="sm:max-w-md p-6" style={computedBrandVars}>
 				<DialogHeader>
 					<DialogTitle className="text-xl font-bold">
 						{step === "success"

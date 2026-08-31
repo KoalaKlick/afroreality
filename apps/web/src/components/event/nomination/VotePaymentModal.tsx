@@ -46,6 +46,7 @@ interface VotePaymentModalProps {
 	readonly votingMode?: "internal" | "general" | string;
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
+	readonly brandVars?: React.CSSProperties;
 }
 
 type ModalStep = "checkout" | "processing" | "success" | "error";
@@ -58,6 +59,7 @@ export function VotePaymentModal({
 	eventId,
 	categoryId,
 	votingMode = "general",
+	brandVars,
 }: VotePaymentModalProps) {
 	const router = useRouter();
 	const isInternalVoting = votingMode === "internal";
@@ -147,7 +149,7 @@ export function VotePaymentModal({
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="sm:max-w-md p-6">
+			<DialogContent className="sm:max-w-md p-6" style={brandVars}>
 				<DialogHeader>
 					<DialogTitle className="text-xl font-bold">
 						{step === "success"

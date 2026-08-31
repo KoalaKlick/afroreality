@@ -7,6 +7,7 @@ import {
 	Share2,
 	Trophy,
 	Sparkles,
+	BarChart2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ interface VotingOption {
 	imageUrl?: string | null;
 	bio?: string | null;
 	votes?: number;
+	votesCount?: number | bigint;
 }
 
 interface NomineeGridProps {
@@ -37,6 +39,12 @@ interface NomineeGridProps {
 	readonly categoryId: string;
 	readonly categoryName?: string;
 	readonly votingMode?: string;
+	readonly showTotalVotesPublicly?: boolean;
+	readonly templateConfig?: {
+		resultDisplayType?: "percentage" | "count";
+		[key: string]: any;
+	} | null;
+	readonly brandVars?: React.CSSProperties;
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
 }
@@ -48,6 +56,9 @@ export function NomineeGrid({
 	categoryId,
 	categoryName = "",
 	votingMode = "general",
+	showTotalVotesPublicly = true,
+	templateConfig,
+	brandVars,
 	orgSlug = "",
 	eventSlug = "",
 }: NomineeGridProps) {
@@ -58,6 +69,15 @@ export function NomineeGrid({
 	);
 
 	const isFree = Number(votePrice) === 0;
+
+	// Calculate total votes across all nominees in this category
+	const totalCategoryVotes = nominees.reduce((acc, n) => {
+		const count = Number(n.votesCount ?? n.votes ?? 0);
+		return acc + (Number.isFinite(count) ? count : 0);
+	}, 0);
+
+	const resultDisplayType =
+		templateConfig?.resultDisplayType === "count" ? "count" : "percentage";
 
 	const handleOpenVoteModal = (nominee: VotingOption) => {
 		setSelectedNominee(nominee);
@@ -96,10 +116,16 @@ export function NomineeGrid({
 		<>
 			<div className="grid grid-cols-1 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
 				{nominees.map((nominee) => {
+					const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
+					const votePercentage =
+						totalCategoryVotes > 0
+							? (nomineeVotes / totalCategoryVotes) * 100
+							: 0;
+
 					return (
 						<div
 							key={nominee.id}
-							className="group relative flex flex-col justify-between rounded-2xl border border-transparent bg-card p-4 transition-all duration-300 hover:border-primary/50"
+							className="group relative flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-4 transition-all duration-300 hover:border-primary/50 hover:shadow-lg shadow-xs"
 						>
 							<div
 								onClick={() => handleOpenSheet(nominee)}
@@ -122,6 +148,18 @@ export function NomineeGrid({
 											#{nominee.nomineeCode}
 										</div>
 									)}
+
+									{/* Real-Time Live Standings Badge on Image (if enabled) */}
+									{showTotalVotesPublicly && (
+										<div className="absolute bottom-2.5 left-2.5 rounded-full bg-background/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold border flex items-center gap-1 shadow-xs text-foreground">
+											<BarChart2 className="size-3 text-primary" />
+											<span>
+												{resultDisplayType === "count"
+													? `${nomineeVotes.toLocaleString()} votes`
+													: `${votePercentage.toFixed(1)}%`}
+											</span>
+										</div>
+									)}
 								</div>
 
 								{/* Nominee Meta */}
@@ -139,7 +177,7 @@ export function NomineeGrid({
 							</div>
 
 							{/* Actions */}
-							<div className="pt-3 mt-3 border-t flex items-center justify-between gap-2">
+							<div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between gap-2">
 								<Button
 									variant="ghost"
 									size="icon"
@@ -172,68 +210,93 @@ export function NomineeGrid({
 
 			{/* Nominee Profile Quick-View Sheet */}
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-				<SheetContent className="sm:max-w-md p-6 overflow-y-auto">
-					{selectedNominee && (
-						<div className="space-y-6">
-							<SheetHeader>
-								<SheetTitle className="text-xl font-bold">
-									{selectedNominee.optionText}
-								</SheetTitle>
-							</SheetHeader>
+				<SheetContent
+					className="sm:max-w-md p-6 overflow-y-auto"
+					style={brandVars}
+				>
+					{selectedNominee && (() => {
+						const selectedVotes = Number(
+							selectedNominee.votesCount ?? selectedNominee.votes ?? 0,
+						);
+						const selectedPct =
+							totalCategoryVotes > 0
+								? (selectedVotes / totalCategoryVotes) * 100
+								: 0;
 
-							<div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-muted border flex items-center justify-center">
-								{selectedNominee.imageUrl ? (
-									<img
-										src={getEventImageUrl(selectedNominee.imageUrl) || ""}
-										alt={selectedNominee.optionText}
-										className="size-full object-cover"
-									/>
-								) : (
-									<User className="size-16 text-muted-foreground/40" />
-								)}
-							</div>
+						return (
+							<div className="space-y-6">
+								<SheetHeader>
+									<SheetTitle className="text-xl font-bold">
+										{selectedNominee.optionText}
+									</SheetTitle>
+								</SheetHeader>
 
-							{selectedNominee.bio && (
-								<div className="space-y-1">
-									<h5 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-										About Nominee
-									</h5>
-									<RichTextDisplay
-										content={selectedNominee.bio}
-										className="text-xs text-muted-foreground leading-relaxed"
-									/>
+								<div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-muted border flex items-center justify-center">
+									{selectedNominee.imageUrl ? (
+										<img
+											src={getEventImageUrl(selectedNominee.imageUrl) || ""}
+											alt={selectedNominee.optionText}
+											className="size-full object-cover"
+										/>
+									) : (
+										<User className="size-16 text-muted-foreground/40" />
+									)}
+
+									{/* Real-Time Live Standings Badge on Sheet Image */}
+									{showTotalVotesPublicly && (
+										<div className="absolute bottom-3 left-3 rounded-full bg-background/90 backdrop-blur-md px-3 py-1 text-xs font-bold border border-border/60 flex items-center gap-1.5 shadow-md text-foreground">
+											<BarChart2 className="size-3.5 text-primary" />
+											<span>
+												{resultDisplayType === "count"
+													? `${selectedVotes.toLocaleString()} votes`
+													: `${selectedPct.toFixed(1)}%`}
+											</span>
+										</div>
+									)}
 								</div>
-							)}
 
-							<div className="flex items-center gap-3 pt-4 border-t">
-								<Button
-									className="flex-1 font-bold gap-2"
-									onClick={() => {
-										setSheetOpen(false);
-										setVoteModalOpen(true);
-									}}
-								>
-									<Vote className="size-4" />
-									<span>
-										{votingMode === "internal"
-											? "Cast Ballot"
-											: isFree
-												? "Vote Free"
-												: `Vote (GHS ${votePrice.toFixed(2)})`}
-									</span>
-								</Button>
-								<Button
-									variant="outline"
-									size="icon"
-									className="size-10 shrink-0"
-									onClick={(e) => handleShare(e, selectedNominee)}
-									title="Share Nominee"
-								>
-									<Share2 className="size-4" />
-								</Button>
+								{selectedNominee.bio && (
+									<div className="space-y-1">
+										<h5 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+											About Nominee
+										</h5>
+										<RichTextDisplay
+											content={selectedNominee.bio}
+											className="text-xs text-muted-foreground leading-relaxed"
+										/>
+									</div>
+								)}
+
+								<div className="flex items-center gap-3 pt-4 border-t">
+									<Button
+										className="flex-1 font-bold gap-2"
+										onClick={() => {
+											setSheetOpen(false);
+											setVoteModalOpen(true);
+										}}
+									>
+										<Vote className="size-4" />
+										<span>
+											{votingMode === "internal"
+												? "Cast Ballot"
+												: isFree
+													? "Vote Free"
+													: `Vote (GHS ${votePrice.toFixed(2)})`}
+										</span>
+									</Button>
+									<Button
+										variant="outline"
+										size="icon"
+										className="size-10 shrink-0"
+										onClick={(e) => handleShare(e, selectedNominee)}
+										title="Share Nominee"
+									>
+										<Share2 className="size-4" />
+									</Button>
+								</div>
 							</div>
-						</div>
-					)}
+						);
+					})()}
 				</SheetContent>
 			</Sheet>
 
@@ -250,6 +313,7 @@ export function NomineeGrid({
 					votingMode={votingMode}
 					orgSlug={orgSlug}
 					eventSlug={eventSlug}
+					brandVars={brandVars}
 				/>
 			)}
 		</>
@@ -271,6 +335,7 @@ interface PublicNomineeSheetProps {
 	};
 	readonly eventId: string;
 	readonly votingMode?: string;
+	readonly brandVars?: React.CSSProperties;
 	readonly orgSlug: string;
 	readonly eventSlug: string;
 }
@@ -279,6 +344,7 @@ export function PublicNomineeSheet({
 	category,
 	eventId,
 	votingMode = "general",
+	brandVars,
 	orgSlug,
 	eventSlug,
 }: PublicNomineeSheetProps) {
@@ -315,6 +381,7 @@ export function PublicNomineeSheet({
 							votingOptions: [],
 						}}
 						eventId={eventId}
+						brandVars={brandVars}
 						orgSlug={orgSlug}
 						eventSlug={eventSlug}
 						trigger={
@@ -326,7 +393,7 @@ export function PublicNomineeSheet({
 				</div>
 			)}
 
-			{/* Nominees Grid */}
+			{/* Nominees Grid with Live Standings */}
 			<NomineeGrid
 				nominees={category.votingOptions || []}
 				votePrice={category.votePrice || 0}
@@ -334,6 +401,9 @@ export function PublicNomineeSheet({
 				categoryId={category.id}
 				categoryName={category.name}
 				votingMode={votingMode}
+				showTotalVotesPublicly={category.showTotalVotesPublicly ?? true}
+				templateConfig={category.templateConfig}
+				brandVars={brandVars}
 				orgSlug={orgSlug}
 				eventSlug={eventSlug}
 			/>

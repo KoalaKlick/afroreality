@@ -586,7 +586,7 @@ export async function getPaymentStatusByReference({
 			return { success: false, error: "Payment reference is required." };
 		}
 
-		const payment = await prisma.payment.findUnique({
+		let payment = await prisma.payment.findUnique({
 			where: { reference },
 			include: {
 				ticketOrders: {
@@ -601,7 +601,136 @@ export async function getPaymentStatusByReference({
 			return { success: false, error: "Payment not found." };
 		}
 
-		const metadata = (payment.metadata as any) || {};
+		let metadata = (payment.metadata as any) || {};
+
+		// If payment is pending, verify directly with Paystack API (handles test mode & localhost webhook delays)
+		if (payment.status !== "completed") {
+			try {
+				const verifyRes = await paystack.transaction.verify(reference);
+				if (verifyRes?.status && verifyRes?.data?.status === "success") {
+					// 1. Mark payment completed
+					payment = await prisma.payment.update({
+						where: { id: payment.id },
+						data: {
+							status: "completed",
+							verifiedAt: new Date(),
+							paystackTransactionId: String(verifyRes.data.id || ""),
+						},
+						include: {
+							ticketOrders: {
+								include: {
+									tickets: true,
+								},
+							},
+						},
+					});
+
+					// 2. Fulfill Ticket Order if applicable
+					if (payment.purpose === "ticket_purchase") {
+						const ticketOrderId =
+							metadata.ticketOrderId || payment.ticketOrders?.[0]?.id;
+						if (ticketOrderId) {
+							const existingOrder = await prisma.ticketOrder.findUnique({
+								where: { id: ticketOrderId },
+								include: { tickets: true },
+							});
+
+							if (existingOrder) {
+								await prisma.ticketOrder.update({
+									where: { id: ticketOrderId },
+									data: { status: "completed" },
+								});
+
+								// Generate ticket passes if not yet created
+								if (
+									existingOrder.tickets.length === 0 &&
+									metadata.ticketTypeId
+								) {
+									const qty = Number(metadata.quantity) || 1;
+									for (let i = 0; i < qty; i++) {
+										const ticketCode = `TIX-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+										await prisma.ticket.create({
+											data: {
+												orderId: ticketOrderId,
+												ticketTypeId: metadata.ticketTypeId,
+												eventId: metadata.eventId || existingOrder.eventId,
+												ticketCode,
+												attendeeName: metadata.buyerName,
+												attendeeEmail: metadata.buyerEmail,
+												checkInStatus: "not_checked_in",
+											},
+										});
+									}
+
+									await prisma.ticketType.update({
+										where: { id: metadata.ticketTypeId },
+										data: { quantitySold: { increment: qty } },
+									});
+								}
+							}
+						}
+					}
+
+					// 3. Fulfill Vote if applicable
+					if (payment.purpose === "vote_purchase") {
+						const existingVote = await prisma.vote.findFirst({
+							where: { paymentId: payment.id },
+						});
+
+						if (!existingVote && metadata.optionId && metadata.eventId) {
+							const voteCount = Number(metadata.voteCount) || 1;
+							await prisma.vote.create({
+								data: {
+									eventId: metadata.eventId,
+									categoryId: metadata.categoryId || null,
+									optionId: metadata.optionId,
+									paymentId: payment.id,
+									voteCount,
+									voterEmail: metadata.voterEmail,
+									voterPhone: metadata.voterPhone,
+								},
+							});
+
+							await prisma.votingOption.update({
+								where: { id: metadata.optionId },
+								data: { votesCount: { increment: voteCount } },
+							});
+						}
+					}
+
+					// Re-fetch updated payment with tickets
+					const refreshed = await prisma.payment.findUnique({
+						where: { id: payment.id },
+						include: {
+							ticketOrders: {
+								include: {
+									tickets: true,
+								},
+							},
+						},
+					});
+					if (refreshed) payment = refreshed;
+				} else if (
+					verifyRes?.data?.status === "failed" ||
+					verifyRes?.data?.status === "abandoned"
+				) {
+					payment = await prisma.payment.update({
+						where: { id: payment.id },
+						data: { status: "failed" },
+						include: {
+							ticketOrders: {
+								include: {
+									tickets: true,
+								},
+							},
+						},
+					});
+				}
+			} catch (verifyErr) {
+				console.error("Paystack verification error on callback:", verifyErr);
+			}
+		}
+
 		const ticketOrder = payment.ticketOrders?.[0];
 		const tickets = (ticketOrder?.tickets || []).map((t) => ({
 			id: t.id,

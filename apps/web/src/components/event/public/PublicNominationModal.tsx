@@ -30,12 +30,14 @@ interface PublicNominationModalProps {
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
 	readonly trigger?: React.ReactNode;
+	readonly brandVars?: React.CSSProperties;
 }
 
 export function PublicNominationModal({
 	eventId,
 	category,
 	trigger,
+	brandVars,
 }: PublicNominationModalProps) {
 	const [open, setOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
@@ -92,7 +94,10 @@ export function PublicNominationModal({
 				)}
 			</SheetTrigger>
 
-			<SheetContent className="sm:max-w-md overflow-y-auto p-6">
+			<SheetContent
+				className="sm:max-w-md overflow-y-auto p-6"
+				style={brandVars}
+			>
 				<SheetHeader>
 					<SheetTitle className="text-lg font-bold">
 						Nominate Candidate

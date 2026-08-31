@@ -63,15 +63,15 @@ function SheetContent({
 				className={cn(
 					"fixed z-50 flex flex-col p-6 bg-background shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500",
 					side === "right" &&
-						"inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right ",
+						"inset-y-0 right-0 h-full w-full max-w-full sm:max-w-md border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
 					side === "left" &&
-						"inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+						"inset-y-0 left-0 h-full w-full max-w-full sm:max-w-md border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
 					side === "top" &&
 						"inset-x-0 top-0 h-auto border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
 					side === "bottom" &&
 						"inset-x-0 bottom-0 h-auto border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
 					variant === "afro" &&
-						"border-primary-900/10 bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(22,163,74,0),transparent_26%)] bg-background",
+						"border-brand-secondary/20 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-tertiary,#EF3340)_16%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-brand-secondary,#FFD100)_14%,transparent),transparent_24%),radial-gradient(circle_at_bottom_left,color-mix(in_srgb,var(--color-brand-primary,#009A44)_10%,transparent),transparent_26%)] bg-background",
 					className,
 				)}
 				{...props}
