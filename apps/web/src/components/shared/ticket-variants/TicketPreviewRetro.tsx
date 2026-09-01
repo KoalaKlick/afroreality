@@ -64,7 +64,7 @@ function TicketOutline({ color }: { color: string }) {
 }
 
 const DotPattern = ({ color }: { color: string }) => (
-  <div 
+  <div
     className="absolute inset-0 opacity-[0.03] pointer-events-none"
     style={{
       backgroundImage: `radial-gradient(${color} 1px, transparent 1px)`,
@@ -95,7 +95,7 @@ export function TicketCardRetro({
   const clipId = `ticket-retro-clip-${uid}`;
   const [flipped, setFlipped] = React.useState(false);
   const primaryShades = generateColorShades(primaryColor);
-  
+
   const showFront = exportMode ? (exportSide === "front" || exportSide === "both") : true;
   const showBack = exportMode ? (exportSide === "back" || exportSide === "both") : true;
 
@@ -114,15 +114,15 @@ export function TicketCardRetro({
     >
       <DotPattern color={primaryColor} />
       <TicketOutline color={primaryShades[200]} />
-      
+
       {/* Texture Overlay (Grain) */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-black/5" />
 
       {/* Top Edge Perforation Visual */}
       <div className="absolute top-0 left-0 right-0 h-1 flex justify-around px-4">
-          {[...Array(20)].map((_, i) => (
-            <div key={i} className="w-1.5 h-1.5 -translate-y-1/2 rounded-full bg-muted/40" />
-          ))}
+        {[...Array(20)].map((_, i) => (
+          <div key={i} className="w-1.5 h-1.5 -translate-y-1/2 rounded-full bg-muted/40" />
+        ))}
       </div>
 
       {/* Left: Event Visual */}
@@ -131,11 +131,11 @@ export function TicketCardRetro({
           const imageUrl = getEventImageUrl(flierImage);
           if (imageUrl) {
             return (
-              <Image 
-                src={imageUrl} 
-                alt="Event" 
+              <Image
+                src={imageUrl}
+                alt="Event"
                 fill
-                className="object-cover grayscale-[0.3] sepia-[0.2]" 
+                className="object-cover grayscale-[0.3] sepia-[0.2]"
               />
             );
           }
@@ -191,8 +191,8 @@ export function TicketCardRetro({
       </div>
 
       {/* Perforation Line */}
-      <div 
-        className="absolute left-[33.33%] top-0 bottom-0 w-[2px]" 
+      <div
+        className="absolute left-[33.33%] top-0 bottom-0 w-[2px]"
         style={{
           backgroundImage: 'linear-gradient(to bottom, transparent 33%, rgba(0,0,0,0.1) 0%)',
           backgroundPosition: 'left',
@@ -220,24 +220,24 @@ export function TicketCardRetro({
       <TicketOutline color={primaryShades[200]} />
       <div className="w-full h-full flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-2">
-            <div className="border-4 border-black p-2 bg-white rotate-[-1deg]">
-              {qrPayload ? (
-                <QRCode 
-                  value={qrPayload} 
-                  size={exportMode ? 100 : 100} 
-                  fgColor="#1a1a1a"
-                  bgColor="#ffffff"
-                />
-              ) : (
-                <div className="w-24 h-24 bg-muted animate-pulse" />
-              )}
+          <div className="border-4 border-black p-2 bg-white rotate-[-1deg]">
+            {qrPayload ? (
+              <QRCode
+                value={qrPayload}
+                size={exportMode ? 100 : 100}
+                fgColor="#1a1a1a"
+                bgColor="#ffffff"
+              />
+            ) : (
+              <div className="w-24 h-24 bg-muted animate-pulse" />
+            )}
+          </div>
+          <div className="text-center space-y-1">
+            <div className="text-[10px] font-black tracking-[0.2em]">VALIDATE AT GATE</div>
+            <div className="text-[8px] opacity-60 max-w-[200px]">
+              DO NOT FOLD OR MUTILATE. VOID IF DETACHED. fextiva OFFICIAL DOCUMENT.
             </div>
-            <div className="text-center space-y-1">
-              <div className="text-[10px] font-black tracking-[0.2em]">VALIDATE AT GATE</div>
-              <div className="text-[8px] opacity-60 max-w-[200px]">
-                DO NOT FOLD OR MUTILATE. VOID IF DETACHED. AFROTIX OFFICIAL DOCUMENT.
-              </div>
-            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -249,12 +249,12 @@ export function TicketCardRetro({
         <TicketClipPath id={clipId} />
         {showFront && (
           <div className="relative w-[560px] h-[215px] shrink-0 mx-auto">
-             {renderFront()}
+            {renderFront()}
           </div>
         )}
         {showBack && (
           <div className="relative w-[560px] h-[215px] shrink-0 mx-auto">
-             {renderBack()}
+            {renderBack()}
           </div>
         )}
       </div>
@@ -267,7 +267,7 @@ export function TicketCardRetro({
       style={{ perspective: 1200 }}
     >
       <TicketClipPath id={clipId} />
-      
+
       <div
         className="relative w-full max-w-[560px] h-[210px]"
         onClick={() => setFlipped((f) => !f)}

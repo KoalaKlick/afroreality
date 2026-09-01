@@ -1,7 +1,7 @@
 // src/lib/validations/organization.ts
 //
 // Organization validation schemas using Zod v4.
-// Adapted from afrotix/lib/validations/organization.ts.
+// Adapted from fextiva/lib/validations/organization.ts.
 
 import { z } from "zod";
 

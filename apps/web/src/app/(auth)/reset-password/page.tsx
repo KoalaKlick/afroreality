@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ResetPasswordContent } from "@/components/auth/reset-password-content";
 
 export const metadata = {
-  title: "Reset Password - AfroReality",
+  title: "Reset Password - fextiva",
   description: "Enter your new password",
 };
 

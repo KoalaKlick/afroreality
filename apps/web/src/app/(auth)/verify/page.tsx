@@ -1,7 +1,7 @@
 import { VerificationContent } from "@/components/auth/verification-content";
 
 export const metadata = {
-  title: "Verify Email - AfroReality",
+  title: "Verify Email - fextiva",
   description: "Verify your email address",
 };
 

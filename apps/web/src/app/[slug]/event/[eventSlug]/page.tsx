@@ -43,7 +43,7 @@ export async function generateMetadata({
 	const pageUrl = `${BASE_URL.replace(/\/$/, "")}/${orgSlug}/event/${eventSlug}`;
 	const description =
 		event.description?.replaceAll(/<[^>]*>/g, "").slice(0, 200) ||
-		`${event.title} - organized by ${event.organization.name} on AfroReality.`;
+		`${event.title} - organized by ${event.organization.name} on fextiva.`;
 
 	return {
 		title: `${event.title} - ${event.organization.name}`,

@@ -198,7 +198,7 @@ function CornerOrnament({
 export function GeoTicketPass({
 	primaryColor = "#F97316",
 	secondaryColor = "#14B8A6",
-	organizationName = "AfroReality",
+	organizationName = "fextiva",
 	eventName = "Sample Event 2026",
 	ticketType = "General Admission",
 	dateTime = "18 Mar 2026, 7:00 PM",

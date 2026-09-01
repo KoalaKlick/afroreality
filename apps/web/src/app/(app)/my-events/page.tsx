@@ -7,7 +7,7 @@ import { MyEventsClient } from "@/components/event/core/MyEventsClient";
 import { serializeJsonSafe } from "@/lib/utils";
 
 export const metadata = {
-	title: "My Events - AfroReality",
+	title: "My Events - fextiva",
 	description: "Manage, monitor, and create events for your organizations.",
 };
 

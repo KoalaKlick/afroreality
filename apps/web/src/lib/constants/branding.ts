@@ -8,14 +8,14 @@ export const PROJ_NAME =
 			process.env.NEXT_PUBLIC_PROJ_NAME ||
 			process.env.PROJ_NAME ||
 			process.env.FRONTEND_NAME)) ||
-	"AfroReality";
+	"fextiva";
 
 export function getCleanDomain(): string {
 	const raw = getFrontendBaseUrl();
 	if (raw) {
 		return raw.replace(/^https?:\/\//, "").replace(/\/$/, "");
 	}
-	return "afroreality.com";
+	return "fextiva.com";
 }
 
 export const DOMAIN_NAME = getCleanDomain();

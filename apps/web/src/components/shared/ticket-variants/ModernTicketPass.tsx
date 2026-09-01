@@ -113,7 +113,7 @@ function HRule({ color }: { color: string }) {
 export function ModernTicketPass({
 	primaryColor = "#1877F2",
 	secondaryColor = "#7C3AED",
-	organizationName = "AfroReality",
+	organizationName = "fextiva",
 	eventName = "Sample Event 2026",
 	ticketType = "VIP Pass",
 	dateTime = "18 Mar 2026, 7:00 PM",

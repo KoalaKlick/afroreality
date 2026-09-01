@@ -1,7 +1,7 @@
 // src/lib/constants/config.ts
 //
 // Centralized configuration constants.
-// Adapted from afroreality-app/shared/constants/config.ts.
+// Adapted from fextiva-app/shared/constants/config.ts.
 
 export const AUTH_COOKIE_NAME = "auth_token";
 

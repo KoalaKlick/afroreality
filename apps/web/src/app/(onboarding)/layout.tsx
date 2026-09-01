@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { AfricaMap, AfroTixLogo } from "@/components/shared/africa-map";
+import { AfricaMap, fextivaLogo } from "@/components/shared/africa-map";
 
 export const metadata = {
-  title: "Onboarding - AfroReality",
-  description: "Set up your AfroReality organization and account",
+  title: "Onboarding - fextiva",
+  description: "Set up your fextiva organization and account",
 };
 
 export default function OnboardingLayout({
@@ -26,7 +26,7 @@ export default function OnboardingLayout({
         <div className="absolute top-1/2 -translate-y-1/2 left-6 right-6 lg:space-y-6 max-w-[15rem] sm:max-w-[18rem] md:max-w-xs pointer-events-none z-10">
           <div className="flex items-center gap-2">
             <Link href="/" className="pointer-events-auto">
-              <AfroTixLogo className="w-28 sm:w-32 md:w-36 lg:w-40 h-auto p-2 bg-secondary-50/90 backdrop-blur-sm rounded-lg" />
+              <fextivaLogo className="w-28 sm:w-32 md:w-36 lg:w-40 h-auto p-2 bg-secondary-50/90 backdrop-blur-sm rounded-lg" />
             </Link>
           </div>
           <span className="mt-2 text-sm inline bg-secondary-50/90 dark:bg-zinc-900/90 px-2 py-1 backdrop-blur-sm font-medium text-foreground/80 rounded box-decoration-clone">

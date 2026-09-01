@@ -5,7 +5,7 @@ import { AUTH_COOKIE_NAME, AUTH_TOKEN_MAX_AGE_SECONDS } from './constants/config
 import type { SessionPayload } from './types/auth';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'super-secret-afroreality-jwt-key-minimum-32-chars-long'
+  process.env.JWT_SECRET || 'super-secret-fextiva-jwt-key-minimum-32-chars-long'
 );
 
 export async function signSession(payload: SessionPayload): Promise<string> {

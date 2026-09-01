@@ -16,5 +16,5 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-export const mailFromName = process.env.SMTP_FROM_NAME || "AfroReality";
-export const mailFromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || "noreply@afroreality.com";
+export const mailFromName = process.env.SMTP_FROM_NAME || "fextiva";
+export const mailFromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || "noreply@fextiva.com";

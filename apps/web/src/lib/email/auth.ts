@@ -15,10 +15,10 @@ export async function sendVerificationEmail({
   try {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #eee; border-radius: 12px;">
-        <h2 style="color: #10b981; margin-bottom: 16px;">Welcome to AfroReality!</h2>
+        <h2 style="color: #10b981; margin-bottom: 16px;">Welcome to fextiva!</h2>
         <p style="color: #333; font-size: 15px;">Hello ${name || 'there'},</p>
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
-          Thank you for joining AfroReality. Please use the verification code below to verify your email address:
+          Thank you for joining fextiva. Please use the verification code below to verify your email address:
         </p>
         <div style="background: #f4fdf7; border: 2px dashed #10b981; border-radius: 8px; padding: 16px; text-align: center; margin: 24px 0;">
           <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #10b981;">${otp || '123456'}</span>
@@ -31,7 +31,7 @@ export async function sendVerificationEmail({
     const info = await transporter.sendMail({
       from: `"${mailFromName}" <${mailFromEmail}>`,
       to: email,
-      subject: "Your AfroReality verification code",
+      subject: "Your fextiva verification code",
       html,
     });
 
@@ -60,7 +60,7 @@ export async function sendPasswordResetEmail({
         <h2 style="color: #ef4444; margin-bottom: 16px;">Reset Your Password</h2>
         <p style="color: #333; font-size: 15px;">Hello ${name || 'there'},</p>
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
-          We received a request to reset your AfroReality password. Use the verification code below:
+          We received a request to reset your fextiva password. Use the verification code below:
         </p>
         <div style="background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; padding: 16px; text-align: center; margin: 24px 0;">
           <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #ef4444;">${otp || '123456'}</span>
@@ -73,7 +73,7 @@ export async function sendPasswordResetEmail({
     const info = await transporter.sendMail({
       from: `"${mailFromName}" <${mailFromEmail}>`,
       to: email,
-      subject: "Reset your AfroReality password",
+      subject: "Reset your fextiva password",
       html,
     });
 
@@ -104,7 +104,7 @@ export async function sendOrganizationInvitationEmail({
         <h2 style="color: #10b981; margin-bottom: 16px;">You've Been Invited to Join ${organizationName}!</h2>
         <p style="color: #333; font-size: 15px;">Hello,</p>
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
-          ${inviterName ? `<strong>${inviterName}</strong>` : "An administrator"} has invited you to join <strong>${organizationName}</strong> as a <strong>${role || "member"}</strong> on AfroReality.
+          ${inviterName ? `<strong>${inviterName}</strong>` : "An administrator"} has invited you to join <strong>${organizationName}</strong> as a <strong>${role || "member"}</strong> on fextiva.
         </p>
         <div style="text-align: center; margin: 28px 0;">
           <a href="${inviteUrl}" style="background: #10b981; color: #fff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: inline-block;">Accept Invitation</a>
@@ -117,7 +117,7 @@ export async function sendOrganizationInvitationEmail({
     const info = await transporter.sendMail({
       from: `"${mailFromName}" <${mailFromEmail}>`,
       to: email,
-      subject: `Invitation to join ${organizationName} on AfroReality`,
+      subject: `Invitation to join ${organizationName} on fextiva`,
       html,
     });
 
@@ -189,14 +189,14 @@ export async function sendEventVotingKeyEmail({
           ${votingUrl ? `<div style="text-align: center; margin: 28px 0;"><a href="${votingUrl}" style="background: #10b981; color: #fff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; display: inline-block;">Go to Voting Portal</a></div>` : ''}
 
           <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; border-top: 1px solid #f3f4f6; padding-top: 16px; text-align: center;">
-            © ${new Date().getFullYear()} ${organizationName} · Powered by AfroReality
+            © ${new Date().getFullYear()} ${organizationName} · Powered by fextiva
           </p>
         </div>
       </div>
     `;
 
     const info = await transporter.sendMail({
-      from: `"${organizationName} via AfroReality" <${mailFromEmail}>`,
+      from: `"${organizationName} via fextiva" <${mailFromEmail}>`,
       to: email,
       subject: `Your Voting Key for ${eventName} - ${organizationName}`,
       html,

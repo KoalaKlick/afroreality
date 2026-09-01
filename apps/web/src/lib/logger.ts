@@ -1,6 +1,6 @@
 // src/lib/logger.ts
 //
-// Lightweight logger using console, mimicking the pino interface used in afrotix.
+// Lightweight logger using console, mimicking the pino interface used in fextiva.
 
 const isDev = process.env.NODE_ENV !== "production";
 

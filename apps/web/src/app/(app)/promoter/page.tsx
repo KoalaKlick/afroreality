@@ -19,7 +19,7 @@ export default async function PromoterPage() {
       <div className="flex flex-1 flex-col gap-6 p-6 max-w-4xl mx-auto w-full">
         <Card>
           <CardHeader>
-            <CardTitle>AfroReality Promoter Network</CardTitle>
+            <CardTitle>fextiva Promoter Network</CardTitle>
             <CardDescription>
               Earn commissions by referring event creators and organizers.
             </CardDescription>

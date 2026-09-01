@@ -4,19 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useInView, useAnimation, type Variants } from "motion/react";
 import { PROJ_NAME } from "@/lib/constants/branding";
 
-interface AfroTixLogoProps {
+interface fextivaLogoProps {
 	readonly className?: string;
 	readonly holdDuration?: number;
 	readonly gapDuration?: number;
 	readonly repeat?: boolean;
 }
 
-export function AfroTixLogo({
+export function fextivaLogo({
 	className = "h-auto",
 	holdDuration = 2800,
 	gapDuration = 600,
 	repeat = false,
-}: AfroTixLogoProps) {
+}: fextivaLogoProps) {
 	const ref = useRef<SVGSVGElement>(null);
 	const isInView = useInView(ref, { once: false, amount: 0.5 });
 	const controls = useAnimation();
@@ -25,9 +25,9 @@ export function AfroTixLogo({
 	const isMounted = useRef(false);
 	const [active, setActive] = useState(false);
 
-	const isAfroReality = PROJ_NAME.toLowerCase().includes("afroreality");
-	const namePart1 = isAfroReality ? "Afro" : PROJ_NAME;
-	const namePart2 = isAfroReality ? "Reality" : "";
+	const isfextiva = PROJ_NAME.toLowerCase().includes("fextiva");
+	const namePart1 = isfextiva ? "Afro" : PROJ_NAME;
+	const namePart2 = isfextiva ? "Reality" : "";
 
 	const letterVariants: Variants = {
 		hidden: { opacity: 0, y: 16 },

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
 		const response = await fetch(imageUrl, {
 			headers: {
-				"User-Agent": "AfroReality-ShareProxy/1.0",
+				"User-Agent": "fextiva-ShareProxy/1.0",
 			},
 		});
 

@@ -32,13 +32,13 @@ export async function generateMetadata({
 	const pageUrl = `${FRONTEND_URL}/${slug}`;
 	const description =
 		organization.description ||
-		`Official profile for ${organization.name} on AfroReality.`;
+		`Official profile for ${organization.name} on fextiva.`;
 
 	return {
-		title: `${organization.name} | AfroReality`,
+		title: `${organization.name} | fextiva`,
 		description,
 		openGraph: {
-			title: `${organization.name} | AfroReality`,
+			title: `${organization.name} | fextiva`,
 			description,
 			url: pageUrl,
 			type: "website",

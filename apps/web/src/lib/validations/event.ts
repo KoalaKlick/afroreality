@@ -1,7 +1,7 @@
 // src/lib/validations/event.ts
 //
 // Event validation schemas using Zod v4.
-// Adapted from afrotix/lib/validations/event.ts.
+// Adapted from fextiva/lib/validations/event.ts.
 // Changes: removed VotingMode (not in Prisma schema), updated enum values,
 //          updated import aliases to `@/lib/constants/enums`.
 

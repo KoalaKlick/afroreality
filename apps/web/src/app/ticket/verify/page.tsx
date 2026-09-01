@@ -11,7 +11,7 @@ interface TicketVerifyPageProps {
 }
 
 export const metadata = {
-	title: "Gate Verification & Access Control | AfroReality",
+	title: "Gate Verification & Access Control | fextiva",
 	description: "Official event gate scanner and ticket validation portal.",
 };
 

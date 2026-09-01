@@ -268,19 +268,19 @@ export function AfricaMap({
 	);
 }
 
-interface AfroTixLogoProps {
+interface fextivaLogoProps {
 	readonly className?: string;
 	readonly holdDuration?: number;
 	readonly gapDuration?: number;
 	readonly repeat?: boolean;
 }
 
-export function AfroTixLogo({
+export function fextivaLogo({
 	className = "h-auto",
 	holdDuration = 2800,
 	gapDuration = 600,
 	repeat = false,
-}: AfroTixLogoProps) {
+}: fextivaLogoProps) {
 	const ref = useRef<SVGSVGElement>(null);
 	const isInView = useInView(ref, { once: false, amount: 0.5 });
 	const controls = useAnimation();
@@ -414,7 +414,7 @@ export function AfroTixLogo({
 			animate={controls}
 			suppressHydrationWarning
 		>
-			<title suppressHydrationWarning>AfroReality Logo</title>
+			<title suppressHydrationWarning>fextiva Logo</title>
 			<text
 				y="80"
 				fontFamily="'Poppins', Arial, sans-serif"

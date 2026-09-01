@@ -109,7 +109,7 @@ export function Step1Welcome({ defaultValues, onSuccess }: Step1WelcomeProps) {
 			<OnboardingHeader
 				icon={<AtSign className="h-6 w-6 text-emerald-600" />}
 				title="Choose your username"
-				description="This will be your unique identifier across AfroReality."
+				description="This will be your unique identifier across fextiva."
 			/>
 
 			<form onSubmit={handleSubmit} className="space-y-4">

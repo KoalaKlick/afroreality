@@ -54,7 +54,7 @@ export function CreateOrgDrawer({
             <Label htmlFor="org-name">Organization Name</Label>
             <Input
               id="org-name"
-              placeholder="e.g. AfroReality Global"
+              placeholder="e.g. fextiva Global"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -67,7 +67,7 @@ export function CreateOrgDrawer({
             <Label htmlFor="org-slug">Slug</Label>
             <Input
               id="org-slug"
-              placeholder="afroreality-global"
+              placeholder="fextiva-global"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               className="mt-1.5"

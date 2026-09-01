@@ -3,7 +3,7 @@ import * as crypto from "crypto";
 const TICKET_SECRET =
 	process.env.TICKET_SIGNING_SECRET ||
 	process.env.NEXTAUTH_SECRET ||
-	"afroreality_ticket_secret_key_default_2026";
+	"fextiva_ticket_secret_key_default_2026";
 
 /**
  * Generates an HMAC-SHA256 signature for the given payload.

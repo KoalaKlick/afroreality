@@ -30,7 +30,7 @@ function getS3Client(): S3Client | null {
 }
 
 export function getBucketName(): string {
-	return process.env.R2_BUCKET_NAME || "afrorealityapi";
+	return process.env.R2_BUCKET_NAME || "fextivaapi";
 }
 
 export function buildPublicUrl(key: string): string {

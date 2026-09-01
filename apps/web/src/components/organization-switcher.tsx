@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import type { OrganizationInfo } from "@/lib/constants/navigation";
 
-const PROJ_NAME = "AfroReality";
+const PROJ_NAME = "fextiva";
 
 function getInitials(name: string): string {
 	return name

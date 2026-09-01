@@ -217,7 +217,7 @@ export async function resetPasswordAction({
 }
 
 export async function googleOAuthAction({
-  email = "google_user@afroreality.com",
+  email = "google_user@fextiva.com",
   fullName = "Google User",
 }: {
   email?: string;

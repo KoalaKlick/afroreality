@@ -15,7 +15,7 @@ interface TicketViewPageProps {
 }
 
 export const metadata = {
-	title: "Official Event Ticket | AfroReality",
+	title: "Official Event Ticket | fextiva",
 	description: "View and download your official event ticket and admission pass.",
 };
 

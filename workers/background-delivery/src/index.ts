@@ -40,8 +40,8 @@ export default {
 								"Content-Type": "application/json",
 							},
 							body: JSON.stringify({
-								sender: "AfroTix",
-								message: `Payment received for ref: ${reference}. Thank you for using AfroTix!`,
+								sender: "fextiva",
+								message: `Payment received for ref: ${reference}. Thank you for using fextiva!`,
 								recipients: [phone],
 							}),
 						});

@@ -70,7 +70,7 @@ function DotPattern({ color }: { color: string }) {
 export function RetroTicketPass({
 	primaryColor = "#CE1126",
 	secondaryColor = "#009A44",
-	organizationName = "AfroReality",
+	organizationName = "fextiva",
 	eventName = "Sample Event 2026",
 	ticketType = "General Admission",
 	dateTime = "18 Mar 2026, 7:00 PM",
@@ -237,7 +237,7 @@ export function RetroTicketPass({
 							VALIDATE AT GATE
 						</div>
 						<div className="text-[8px] opacity-60 max-w-[200px]">
-							DO NOT FOLD OR MUTILATE. VOID IF DETACHED. AFROREALITY OFFICIAL
+							DO NOT FOLD OR MUTILATE. VOID IF DETACHED. fextiva OFFICIAL
 							DOCUMENT.
 						</div>
 					</div>

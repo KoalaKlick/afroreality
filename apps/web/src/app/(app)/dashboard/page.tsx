@@ -7,7 +7,7 @@ import { serializeJsonSafe } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Dashboard - AfroReality",
+  title: "Dashboard - fextiva",
   description: "Overview of your events, revenue, and activity",
 };
 

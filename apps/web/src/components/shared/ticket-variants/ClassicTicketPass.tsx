@@ -206,7 +206,7 @@ const GHOSTS = [
 export function ClassicTicketPass({
 	primaryColor = "#009A44",
 	secondaryColor = "#CE1126",
-	organizationName = "AfroReality",
+	organizationName = "fextiva",
 	eventName = "Sample Event 2026",
 	ticketType = "General Admission",
 	dateTime = "18 Mar 2026, 7:00 PM",

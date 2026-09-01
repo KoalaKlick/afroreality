@@ -99,7 +99,7 @@ export function TicketList({
 
 	const primaryColor = organization?.primaryColor || "#009A44";
 	const secondaryColor = organization?.secondaryColor || "#CE1126";
-	const organizationName = organization?.name || "AfroReality";
+	const organizationName = organization?.name || "fextiva";
 
 	function handleEdit(ticket: TicketTypeItem) {
 		setEditingTicket(ticket);

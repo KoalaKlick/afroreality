@@ -291,7 +291,7 @@ function PaymentCallbackContent() {
 				</div>
 
 				<p className="text-center text-[10px] text-muted-foreground mt-4">
-					Payments secured by Paystack & AfroReality Platform.
+					Payments secured by Paystack & fextiva Platform.
 				</p>
 			</div>
 		</main>

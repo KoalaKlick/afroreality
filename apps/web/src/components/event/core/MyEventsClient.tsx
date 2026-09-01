@@ -54,7 +54,7 @@ export function MyEventsClient({ events, stats }: MyEventsClientProps) {
 			{/* 3D Customizable Stats */}
 			<CustomizableEventStats
 				stats={stats}
-				storageKey="afroreality:my-events-stats"
+				storageKey="fextiva:my-events-stats"
 				defaultKeys={["total", "published", "ongoing", "ticketsSold"]}
 			/>
 

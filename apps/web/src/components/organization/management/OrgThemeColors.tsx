@@ -116,7 +116,7 @@ function OrgPageSamplePreview({
 }) {
 	const logoDisplayUrl = logoUrl ? getOrgImageUrl(logoUrl) : null;
 	const bannerDisplayUrl = bannerUrl ? getOrgImageUrl(bannerUrl) : null;
-	const displayName = orgName?.trim() || "AfroReality Partner Org";
+	const displayName = orgName?.trim() || "fextiva Partner Org";
 	const orgSlug = slug || "organization";
 
 	return (
@@ -129,7 +129,7 @@ function OrgPageSamplePreview({
 					<span className="size-2 rounded-full bg-green-400/80" />
 				</div>
 				<div className="font-mono px-2.5 py-0.5 rounded-md bg-background/80 border text-[10px] text-foreground/80 truncate max-w-[200px]">
-					afroreality.com/{orgSlug}
+					fextiva.com/{orgSlug}
 				</div>
 				<span className="text-[9px] font-bold uppercase tracking-wider text-primary">
 					Live Preview

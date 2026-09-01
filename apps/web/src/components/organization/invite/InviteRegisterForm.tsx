@@ -71,7 +71,7 @@ export function InviteRegisterForm({
 	return (
 		<div className="space-y-4">
 			<p className="text-sm text-muted-foreground">
-				Create an AfroReality account to join{" "}
+				Create an fextiva account to join{" "}
 				<span className="font-medium text-foreground">
 					{organizationName}
 				</span>

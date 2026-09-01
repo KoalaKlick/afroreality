@@ -4,7 +4,7 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: 'AfroReality - African Event Management & Ticketing',
+  title: 'fextiva - African Event Management & Ticketing',
   description: 'Manage events, tickets, voting, and organizations effortlessly.',
 };
 

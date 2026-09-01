@@ -48,8 +48,8 @@ export function cleanStorageKey(pathOrUrl?: string | null): string {
 		if (clean.startsWith("http://") || clean.startsWith("https://")) {
 			const parsed = new URL(clean);
 			const pathname = parsed.pathname.replace(/^\/+/, "");
-			// If contains bucket prefix like "afrorealityapi/avatars/...", strip bucket
-			const bucket = process.env.R2_BUCKET_NAME || "afrorealityapi";
+			// If contains bucket prefix like "fextivaapi/avatars/...", strip bucket
+			const bucket = process.env.R2_BUCKET_NAME || "fextivaapi";
 			if (pathname.startsWith(`${bucket}/`)) {
 				return pathname.slice(bucket.length + 1);
 			}

@@ -13,7 +13,7 @@ export interface ImageProps extends Omit<NextImageProps, "src"> {
 
 export function Image({
   src,
-  alt = "AfroReality Image",
+  alt = "fextiva Image",
   className,
   fallback = "/placeholder.png",
   width = 400,

@@ -21,7 +21,7 @@ export async function generateMetadata({
 	if (!invite) return { title: "Invitation Not Found" };
 
 	return {
-		title: `Join ${invite.organization.name} - AfroReality`,
+		title: `Join ${invite.organization.name} - fextiva`,
 		description: `You've been invited to join ${invite.organization.name} as a ${invite.role}.`,
 	};
 }

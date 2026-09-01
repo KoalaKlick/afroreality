@@ -237,24 +237,24 @@ export async function processPayment(
 		await sql`
 			INSERT INTO payments (reference, email, purpose, amount, currency, provider, status, metadata, created_at, updated_at)
 			VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@afroreality.com`}, ${event.type === "voting" ? "voting" : "ticket_purchase"}, ${baseAmount}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
-				source: "ussd",
-				channel: "ussd",
-				event_id: event.id,
-				eventId: event.id,
-				option_id: optionId,
-				optionId: optionId,
-				votingOptionId: optionId,
-				ticketTypeId: optionId,
-				quantity,
-				voteCount: quantity,
-				phone_number: phoneNumber,
-				phone: phoneNumber,
-				baseAmount,
-				platformFee: feeCalc.platformFee,
-				organizerReceives: feeCalc.organizerReceives,
-				paystackFee: feeCalc.paystackFee,
-				totalToCharge: totalAmountGHS,
-			})}, NOW(), NOW())
+			source: "ussd",
+			channel: "ussd",
+			event_id: event.id,
+			eventId: event.id,
+			option_id: optionId,
+			optionId: optionId,
+			votingOptionId: optionId,
+			ticketTypeId: optionId,
+			quantity,
+			voteCount: quantity,
+			phone_number: phoneNumber,
+			phone: phoneNumber,
+			baseAmount,
+			platformFee: feeCalc.platformFee,
+			organizerReceives: feeCalc.organizerReceives,
+			paystackFee: feeCalc.paystackFee,
+			totalToCharge: totalAmountGHS,
+		})}, NOW(), NOW())
 			ON CONFLICT (reference) DO NOTHING
 		`;
 
@@ -514,7 +514,7 @@ export async function handleUssdCore(
 			LIMIT ${maxEvents}
 		`;
 
-		let menu = "CON AfroTix\n";
+		let menu = "CON fextiva\n";
 		if (events && events.length > 0) {
 			events.forEach((ev: any, idx: number) => {
 				menu += `${idx + 1}. ${ev.title}\n`;

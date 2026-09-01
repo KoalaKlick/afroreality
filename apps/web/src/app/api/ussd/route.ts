@@ -221,7 +221,7 @@ async function processPayment(
 			update: {},
 			create: {
 				reference,
-				email: `${normalizePhone(phoneNumber)}@afroreality.com`,
+				email: `${normalizePhone(phoneNumber)}@fextiva.com`,
 				purpose: event.type === "voting" ? "vote_purchase" : "ticket_purchase",
 				amount: baseAmount,
 				currency: "GHS",
@@ -258,7 +258,7 @@ async function processPayment(
 			},
 			body: JSON.stringify({
 				amount: amountPesewas,
-				email: `${normalizePhone(phoneNumber)}@afroreality.com`,
+				email: `${normalizePhone(phoneNumber)}@fextiva.com`,
 				currency: "GHS",
 				reference,
 				mobile_money: {
@@ -466,7 +466,7 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 			take: MAX_LISTED_EVENTS,
 		});
 
-		let menu = "CON Welcome to AfroReality\n";
+		let menu = "CON Welcome to fextiva\n";
 		if (events.length > 0) {
 			events.forEach((ev, idx) => {
 				menu += `${idx + 1}. ${ev.title}\n`;
