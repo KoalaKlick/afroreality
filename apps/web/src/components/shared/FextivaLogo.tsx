@@ -4,19 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useInView, useAnimation, type Variants } from "motion/react";
 import { PROJ_NAME } from "@/lib/constants/branding";
 
-interface fextivaLogoProps {
+interface FextivaLogoProps {
 	readonly className?: string;
 	readonly holdDuration?: number;
 	readonly gapDuration?: number;
 	readonly repeat?: boolean;
 }
 
-export function fextivaLogo({
+export function FextivaLogo({
 	className = "h-auto",
 	holdDuration = 2800,
 	gapDuration = 600,
 	repeat = false,
-}: fextivaLogoProps) {
+}: FextivaLogoProps) {
 	const ref = useRef<SVGSVGElement>(null);
 	const isInView = useInView(ref, { once: false, amount: 0.5 });
 	const controls = useAnimation();
@@ -25,9 +25,8 @@ export function fextivaLogo({
 	const isMounted = useRef(false);
 	const [active, setActive] = useState(false);
 
-	const isfextiva = PROJ_NAME.toLowerCase().includes("fextiva");
-	const namePart1 = isfextiva ? "Afro" : PROJ_NAME;
-	const namePart2 = isfextiva ? "Reality" : "";
+	const namePart1 = PROJ_NAME;
+	const namePart2 = "";
 
 	const letterVariants: Variants = {
 		hidden: { opacity: 0, y: 16 },

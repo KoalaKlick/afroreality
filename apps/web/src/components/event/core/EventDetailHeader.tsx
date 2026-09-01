@@ -535,11 +535,11 @@ export function EventDetailHeader({
 					<div className="pt-1">
 						<Tabs value={activeTab} onValueChange={onTabChange}>
 							<TabsList
-								variant="afro"
+								variant="brand"
 								className="grid grid-cols-2 sm:flex sm:inline-flex w-full sm:w-auto"
 							>
 								<TabsTrigger
-									variant="afro"
+									variant="brand"
 									value="overview"
 									className="gap-2 rounded"
 								>
@@ -549,7 +549,7 @@ export function EventDetailHeader({
 
 								{isTicketed && (
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="tickets"
 										className="gap-2 rounded"
 									>
@@ -560,7 +560,7 @@ export function EventDetailHeader({
 
 								{isTicketed && (
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="verification"
 										className="gap-2 rounded"
 									>
@@ -571,7 +571,7 @@ export function EventDetailHeader({
 
 								{isVoting && (
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="voting"
 										className="gap-2 rounded"
 									>
@@ -582,7 +582,7 @@ export function EventDetailHeader({
 
 								{showMembers && (
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="members"
 										className="gap-2 rounded"
 									>
@@ -592,7 +592,7 @@ export function EventDetailHeader({
 								)}
 
 								<TabsTrigger
-									variant="afro"
+									variant="brand"
 									value="settings"
 									className="gap-2 rounded"
 								>
@@ -610,7 +610,7 @@ export function EventDetailHeader({
 				open={showPaymentPrompt}
 				onOpenChange={setShowPaymentPrompt}
 			>
-				<AlertDialogContent variant="afro">
+				<AlertDialogContent variant="brand">
 					<AlertDialogHeader>
 						<AlertDialogTitle>Payout Account Required</AlertDialogTitle>
 						<AlertDialogDescription>

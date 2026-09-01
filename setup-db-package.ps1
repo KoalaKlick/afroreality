@@ -1,4 +1,4 @@
-## Run this from D:\KoalaKlick\afroreality
+## Run this from D:\KoalaKlick\fextiva
 ## Usage: .\setup-db-package.ps1
 
 $ErrorActionPreference = "Stop"

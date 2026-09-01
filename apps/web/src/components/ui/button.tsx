@@ -23,8 +23,8 @@ const buttonVariants = cva(
 				ghost:
 					"hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
 				link: "text-primary underline-offset-4 hover:underline",
-				afro: "bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-tertiary)_16%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-brand-secondary)_14%,transparent),transparent_24%),radial-gradient(circle_at_bottom_left,color-mix(in_srgb,var(--color-brand-primary)_0%,transparent),transparent_26%)] border border-brand-secondary/18 text-foreground hover:bg-accent/10",
-				"afro-cta":
+			brand: "bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-tertiary)_16%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-brand-secondary)_14%,transparent),transparent_24%),radial-gradient(circle_at_bottom_left,color-mix(in_srgb,var(--color-brand-primary)_0%,transparent),transparent_26%)] border border-brand-secondary/18 text-foreground hover:bg-accent/10",
+			"brand-cta":
 					"bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-tertiary)_16%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-brand-secondary)_14%,transparent),transparent_24%),radial-gradient(circle_at_bottom_left,color-mix(in_srgb,var(--color-brand-primary)_0%,transparent),transparent_26%)] border border-brand-secondary/18 text-foreground hover:bg-accent/10",
 			},
 			size: {

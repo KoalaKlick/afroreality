@@ -146,7 +146,7 @@ export function Step4OrgInfo({ defaultValues, onSuccess }: StepOrgInfoProps) {
 					</label>
 					<Input
 						icon={<Building2 className="size-4" />}
-						placeholder="e.g. AfroVibes Entertainment"
+						placeholder="e.g. FextivaVibes Entertainment"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						required
@@ -171,7 +171,7 @@ export function Step4OrgInfo({ defaultValues, onSuccess }: StepOrgInfoProps) {
 					</div>
 					<Input
 						icon={<Globe className="size-4" />}
-						placeholder="e.g. afrovibes"
+						placeholder="e.g. fextivavibes"
 						value={slug}
 						onChange={handleSlugChange}
 						required

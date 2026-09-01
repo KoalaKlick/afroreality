@@ -6,6 +6,11 @@ import { Toaster } from 'sonner';
 export const metadata: Metadata = {
   title: 'fextiva - African Event Management & Ticketing',
   description: 'Manage events, tickets, voting, and organizations effortlessly.',
+  icons: {
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
+    apple: '/logo.svg',
+  },
 };
 
 export default function RootLayout({

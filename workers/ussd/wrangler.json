@@ -1,5 +1,5 @@
 {
-  "name": "afroreality-ussd-webhook",
+  "name": "fextiva-ussd-webhook",
   "main": "src/index.ts",
   "compatibility_date": "2024-09-23",
   "compatibility_flags": [

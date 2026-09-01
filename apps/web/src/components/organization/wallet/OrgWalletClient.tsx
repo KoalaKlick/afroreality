@@ -331,11 +331,11 @@ export function OrgWalletClient({
 							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 								{/* Standard Tabs */}
 								<TabsList
-									variant="afro"
+									variant="brand"
 									className="flex overflow-x-auto w-full sm:w-auto"
 								>
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="all"
 										className="gap-1.5"
 									>
@@ -344,7 +344,7 @@ export function OrgWalletClient({
 									</TabsTrigger>
 
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="received"
 										className="gap-1.5"
 									>
@@ -353,7 +353,7 @@ export function OrgWalletClient({
 									</TabsTrigger>
 
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="withdrawals"
 										className="gap-1.5"
 									>
@@ -362,7 +362,7 @@ export function OrgWalletClient({
 									</TabsTrigger>
 
 									<TabsTrigger
-										variant="afro"
+										variant="brand"
 										value="payouts"
 										className="gap-1.5"
 									>
@@ -450,7 +450,7 @@ export function OrgWalletClient({
 			<Sheet open={isPayoutDrawerOpen} onOpenChange={setIsPayoutDrawerOpen}>
 				<SheetContent
 					side="right"
-					variant="afro"
+					variant="brand"
 					className="w-full sm:max-w-xl overflow-y-auto p-6"
 				>
 					<SheetHeader className="pb-4 border-b border-border/60">

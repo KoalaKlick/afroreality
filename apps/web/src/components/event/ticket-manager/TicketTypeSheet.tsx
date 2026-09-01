@@ -259,12 +259,12 @@ export function TicketTypeSheet({
 					className="space-y-4 py-4 flex-1 flex flex-col"
 				>
 					<Tabs defaultValue="details" className="w-full flex-1">
-						<TabsList variant="afro" className="grid w-full grid-cols-2 mb-4">
-							<TabsTrigger variant="afro" value="details" className="gap-2">
+						<TabsList variant="brand" className="grid w-full grid-cols-2 mb-4">
+							<TabsTrigger variant="brand" value="details" className="gap-2">
 								<Ticket className="size-4" />
 								Details & Limits
 							</TabsTrigger>
-							<TabsTrigger variant="afro" value="design" className="gap-2">
+							<TabsTrigger variant="brand" value="design" className="gap-2">
 								<Palette className="size-4" />
 								Badge & Styling
 							</TabsTrigger>
@@ -469,7 +469,7 @@ export function TicketTypeSheet({
 									primaryColor={formData.primaryColor}
 									secondaryColor={formData.secondaryColor}
 									ticketType={formData.name || "VIP Pass"}
-									eventName="Afrobeat Night 2026"
+									eventName="Fextiva Night 2026"
 									flierImage={flierImage}
 								/>
 							</div>

@@ -34,7 +34,7 @@ export const PRESET_COLORS = [
  */
 export const PRESET_THEMES = [
 	{
-		name: "Afro Heritage (Green / Gold / Red)",
+			name: "Fextiva Heritage (Green / Gold / Red)",
 		primary: "#028a3d",
 		secondary: "#d97706",
 		tertiary: "#dc2626",

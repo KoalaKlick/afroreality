@@ -236,7 +236,7 @@ export function EventStep1BasicInfo({
 							id="title"
 							value={title}
 							onChange={(e) => handleTitleChange(e.target.value)}
-							placeholder="e.g., Afro Beats Summer Festival 2026"
+							placeholder="e.g., Fextiva Beats Summer Festival 2026"
 							className={errors.title ? "border-destructive" : ""}
 						/>
 						{errors.title && (
@@ -255,7 +255,7 @@ export function EventStep1BasicInfo({
 								onChange={(e) =>
 									setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
 								}
-								placeholder="afro-beats-summer-2026"
+								placeholder="fextiva-beats-summer-2026"
 								className={cn("flex-1", errors.slug ? "border-destructive" : "")}
 							/>
 						</div>

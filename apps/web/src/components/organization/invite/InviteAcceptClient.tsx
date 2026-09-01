@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AfricaMap, fextivaLogo } from "@/components/shared/africa-map";
+import { AfricaMap, FextivaLogo } from "@/components/shared/africa-map";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 import { useAuth } from "@/hooks/use-auth";
 import { AcceptButton } from "./AcceptButton";
@@ -58,7 +58,7 @@ export function InviteAcceptClient({
 				<div className="absolute top-1/2 -translate-y-1/2 left-6 right-6 lg:space-y-6 max-w-[15rem] sm:max-w-[18rem] md:max-w-xs pointer-events-none z-10">
 					<div className="flex items-center gap-2">
 						<Link href="/" className="pointer-events-auto">
-							<fextivaLogo className="w-28 sm:w-32 md:w-36 lg:w-40 h-auto p-2 bg-secondary-50/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-lg" />
+							<FextivaLogo className="w-28 sm:w-32 md:w-36 lg:w-40 h-auto p-2 bg-secondary-50/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-lg" />
 						</Link>
 					</div>
 					<span className="mt-2 text-sm inline-block bg-secondary-50/90 dark:bg-zinc-900/90 px-2 py-1 backdrop-blur-sm font-medium text-foreground/80 rounded">

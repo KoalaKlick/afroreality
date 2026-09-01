@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv'
 
 dotenv.config()
 
-const dbUrl = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/afroreality";
+const dbUrl = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/fextiva";
 
 export default defineConfig({
   schema: './prisma/schema',

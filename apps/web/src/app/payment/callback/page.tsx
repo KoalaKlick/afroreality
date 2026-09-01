@@ -120,7 +120,7 @@ function PaymentCallbackContent() {
 		<main className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
 			<div className="w-full max-w-md">
 				<div className="bg-card text-card-foreground rounded-2xl shadow-2xl border border-border overflow-hidden backdrop-blur-md">
-					{/* Afro Brand Gradient Strip */}
+					{/* Brand Gradient Strip */}
 					<div className="h-1.5 bg-linear-to-r from-[#009A44] via-[#FFD100] to-[#CE1126]" />
 
 					<div className="p-8 flex flex-col items-center text-center">
@@ -203,7 +203,7 @@ function PaymentCallbackContent() {
 									{isTicketPayment && ticketViewUrl && (
 										<Button
 											asChild
-											variant="afro-cta"
+											variant="brand-cta"
 											className="w-full h-11 font-bold shadow-md shadow-[#009A44]/20"
 										>
 											<Link href={ticketViewUrl}>
@@ -216,7 +216,7 @@ function PaymentCallbackContent() {
 									<Button
 										asChild
 										variant={
-											isTicketPayment && ticketViewUrl ? "outline" : "afro-cta"
+											isTicketPayment && ticketViewUrl ? "outline" : "brand-cta"
 										}
 										className="w-full h-11 font-semibold"
 									>
@@ -259,7 +259,7 @@ function PaymentCallbackContent() {
 											Go Back
 										</Link>
 									</Button>
-									<Button asChild variant="afro-cta" className="flex-1 h-11">
+									<Button asChild variant="brand-cta" className="flex-1 h-11">
 										<Link href={destinationUrl}>Try Again</Link>
 									</Button>
 								</div>
@@ -279,7 +279,7 @@ function PaymentCallbackContent() {
 									No valid transaction reference was detected. Please check your
 									email or return to the main event page.
 								</p>
-								<Button asChild variant="afro-cta" className="w-full h-11">
+								<Button asChild variant="brand-cta" className="w-full h-11">
 									<Link href="/">
 										<Home className="w-4 h-4 mr-2" />
 										Return Home

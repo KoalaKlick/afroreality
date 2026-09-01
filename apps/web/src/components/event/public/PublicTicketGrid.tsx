@@ -278,7 +278,7 @@ export function PublicTicketGrid({
 
               <SheetFooter className="border-t bg-background p-6">
                 <Button
-                  variant="afro-cta"
+                  variant="brand-cta"
                   size="lg"
                   className="w-full"
                   disabled={

@@ -1,15 +1,15 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 
-interface AfroPatternBackgroundProps {
+interface BrandPatternBackgroundProps {
 	className?: string;
 	opacity?: string;
 }
 
-export function AfroPatternBackground({
+export function BrandPatternBackground({
 	className,
 	opacity = "opacity-40 dark:opacity-20",
-}: AfroPatternBackgroundProps) {
+}: BrandPatternBackgroundProps) {
 	return (
 		<div
 			className={cn(
@@ -24,7 +24,7 @@ export function AfroPatternBackground({
 			>
 				<defs>
 					<pattern
-						id="afro-kente-geometric-pattern"
+						id="brand-kente-geometric-pattern"
 						width="48"
 						height="48"
 						patternUnits="userSpaceOnUse"
@@ -56,7 +56,7 @@ export function AfroPatternBackground({
 				<rect
 					width="100%"
 					height="100%"
-					fill="url(#afro-kente-geometric-pattern)"
+					fill="url(#brand-kente-geometric-pattern)"
 				/>
 			</svg>
 		</div>

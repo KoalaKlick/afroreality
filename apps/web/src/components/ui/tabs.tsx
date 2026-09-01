@@ -31,7 +31,7 @@ const tabsListVariants = cva(
 			variant: {
 				default: "bg-muted",
 				line: "gap-1 bg-transparent",
-				afro: "bg-sepia-bg h-11 space-x-1",
+				brand: "bg-sepia-bg h-11 space-x-1",
 			},
 		},
 		defaultVariants: {
@@ -63,7 +63,7 @@ const tabsTriggerVariants = cva(
 			variant: {
 				default: "text-foreground/60 hover:text-foreground group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none dark:text-muted-foreground dark:hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground",
 				line: "text-foreground/60 hover:text-foreground bg-transparent data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 data-[state=active]:after:opacity-100",
-				afro: "text-foreground/70 hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold nth-[3n+1_of_[data-slot=tabs-trigger]]:hover:bg-[#02a605]/10 nth-[3n+1_of_[data-slot=tabs-trigger]]:data-[state=active]:bg-[#02a605]/18 nth-[3n+2_of_[data-slot=tabs-trigger]]:hover:bg-[#ffe100]/12 nth-[3n+2_of_[data-slot=tabs-trigger]]:data-[state=active]:bg-[#ffe100]/20 nth-[3n+3_of_[data-slot=tabs-trigger]]:hover:bg-[#dc2626]/10 nth-[3n+3_of_[data-slot=tabs-trigger]]:data-[state=active]:bg-[#dc2626]/18",
+				brand: "text-foreground/70 hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-semibold nth-[3n+1_of_[data-slot=tabs-trigger]]:hover:bg-[#02a605]/10 nth-[3n+1_of_[data-slot=tabs-trigger]]:data-[state=active]:bg-[#02a605]/18 nth-[3n+2_of_[data-slot=tabs-trigger]]:hover:bg-[#ffe100]/12 nth-[3n+2_of_[data-slot=tabs-trigger]]:data-[state=active]:bg-[#ffe100]/20 nth-[3n+3_of_[data-slot=tabs-trigger]]:hover:bg-[#dc2626]/10 nth-[3n+3_of_[data-slot=tabs-trigger]]:data-[state=active]:bg-[#dc2626]/18",
 			},
 		},
 		defaultVariants: {

@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { fextivaLogo } from "./fextivaLogo";
+import { FextivaLogo } from "./FextivaLogo";
 
 export function PoweredByFooter() {
 	return (
 		<div className="py-5 border-t-2 border-dashed border-background text-center space-y-4 bg-black text-white">
 			<div className="flex items-center justify-center gap-2">
 				<Link href="/" className="flex items-center space-x-2">
-					<fextivaLogo className="h-6 w-auto" />
+					<FextivaLogo className="h-6 w-auto" />
 				</Link>
 			</div>
 			<div>

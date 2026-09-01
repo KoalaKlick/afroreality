@@ -45,7 +45,7 @@ function AlertDialogContent({
 	variant,
 	...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
-	variant?: "afro" | "afro-4";
+	variant?: "brand" | "brand-4";
 }) {
 	return (
 		<AlertDialogPortal>

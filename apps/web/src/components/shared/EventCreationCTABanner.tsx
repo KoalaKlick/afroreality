@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CalendarDays } from "lucide-react";
-import { fextivaLogo } from "@/components/shared/fextivaLogo";
+import { FextivaLogo } from "@/components/shared/FextivaLogo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -96,7 +96,7 @@ export function EventCreationCTABanner({
 			<div className="w-full bg-background border-t px-6 sm:px-10 lg:px-16 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
 				<div className="flex items-center gap-3">
 					<Link href="/" className="inline-flex items-center">
-						<fextivaLogo className="h-6 w-auto" />
+						<FextivaLogo className="h-6 w-auto" />
 					</Link>
 					<span className="text-xs text-muted-foreground hidden sm:inline">|</span>
 					<p className="text-xs text-muted-foreground font-medium">

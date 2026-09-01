@@ -5,14 +5,14 @@ function Card({
 	className,
 	variant = "background",
 	...props
-}: React.ComponentProps<"div"> & { variant?: "afro" | "afro-4"|"background" }) {
+}: React.ComponentProps<"div"> & { variant?: "brand" | "brand-4"|"background" }) {
 	return (
 		<div
 			data-slot="card"
 			data-variant={variant}
 			className={cn(
 				"bg-card text-card-foreground flex flex-col gap-6 rounded-xl shadow-xs py-6",
-				variant === "afro" &&
+				variant === "brand" &&
 					"border border-[rgba(47,106,74,0.12)] bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.04),transparent_28%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.04),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(22,163,74,0.04),transparent_26%)]",
 				className,
 			)}

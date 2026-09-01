@@ -268,19 +268,19 @@ export function AfricaMap({
 	);
 }
 
-interface fextivaLogoProps {
+interface FextivaLogoProps {
 	readonly className?: string;
 	readonly holdDuration?: number;
 	readonly gapDuration?: number;
 	readonly repeat?: boolean;
 }
 
-export function fextivaLogo({
+export function FextivaLogo({
 	className = "h-auto",
 	holdDuration = 2800,
 	gapDuration = 600,
 	repeat = false,
-}: fextivaLogoProps) {
+}: FextivaLogoProps) {
 	const ref = useRef<SVGSVGElement>(null);
 	const isInView = useInView(ref, { once: false, amount: 0.5 });
 	const controls = useAnimation();
@@ -424,10 +424,7 @@ export function fextivaLogo({
 				textAnchor="start"
 			>
 				<motion.tspan fill="#C41E3A" custom={0} variants={letterVariants}>
-					Afro
-				</motion.tspan>
-				<motion.tspan fill="#FFB800" custom={1} variants={letterVariants}>
-					Tix
+					Fextiva
 				</motion.tspan>
 				<motion.tspan
 					fill="#228B22"

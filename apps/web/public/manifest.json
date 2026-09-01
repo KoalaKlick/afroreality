@@ -1,6 +1,6 @@
 {
-  "name": "AfroTix",
-  "short_name": "AfroTix",
+  "name": "fextiva",
+  "short_name": "fextiva",
   "description": "Create, Manage & Grow Events with Real-Time Power",
   "start_url": "/",
   "display": "standalone",

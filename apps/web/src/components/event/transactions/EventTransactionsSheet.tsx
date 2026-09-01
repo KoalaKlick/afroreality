@@ -106,7 +106,7 @@ export function EventTransactionsSheet({
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent
 				side="right"
-				variant="afro"
+				variant="brand"
 				className="w-full sm:max-w-3xl flex flex-col h-full p-0"
 			>
 				<SheetHeader className="shrink-0 px-6 py-6 border-b border-border/60">
@@ -148,18 +148,18 @@ export function EventTransactionsSheet({
 							}}
 							className="w-full"
 						>
-							<TabsList variant="afro" className="h-9 w-full sm:w-auto">
-								<TabsTrigger variant="afro" value="tickets" className="text-xs gap-1.5 flex-1 sm:flex-initial">
+							<TabsList variant="brand" className="h-9 w-full sm:w-auto">
+								<TabsTrigger variant="brand" value="tickets" className="text-xs gap-1.5 flex-1 sm:flex-initial">
 									<TicketIcon className="size-3.5" />
 									<span>Tickets ({ticketData.total})</span>
 								</TabsTrigger>
 								{isVotingType && (
 									<>
-										<TabsTrigger variant="afro" value="votes" className="text-xs gap-1.5 flex-1 sm:flex-initial">
+										<TabsTrigger variant="brand" value="votes" className="text-xs gap-1.5 flex-1 sm:flex-initial">
 											<VoteIcon className="size-3.5" />
 											<span>Votes ({voteData.total})</span>
 										</TabsTrigger>
-										<TabsTrigger variant="afro" value="nominations" className="text-xs gap-1.5 flex-1 sm:flex-initial">
+										<TabsTrigger variant="brand" value="nominations" className="text-xs gap-1.5 flex-1 sm:flex-initial">
 											<Award className="size-3.5" />
 											<span>Nominations ({nominationData.total})</span>
 										</TabsTrigger>

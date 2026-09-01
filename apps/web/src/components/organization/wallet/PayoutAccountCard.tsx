@@ -68,7 +68,7 @@ export function PayoutAccountCard({
 			<div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-emerald-500/15 dark:bg-[#dca000]/10 blur-xl pointer-events-none" />
 			<div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-amber-500/15 dark:bg-[#dca000]/5 blur-xl pointer-events-none" />
 
-			{/* Subtle Afro Continent Map Watermark */}
+			{/* Subtle Continent Map Watermark */}
 			<div className="absolute -right-4 -bottom-6 w-44 h-48 pointer-events-none opacity-[0.09] dark:opacity-[0.14] transition-opacity">
 				<svg
 					viewBox="0 0 191.78296 217.3489"

@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 // Pan-African color cycle: green, gold, red
-const afroColors = [
+const brandColors = [
 	{
 		hover: "hover:bg-[#02a605]/10",
 		active: "data-[active=true]:bg-[#02a605]/18 data-[active=true]:shadow-sm",
@@ -47,8 +47,8 @@ const afroColors = [
 	},
 ] as const;
 
-function getAfroColor(index: number) {
-	return afroColors[index % afroColors.length]!;
+function getBrandColor(index: number) {
+	return brandColors[index % brandColors.length]!;
 }
 
 export function NavMain({
@@ -89,7 +89,7 @@ export function NavMain({
 			<SidebarMenu>
 				{items.map((item, index) => {
 					const isActive = isUrlActive(item.url) || hasActiveSubItem(item.items);
-					const color = getAfroColor(index);
+					const color = getBrandColor(index);
 
 					if (!item.items || item.items.length === 0) {
 						return (

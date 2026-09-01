@@ -103,8 +103,8 @@ export function OrgMembersClient({
 							</div>
 						</CardHeader>
 						<CardContent>
-							<TabsList variant="afro" className="flex overflow-x-auto w-full">
-								<TabsTrigger variant="afro" value="members" className="gap-1.5">
+							<TabsList variant="brand" className="flex overflow-x-auto w-full">
+								<TabsTrigger variant="brand" value="members" className="gap-1.5">
 									<Users className="h-4 w-4" />
 									<span>Members</span>
 									<span className="ml-1 text-xs font-mono opacity-70">
@@ -112,7 +112,7 @@ export function OrgMembersClient({
 									</span>
 								</TabsTrigger>
 								<TabsTrigger
-									variant="afro"
+									variant="brand"
 									value="invitations"
 									className="gap-1.5 relative"
 								>
@@ -125,7 +125,7 @@ export function OrgMembersClient({
 									)}
 								</TabsTrigger>
 								<TabsTrigger
-									variant="afro"
+									variant="brand"
 									value="requests"
 									className="gap-1.5 relative"
 								>

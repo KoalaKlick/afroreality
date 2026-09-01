@@ -120,7 +120,7 @@ function OrgPageSamplePreview({
 	const orgSlug = slug || "organization";
 
 	return (
-		<div className="w-full rounded-2xl border bg-background shadow-lg overflow-hidden flex flex-col text-foreground transition-all duration-300">
+		<div className="w-full rounded-sm border bg-background shadow-sm overflow-hidden flex flex-col text-foreground transition-all duration-300">
 			{/* Mock Browser Topbar */}
 			<div className="px-3.5 py-2.5 bg-muted/60 border-b flex items-center justify-between text-[11px] text-muted-foreground select-none">
 				<div className="flex items-center gap-1.5">
@@ -235,7 +235,7 @@ function OrgPageSamplePreview({
 						<div
 							className="size-11 rounded-lg shrink-0 flex flex-col items-center justify-center text-white text-[9px] font-black leading-tight"
 							style={{
-								background: `linear-gradient(135deg, ${primaryColor || "#009A44"}, ${secondaryColor || "#FFD100"})`,
+								background: `${secondaryColor}`,
 							}}
 						>
 							<span>OCT</span>
