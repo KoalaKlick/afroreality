@@ -2,7 +2,7 @@
 // src/components/event/tabs/SponsorDialog.tsx
 
 import { X, Upload, Loader2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useImageUpload } from "@/hooks/use-image-upload";
-import { getEventImageUrl } from "@/lib/image-url-utils";
+import { getSponsorImageUrl } from "@/lib/image-url-utils";
 import type { EventSponsor } from "./types";
 
 interface SponsorDialogProps {
@@ -37,6 +37,12 @@ export function SponsorDialog({
 	const [name, setName] = useState(sponsor?.name ?? "");
 	const [logo, setLogo] = useState(sponsor?.logo ?? "");
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// Sync form state when sponsor prop changes (for editing existing sponsors)
+	useEffect(() => {
+		setName(sponsor?.name ?? "");
+		setLogo(sponsor?.logo ?? "");
+	}, [sponsor]);
 
 	const { isUploading, upload } = useImageUpload({
 		folder: "sponsors",
@@ -81,11 +87,11 @@ export function SponsorDialog({
 						/>
 						{logo ? (
 							<div className="relative size-20 rounded-xl overflow-hidden border">
-								<img
-									src={getEventImageUrl(logo) ?? ""}
-									alt="Logo"
-									className="size-full object-contain p-2"
-								/>
+							<img
+								src={getSponsorImageUrl(logo) ?? ""}
+								alt="Logo"
+								className="size-full object-contain p-2"
+							/>
 								<button
 									type="button"
 									onClick={() => setLogo("")}

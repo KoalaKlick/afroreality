@@ -407,7 +407,7 @@ export function FextivaLogo({
 		<motion.svg
 			ref={ref}
 			className={className}
-			viewBox="0 0 480 90"
+			viewBox="0 0 378.23117 267.54901"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 			initial="hidden"
@@ -415,25 +415,12 @@ export function FextivaLogo({
 			suppressHydrationWarning
 		>
 			<title suppressHydrationWarning>fextiva Logo</title>
-			<text
-				y="80"
-				fontFamily="'Poppins', Arial, sans-serif"
-				fontSize="105"
-				fontWeight="800"
-				letterSpacing="-2"
-				textAnchor="start"
-			>
-				<motion.tspan fill="#C41E3A" custom={0} variants={letterVariants}>
-					Fextiva
-				</motion.tspan>
-				<motion.tspan
-					fill="#228B22"
-					variants={dotVariants}
-					animate={dotControls}
-				>
-					.
-				</motion.tspan>
-			</text>
+			<image
+				href="/logo.svg"
+				width="378.23117"
+				height="267.54901"
+				preserveAspectRatio="xMidYMid meet"
+			/>
 		</motion.svg>
 	);
 }

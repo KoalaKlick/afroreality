@@ -2,6 +2,7 @@ export const BUCKETS = {
 	AVATARS: "avatars",
 	EVENTS: "events",
 	ORGANIZATIONS: "organizations",
+	SPONSORS: "sponsors",
 } as const;
 
 export type BucketName = (typeof BUCKETS)[keyof typeof BUCKETS];
@@ -49,7 +50,7 @@ export function cleanStorageKey(pathOrUrl?: string | null): string {
 			const parsed = new URL(clean);
 			const pathname = parsed.pathname.replace(/^\/+/, "");
 			// If contains bucket prefix like "fextivaapi/avatars/...", strip bucket
-			const bucket = process.env.R2_BUCKET_NAME || "fextivaapi";
+			const bucket = process.env.R2_BUCKET_NAME || "afrorealityapi";
 			if (pathname.startsWith(`${bucket}/`)) {
 				return pathname.slice(bucket.length + 1);
 			}
@@ -131,4 +132,21 @@ export function getOrgImageUrl(pathOrUrl?: string | null): string {
 		return `${prefix}/${relativeKey}`;
 	}
 	return `${prefix}/organizations/${relativeKey}`;
+}
+
+export function getSponsorImageUrl(pathOrUrl?: string | null): string {
+	if (!pathOrUrl) return "";
+	const clean = pathOrUrl.trim();
+	if (!clean) return "";
+
+	if (isFullUrl(clean) || isLocalPath(clean)) {
+		return clean;
+	}
+
+	const prefix = DEFAULT_STORAGE_BASE_URL.replace(/\/+$/, "");
+	const relativeKey = clean.replace(/^\/+/, "");
+	if (relativeKey.startsWith("sponsors/")) {
+		return `${prefix}/${relativeKey}`;
+	}
+	return `${prefix}/sponsors/${relativeKey}`;
 }

@@ -13,20 +13,20 @@ export const DEFAULT_BRAND_COLORS: BrandColors = {
  */
 export const PRESET_COLORS = [
 	{ name: "Pan-African Forest", value: "#028a3d", description: "Deep emerald forest (Heritage & Growth)" },
-	{ name: "Royal Tech Navy", value: "#1e3a8a", description: "Deep midnight sapphire (Trust & Tech)" },
-	{ name: "Electric Indigo", value: "#4338ca", description: "Vivid deep royal indigo (Innovation & Modern)" },
-	{ name: "Deep Amethyst", value: "#6b21a8", description: "Regal violet purple (Creativity & Luxury)" },
-	{ name: "Crimson Scarlet", value: "#dc2626", description: "Bold iconic red (Energy & Passion)" },
-	{ name: "Burgundy Wine", value: "#881337", description: "Deep maroon bordeaux (Prestige & Elegance)" },
-	{ name: "Warm Ochre Gold", value: "#d97706", description: "Sun-drenched amber gold (Heritage & Warmth)" },
-	{ name: "Burnt Terracotta", value: "#c2410c", description: "Warm earthen rust orange (Vibrancy & Craft)" },
+	{ name: "Olive Moss", value: "#65a30d", description: "Earthy yellow-green (Organic & Grounded)" },
+	{ name: "Petrol Teal", value: "#0d9488", description: "Deep oceanic teal (Balance & Distinction)" },
 	{ name: "Persian Cerulean", value: "#0284c7", description: "Deep azure sea blue (Clarity & Reach)" },
-	{ name: "Petrol Teal", value: "#0f766e", description: "Deep oceanic teal (Balance & Distinction)" },
-	{ name: "Obsidian Slate", value: "#0f172a", description: "Deep space charcoal (Minimalism & Power)" },
-	{ name: "Berry Magenta", value: "#be185d", description: "Deep plum raspberry (Charisma & Drive)" },
-	{ name: "Olive Moss", value: "#4d7c0f", description: "Deep earthy botanical green (Organic & Grounded)" },
+	{ name: "Royal Tech Navy", value: "#1e3a8a", description: "Deep midnight sapphire (Trust & Tech)" },
+	{ name: "Electric Indigo", value: "#4f46e5", description: "Vivid deep royal indigo (Innovation & Modern)" },
+	{ name: "Deep Amethyst", value: "#7c3aed", description: "Regal violet purple (Creativity & Luxury)" },
+	{ name: "Deep Fuchsia", value: "#a21caf", description: "Bold magenta violet (Boldness & Charisma)" },
+	{ name: "Rose Pink", value: "#db2777", description: "Rich vibrant rose (Modern & Dynamic)" },
+	{ name: "Burgundy Wine", value: "#881337", description: "Deep maroon bordeaux (Prestige & Elegance)" },
+	{ name: "Crimson Scarlet", value: "#dc2626", description: "Bold iconic red (Energy & Passion)" },
+	{ name: "Burnt Terracotta", value: "#ea580c", description: "Warm earthen rust orange (Vibrancy & Craft)" },
+	{ name: "Warm Ochre Gold", value: "#d97706", description: "Sun-drenched amber gold (Heritage & Warmth)" },
 	{ name: "Warm Espresso", value: "#78350f", description: "Deep cocoa bronze (Authenticity & Craft)" },
-	{ name: "Coral Crimson", value: "#e11d48", description: "Deep vibrant watermelon (Modern & Dynamic)" },
+	{ name: "Obsidian Slate", value: "#0f172a", description: "Deep space charcoal (Minimalism & Power)" },
 ];
 
 /**

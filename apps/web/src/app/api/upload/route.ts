@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/session";
 import { uploadToR2, deleteFromR2ByUrl } from "@/lib/storage";
+import { ALLOWED_STORAGE_FOLDERS } from "@/lib/constants/storage";
 
 export async function POST(req: Request) {
 	try {
@@ -15,6 +16,14 @@ export async function POST(req: Request) {
 		if (!file) {
 			return NextResponse.json(
 				{ success: false, error: "No file provided" },
+				{ status: 400 },
+			);
+		}
+
+		// Validate folder is allowed
+		if (!(ALLOWED_STORAGE_FOLDERS as readonly string[]).includes(folder)) {
+			return NextResponse.json(
+				{ success: false, error: `Invalid folder: ${folder}` },
 				{ status: 400 },
 			);
 		}

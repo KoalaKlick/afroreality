@@ -68,7 +68,7 @@ export function EventCreationCTABanner({
 								src="/landing/cta/create-event-3.webp"
 								alt=""
 								aria-hidden="true"
-								className="absolute bottom-0 z-[1] @max-md:right-0 @min-md:left-0 w-auto @max-md:h-full h-[85%] object-cover drop-shadow-lg hover:grayscale-75 transition-all duration-300 pointer-events-auto"
+								className="absolute bottom-0 z-[1] @max-md:-left-16 @min-md:left-0 w-auto @max-md:h-full h-[85%] object-cover drop-shadow-lg hover:grayscale-75 transition-all duration-300 pointer-events-auto"
 								loading="lazy"
 							/>
 							{/* Person 2 – middle (guitarist) */}
@@ -84,7 +84,7 @@ export function EventCreationCTABanner({
 								src="/landing/cta/create-event-1.webp"
 								alt=""
 								aria-hidden="true"
-								className="absolute bottom-0 z-[2] right-[-7%] @min-md:right-[-16%] w-auto h-[110%] object-cover @lg:w-100 drop-shadow-2xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
+								className="absolute bottom-0 z-[2] right-[-10%] @max-md:right-[-16%] @max-md:h-[130%] @min-md:right-[-16%] w-auto h-[110%] object-cover @lg:w-100 drop-shadow-2xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
 								loading="lazy"
 							/>
 						</div>

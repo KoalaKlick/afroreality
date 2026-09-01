@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Switch } from "@/components/ui/switch";
-import { getEventImageUrl } from "@/lib/image-url-utils";
+import { getSponsorImageUrl } from "@/lib/image-url-utils";
 import {
 	deleteExistingEvent,
 	updateExistingEvent,
@@ -650,12 +650,12 @@ export function EventSettingsTab({
 								className="group relative p-4 rounded-xl border bg-card hover:border-primary/50 transition-all flex flex-col items-center gap-2 text-center w-32"
 							>
 								<div className="size-16 rounded-lg border bg-muted flex items-center justify-center overflow-hidden">
-									{sponsor.logo ? (
-										<img
-											src={getEventImageUrl(sponsor.logo) ?? ""}
-											alt={sponsor.name}
-											className="size-full object-contain p-2"
-										/>
+							{sponsor.logo ? (
+									<img
+										src={getSponsorImageUrl(sponsor.logo) ?? ""}
+										alt={sponsor.name}
+										className="size-full object-contain p-2"
+									/>
 									) : (
 										<ImageIcon className="size-6 text-muted-foreground opacity-30" />
 									)}

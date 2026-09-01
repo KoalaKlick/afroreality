@@ -266,6 +266,15 @@ export async function getEventDetail(
 		where: { id: eventId },
 		include: {
 			organization: true,
+			sponsors: {
+				orderBy: { createdAt: "asc" },
+			},
+			socialLinks: {
+				orderBy: { createdAt: "asc" },
+			},
+			galleryLinks: {
+				orderBy: { createdAt: "asc" },
+			},
 			ticketTypes: {
 				orderBy: { orderIdx: "asc" },
 			},

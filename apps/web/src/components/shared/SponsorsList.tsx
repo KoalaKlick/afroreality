@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import React from "react";
-import { getEventImageUrl } from "@/lib/image-url-utils";
+import { getSponsorImageUrl } from "@/lib/image-url-utils";
 import {
 	Tooltip,
 	TooltipContent,
@@ -44,8 +44,8 @@ export function SponsorsList({
 				)}
 				<div className="flex flex-wrap items-center gap-2.5">
 					{displayedSponsors.map((sponsor, idx) => {
-						const imgKey = sponsor.logoUrl || sponsor.logo;
-						const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
+					const imgKey = sponsor.logoUrl || sponsor.logo;
+					const imgUrl = imgKey ? getSponsorImageUrl(imgKey) : null;
 						const sponsorName = sponsor.name || "Official Sponsor";
 
 						const TriggerContent = (
