@@ -27,6 +27,7 @@ model Event {
   hasUssd              Boolean                  @default(false) @map("has_ussd")
   ussdCode             String?                  @unique @map("ussd_code")
   galleryLinks         EventGalleryLink[]
+  galleryImages        String[]                 @default([]) @map("gallery_images")
   members              EventMember[]
   registrationFields   EventRegistrationField[]
   socialLinks          EventSocialLink[]

@@ -14,7 +14,7 @@ export function PlatformFeesCard({
 	className,
 }: PlatformFeesCardProps) {
 	return (
-		<Card className={cn("bg-card rounded-md p-6", className)}>
+		<Card className={cn("bg-card p-6", className)}>
 			<div className="flex items-center gap-2 mb-6">
 				<CreditCard className="w-5 h-5 text-[#009A44]" />
 				<h3 className="font-semibold text-lg">Platform Fees</h3>

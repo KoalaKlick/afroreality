@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -9,7 +9,7 @@ import {
 	DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, PhoneCall, Smartphone, Check } from "lucide-react";
+import { Copy, PhoneCall, Smartphone, Check, Download } from "lucide-react";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import { getUssdDialCode, getUssdTelUri } from "@/lib/utils/ussd";
@@ -30,6 +30,7 @@ export function UssdInfoDialog({
 	primaryColor = "#009A44",
 }: UssdInfoDialogProps) {
 	const [copied, setCopied] = useState(false);
+	const qrRef = useRef<HTMLDivElement>(null);
 
 	const dialCode = getUssdDialCode(ussdCode);
 	const telUri = getUssdTelUri(ussdCode);
@@ -40,6 +41,47 @@ export function UssdInfoDialog({
 		toast.success("USSD code copied to clipboard!");
 		setTimeout(() => setCopied(false), 2000);
 	};
+
+	const downloadQrCode = useCallback(async () => {
+		if (!qrRef.current) return;
+
+		const svgElement = qrRef.current.querySelector("svg");
+		if (!svgElement) return;
+
+		const svgData = new XMLSerializer().serializeToString(svgElement);
+		const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+		const svgUrl = URL.createObjectURL(svgBlob);
+
+		const img = new Image();
+		img.onload = () => {
+			const scale = 4;
+			const canvas = document.createElement("canvas");
+			canvas.width = (img.width || 200) * scale;
+			canvas.height = (img.height || 200) * scale;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) return;
+
+			ctx.fillStyle = "#ffffff";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+			canvas.toBlob((blob) => {
+				if (!blob) return;
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = `ussd-qr-${dialCode}.png`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(url);
+				toast.success("QR code downloaded!");
+			}, "image/png");
+
+			URL.revokeObjectURL(svgUrl);
+		};
+		img.src = svgUrl;
+	}, [dialCode]);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,37 +97,22 @@ export function UssdInfoDialog({
 
 				<div className="flex flex-col items-center gap-5">
 					{/* QR Code Container */}
-					<div className="p-4 bg-white rounded-none border border-border/80 flex flex-col items-center">
-						<QRCode value={telUri} size={168} level="M" />
+					<div className="relative p-4 bg-white rounded-none border border-border/80 flex flex-col items-center">
+						<div ref={qrRef}>
+							<QRCode value={telUri} size={168} level="M" />
+						</div>
 						<p className="text-[10px] font-mono font-medium text-zinc-500 mt-2.5">
 							Scan with phone camera to auto-dial
 						</p>
-					</div>
-
-					{/* USSD Code Box */}
-					<div className="w-full space-y-2">
-						<p className="text-xs font-semibold text-center text-muted-foreground">
-							Or dial directly from your phone dialer:
-						</p>
-						<div className="flex items-center gap-2">
-							<div className="bg-muted/40 border border-border/80 rounded-sm px-4 py-2 font-mono text-lg font-black tracking-wider flex-1 text-center select-all text-foreground">
-								{dialCode}
-							</div>
-							<Button
-								type="button"
-								variant="outline"
-								size="icon"
-								onClick={copyCode}
-								className="size-12 shrink-0"
-								title="Copy code"
-							>
-								{copied ? (
-									<Check className="size-5 text-emerald-500" />
-								) : (
-									<Copy className="size-5" />
-								)}
-							</Button>
-						</div>
+						{/* Download icon button - bottom right corner */}
+						<button
+							type="button"
+							onClick={downloadQrCode}
+							className="absolute -bottom-0.5 -right-0.5 p-1.5  bg-background  border-border/60 text-muted-foreground hover:text-foreground hover:bg-background transition-all"
+							title="Download QR Code"
+						>
+							<Download className="size-4" />
+						</button>
 					</div>
 
 					{/* 3 Step Guide */}

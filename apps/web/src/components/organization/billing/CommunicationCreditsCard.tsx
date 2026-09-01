@@ -15,7 +15,7 @@ export function CommunicationCreditsCard({
 	className,
 }: CommunicationCreditsCardProps) {
 	return (
-		<Card className={cn("bg-card rounded-md p-6 @container", className)}>
+		<Card className={cn("bg-card p-6 @container", className)}>
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<MessageSquare className="w-5 h-5 text-[#CE1126]" />

@@ -115,7 +115,7 @@ export function NomineeGrid({
 	return (
 		<>
 			<div className="grid grid-cols-1 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
-				{nominees.map((nominee, index) => {
+				{nominees.concat().map((nominee, index) => {
 					const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
 					const votePercentage =
 						totalCategoryVotes > 0

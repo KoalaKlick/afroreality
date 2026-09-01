@@ -24,7 +24,7 @@ export function FeeCalculator({ className }: FeeCalculatorProps) {
 	const breakdown = amount > 0 ? calculateFee(amount, previewType) : null;
 
 	return (
-		<Card className={cn("bg-card rounded-md p-6", className)}>
+		<Card className={cn("bg-card p-6", className)}>
 			<div className="flex items-center gap-2 mb-4">
 				<Calculator className="w-5 h-5 text-[#FFCD00]" />
 				<h3 className="font-semibold">Fee Calculator</h3>

@@ -17,6 +17,7 @@ import {
 import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, formatAmount } from "@/lib/utils";
+import { AnimatedCounter } from "@/components/shared/AnimatedCounter";
 
 /**
  * 3D stat icon paths mapped by name
@@ -156,7 +157,8 @@ export function StatCard({
 	const cardInlineStyle = iconColor ? iconColor.style : undefined;
 
 	const content = (() => {
-		const display = typeof value === "number" ? formatCompact(value) : value;
+		const isNumeric = typeof value === "number";
+		const display = isNumeric ? formatCompact(value) : value;
 		const sizeClass = getValueSizeClass(String(display));
 
 		return (
@@ -182,7 +184,11 @@ export function StatCard({
 									"font-bold font-montserrat tracking-tight text-foreground",
 								)}
 							>
-								{display}
+								{isNumeric ? (
+									<AnimatedCounter value={value} duration={1.5} format={formatCompact} />
+								) : (
+									display
+								)}
 							</p>
 							{description && (
 								<p className="text-xs text-muted-foreground leading-relaxed">{description}</p>

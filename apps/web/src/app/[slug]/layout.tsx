@@ -39,13 +39,13 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
 	}
 
 	return (
-		<>
+		<div className="@container">
 			<BrandingSync
 				primaryColor={organization.primaryColor}
 				secondaryColor={organization.secondaryColor}
 				tertiaryColor={organization.tertiaryColor}
 			/>
 			{children}
-		</>
+		</div>
 	);
 }

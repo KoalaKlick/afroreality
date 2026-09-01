@@ -37,6 +37,7 @@ import { GalleryLinkDialog } from "./GalleryLinkDialog";
 import { SocialLinkDialog } from "./SocialLinkDialog";
 import { SponsorDialog } from "./SponsorDialog";
 import { UssdSettings } from "@/components/event/settings/UssdSettings";
+import { GalleryImageManager } from "@/components/event/settings/GalleryImageManager";
 import type { EventGalleryLink, EventSocialLink, EventSponsor } from "./types";
 
 interface EventSettingsTabProps {
@@ -88,6 +89,7 @@ export function EventSettingsTab({
 		sponsors: (event.sponsors ?? []) as EventSponsor[],
 		socialLinks: (event.socialLinks ?? []) as EventSocialLink[],
 		galleryLinks: (event.galleryLinks ?? []) as EventGalleryLink[],
+		galleryImages: (event.galleryImages ?? []) as string[],
 	});
 
 	function saveFields(fields: Record<string, any>) {
@@ -668,7 +670,7 @@ export function EventSettingsTab({
 										<Button
 											variant="outline"
 											size="icon"
-											className="size-6 rounded-md bg-background/80"
+											className="size-6 bg-background/80"
 											onClick={() => {
 												setSelectedSponsor(sponsor);
 												setSponsorModalOpen(true);
@@ -679,7 +681,7 @@ export function EventSettingsTab({
 										<Button
 											variant="outline"
 											size="icon"
-											className="size-6 rounded-md bg-background/80 text-destructive hover:text-destructive"
+											className="size-6 bg-background/80 text-destructive hover:text-destructive"
 											onClick={() => {
 												const newSponsors = formData.sponsors.filter(
 													(_, i) => i !== index,
@@ -706,6 +708,29 @@ export function EventSettingsTab({
 							</div>
 						)}
 					</div>
+				</Card>
+
+				{/* Event Gallery */}
+				<Card className="p-6">
+					<div className="flex items-center justify-between mb-4">
+						<div className="space-y-1">
+							<h3 className="text-base font-semibold flex items-center gap-2">
+								<ImageIcon className="size-4 text-primary" /> Event Gallery
+							</h3>
+							<p className="text-xs text-muted-foreground">
+								Showcase up to 5 photos for your event
+							</p>
+						</div>
+					</div>
+					<GalleryImageManager
+						images={formData.galleryImages}
+						maxImages={5}
+						disabled={!canEdit || isPending}
+						onImagesChange={(newImages) => {
+							setFormData((p) => ({ ...p, galleryImages: newImages }));
+							saveFields({ galleryImages: newImages });
+						}}
+					/>
 				</Card>
 
 				{/* Social Links */}
@@ -739,7 +764,7 @@ export function EventSettingsTab({
 							return (
 								<div
 									key={link.id || index}
-									className="flex items-center gap-3 p-3 border rounded-xl bg-card max-w-xs group relative"
+									className="flex items-center gap-3 p-3 border max-w-xs group relative"
 								>
 									<div className="size-9 rounded-lg bg-muted border flex items-center justify-center shrink-0">
 										{platform.icon}

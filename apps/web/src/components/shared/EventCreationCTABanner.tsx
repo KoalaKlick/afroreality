@@ -31,7 +31,7 @@ export function EventCreationCTABanner({
 
 				{/* Inner container — reusable Card holds everything */}
 				<div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-					<Card className="relative rounded-3xl shadow-2xl gap-0 py-0 flex flex-col md:flex-row justify-between">
+					<Card className="relative shadow-2xl gap-0 py-0 flex flex-col md:flex-row justify-between">
 
 						{/* Left: Text + buttons */}
 						<div className="max-w-xl flex-1 flex flex-col justify-center px-6 md:pr-0 space-y-4 py-6 sm:px-12 sm:py-10 lg:px-16">
@@ -84,7 +84,7 @@ export function EventCreationCTABanner({
 								src="/landing/cta/create-event-1.webp"
 								alt=""
 								aria-hidden="true"
-								className="absolute bottom-0 z-[2] right-[-10%] @max-md:right-[-16%] @max-md:h-[130%] @min-md:right-[-16%] w-auto h-[110%] object-cover @lg:w-100 drop-shadow-2xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
+								className="absolute bottom-0 z-[0] right-[-10%] @max-md:right-[-16%] @max-md:h-[130%] @min-md:right-[-16%] w-auto h-[110%] object-cover @lg:w-100 drop-shadow-2xl hover:grayscale-75 transition-all duration-300 pointer-events-auto"
 								loading="lazy"
 							/>
 						</div>

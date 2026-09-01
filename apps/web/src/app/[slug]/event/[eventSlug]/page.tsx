@@ -11,7 +11,9 @@ import { EventDetailsSection } from "@/components/event/public/EventDetailsSecti
 import { PublicTicketGrid } from "@/components/event/public/PublicTicketGrid";
 import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
 import { UssdFloatingWidget } from "@/components/event/public/UssdFloatingWidget";
+import { EventGallery } from "@/components/shared/EventGallery";
 import { getFrontendBaseUrl } from "@/lib/utils";
+import { ImageIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 interface PublicEventPageProps {
@@ -195,7 +197,7 @@ export default async function PublicEventPage({
 
 	return (
 		<main
-			className="min-h-[100svh] bg-background text-foreground flex flex-col justify-between"
+			className="min-h-[100svh] bg-background @7xl:bg-primary- text-foreground flex flex-col justify-between"
 			style={brandVars}
 		>
 			{/* Mobile / Tablet View (< xl) */}
@@ -241,6 +243,7 @@ export default async function PublicEventPage({
 					description={event.description}
 					socialLinks={socialLinks}
 					galleryLinks={galleryLinks}
+					galleryImages={(event as any).galleryImages || []}
 					sponsors={sponsors}
 				/>
 			</div>
@@ -284,8 +287,34 @@ export default async function PublicEventPage({
 								{ticketsContent}
 							</div>
 						)}
+
+						{/* Event Gallery for Desktop */}
+						{((event as any).galleryImages?.length > 0) && (
+							<div className="rounded-2xl border bg-card p-6 space-y-4">
+								<h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
+									<ImageIcon className="size-5 text-primary" />
+									Event Gallery
+								</h3>
+								<EventGallery
+									images={(event as any).galleryImages}
+									maxDisplay={5}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
+			</div>
+
+			{/* Event Details Section - Mobile/Tablet */}
+			<div className="xl:hidden">
+				<PanAfricanDivider />
+				<EventDetailsSection
+					description={event.description}
+					socialLinks={socialLinks}
+					galleryLinks={galleryLinks}
+					galleryImages={(event as any).galleryImages || []}
+					sponsors={sponsors}
+				/>
 			</div>
 
 			{/* CTA Banner & Brand Footer */}

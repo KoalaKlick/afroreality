@@ -5847,6 +5847,7 @@ export namespace Prisma {
     publishedAt: number
     hasUssd: number
     ussdCode: number
+    galleryImages: number
     _all: number
   }
 
@@ -5947,6 +5948,7 @@ export namespace Prisma {
     publishedAt?: true
     hasUssd?: true
     ussdCode?: true
+    galleryImages?: true
     _all?: true
   }
 
@@ -6064,6 +6066,7 @@ export namespace Prisma {
     publishedAt: Date | null
     hasUssd: boolean
     ussdCode: string | null
+    galleryImages: string[]
     _count: EventCountAggregateOutputType | null
     _avg: EventAvgAggregateOutputType | null
     _sum: EventSumAggregateOutputType | null
@@ -6113,6 +6116,7 @@ export namespace Prisma {
     publishedAt?: boolean
     hasUssd?: boolean
     ussdCode?: boolean
+    galleryImages?: boolean
     galleryLinks?: boolean | Event$galleryLinksArgs<ExtArgs>
     members?: boolean | Event$membersArgs<ExtArgs>
     registrationFields?: boolean | Event$registrationFieldsArgs<ExtArgs>
@@ -6157,6 +6161,7 @@ export namespace Prisma {
     publishedAt?: boolean
     hasUssd?: boolean
     ussdCode?: boolean
+    galleryImages?: boolean
     creator?: boolean | Event$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["event"]>
@@ -6189,6 +6194,7 @@ export namespace Prisma {
     publishedAt?: boolean
     hasUssd?: boolean
     ussdCode?: boolean
+    galleryImages?: boolean
     creator?: boolean | Event$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["event"]>
@@ -6221,9 +6227,10 @@ export namespace Prisma {
     publishedAt?: boolean
     hasUssd?: boolean
     ussdCode?: boolean
+    galleryImages?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode" | "galleryImages", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     galleryLinks?: boolean | Event$galleryLinksArgs<ExtArgs>
     members?: boolean | Event$membersArgs<ExtArgs>
@@ -6294,6 +6301,7 @@ export namespace Prisma {
       publishedAt: Date | null
       hasUssd: boolean
       ussdCode: string | null
+      galleryImages: string[]
     }, ExtArgs["result"]["event"]>
     composites: {}
   }
@@ -6757,6 +6765,7 @@ export namespace Prisma {
     readonly publishedAt: FieldRef<"Event", 'DateTime'>
     readonly hasUssd: FieldRef<"Event", 'Boolean'>
     readonly ussdCode: FieldRef<"Event", 'String'>
+    readonly galleryImages: FieldRef<"Event", 'String[]'>
   }
     
 
@@ -42051,7 +42060,8 @@ export namespace Prisma {
     updatedAt: 'updatedAt',
     publishedAt: 'publishedAt',
     hasUssd: 'hasUssd',
-    ussdCode: 'ussdCode'
+    ussdCode: 'ussdCode',
+    galleryImages: 'galleryImages'
   };
 
   export type EventScalarFieldEnum = (typeof EventScalarFieldEnum)[keyof typeof EventScalarFieldEnum]
@@ -43137,6 +43147,7 @@ export namespace Prisma {
     publishedAt?: DateTimeNullableFilter<"Event"> | Date | string | null
     hasUssd?: BoolFilter<"Event"> | boolean
     ussdCode?: StringNullableFilter<"Event"> | string | null
+    galleryImages?: StringNullableListFilter<"Event">
     galleryLinks?: EventGalleryLinkListRelationFilter
     members?: EventMemberListRelationFilter
     registrationFields?: EventRegistrationFieldListRelationFilter
@@ -43180,6 +43191,7 @@ export namespace Prisma {
     publishedAt?: SortOrderInput | SortOrder
     hasUssd?: SortOrder
     ussdCode?: SortOrderInput | SortOrder
+    galleryImages?: SortOrder
     galleryLinks?: EventGalleryLinkOrderByRelationAggregateInput
     members?: EventMemberOrderByRelationAggregateInput
     registrationFields?: EventRegistrationFieldOrderByRelationAggregateInput
@@ -43227,6 +43239,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Event"> | Date | string
     publishedAt?: DateTimeNullableFilter<"Event"> | Date | string | null
     hasUssd?: BoolFilter<"Event"> | boolean
+    galleryImages?: StringNullableListFilter<"Event">
     galleryLinks?: EventGalleryLinkListRelationFilter
     members?: EventMemberListRelationFilter
     registrationFields?: EventRegistrationFieldListRelationFilter
@@ -43270,6 +43283,7 @@ export namespace Prisma {
     publishedAt?: SortOrderInput | SortOrder
     hasUssd?: SortOrder
     ussdCode?: SortOrderInput | SortOrder
+    galleryImages?: SortOrder
     _count?: EventCountOrderByAggregateInput
     _avg?: EventAvgOrderByAggregateInput
     _max?: EventMaxOrderByAggregateInput
@@ -43308,6 +43322,7 @@ export namespace Prisma {
     publishedAt?: DateTimeNullableWithAggregatesFilter<"Event"> | Date | string | null
     hasUssd?: BoolWithAggregatesFilter<"Event"> | boolean
     ussdCode?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    galleryImages?: StringNullableListFilter<"Event">
   }
 
   export type EventSponsorWhereInput = {
@@ -46262,6 +46277,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -46305,6 +46321,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -46344,6 +46361,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -46387,6 +46405,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -46428,6 +46447,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
   }
 
   export type EventUpdateManyMutationInput = {
@@ -46456,6 +46476,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
   export type EventUncheckedUpdateManyInput = {
@@ -46486,6 +46507,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
   export type EventSponsorCreateInput = {
@@ -49983,6 +50005,14 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
   export type EventGalleryLinkListRelationFilter = {
     every?: EventGalleryLinkWhereInput
     some?: EventGalleryLinkWhereInput
@@ -50131,6 +50161,7 @@ export namespace Prisma {
     publishedAt?: SortOrder
     hasUssd?: SortOrder
     ussdCode?: SortOrder
+    galleryImages?: SortOrder
   }
 
   export type EventAvgOrderByAggregateInput = {
@@ -50404,14 +50435,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumEventMemberStatusFilter<$PrismaModel>
     _max?: NestedEnumEventMemberStatusFilter<$PrismaModel>
-  }
-
-  export type StringNullableListFilter<$PrismaModel = never> = {
-    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    has?: string | StringFieldRefInput<$PrismaModel> | null
-    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
-    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
-    isEmpty?: boolean
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -52471,6 +52494,10 @@ export namespace Prisma {
     update?: XOR<XOR<ProfileUpdateToOneWithWhereWithoutActivityLogsInput, ProfileUpdateWithoutActivityLogsInput>, ProfileUncheckedUpdateWithoutActivityLogsInput>
   }
 
+  export type EventCreategalleryImagesInput = {
+    set: string[]
+  }
+
   export type EventGalleryLinkCreateNestedManyWithoutEventInput = {
     create?: XOR<EventGalleryLinkCreateWithoutEventInput, EventGalleryLinkUncheckedCreateWithoutEventInput> | EventGalleryLinkCreateWithoutEventInput[] | EventGalleryLinkUncheckedCreateWithoutEventInput[]
     connectOrCreate?: EventGalleryLinkCreateOrConnectWithoutEventInput | EventGalleryLinkCreateOrConnectWithoutEventInput[]
@@ -52659,6 +52686,11 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type EventUpdategalleryImagesInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type EventGalleryLinkUpdateManyWithoutEventNestedInput = {
@@ -57446,6 +57478,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -57488,6 +57521,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -57542,6 +57576,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -57584,6 +57619,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -57622,6 +57658,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
     socialLinks?: EventSocialLinkCreateNestedManyWithoutEventInput
@@ -57664,6 +57701,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
     socialLinks?: EventSocialLinkUncheckedCreateNestedManyWithoutEventInput
@@ -57718,6 +57756,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
     socialLinks?: EventSocialLinkUpdateManyWithoutEventNestedInput
@@ -57760,6 +57799,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
     socialLinks?: EventSocialLinkUncheckedUpdateManyWithoutEventNestedInput
@@ -57798,6 +57838,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -57840,6 +57881,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -57894,6 +57936,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -57936,6 +57979,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -57974,6 +58018,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
     socialLinks?: EventSocialLinkCreateNestedManyWithoutEventInput
@@ -58016,6 +58061,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
     socialLinks?: EventSocialLinkUncheckedCreateNestedManyWithoutEventInput
@@ -58110,6 +58156,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
     socialLinks?: EventSocialLinkUpdateManyWithoutEventNestedInput
@@ -58152,6 +58199,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
     socialLinks?: EventSocialLinkUncheckedUpdateManyWithoutEventNestedInput
@@ -58206,6 +58254,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     socialLinks?: EventSocialLinkCreateNestedManyWithoutEventInput
@@ -58248,6 +58297,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     socialLinks?: EventSocialLinkUncheckedCreateNestedManyWithoutEventInput
@@ -58302,6 +58352,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     socialLinks?: EventSocialLinkUpdateManyWithoutEventNestedInput
@@ -58344,6 +58395,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     socialLinks?: EventSocialLinkUncheckedUpdateManyWithoutEventNestedInput
@@ -58382,6 +58434,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -58423,6 +58476,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -58762,6 +58816,7 @@ export namespace Prisma {
     publishedAt?: DateTimeNullableFilter<"Event"> | Date | string | null
     hasUssd?: BoolFilter<"Event"> | boolean
     ussdCode?: StringNullableFilter<"Event"> | string | null
+    galleryImages?: StringNullableListFilter<"Event">
   }
 
   export type MembershipRequestUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -62399,6 +62454,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -62441,6 +62497,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -62537,6 +62594,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -62579,6 +62637,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -62633,6 +62692,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -62675,6 +62735,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -62891,6 +62952,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -62933,6 +62995,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -63119,6 +63182,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -63161,6 +63225,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -63303,6 +63368,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -63345,6 +63411,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -63483,6 +63550,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -63524,6 +63592,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -64629,6 +64698,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -64671,6 +64741,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -64795,6 +64866,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -64837,6 +64909,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -64982,6 +65055,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -65024,6 +65098,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -65224,6 +65299,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -65266,6 +65342,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -65434,6 +65511,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -65476,6 +65554,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -65787,6 +65866,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -65829,6 +65909,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -66792,6 +66873,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
   }
 
   export type MembershipRequestCreateManyOrganizationInput = {
@@ -66886,6 +66968,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -66927,6 +67010,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -66967,6 +67051,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
   export type MembershipRequestUpdateWithoutOrganizationInput = {
@@ -68076,6 +68161,7 @@ export namespace Prisma {
     publishedAt?: Date | string | null
     hasUssd?: boolean
     ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
   }
 
   export type MembershipRequestCreateManyResolverInput = {
@@ -68311,6 +68397,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -68352,6 +68439,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -68392,6 +68480,7 @@ export namespace Prisma {
     publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
   export type MembershipRequestUpdateWithoutResolverInput = {

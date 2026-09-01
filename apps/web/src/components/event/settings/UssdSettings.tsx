@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
 	QrCode as QrCodeIcon,
 	PhoneCall,
 	XCircle,
+	Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { enableUssdForEvent, disableUssdForEvent } from "@/lib/server-functions/ussd";
@@ -37,6 +38,7 @@ export function UssdSettings({
 	const [ussdCode, setUssdCode] = useState(initialUssdCode || "");
 	const [showQr, setShowQr] = useState(false);
 	const [isPending, startTransition] = useTransition();
+	const qrRef = useRef<HTMLDivElement>(null);
 
 	const dialCode = ussdCode ? getUssdDialCode(ussdCode) : "";
 	const telUri = ussdCode ? getUssdTelUri(ussdCode) : "";
@@ -74,8 +76,49 @@ export function UssdSettings({
 		toast.success("USSD code copied to clipboard!");
 	};
 
+	const downloadQrCode = useCallback(async () => {
+		if (!qrRef.current) return;
+
+		const svgElement = qrRef.current.querySelector("svg");
+		if (!svgElement) return;
+
+		const svgData = new XMLSerializer().serializeToString(svgElement);
+		const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+		const svgUrl = URL.createObjectURL(svgBlob);
+
+		const img = new Image();
+		img.onload = () => {
+			const scale = 4;
+			const canvas = document.createElement("canvas");
+			canvas.width = (img.width || 200) * scale;
+			canvas.height = (img.height || 200) * scale;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) return;
+
+			ctx.fillStyle = "#ffffff";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+			canvas.toBlob((blob) => {
+				if (!blob) return;
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = `ussd-qr-${dialCode}.png`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(url);
+				toast.success("QR code downloaded!");
+			}, "image/png");
+
+			URL.revokeObjectURL(svgUrl);
+		};
+		img.src = svgUrl;
+	}, [dialCode]);
+
 	return (
-		<Card className="p-6 border-primary/20 bg-card rounded-2xl shadow-xs">
+		<Card className="p-6 border-primary/20 bg-card shadow-xs">
 			<div className="flex items-start justify-between mb-4">
 				<div className="space-y-1">
 					<h3 className="text-base font-semibold flex items-center gap-2 text-foreground">
@@ -119,7 +162,7 @@ export function UssdSettings({
 									size="icon"
 									onClick={copyCode}
 									title="Copy USSD Code"
-									className="size-11 shrink-0 rounded-xl"
+									className="size-11 shrink-0"
 								>
 									<Copy className="size-4" />
 								</Button>
@@ -130,7 +173,7 @@ export function UssdSettings({
 									size="icon"
 									onClick={() => setShowQr(!showQr)}
 									title={showQr ? "Hide QR Code" : "Show QR Code"}
-									className="size-11 shrink-0 rounded-xl"
+									className="size-11 shrink-0"
 								>
 									<QrCodeIcon className="size-4" />
 								</Button>
@@ -138,7 +181,7 @@ export function UssdSettings({
 								<Button
 									asChild
 									variant="default"
-									className="size-11 sm:w-auto sm:px-4 shrink-0 rounded-xl gap-2"
+									className="size-11 sm:w-auto sm:px-4 shrink-0 gap-2"
 								>
 									<a href={telUri}>
 										<PhoneCall className="size-4" />
@@ -151,13 +194,25 @@ export function UssdSettings({
 							{showQr && (
 								<div className="mt-5 pt-4 border-t border-primary/15 flex flex-col sm:flex-row items-center gap-5">
 									<div className="p-3 bg-white rounded-xl shadow-xs border">
-										<QRCode value={telUri} size={130} />
+										<div ref={qrRef}>
+											<QRCode value={telUri} size={130} />
+										</div>
 									</div>
-									<div className="space-y-1 text-center sm:text-left">
+									<div className="space-y-2 text-center sm:text-left">
 										<p className="text-xs font-bold text-foreground">USSD Quick Dial QR</p>
 										<p className="text-xs text-muted-foreground max-w-sm">
 											Attendees can scan this QR code with their phone camera to instantly load the USSD dialing string into their phone app.
 										</p>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={downloadQrCode}
+											className="gap-2"
+										>
+											<Download className="size-3.5" />
+											Download QR
+										</Button>
 									</div>
 								</div>
 							)}
@@ -200,7 +255,7 @@ export function UssdSettings({
 								type="button"
 								onClick={handleEnable}
 								disabled={isPending}
-								className="w-full sm:w-auto rounded-xl gap-2 font-bold"
+								className="w-full sm:w-auto gap-2 font-bold"
 							>
 								{isPending ? (
 									<>

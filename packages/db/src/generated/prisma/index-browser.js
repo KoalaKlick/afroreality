@@ -161,7 +161,8 @@ exports.Prisma.EventScalarFieldEnum = {
   updatedAt: 'updatedAt',
   publishedAt: 'publishedAt',
   hasUssd: 'hasUssd',
-  ussdCode: 'ussdCode'
+  ussdCode: 'ussdCode',
+  galleryImages: 'galleryImages'
 };
 
 exports.Prisma.EventSponsorScalarFieldEnum = {
