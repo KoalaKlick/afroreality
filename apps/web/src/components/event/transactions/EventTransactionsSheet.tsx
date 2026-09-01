@@ -11,30 +11,25 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-	Loader2,
 	Ticket as TicketIcon,
 	Vote as VoteIcon,
-	Search,
-	ArrowUpDown,
-	Calendar,
-	User,
+	Award,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/common/status-badge";
-import { Button } from "@/components/ui/button";
-import { formatAmount, formatDate } from "@/lib/utils";
 import {
 	getEventVoteTransactions,
 	getEventTicketTransactions,
+	getEventNominationTransactions,
 } from "@/lib/server-functions/event-transactions";
+import { VoteTransactionsTable } from "./VoteTransactionsTable";
+import { TicketTransactionsTable } from "./TicketTransactionsTable";
+import { NominationTransactionsTable } from "./NominationTransactionsTable";
 
 interface EventTransactionsSheetProps {
 	eventId: string;
 	isVotingType: boolean;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	defaultType?: "votes" | "tickets";
+	defaultType?: "votes" | "tickets" | "nominations";
 }
 
 export function EventTransactionsSheet({
@@ -44,7 +39,7 @@ export function EventTransactionsSheet({
 	onOpenChange,
 	defaultType = "tickets",
 }: EventTransactionsSheetProps) {
-	const [activeTab, setActiveTab] = useState<"votes" | "tickets">(defaultType);
+	const [activeTab, setActiveTab] = useState<"votes" | "tickets" | "nominations">(defaultType);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -53,6 +48,10 @@ export function EventTransactionsSheet({
 		total: 0,
 	});
 	const [ticketData, setTicketData] = useState<{ items: any[]; total: number }>({
+		items: [],
+		total: 0,
+	});
+	const [nominationData, setNominationData] = useState<{ items: any[]; total: number }>({
 		items: [],
 		total: 0,
 	});
@@ -77,11 +76,16 @@ export function EventTransactionsSheet({
 					data: { eventId, page, limit, search: searchQuery },
 				});
 				setVoteData(res);
-			} else {
+			} else if (activeTab === "tickets") {
 				const res = await getEventTicketTransactions({
 					data: { eventId, page, limit, search: searchQuery },
 				});
 				setTicketData(res);
+			} else if (activeTab === "nominations") {
+				const res = await getEventNominationTransactions({
+					data: { eventId, page, limit, search: searchQuery },
+				});
+				setNominationData(res);
 			}
 		} catch (e) {
 			console.error("[TRANSACTIONS-SHEET-ERROR]", e);
@@ -94,176 +98,130 @@ export function EventTransactionsSheet({
 		loadData();
 	}, [loadData]);
 
-	const currentData = activeTab === "votes" ? voteData : ticketData;
-	const totalPages = Math.max(1, Math.ceil(currentData.total / limit));
+	const totalVotesPages = Math.max(1, Math.ceil(voteData.total / limit));
+	const totalTicketsPages = Math.max(1, Math.ceil(ticketData.total / limit));
+	const totalNominationPages = Math.max(1, Math.ceil(nominationData.total / limit));
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent
 				side="right"
 				variant="afro"
-				className="w-full sm:max-w-2xl flex flex-col h-full p-0"
+				className="w-full sm:max-w-3xl flex flex-col h-full p-0"
 			>
 				<SheetHeader className="shrink-0 px-6 py-6 border-b border-border/60">
-					<div className="flex items-center gap-2">
-						{activeTab === "votes" ? (
-							<div className="size-9 rounded-lg bg-primary-100 dark:bg-primary-950/50 text-primary flex items-center justify-center shrink-0">
+					<div className="flex items-center gap-3">
+						<div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 ring-1 ring-primary/20">
+							{activeTab === "votes" ? (
 								<VoteIcon className="size-5" />
-							</div>
-						) : (
-							<div className="size-9 rounded-lg bg-primary-100 dark:bg-primary-950/50 text-primary flex items-center justify-center shrink-0">
+							) : activeTab === "nominations" ? (
+								<Award className="size-5" />
+							) : (
 								<TicketIcon className="size-5" />
-							</div>
-						)}
+							)}
+						</div>
 						<div>
-							<SheetTitle className="text-xl font-bold">
-								{activeTab === "votes" ? "Vote Transactions Breakdown" : "Ticket Orders Breakdown"}
+							<SheetTitle className="text-xl font-bold text-foreground">
+								{activeTab === "votes"
+									? "Vote Transactions Breakdown"
+									: activeTab === "nominations"
+										? "Nomination Transactions Breakdown"
+										: "Ticket Orders Breakdown"}
 							</SheetTitle>
-							<SheetDescription className="text-xs">
-								View real-time payments, quantities, and verification statuses for this event.
+							<SheetDescription className="text-xs text-muted-foreground mt-0.5">
+								{activeTab === "votes"
+									? "Detailed audit log of votes cast, amounts paid, voter contacts, and nominees."
+									: activeTab === "nominations"
+										? "Detailed record of public nominee registrations and paid nomination fees."
+										: "Detailed breakdown of ticket tier purchases, buyer info, and order references."}
 							</SheetDescription>
 						</div>
 					</div>
 
-					<div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+					<div className="pt-4 flex items-center justify-between">
 						<Tabs
 							value={activeTab}
 							onValueChange={(v) => {
 								setActiveTab(v as any);
 								setPage(1);
+								setSearchQuery("");
 							}}
-							className="w-auto"
+							className="w-full"
 						>
-							<TabsList variant="afro" className="h-9">
-								<TabsTrigger variant="afro" value="tickets" className="text-xs gap-1.5">
+							<TabsList variant="afro" className="h-9 w-full sm:w-auto">
+								<TabsTrigger variant="afro" value="tickets" className="text-xs gap-1.5 flex-1 sm:flex-initial">
 									<TicketIcon className="size-3.5" />
 									<span>Tickets ({ticketData.total})</span>
 								</TabsTrigger>
 								{isVotingType && (
-									<TabsTrigger variant="afro" value="votes" className="text-xs gap-1.5">
-										<VoteIcon className="size-3.5" />
-										<span>Votes ({voteData.total})</span>
-									</TabsTrigger>
+									<>
+										<TabsTrigger variant="afro" value="votes" className="text-xs gap-1.5 flex-1 sm:flex-initial">
+											<VoteIcon className="size-3.5" />
+											<span>Votes ({voteData.total})</span>
+										</TabsTrigger>
+										<TabsTrigger variant="afro" value="nominations" className="text-xs gap-1.5 flex-1 sm:flex-initial">
+											<Award className="size-3.5" />
+											<span>Nominations ({nominationData.total})</span>
+										</TabsTrigger>
+									</>
 								)}
 							</TabsList>
 						</Tabs>
-
-						<div className="relative flex-1 sm:max-w-xs">
-							<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-							<Input
-								placeholder="Search references, names..."
-								value={searchQuery}
-								onChange={(e) => {
-									setSearchQuery(e.target.value);
-									setPage(1);
-								}}
-								className="pl-8 h-9 text-xs bg-background"
-							/>
-						</div>
 					</div>
 				</SheetHeader>
 
 				{/* Body Content */}
-				<div className="flex-1 overflow-y-auto p-6 space-y-4">
-					{isLoading ? (
-						<div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
-							<Loader2 className="size-6 animate-spin text-primary" />
-							<span className="text-xs">Loading transaction records...</span>
-						</div>
-					) : currentData.items.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground gap-2 border border-dashed rounded-lg">
-							<span className="text-sm font-medium text-foreground">No records found</span>
-							<span className="text-xs max-w-xs">
-								{searchQuery ? "No transactions match your search filter." : "Transactions will appear here once attendees purchase tickets or cast votes."}
-							</span>
-						</div>
-					) : (
-						<div className="space-y-2.5">
-							{currentData.items.map((item) => (
-								<div
-									key={item.id}
-									className="p-3.5 rounded-lg border bg-card hover:bg-muted/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-								>
-									<div className="flex items-start gap-3 min-w-0">
-										<div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-											{activeTab === "votes" ? (
-												<VoteIcon className="size-4" />
-											) : (
-												<TicketIcon className="size-4" />
-											)}
-										</div>
-										<div className="flex flex-col min-w-0">
-											<div className="flex items-center gap-2">
-												<span className="font-semibold text-foreground truncate">
-													{activeTab === "votes"
-														? `${item.voteCount} vote(s) for ${item.nomineeName}`
-														: `${item.ticketCount}x ${item.ticketType}`}
-												</span>
-												<StatusBadge
-													variant={item.status === "completed" || item.status === "paid" ? "completed" : "pending"}
-													text={item.status}
-												/>
-											</div>
-
-											<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground mt-1">
-												<span className="font-mono text-[11px] text-foreground/80">
-													{item.reference}
-												</span>
-												{item.customerName && item.customerName !== "Customer" && (
-													<span className="flex items-center gap-1">
-														<User className="size-3" />
-														{item.customerName}
-													</span>
-												)}
-												<span className="flex items-center gap-1 text-[11px]">
-													<Calendar className="size-3" />
-													{formatDate(item.createdAt)}
-												</span>
-											</div>
-										</div>
-									</div>
-
-									<div className="text-right shrink-0">
-										<span className="font-mono font-bold text-sm text-foreground">
-											{formatAmount(item.amount, item.currency || "GHS")}
-										</span>
-									</div>
-								</div>
-							))}
-						</div>
+				<div className="flex-1 overflow-y-auto p-6">
+					{activeTab === "votes" && (
+						<VoteTransactionsTable
+							data={voteData.items}
+							total={voteData.total}
+							page={page}
+							totalPages={totalVotesPages}
+							isLoading={isLoading}
+							searchQuery={searchQuery}
+							onSearchChange={(q) => {
+								setSearchQuery(q);
+								setPage(1);
+							}}
+							onPageChange={(p) => setPage(p)}
+						/>
 					)}
-				</div>
 
-				{/* Pagination Footer */}
-				<div className="shrink-0 px-6 py-3 border-t bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
-					<span>
-						Showing {currentData.items.length} of {currentData.total} record(s)
-					</span>
-					<div className="flex items-center gap-2">
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={page <= 1 || isLoading}
-							onClick={() => setPage((p) => Math.max(1, p - 1))}
-							className="h-7 px-2 text-xs"
-						>
-							Prev
-						</Button>
-						<span className="text-[11px] font-medium">
-							Page {page} of {totalPages}
-						</span>
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={page >= totalPages || isLoading}
-							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-							className="h-7 px-2 text-xs"
-						>
-							Next
-						</Button>
-					</div>
+					{activeTab === "tickets" && (
+						<TicketTransactionsTable
+							data={ticketData.items}
+							total={ticketData.total}
+							page={page}
+							totalPages={totalTicketsPages}
+							isLoading={isLoading}
+							searchQuery={searchQuery}
+							onSearchChange={(q) => {
+								setSearchQuery(q);
+								setPage(1);
+							}}
+							onPageChange={(p) => setPage(p)}
+						/>
+					)}
+
+					{activeTab === "nominations" && (
+						<NominationTransactionsTable
+							data={nominationData.items}
+							total={nominationData.total}
+							page={page}
+							totalPages={totalNominationPages}
+							isLoading={isLoading}
+							searchQuery={searchQuery}
+							onSearchChange={(q) => {
+								setSearchQuery(q);
+								setPage(1);
+							}}
+							onPageChange={(p) => setPage(p)}
+						/>
+					)}
 				</div>
 			</SheetContent>
 		</Sheet>
 	);
 }
+

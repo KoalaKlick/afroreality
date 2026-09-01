@@ -304,6 +304,11 @@ export async function getEventDetail(
 export async function getEventStatsAndTrends(eventId: string) {
 	const PAID_STATUSES = ["completed", "paid"];
 
+	const event = await prisma.event.findUnique({
+		where: { id: eventId },
+		select: { id: true, type: true, maxAttendees: true },
+	});
+
 	const [
 		ticketsSold,
 		ticketRevenueResult,
@@ -314,6 +319,7 @@ export async function getEventStatsAndTrends(eventId: string) {
 		ticketTypes,
 		votesList,
 		ordersList,
+		nominationsList,
 	] = await Promise.all([
 		prisma.ticket
 			.count({
@@ -376,10 +382,11 @@ export async function getEventStatsAndTrends(eventId: string) {
 				where: { eventId },
 				include: {
 					option: { select: { optionText: true } },
-					category: { select: { name: true } },
+					category: { select: { name: true, votePrice: true } },
+					payment: { select: { amount: true, status: true } },
 				},
 				orderBy: { createdAt: "desc" },
-				take: 20,
+				take: 50,
 			})
 			.catch(() => []),
 		prisma.ticketOrder
@@ -392,14 +399,43 @@ export async function getEventStatsAndTrends(eventId: string) {
 					buyer: { select: { fullName: true, email: true } },
 				},
 				orderBy: { createdAt: "desc" },
-				take: 20,
+				take: 50,
+			})
+			.catch(() => []),
+		prisma.votingOption
+			.findMany({
+				where: { eventId, isPublicNomination: true },
+				include: {
+					category: { select: { nominationPrice: true } },
+				},
 			})
 			.catch(() => []),
 	]);
 
-	const ticketRevenue = Number(ticketRevenueResult._sum.subtotal ?? 0);
+	const rawTicketRevenue = Number(ticketRevenueResult._sum.subtotal ?? 0);
 	const totalVotes = Number(totalVotesResult._sum.voteCount ?? 0);
-	const voteRevenue = totalVotes * 1;
+
+	// Compute accurate vote revenue from vote transactions
+	const rawVoteRevenue = votesList.reduce((sum, v) => {
+		if (v.payment?.amount && PAID_STATUSES.includes(v.payment.status)) {
+			return sum + Number(v.payment.amount);
+		}
+		const unitPrice = Number(v.category?.votePrice || 1);
+		return sum + unitPrice * (v.voteCount || 1);
+	}, 0);
+
+	// Compute accurate nomination revenue from public nominations
+	const rawNominationRevenue = nominationsList.reduce((sum, opt) => {
+		return sum + Number(opt.category?.nominationPrice || 0);
+	}, 0);
+
+	const isVotingOnly = event?.type === "voting";
+	const isTicketedOnly = event?.type === "ticketed";
+
+	const ticketRevenue = isVotingOnly ? 0 : rawTicketRevenue;
+	const voteRevenue = isTicketedOnly ? 0 : rawVoteRevenue;
+	const nominationRevenue = isTicketedOnly ? 0 : rawNominationRevenue;
+	const revenue = ticketRevenue + voteRevenue + nominationRevenue;
 
 	const ticketTypeSales = ticketTypes.map((tt) => ({
 		name: tt.name,
@@ -409,16 +445,16 @@ export async function getEventStatsAndTrends(eventId: string) {
 	}));
 
 	const eventStats = {
-		revenue: ticketRevenue + voteRevenue,
+		revenue,
 		ticketRevenue,
 		voteRevenue,
-		nominationRevenue: 0,
-		ticketsSold,
-		capacity: null,
-		checkIns,
-		totalVotes,
-		totalCategories: categoriesCount,
-		totalOrders,
+		nominationRevenue,
+		ticketsSold: isVotingOnly ? 0 : ticketsSold,
+		capacity: event?.maxAttendees ?? null,
+		checkIns: isVotingOnly ? 0 : checkIns,
+		totalVotes: isTicketedOnly ? 0 : totalVotes,
+		totalCategories: isTicketedOnly ? 0 : categoriesCount,
+		totalOrders: isVotingOnly ? 0 : totalOrders,
 	};
 
 	return serializeJsonSafe({
@@ -426,12 +462,12 @@ export async function getEventStatsAndTrends(eventId: string) {
 		ticketTypeSales,
 		voteTrend: [],
 		ticketTrend: [],
-		ticketsSold,
+		ticketsSold: eventStats.ticketsSold,
 		ticketRevenue,
-		checkIns,
-		totalVotes,
-		totalOrders,
-		categoriesCount,
+		checkIns: eventStats.checkIns,
+		totalVotes: eventStats.totalVotes,
+		totalOrders: eventStats.totalOrders,
+		categoriesCount: eventStats.totalCategories,
 		ticketTypes,
 		recentVotes: votesList,
 		recentOrders: ordersList,

@@ -55,7 +55,7 @@ export function EventOverviewTab({
 	const [selectedCategory, setSelectedCategory] = useState<VotingChartCategory | null>(null);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [breakdownOpen, setBreakdownOpen] = useState(false);
-	const [breakdownType, setBreakdownType] = useState<"votes" | "tickets">("tickets");
+	const [breakdownType, setBreakdownType] = useState<"votes" | "tickets" | "nominations">("tickets");
 
 	const stats = {
 		revenue: eventStats?.revenue ?? 0,
@@ -82,7 +82,7 @@ export function EventOverviewTab({
 		setModalOpen(true);
 	}
 
-	function handleViewBreakdown(type: "votes" | "tickets") {
+	function handleViewBreakdown(type: "votes" | "tickets" | "nominations") {
 		setBreakdownType(type);
 		setBreakdownOpen(true);
 	}

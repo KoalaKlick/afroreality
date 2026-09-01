@@ -230,13 +230,13 @@ export async function processPayment(
 	try {
 		await sql`
 			INSERT INTO ussd_sessions (reference, phone_number, event_id, option_id, quantity, amount, status)
-			VALUES (${reference}, ${phoneNumber}, ${event.id}, ${optionId}, ${quantity}, ${totalAmountGHS}, 'pending')
+			VALUES (${reference}, ${phoneNumber}, ${event.id}, ${optionId}, ${quantity}, ${baseAmount}, 'pending')
 		`;
 
 		// Also create record in payments table for webhook reconciliation
 		await sql`
 			INSERT INTO payments (reference, email, purpose, amount, currency, provider, status, metadata, created_at, updated_at)
-			VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@afroreality.com`}, ${event.type === "voting" ? "voting" : "ticket_purchase"}, ${totalAmountGHS}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
+			VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@afroreality.com`}, ${event.type === "voting" ? "voting" : "ticket_purchase"}, ${baseAmount}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
 				source: "ussd",
 				channel: "ussd",
 				event_id: event.id,

@@ -1,5 +1,5 @@
 "use client";
-import { RichTextDisplay } from "@/components/ui/rich-text-display";
+// src/components/event/nomination/CategoryDetailModal.tsx
 
 import { useState, useEffect, type ReactNode } from "react";
 import Image from "next/image";
@@ -11,6 +11,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 import { Trophy, Vote, User, Loader2 } from "lucide-react";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import {
@@ -43,15 +44,30 @@ interface CategoryDetailModalProps {
 }
 
 const BAR_COLORS = [
-	"#009A44",
-	"#FFD100",
-	"#EF3340",
+	"var(--primary, #02a605)",
+	"var(--color-secondary-400, #f59e0b)",
+	"var(--color-tertiary-500, #dc2626)",
 	"#3b82f6",
 	"#8b5cf6",
 	"#ec4899",
 	"#10b981",
-	"#f59e0b",
+	"#6366f1",
 ];
+
+function ModalPieTooltip({ active, payload }: TooltipContentProps): ReactNode {
+	if (!active || !payload?.length) return null;
+	const entry = payload[0];
+	const fullName = entry?.payload?.fullName as string;
+	const pct = entry?.payload?.pct as string;
+	return (
+		<div className="rounded-lg border border-primary/20 bg-background px-3 py-2 text-xs shadow-md">
+			<p className="font-semibold text-primary">{fullName}</p>
+			<p className="text-muted-foreground">
+				{Number(entry?.value ?? 0).toLocaleString()} votes ({pct}%)
+			</p>
+		</div>
+	);
+}
 
 export function CategoryDetailModal({
 	category,
@@ -65,112 +81,166 @@ export function CategoryDetailModal({
 
 	if (!category) return null;
 
-	const nominees = category.votingOptions || [];
+	const nominees = [...(category.votingOptions || [])].sort(
+		(a, b) => Number(b.votesCount || 0) - Number(a.votesCount || 0),
+	);
 	const totalVotes = nominees.reduce(
 		(sum, n) => sum + Number(n.votesCount || 0),
 		0,
 	);
+	const leader = nominees[0];
+
+	const chartConfig: ChartConfig = {
+		votes: { label: "Votes", color: BAR_COLORS[0] },
+	};
 
 	const chartData = nominees.map((n, idx) => ({
-		name: n.optionText,
+		name: n.optionText.length > 14 ? `${n.optionText.slice(0, 13)}…` : n.optionText,
 		fullName: n.optionText,
 		votes: Number(n.votesCount || 0),
 		fill: BAR_COLORS[idx % BAR_COLORS.length],
+		pct: totalVotes > 0 ? ((Number(n.votesCount || 0) / totalVotes) * 100).toFixed(1) : "0",
 	}));
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto p-6">
+			<DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-6 border-border/80">
 				<DialogHeader>
-					<DialogTitle className="text-xl font-bold flex items-center gap-2">
-						<Trophy className="size-5 text-amber-500" />
+					<DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
+						<Vote className="size-5 text-primary" />
 						<span>{category.name}</span>
 					</DialogTitle>
 				</DialogHeader>
 
-				<div className="space-y-6 pt-2">
-					{/* Summary Stats */}
-					<div className="grid grid-cols-2 gap-4">
-						<div className="p-4 rounded-xl border bg-muted/30">
-							<span className="text-xs text-muted-foreground font-medium">
-								Total Nominees
-							</span>
-							<p className="text-2xl font-black text-foreground mt-1">
-								{nominees.length}
+				<div className="space-y-4 pt-1">
+					{/* Summary Header Box */}
+					<div className="flex items-center justify-between rounded-xl border border-primary/20 p-4 bg-muted/30">
+						<div>
+							<span className="text-xs text-muted-foreground font-medium">Total Votes Cast</span>
+							<p className="text-xl font-black text-primary mt-0.5">
+								{totalVotes.toLocaleString()}
 							</p>
 						</div>
-						<div className="p-4 rounded-xl border bg-muted/30">
-							<span className="text-xs text-muted-foreground font-medium">
-								Total Ballots Recorded
-							</span>
-							<p className="text-2xl font-black text-primary mt-1">
-								{totalVotes}
-							</p>
-						</div>
+						{leader && totalVotes > 0 && (
+							<div className="text-right">
+								<div className="flex items-center gap-1 justify-end text-xs text-amber-500 font-semibold">
+									<Trophy className="size-3.5" />
+									<span>Leading</span>
+								</div>
+								<p className="text-sm font-bold text-foreground truncate max-w-[150px] mt-0.5">
+									{leader.optionText}
+								</p>
+							</div>
+						)}
 					</div>
 
-					{/* Nominees Breakdown */}
-					<div className="space-y-3">
-						<h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-							Nominee Rankings
-						</h4>
-						<div className="space-y-2">
-							{nominees
-								.slice()
-								.sort(
-									(a, b) => Number(b.votesCount || 0) - Number(a.votesCount || 0),
-								)
-								.map((nominee, idx) => {
+					{/* Side-by-side Pie Chart and Legend */}
+					{totalVotes > 0 && (
+						<div className="flex items-center w-full gap-4 py-2 border rounded-xl px-3 bg-card">
+							<ChartContainer
+								config={chartConfig}
+								className="h-[180px] w-[180px] shrink-0 [&>div]:aspect-auto!"
+							>
+								<ResponsiveContainer width="100%" height="100%">
+									<PieChart>
+										<Pie
+											data={chartData}
+											dataKey="votes"
+											nameKey="name"
+											cx="50%"
+											cy="50%"
+											innerRadius="50%"
+											outerRadius="95%"
+											paddingAngle={2}
+											strokeWidth={0}
+										/>
+										<Tooltip content={ModalPieTooltip} />
+									</PieChart>
+								</ResponsiveContainer>
+							</ChartContainer>
+
+							{/* Legend list */}
+							<ul className="flex flex-col gap-1.5 flex-1 min-w-0 max-h-44 overflow-y-auto pr-1">
+								{chartData.map((d) => (
+									<li
+										key={d.fullName}
+										className="flex items-center justify-between gap-2 min-w-0 text-xs"
+									>
+										<div className="flex items-center gap-2 min-w-0">
+											<span
+												className="size-2.5 rounded-xs shrink-0"
+												style={{ backgroundColor: d.fill }}
+											/>
+											<span className="truncate text-muted-foreground">
+												{d.name}
+											</span>
+										</div>
+										<span className="font-semibold text-foreground text-[11px] shrink-0 font-mono">
+											{d.pct}%
+										</span>
+									</li>
+								))}
+							</ul>
+						</div>
+					)}
+
+					{/* Rankings Table */}
+					<div className="rounded-xl border overflow-hidden bg-card">
+						<div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 bg-muted/50 border-b text-xs font-semibold text-muted-foreground">
+							<span className="w-5">#</span>
+							<span className="w-7"></span>
+							<span>Nominee</span>
+							<span className="text-right">Votes</span>
+							<span className="text-right w-12">Share</span>
+						</div>
+						<div className="divide-y max-h-56 overflow-y-auto">
+							{nominees.length === 0 ? (
+								<div className="py-8 text-center text-xs text-muted-foreground">
+									No nominees registered in this category.
+								</div>
+							) : (
+								nominees.map((nominee, idx) => {
 									const votes = Number(nominee.votesCount || 0);
-									const percentage =
-										totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
-									const imgUrl = nominee.imageUrl
-										? getEventImageUrl(nominee.imageUrl)
-										: null;
+									const pct = totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : "0";
+									const imgUrl = nominee.imageUrl ? getEventImageUrl(nominee.imageUrl) : null;
 
 									return (
 										<div
 											key={nominee.id}
-											className="p-3.5 rounded-xl border bg-card/60 flex items-center justify-between gap-3"
+											className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-3 px-4 py-2.5 text-xs items-center hover:bg-muted/20 transition-colors"
 										>
-											<div className="flex items-center gap-3 min-w-0">
-												<span className="text-xs font-bold w-5 text-muted-foreground">
-													#{idx + 1}
-												</span>
-												<div className="size-10 rounded-lg bg-muted border overflow-hidden shrink-0 flex items-center justify-center">
-													{imgUrl ? (
-														<img
-															src={imgUrl}
-															alt=""
-															className="size-full object-cover"
-														/>
-													) : (
-														<User className="size-5 text-muted-foreground" />
-													)}
-												</div>
-												<div className="min-w-0">
-													<p className="text-xs font-bold text-foreground truncate">
-														{nominee.optionText}
-													</p>
-													{nominee.nomineeCode && (
-														<span className="text-[10px] font-mono text-muted-foreground">
-															Code: {nominee.nomineeCode}
-														</span>
-													)}
-												</div>
+											<span className="text-muted-foreground font-bold w-5">
+												{idx + 1}
+											</span>
+											<div className="size-7 rounded-md bg-muted border overflow-hidden flex items-center justify-center shrink-0">
+												{imgUrl ? (
+													<img
+														src={imgUrl}
+														alt=""
+														className="size-full object-cover"
+													/>
+												) : (
+													<User className="size-3.5 text-muted-foreground" />
+												)}
 											</div>
-
-											<div className="text-right shrink-0">
-												<p className="text-xs font-black text-foreground">
-													{votes} {votes === 1 ? "Vote" : "Votes"}
-												</p>
-												<p className="text-[10px] text-muted-foreground">
-													{percentage.toFixed(1)}%
-												</p>
+											<div className="min-w-0">
+												<p className="font-medium text-foreground truncate">{nominee.optionText}</p>
+												{nominee.nomineeCode && (
+													<span className="text-[10px] font-mono text-muted-foreground">
+														Code: {nominee.nomineeCode}
+													</span>
+												)}
 											</div>
+											<span className="text-right font-bold text-foreground tabular-nums font-mono">
+												{votes.toLocaleString()}
+											</span>
+											<span className="text-right text-muted-foreground tabular-nums w-12 font-mono">
+												{pct}%
+											</span>
 										</div>
 									);
-								})}
+								})
+							)}
 						</div>
 					</div>
 
@@ -188,3 +258,4 @@ export function CategoryDetailModal({
 		</Dialog>
 	);
 }
+

@@ -211,7 +211,7 @@ async function processPayment(
 				eventId: event.id,
 				optionId,
 				quantity,
-				amount: totalAmountGHS,
+				amount: baseAmount,
 				status: "pending",
 			},
 		});
@@ -223,7 +223,7 @@ async function processPayment(
 				reference,
 				email: `${normalizePhone(phoneNumber)}@afroreality.com`,
 				purpose: event.type === "voting" ? "vote_purchase" : "ticket_purchase",
-				amount: totalAmountGHS,
+				amount: baseAmount,
 				currency: "GHS",
 				provider: "paystack",
 				status: "pending",
