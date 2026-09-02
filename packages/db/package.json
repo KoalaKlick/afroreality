@@ -10,9 +10,14 @@
   },
   "scripts": {
     "db:generate": "prisma generate",
+    "db:reset": "prisma migrate reset",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "prisma:validate": "prisma validate",
+    "type-reusable-check": "prisma generate && tsc --noEmit",
     "lint": "echo 0",
     "check-types": "tsc --noEmit"
   },

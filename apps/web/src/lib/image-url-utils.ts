@@ -65,13 +65,22 @@ export function cleanStorageKey(pathOrUrl?: string | null): string {
 
 /**
  * Resolves any relative key or full URL to a valid image src for display.
+ * Paths starting with "/" are treated as storage keys (not local paths)
+ * unless they match known local asset patterns (/landing/, /stat-icon/, etc.).
  */
 export function getImageUrl(pathOrUrl?: string | null): string {
 	if (!pathOrUrl) return "";
 	const clean = pathOrUrl.trim();
 	if (!clean) return "";
 
-	if (isFullUrl(clean) || isLocalPath(clean)) {
+	if (isFullUrl(clean)) {
+		return clean;
+	}
+
+	// Known local asset prefixes that should NOT go through R2
+	const localPrefixes = ["/landing/", "/stat-icon/", "/icons/", "/assets/"];
+	const isKnownLocal = localPrefixes.some((prefix) => clean.startsWith(prefix));
+	if (isKnownLocal) {
 		return clean;
 	}
 
@@ -80,12 +89,18 @@ export function getImageUrl(pathOrUrl?: string | null): string {
 	return `${prefix}/${relativeKey}`;
 }
 
+const LOCAL_PREFIXES = ["/landing/", "/stat-icon/", "/icons/", "/assets/"];
+
+function isLocalAsset(path: string): boolean {
+	return LOCAL_PREFIXES.some((prefix) => path.startsWith(prefix));
+}
+
 export function getAvatarUrl(pathOrUrl?: string | null): string {
 	if (!pathOrUrl) return "";
 	const clean = pathOrUrl.trim();
 	if (!clean) return "";
 
-	if (isFullUrl(clean) || isLocalPath(clean)) {
+	if (isFullUrl(clean) || isLocalAsset(clean)) {
 		return clean;
 	}
 
@@ -102,7 +117,7 @@ export function getEventImageUrl(pathOrUrl?: string | null): string {
 	const clean = pathOrUrl.trim();
 	if (!clean) return "";
 
-	if (isFullUrl(clean) || isLocalPath(clean)) {
+	if (isFullUrl(clean) || isLocalAsset(clean)) {
 		return clean;
 	}
 
@@ -119,7 +134,7 @@ export function getOrgImageUrl(pathOrUrl?: string | null): string {
 	const clean = pathOrUrl.trim();
 	if (!clean) return "";
 
-	if (isFullUrl(clean) || isLocalPath(clean)) {
+	if (isFullUrl(clean) || isLocalAsset(clean)) {
 		return clean;
 	}
 
@@ -139,7 +154,7 @@ export function getSponsorImageUrl(pathOrUrl?: string | null): string {
 	const clean = pathOrUrl.trim();
 	if (!clean) return "";
 
-	if (isFullUrl(clean) || isLocalPath(clean)) {
+	if (isFullUrl(clean) || isLocalAsset(clean)) {
 		return clean;
 	}
 

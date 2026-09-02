@@ -1,0 +1,2 @@
+-- Baseline migration - database already in sync with schema
+-- This migration marks the current state after manual schema changes

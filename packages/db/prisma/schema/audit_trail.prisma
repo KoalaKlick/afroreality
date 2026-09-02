@@ -10,9 +10,8 @@ model ActivityLog {
   ipAddress      String?       @map("ip_address")
   userAgent      String?       @map("user_agent")
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           Profile?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user           Profile?      @relation(fields: [userId], references: [id])
 
   @@index([organizationId], map: "idx_activity_logs_org")
   @@index([userId], map: "idx_activity_logs_user")

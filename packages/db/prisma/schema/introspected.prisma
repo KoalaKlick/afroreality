@@ -1,0 +1,44 @@
+model accounts {
+  id                    String    @id
+  userId                String
+  scope                 String?
+  accessToken           String?
+  accessTokenExpiresAt  DateTime? @db.Timestamptz(6)
+  accountId             String
+  createdAt             DateTime  @default(now()) @db.Timestamptz(6)
+  idToken               String?
+  password              String?
+  providerId            String
+  refreshToken          String?
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @db.Timestamptz(6)
+  users                 users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model sessions {
+  id        String   @id
+  userId    String
+  expiresAt DateTime @db.Timestamptz(6)
+  token     String   @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+  ipAddress String?
+  userAgent String?
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model users {
+  id            String     @id
+  name          String?
+  email         String     @unique
+  emailVerified Boolean    @default(false)
+  image         String?
+  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime   @default(now()) @db.Timestamptz(6)
+  accounts      accounts[]
+  sessions      sessions[]
+}

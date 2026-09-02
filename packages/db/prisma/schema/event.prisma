@@ -26,8 +26,8 @@ model Event {
   publishedAt          DateTime?                @map("published_at") @db.Timestamptz(6)
   hasUssd              Boolean                  @default(false) @map("has_ussd")
   ussdCode             String?                  @unique @map("ussd_code")
-  galleryLinks         EventGalleryLink[]
   galleryImages        String[]                 @default([]) @map("gallery_images")
+  galleryLinks         EventGalleryLink[]
   members              EventMember[]
   registrationFields   EventRegistrationField[]
   socialLinks          EventSocialLink[]
@@ -49,6 +49,7 @@ model Event {
   @@index([slug], map: "idx_events_slug")
   @@index([startDate], map: "idx_events_start_date")
   @@index([isPublic], map: "idx_events_is_public")
+  @@index([galleryImages], map: "idx_events_gallery_images", type: Gin)
   @@map("events")
 }
 

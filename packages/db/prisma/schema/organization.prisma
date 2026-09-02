@@ -21,6 +21,7 @@ model Organization {
   tertiaryColor         String                   @default("#dc2626") @map("tertiary_color")
   allowJoinRequests     Boolean                  @default(false) @map("allow_join_requests")
   autoPayout            Boolean                  @default(true) @map("auto_payout")
+  activityLogs          ActivityLog[]
   events                Event[]
   requests              MembershipRequest[]
   invitations           OrganizationInvitation[]
@@ -28,7 +29,6 @@ model Organization {
   socialLinks           OrganizationSocialLink[]
   creator               Profile?                 @relation("CreatedOrganizations", fields: [createdBy], references: [id])
   wallets               Wallet[]
-  activityLogs          ActivityLog[]
 
   @@index([slug], map: "idx_organizations_slug")
   @@index([createdBy], map: "idx_organizations_created_by")
@@ -55,7 +55,6 @@ model TeamMember {
 model OrganizationInvitation {
   id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organizationId String           @map("organization_id") @db.Uuid
-  inviterId      String?          @map("inviter_id")
   email          String
   role           OrganizationRole @default(member)
   status         InvitationStatus @default(pending)
@@ -63,6 +62,7 @@ model OrganizationInvitation {
   expiresAt      DateTime?        @default(dbgenerated("(now() + '7 days'::interval)")) @map("expires_at") @db.Timestamptz(6)
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   respondedAt    DateTime?        @map("responded_at") @db.Timestamptz(6)
+  inviterId      String?          @map("inviter_id")
   inviter        Profile?         @relation("InviterInvitations", fields: [inviterId], references: [id])
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 

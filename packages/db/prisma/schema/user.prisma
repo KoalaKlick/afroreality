@@ -16,6 +16,7 @@ model Profile {
   communicationCredits    Decimal                  @default(0) @map("communication_credits") @db.Decimal(10, 2)
   isVerifiedPartner       Boolean                  @default(false) @map("is_verified_partner")
   pricingPlan             PricingPlan              @default(essential) @map("pricing_plan")
+  activityLogs            ActivityLog[]
   createdEvents           Event[]                  @relation("CreatedEvents")
   resolvedRequests        MembershipRequest[]      @relation("MembershipRequestResolver")
   membershipRequests      MembershipRequest[]
@@ -31,7 +32,6 @@ model Profile {
   votes                   Vote[]
   nominatedOptions        VotingOption[]           @relation("NominatedOptions")
   wallets                 Wallet[]
-  activityLogs            ActivityLog[]
 
   @@index([email], map: "idx_profiles_email")
   @@index([username], map: "idx_profiles_username")

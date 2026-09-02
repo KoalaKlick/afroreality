@@ -305,18 +305,6 @@ export default async function PublicEventPage({
 				</div>
 			</div>
 
-			{/* Event Details Section - Mobile/Tablet */}
-			<div className="xl:hidden">
-				<PanAfricanDivider />
-				<EventDetailsSection
-					description={event.description}
-					socialLinks={socialLinks}
-					galleryLinks={galleryLinks}
-					galleryImages={(event as any).galleryImages || []}
-					sponsors={sponsors}
-				/>
-			</div>
-
 			{/* CTA Banner & Brand Footer */}
 			<EventCreationCTABanner orgSlug={orgSlug} />
 
