@@ -1,6 +1,173 @@
 import { transporter, mailFromName, mailFromEmail } from "@/lib/mail/transport";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 
+// Shared design tokens matching the AfroReality email system, derived from
+// the 3 brand colors in logo.svg:
+//   primary   = #53967a (green/teal)
+//   secondary = #e88722 (orange/amber)
+//   tertiary  = #ca0808 (red)
+
+const ACCENT_PRIMARY = "#53967a";
+const ACCENT_SECONDARY = "#e88722";
+const ACCENT_TERTIARY = "#ca0808";
+const TEXT_PRIMARY = "#111827";
+const TEXT_BODY = "#374151";
+const TEXT_MUTED = "#6b7280";
+const TEXT_FOOTER = "#9ca3af";
+const SURFACE = "#ffffff";
+const PAGE_BG = "#f4f4f5";
+const FOOTER_BG = "#f9fafb";
+const DIVIDER = "#e5e7eb";
+const BORDER_RADIUS = "12px";
+const FONT_STACK =
+  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif';
+
+function emailShell({
+  preview,
+  bannerUrl,
+  body,
+}: {
+  preview: string;
+  bannerUrl?: string | null;
+  body: string;
+}): string {
+  const bannerSection = bannerUrl
+    ? `<img src="${bannerUrl}" alt="Organization banner" style="display:block;width:100%;height:160px;object-fit:cover;" />`
+    : "";
+
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>${escapeHtml(preview)}</title>
+      </head>
+      <body style="margin:0;padding:0;background-color:${PAGE_BG};font-family:${FONT_STACK};">
+        <span style="display:none;visibility:hidden;mso-hide:all;font-size:1px;color:${PAGE_BG};line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(preview)}</span>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:${PAGE_BG};">
+          <tr>
+            <td align="center" style="padding:40px 16px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="520" style="max-width:520px;width:100%;background-color:${SURFACE};border-radius:${BORDER_RADIUS};overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+                <!-- Tri-color accent bar -->
+                <tr>
+                  <td style="padding:0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td style="height:4px;width:33.33%;background-color:${ACCENT_TERTIARY};font-size:0;line-height:0;">&nbsp;</td>
+                        <td style="height:4px;width:33.33%;background-color:${ACCENT_SECONDARY};font-size:0;line-height:0;">&nbsp;</td>
+                        <td style="height:4px;width:33.33%;background-color:${ACCENT_PRIMARY};font-size:0;line-height:0;">&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                ${bannerUrl ? `<tr><td style="padding:0;">${bannerSection}</td></tr>` : ""}
+
+                <!-- Brand header -->
+                <tr>
+                  <td style="padding:24px 40px 16px;text-align:center;">
+                    <p style="margin:0;font-size:24px;font-weight:900;color:${TEXT_PRIMARY};letter-spacing:-0.5px;text-transform:uppercase;">fextiva</p>
+                    <p style="margin:4px 0 0;font-size:11px;color:${TEXT_MUTED};letter-spacing:0.04em;">Empowering African Events</p>
+                  </td>
+                </tr>
+
+                <tr><td style="border-top:1px solid ${DIVIDER};font-size:0;line-height:0;">&nbsp;</td></tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding:28px 40px;">
+                    ${body}
+                  </td>
+                </tr>
+
+                <tr><td style="border-top:1px solid ${DIVIDER};font-size:0;line-height:0;">&nbsp;</td></tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding:16px 40px 24px;background-color:${FOOTER_BG};">
+                    <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};text-align:center;">
+                      &copy; ${new Date().getFullYear()} fextiva. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+}
+
+function escapeHtml(input: string): string {
+  return String(input)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function otpBox({
+  label,
+  code,
+  accentBg,
+  accentBorder,
+  accentText,
+  expiry,
+}: {
+  label: string;
+  code: string;
+  accentBg: string;
+  accentBorder: string;
+  accentText: string;
+  expiry?: string;
+}): string {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;background-color:${accentBg};border:2px dashed ${accentBorder};border-radius:12px;">
+      <tr>
+        <td style="padding:20px;text-align:center;">
+          <p style="margin:0 0 8px;font-size:12px;color:${accentText};font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(label)}</p>
+          <p style="margin:0;font-size:34px;font-weight:800;letter-spacing:10px;color:${accentText};font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${escapeHtml(code)}</p>
+          ${expiry ? `<p style="margin:8px 0 0;font-size:12px;color:${accentText};">${escapeHtml(expiry)}</p>` : ""}
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function primaryButton({ label, href, color }: { label: string; href: string; color: string }): string {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:20px auto;">
+      <tr>
+        <td align="center" style="border-radius:8px;background-color:${color};">
+          <a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;background-color:${color};">${escapeHtml(label)}</a>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function paragraphs(...lines: string[]): string {
+  return lines
+    .map(
+      (line) =>
+        `<p style="margin:0 0 12px;font-size:15px;line-height:24px;color:${TEXT_BODY};">${line}</p>`,
+    )
+    .join("");
+}
+
+function muted(text: string): string {
+  return `<p style="margin:20px 0 0;font-size:13px;color:${TEXT_FOOTER};">${text}</p>`;
+}
+
+function greeting(name: string | undefined): string {
+  return `<p style="margin:0 0 14px;font-size:17px;font-weight:700;color:${TEXT_PRIMARY};">Hello ${escapeHtml(name || "there")},</p>`;
+}
+
+// ─── Public email senders ──────────────────────────────────────────────────
+
 export async function sendVerificationEmail({
   email,
   name,
@@ -13,20 +180,15 @@ export async function sendVerificationEmail({
   url?: string;
 }) {
   try {
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #eee; border-radius: 12px;">
-        <h2 style="color: #10b981; margin-bottom: 16px;">Welcome to fextiva!</h2>
-        <p style="color: #333; font-size: 15px;">Hello ${name || 'there'},</p>
-        <p style="color: #555; font-size: 14px; line-height: 1.6;">
-          Thank you for joining fextiva. Please use the verification code below to verify your email address:
-        </p>
-        <div style="background: #f4fdf7; border: 2px dashed #10b981; border-radius: 8px; padding: 16px; text-align: center; margin: 24px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #10b981;">${otp || '123456'}</span>
-        </div>
-        ${url ? `<div style="text-align: center; margin: 20px 0;"><a href="${url}" style="background: #10b981; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email</a></div>` : ''}
-        <p style="color: #888; font-size: 12px; margin-top: 32px;">If you did not request this email, please ignore it.</p>
-      </div>
+    const body = `
+      ${greeting(name)}
+      ${paragraphs("Use the code below to verify your fextiva account:")}
+      ${otp ? otpBox({ label: "Verification Code", code: otp, accentBg: "#f3f7f5", accentBorder: ACCENT_PRIMARY, accentText: "#3e705b" }) : ""}
+      ${url ? `${paragraphs("Or click below to verify directly:")}${primaryButton({ label: "Verify Email", href: url, color: ACCENT_PRIMARY })}` : ""}
+      ${muted("If you didn't sign up, ignore this email.")}
     `;
+
+    const html = emailShell({ preview: "Verify your fextiva account", body });
 
     const info = await transporter.sendMail({
       from: `"${mailFromName}" <${mailFromEmail}>`,
@@ -55,20 +217,15 @@ export async function sendPasswordResetEmail({
   resetUrl?: string;
 }) {
   try {
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #eee; border-radius: 12px;">
-        <h2 style="color: #ef4444; margin-bottom: 16px;">Reset Your Password</h2>
-        <p style="color: #333; font-size: 15px;">Hello ${name || 'there'},</p>
-        <p style="color: #555; font-size: 14px; line-height: 1.6;">
-          We received a request to reset your fextiva password. Use the verification code below:
-        </p>
-        <div style="background: #fef2f2; border: 2px dashed #ef4444; border-radius: 8px; padding: 16px; text-align: center; margin: 24px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #ef4444;">${otp || '123456'}</span>
-        </div>
-        ${resetUrl ? `<div style="text-align: center; margin: 20px 0;"><a href="${resetUrl}" style="background: #ef4444; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reset Password</a></div>` : ''}
-        <p style="color: #888; font-size: 12px; margin-top: 32px;">If you did not request a password reset, you can safely ignore this email.</p>
-      </div>
+    const body = `
+      ${greeting(name)}
+      ${paragraphs("We received a request to reset the password for your fextiva account.")}
+      ${otp ? otpBox({ label: "Your Password Reset Code", code: otp, accentBg: "#f9f1f1", accentBorder: ACCENT_TERTIARY, accentText: "#a70707", expiry: "Valid for 15 minutes" }) : ""}
+      ${resetUrl ? `${paragraphs("You can also click the button below to reset your password directly:")}${primaryButton({ label: "Reset Password", href: resetUrl, color: ACCENT_TERTIARY })}` : ""}
+      ${muted("If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.")}
     `;
+
+    const html = emailShell({ preview: "Reset your fextiva password", body });
 
     const info = await transporter.sendMail({
       from: `"${mailFromName}" <${mailFromEmail}>`,
@@ -99,20 +256,23 @@ export async function sendOrganizationInvitationEmail({
   inviteUrl: string;
 }) {
   try {
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #eee; border-radius: 12px;">
-        <h2 style="color: #10b981; margin-bottom: 16px;">You've Been Invited to Join ${organizationName}!</h2>
-        <p style="color: #333; font-size: 15px;">Hello,</p>
-        <p style="color: #555; font-size: 14px; line-height: 1.6;">
-          ${inviterName ? `<strong>${inviterName}</strong>` : "An administrator"} has invited you to join <strong>${organizationName}</strong> as a <strong>${role || "member"}</strong> on fextiva.
-        </p>
-        <div style="text-align: center; margin: 28px 0;">
-          <a href="${inviteUrl}" style="background: #10b981; color: #fff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; display: inline-block;">Accept Invitation</a>
-        </div>
-        <p style="color: #666; font-size: 12px;">Or copy and paste this link in your browser:<br/><a href="${inviteUrl}" style="color: #10b981;">${inviteUrl}</a></p>
-        <p style="color: #888; font-size: 12px; margin-top: 32px;">This invitation will expire in 7 days.</p>
-      </div>
+    const inviter = inviterName
+      ? `<strong>${escapeHtml(inviterName)}</strong>`
+      : "An administrator";
+    const roleBadge = `<span style="background-color:#fef3c7;color:#92400e;border-radius:4px;padding:2px 8px;font-size:13px;font-weight:600;text-transform:capitalize;">${escapeHtml(role || "member")}</span>`;
+
+    const body = `
+      ${greeting(undefined)}
+      ${paragraphs(`${inviter} has invited you to join <strong>${escapeHtml(organizationName)}</strong> as ${roleBadge} on fextiva.`)}
+      ${primaryButton({ label: "Accept Invitation", href: inviteUrl, color: ACCENT_TERTIARY })}
+      <p style="margin:16px 0 0;font-size:11px;color:${TEXT_MUTED};">Or copy this URL: <a href="${escapeHtml(inviteUrl)}" style="color:${ACCENT_TERTIARY};word-break:break-all;">${escapeHtml(inviteUrl)}</a></p>
+      <p style="margin:16px 0 0;font-size:13px;line-height:20px;color:${TEXT_FOOTER};">This invitation will expire in 7 days. If you weren't expecting this, ignore this email.</p>
     `;
+
+    const html = emailShell({
+      preview: `${inviterName ?? "Someone"} invited you to join ${organizationName}`,
+      body,
+    });
 
     const info = await transporter.sendMail({
       from: `"${mailFromName}" <${mailFromEmail}>`,
@@ -149,51 +309,37 @@ export async function sendEventVotingKeyEmail({
   votingUrl?: string | null;
 }) {
   try {
-    const bannerUrlResolved = getOrgImageUrl(organizationBannerUrl);
-    const logoUrlResolved = getOrgImageUrl(organizationLogoUrl);
+    const bannerUrlResolved = organizationBannerUrl
+      ? getOrgImageUrl(organizationBannerUrl)
+      : null;
+    const logoUrlResolved = organizationLogoUrl
+      ? getOrgImageUrl(organizationLogoUrl)
+      : null;
 
-    const bannerHtml = bannerUrlResolved
-      ? `<div style="width: 100%; height: 160px; overflow: hidden; background-color: #1f2937; border-radius: 12px 12px 0 0;">
-          <img src="${bannerUrlResolved}" alt="${organizationName}" style="width: 100%; height: 100%; object-fit: cover;" />
-        </div>`
-      : `<div style="width: 100%; height: 80px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px 12px 0 0;"></div>`;
-
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #ffffff;">
-        ${bannerHtml}
-        <div style="padding: 28px;">
-          <div style="display: flex; align-items: center; margin-bottom: 20px;">
-            ${logoUrlResolved ? `<img src="${logoUrlResolved}" alt="${organizationName}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; margin-right: 12px;" />` : ''}
-            <div>
-              <p style="margin: 0; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #10b981; letter-spacing: 0.05em;">${organizationName}</p>
-              <h2 style="margin: 2px 0 0; font-size: 20px; color: #111827;">Official Voting Key</h2>
-            </div>
-          </div>
-
-          <p style="color: #374151; font-size: 15px; line-height: 1.6;">Hello <strong>${name}</strong>,</p>
-          <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
-            You have been registered as a verified voter for <strong>${eventName}</strong>. Below is your confidential voting key required to cast your ballot:
-          </p>
-
-          <div style="background: #f3f4f6; border: 2px dashed #10b981; border-radius: 10px; padding: 20px; text-align: center; margin: 24px 0;">
-            <p style="margin: 0 0 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #6b7280; letter-spacing: 0.1em;">Your Private Voting Key</p>
-            <span style="font-size: 28px; font-family: monospace; font-weight: 800; letter-spacing: 4px; color: #111827;">${votingKey}</span>
-          </div>
-
-          <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 12px 16px; margin: 20px 0;">
-            <p style="margin: 0; font-size: 12px; color: #854d0e; line-height: 1.5;">
-              🔒 <strong>Ballot Secrecy:</strong> This key is strictly private and belongs to you. Organization administrators and organizers cannot see this key.
-            </p>
-          </div>
-
-          ${votingUrl ? `<div style="text-align: center; margin: 28px 0;"><a href="${votingUrl}" style="background: #10b981; color: #fff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; display: inline-block;">Go to Voting Portal</a></div>` : ''}
-
-          <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; border-top: 1px solid #f3f4f6; padding-top: 16px; text-align: center;">
-            © ${new Date().getFullYear()} ${organizationName} · Powered by fextiva
-          </p>
-        </div>
-      </div>
+    const body = `
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">
+        <tr>
+          ${logoUrlResolved ? `<td style="padding-right:12px;vertical-align:middle;"><img src="${escapeHtml(logoUrlResolved)}" alt="${escapeHtml(organizationName)}" width="44" height="44" style="width:44px;height:44px;border-radius:8px;object-fit:cover;display:block;" /></td>` : ""}
+          <td style="vertical-align:middle;">
+            <p style="margin:0;font-size:12px;font-weight:700;text-transform:uppercase;color:${ACCENT_PRIMARY};letter-spacing:0.05em;">${escapeHtml(organizationName)}</p>
+            <p style="margin:2px 0 0;font-size:20px;font-weight:700;color:${TEXT_PRIMARY};">Official Voting Key</p>
+          </td>
+        </tr>
+      </table>
+      ${paragraphs(`Hello <strong>${escapeHtml(name)}</strong>,`, `You have been registered as a verified voter for <strong>${escapeHtml(eventName)}</strong>. Below is your confidential voting key required to cast your ballot:`)}
+      ${otpBox({ label: "Your Private Voting Key", code: votingKey, accentBg: "#f3f4f6", accentBorder: ACCENT_PRIMARY, accentText: "#111827" })}
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0;background-color:#f8f5f1;border:1px solid #f3c390;border-radius:8px;">
+        <tr><td style="padding:12px 16px;font-size:12px;color:#78430c;line-height:1.5;">&#128274; <strong>Ballot Secrecy:</strong> This key is strictly private and belongs to you. Organization administrators and organizers cannot see this key.</td></tr>
+      </table>
+      ${votingUrl ? primaryButton({ label: "Go to Voting Portal", href: votingUrl, color: ACCENT_PRIMARY }) : ""}
+      <p style="margin:24px 0 0;font-size:12px;color:${TEXT_FOOTER};border-top:1px solid ${DIVIDER};padding-top:16px;text-align:center;">&copy; ${new Date().getFullYear()} ${escapeHtml(organizationName)} &middot; Powered by fextiva</p>
     `;
+
+    const html = emailShell({
+      preview: `Your voting key for ${eventName}`,
+      bannerUrl: bannerUrlResolved,
+      body,
+    });
 
     const info = await transporter.sendMail({
       from: `"${organizationName} via fextiva" <${mailFromEmail}>`,

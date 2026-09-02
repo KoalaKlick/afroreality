@@ -73,44 +73,44 @@ html {
   --color-brand-secondary: var(--color-secondary);
   --color-brand-tertiary: var(--color-tertiary);
 
-  /* Primary - Pan-African Green */
-  --color-primary-50: #f0fdf4;
-  --color-primary-100: #dcfce7;
-  --color-primary-200: #bbf7d0;
-  --color-primary-300: #86efac;
-  --color-primary-400: #4ade80;
-  --color-primary-500: #22c55e;
-  --color-primary-600: #16a34a;
-  --color-primary-700: #15803d;
-  --color-primary-800: #166534;
-  --color-primary-900: #14532d;
-  --color-primary-950: #052e16;
+  /* Primary - Brand Green (from logo.svg) */
+  --color-primary-50: #f3f7f5;
+  --color-primary-100: #eaf1ee;
+  --color-primary-200: #d1e6dd;
+  --color-primary-300: #b0d3c5;
+  --color-primary-400: #89bea8;
+  --color-primary-500: #61a88a;
+  --color-primary-600: #53967a;
+  --color-primary-700: #3e705b;
+  --color-primary-800: #2f5545;
+  --color-primary-900: #213b30;
+  --color-primary-950: #11271e;
 
-  /* Secondary - Pan-African Yellow/Gold */
-  --color-secondary-50: #fefce8;
-  --color-secondary-100: #fef9c3;
-  --color-secondary-200: #fef08a;
-  --color-secondary-300: #fde047;
-  --color-secondary-400: #facc15;
-  --color-secondary-500: #eab308;
-  --color-secondary-600: #ca8a04;
-  --color-secondary-700: #a16207;
-  --color-secondary-800: #854d0e;
-  --color-secondary-900: #713f12;
-  --color-secondary-950: #422006;
+  /* Secondary - Brand Orange (from logo.svg) */
+  --color-secondary-50: #f8f5f1;
+  --color-secondary-100: #f3ede7;
+  --color-secondary-200: #f8dcbe;
+  --color-secondary-300: #f3c390;
+  --color-secondary-400: #eea559;
+  --color-secondary-500: #e88722;
+  --color-secondary-600: #e88722;
+  --color-secondary-700: #9d5810;
+  --color-secondary-800: #78430c;
+  --color-secondary-900: #532f09;
+  --color-secondary-950: #341d04;
 
-  /* Tertiary - Pan-African Red */
-  --color-tertiary-50: #fef2f2;
-  --color-tertiary-100: #fee2e2;
-  --color-tertiary-200: #fecaca;
-  --color-tertiary-300: #fca5a5;
-  --color-tertiary-400: #f87171;
-  --color-tertiary-500: #ef4444;
-  --color-tertiary-600: #dc2626;
-  --color-tertiary-700: #b91c1c;
-  --color-tertiary-800: #991b1b;
-  --color-tertiary-900: #7f1d1d;
-  --color-tertiary-950: #450a0a;
+  /* Tertiary - Brand Red (from logo.svg) */
+  --color-tertiary-50: #f9f1f1;
+  --color-tertiary-100: #f4e7e7;
+  --color-tertiary-200: #fcbaba;
+  --color-tertiary-300: #fa8989;
+  --color-tertiary-400: #f84e4e;
+  --color-tertiary-500: #f61414;
+  --color-tertiary-600: #ca0808;
+  --color-tertiary-700: #a70707;
+  --color-tertiary-800: #800505;
+  --color-tertiary-900: #580303;
+  --color-tertiary-950: #370101;
 
   /* Sepia - Warm vintage tone */
   --color-sepia-50: #fdfcf8;
@@ -174,9 +174,9 @@ html {
   --font-geist-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-geist-mono: monospace;
 
-  --color-brand-primary: #16a34a;
-  --color-brand-secondary: #facc15;
-  --color-brand-tertiary: #ef4444;
+  --color-brand-primary: #53967a;
+  --color-brand-secondary: #e88722;
+  --color-brand-tertiary: #ca0808;
   --sepia-bg: var(--color-sepia-50);
 }
 
