@@ -120,9 +120,9 @@ export default async function InviteTokenPage({
 				organization: invite.organization,
 				inviter: invite.inviter
 					? {
-							fullName: invite.inviter.fullName,
-							avatarUrl: invite.inviter.avatarUrl,
-						}
+						fullName: invite.inviter.fullName,
+						avatarUrl: invite.inviter.avatarUrl,
+					}
 					: null,
 			}}
 			currentUserEmail={currentUserEmail}
