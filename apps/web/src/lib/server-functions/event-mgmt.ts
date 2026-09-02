@@ -4,13 +4,15 @@ import { prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { serializeJsonSafe } from "../utils";
 import { requireEventRole, requireOrgRole } from "./auth-helpers";
+import { requireSession } from "@/lib/session";
 
 export async function createNewEvent({ data }: { data: any }) {
+	const session = await requireSession();
 	let organizationId = data.organizationId;
 
 	if (!organizationId) {
 		const membership = await prisma.teamMember.findFirst({
-			where: { userId: data.userId },
+			where: { userId: session.userId },
 			select: { organizationId: true },
 		});
 		organizationId = membership?.organizationId;
@@ -22,7 +24,10 @@ export async function createNewEvent({ data }: { data: any }) {
 		);
 	}
 
-	const { session } = await requireOrgRole(organizationId, ["owner", "admin"]);
+	const { session: _session } = await requireOrgRole(organizationId, [
+		"owner",
+		"admin",
+	]);
 
 	// Sanitize slug
 	let slug = (data.slug || data.title || "event")

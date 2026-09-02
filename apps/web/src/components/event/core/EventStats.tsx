@@ -105,7 +105,7 @@ function formatCompact(value: number | string): string {
 		return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
 	if (value >= 10_000)
 		return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
-	if (value >= 1_000) return value.toLocaleString();
+	if (value >= 1_000) return value.toLocaleString("en-US");
 	return value.toString();
 }
 

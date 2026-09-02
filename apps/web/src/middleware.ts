@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 import { AUTH_COOKIE_NAME } from './lib/constants/config';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'super-secret-fextiva-jwt-key-minimum-32-chars-long'
+  process.env.JWT_SECRET || 'super-secret-afroreality-jwt-key-minimum-32-chars-long'
 );
 
 const protectedPrefixes = ['/dashboard', '/my-events', '/organization', '/promoter'];

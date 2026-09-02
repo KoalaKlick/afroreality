@@ -1,7 +1,7 @@
 "use client";
 
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface AnimatedCounterProps {
 	readonly value: number;
@@ -18,16 +18,26 @@ export function AnimatedCounter({
 	style,
 	format,
 }: AnimatedCounterProps) {
-	const count = useMotionValue(0);
+	const [isMounted, setIsMounted] = useState(false);
+	const count = useMotionValue(value);
 	const rounded = useTransform(count, (v) => Math.round(v));
 	const display = useTransform(rounded, (v) =>
 		format ? format(v) : String(v)
 	);
 
 	useEffect(() => {
+		setIsMounted(true);
 		const controls = animate(count, value, { duration });
 		return () => controls.stop();
-	}, [value, duration]);
+	}, [value, duration, count]);
+
+	if (!isMounted) {
+		return (
+			<span className={className} style={style}>
+				{format ? format(value) : String(value)}
+			</span>
+		);
+	}
 
 	return (
 		<motion.span className={className} style={style}>
