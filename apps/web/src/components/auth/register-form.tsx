@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 
-export function RegisterForm() {
+export function RegisterForm({ next }: { next?: string | null }) {
 	const { signUp, signInWithOAuth, loading } = useAuth();
 	const [fullName, setFullName] = useState("");
 	const [email, setEmail] = useState("");
@@ -46,9 +46,10 @@ export function RegisterForm() {
 				email: cleanEmail,
 				password,
 				fullName: cleanName,
+				redirectTo: next ?? undefined,
 			});
 		} catch (err: any) {
-			// Toast is handled in auth-provider
+			// Toast/redirect is handled in auth-provider
 		} finally {
 			setSubmitting(false);
 		}

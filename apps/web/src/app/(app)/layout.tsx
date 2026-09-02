@@ -2,7 +2,7 @@ import React from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/components/header/AppHeader";
-import { requireSession } from "@/lib/session";
+import { requireAppAccess } from "@/lib/auth-guards";
 import { getSafeUser } from "@/lib/dal/auth";
 import { getPendingInvitationsForEmail } from "@/lib/server-functions/organization-join";
 import { prisma } from "@repo/db";
@@ -11,12 +11,12 @@ import { serializeJsonSafe } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-	const session = await requireSession();
-	const user = await getSafeUser(session.userId);
+	const state = await requireAppAccess();
+	const user = await getSafeUser(state.userId);
 
 	// Fetch organizations user belongs to
 	const memberships = await prisma.teamMember.findMany({
-		where: { userId: session.userId },
+		where: { userId: state.userId },
 		include: { organization: true },
 		orderBy: { joinedAt: "asc" },
 	});
@@ -32,10 +32,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 	const pendingInvitations = await getPendingInvitationsForEmail().catch(() => []);
 
 	const sidebarUser = {
-		name: user?.fullName || session.fullName || "User",
-		email: user?.email || session.email,
+		name: user?.fullName || state.fullName || "User",
+		email: user?.email || state.email,
 		avatar: user?.avatarUrl || "",
-		username: user?.username || session.username || "",
+		username: user?.username || state.username || "",
 		momoNumber: user?.phone || "",
 	};
 

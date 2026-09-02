@@ -1,17 +1,22 @@
 import Link from "next/link";
 import { AfricaMap } from "@/components/shared/africa-map";
 import { FextivaLogo } from "@/components/shared/FextivaLogo";
+import { requireOnboardingAccess } from "@/lib/auth-guards";
 
 export const metadata = {
   title: "Onboarding - fextiva",
   description: "Set up your fextiva organization and account",
 };
 
-export default function OnboardingLayout({
+export const dynamic = "force-dynamic";
+
+export default async function OnboardingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await requireOnboardingAccess();
+
   return (
     <div className="h-dvh bg-background lg:bg-transparent flex flex-col lg:flex-row font-poppins overflow-hidden">
       {/* Left hero / brand side with animated Africa Map */}

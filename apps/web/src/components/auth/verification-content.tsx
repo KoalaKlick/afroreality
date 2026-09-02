@@ -12,6 +12,21 @@ import {
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/use-auth";
 
+// Where an unverified user lands next after they verify.
+// Their profile is brand-new so onboarding is the natural continuation unless
+// a safe `next` was provided (e.g. a protected page or invite they requested).
+const DEFAULT_NEXT = "/onboarding";
+const SAFE_NEXT_PREFIXES = ["/dashboard", "/my-events", "/organization", "/promoter", "/invite"];
+
+function resolveNextUrl(next?: string | null): string {
+	if (!next) return DEFAULT_NEXT;
+	if (next.startsWith("/") && !next.startsWith("//") && !next.includes(":")) {
+		const isSafe = SAFE_NEXT_PREFIXES.some((p) => next.startsWith(p));
+		if (isSafe) return next;
+	}
+	return DEFAULT_NEXT;
+}
+
 export function VerificationContent({
 	email: searchEmail,
 	next: searchNext,
@@ -21,7 +36,7 @@ export function VerificationContent({
 }) {
 	const { verifyOtp, sendVerificationEmail } = useAuth();
 	const [email] = useState(searchEmail || "");
-	const [nextUrl] = useState(searchNext || "/setup/onboarding");
+	const [nextUrl] = useState(() => resolveNextUrl(searchNext));
 	const [otp, setOtp] = useState("");
 	const [error, setError] = useState("");
 	const [submitting, setSubmitting] = useState(false);
@@ -29,19 +44,34 @@ export function VerificationContent({
 	const [cooldown, setCooldown] = useState<number | null>(null);
 	const [verified, setVerified] = useState(false);
 
+	// A brand-new registration already persists an OTP and emails it. If the
+	// user lands here with no stored email (e.g. they clicked a stale link),
+	// prompt them to enter their email / resend. If we have an email but have
+	// no idea whether a code was sent, don't auto-fire — the resend button is
+	// available. When email is missing, auto-request one.
+	useEffect(() => {
+		if (!email) return;
+		// no auto-fire — avoid duplicate codes; user clicks "Resend Code" if needed
+	}, [email]);
+
 	const handleVerify = async () => {
 		if (otp.length !== 6) {
 			setError("Please enter the 6-digit code");
+			return;
+		}
+		if (!email) {
+			setError("Missing email address. Please resend the code.");
 			return;
 		}
 
 		setSubmitting(true);
 		setError("");
 
-		const { error: err } = await verifyOtp(email, otp, "email");
+		const { error: err } = await verifyOtp({ email, otp, type: "verify" });
 		if (err) {
-			toast.error((err as any)?.message || String(err));
-			setError((err as any)?.message || String(err));
+			const msg = (err as any)?.message || String(err);
+			toast.error(msg);
+			setError(msg);
 			setSubmitting(false);
 			return;
 		}
@@ -53,34 +83,33 @@ export function VerificationContent({
 		}, 1500);
 	};
 
-	
-  const handleResend = async () => {
-    if (!email || cooldown !== null) return;
-    setResending(true);
-    setError("");
+	const handleResend = async () => {
+		if (!email || cooldown !== null) return;
+		setResending(true);
+		setError("");
 
-    try {
-      const res = await sendVerificationEmail(email || "");
-      const err = (res as any)?.error;
-      if (err) {
-        const msg = (err as any)?.message || String(err);
-        const match = /(\d+)\s*second/.exec(msg);
-        if (match && match[1]) {
-          setCooldown(Number.parseInt(match[1], 10));
-        } else {
-          toast.error(msg);
-          setError(msg);
-        }
-      } else {
-        toast.success("Verification code sent to your email!");
-      }
-    } catch (e: any) {
-      toast.error(e.message || "Failed to resend code");
-    } finally {
-      setResending(false);
-    }
-  };
-
+		try {
+			const res = await sendVerificationEmail(email);
+			const err = (res as any)?.error;
+			if (err) {
+				const msg = (err as any)?.message || String(err);
+				const match = /(\d+)\s*second/.exec(msg);
+				if (match && match[1]) {
+					setCooldown(Number.parseInt(match[1], 10));
+				} else {
+					toast.error(msg);
+					setError(msg);
+				}
+			} else {
+				toast.success("Verification code sent to your email!");
+				setCooldown(30);
+			}
+		} catch (e: any) {
+			toast.error(e.message || "Failed to resend code");
+		} finally {
+			setResending(false);
+		}
+	};
 
 	useEffect(() => {
 		if (cooldown === null) return;
@@ -123,6 +152,7 @@ export function VerificationContent({
 				<p className="mt-1 text-sm text-muted-foreground">
 					Enter the 6-digit code sent to
 					{email && <strong className="block mt-1"> {email}</strong>}
+					{!email && <span className="block mt-1">your email address</span>}
 				</p>
 			</div>
 
@@ -165,7 +195,7 @@ export function VerificationContent({
 						variant="outline"
 						className="flex-1 rounded-full"
 						onClick={handleResend}
-						disabled={resending || cooldown !== null}
+						disabled={resending || cooldown !== null || !email}
 					>
 						{resending ? (
 							<Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -176,7 +206,7 @@ export function VerificationContent({
 						variant="ghost"
 						className="flex-1 rounded-full"
 						onClick={() => {
-							window.location.href = "/auth/login";
+							window.location.href = "/login";
 						}}
 					>
 						Back to Login

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getInvitationByToken } from "@/lib/server-functions/organization-join";
@@ -92,6 +92,22 @@ export default async function InviteTokenPage({
 	const session = await getSession();
 	const currentUserEmail = session?.email ?? null;
 	const isExistingUser = invite.userExists ?? false;
+
+	// A brand-new account (emailVerified=false AND not yet onboarded) must
+	// verify its email before it can accept invitations. After verification
+	// they are returned to this invite link.
+	const isUnverifiedNewAccount =
+		session &&
+		session.emailVerified === false &&
+		session.onboardingCompleted === false;
+
+	if (isUnverifiedNewAccount) {
+		const params = new URLSearchParams({
+			email: session.email || "",
+			next: `/invite/${token}`,
+		});
+		redirect(`/verify?${params.toString()}`);
+	}
 
 	return (
 		<InviteAcceptClient

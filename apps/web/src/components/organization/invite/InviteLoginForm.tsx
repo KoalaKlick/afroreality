@@ -1,15 +1,13 @@
 "use client";
 // src/components/organization/invite/InviteLoginForm.tsx
 
-import React, { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Loader2, LogIn, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
-import { acceptOrgInvitation } from "@/lib/server-functions/organization-join";
 
 interface InviteLoginFormProps {
 	readonly token: string;
@@ -22,11 +20,9 @@ export function InviteLoginForm({
 	email,
 	organizationName,
 }: InviteLoginFormProps) {
-	const router = useRouter();
 	const { signInWithPassword } = useAuth();
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [isPending, startTransition] = useTransition();
 
 	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -36,24 +32,24 @@ export function InviteLoginForm({
 			const res = await signInWithPassword({
 				identifier: email,
 				password,
+				redirectTo: `/invite/${token}`,
 			});
 
 			if (res.error) {
+				if (res.error.needsVerification) {
+					// Unverified new account → the provider navigates to /verify.
+					// After verification the user returns here via next=/invite/<token>.
+					setLoading(false);
+					return;
+				}
 				toast.error(res.error.message || "Incorrect password. Please try again.");
 				setLoading(false);
 				return;
 			}
 
-			startTransition(async () => {
-				try {
-					await acceptOrgInvitation({ data: { token } });
-					toast.success(`Welcome to ${organizationName}!`);
-					router.push("/dashboard");
-					router.refresh();
-				} catch (err: any) {
-					toast.error(err.message || "Failed to accept invitation");
-				}
-			});
+			// On success the provider navigates back to /invite/<token>, where the
+			// signed-in "Accept & Join" button completes the invitation.
+			// (No inline accept here — it would race the navigation.)
 		} catch (err: any) {
 			toast.error(err.message || "Login failed");
 			setLoading(false);
@@ -96,14 +92,14 @@ export function InviteLoginForm({
 				<Button
 					type="submit"
 					className="w-full font-semibold gap-2"
-					disabled={loading || isPending}
+					disabled={loading}
 				>
-					{loading || isPending ? (
+					{loading ? (
 						<Loader2 className="size-4 animate-spin" />
 					) : (
 						<LogIn className="size-4" />
 					)}
-					Sign In & Accept
+					Sign In & Continue
 				</Button>
 				<p className="text-center text-xs text-muted-foreground">
 					<Link href="/forgot-password" className="underline hover:text-primary">

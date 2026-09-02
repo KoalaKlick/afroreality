@@ -4,27 +4,26 @@ import { prisma } from "@repo/db";
 import { getProfile } from "@/lib/server-functions/profile";
 import { getPendingInvitationsForEmail } from "@/lib/server-functions/organization-join";
 import { OnboardingClient } from "@/components/onboarding/OnboardingClient";
-import { requireSession } from "@/lib/session";
+import { requireOnboardingAccess } from "@/lib/auth-guards";
 import { redirect } from "next/navigation";
 import { serializeJsonSafe } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function OnboardingPage() {
-  const session = await requireSession().catch(() => null);
-  if (!session) {
-    redirect("/login?redirectTo=/onboarding");
-  }
+  // Authoritative, DB-backed guard: signed in, email verified (if new),
+  // and not already onboarded.
+  const state = await requireOnboardingAccess();
 
   const [profile, memberCount] = await Promise.all([
     getProfile().catch(() => null),
     prisma.teamMember.count({
-      where: { userId: session.userId },
+      where: { userId: state.userId },
     }).catch(() => 0),
   ]);
 
-  // If user already completed onboarding or belongs to an organization, go to dashboard
-  if (profile?.onboardingCompleted || memberCount > 0) {
+  // If user already belongs to an organization, go to dashboard
+  if (memberCount > 0) {
     redirect("/dashboard");
   }
 

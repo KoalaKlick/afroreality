@@ -217,6 +217,43 @@ exports.Prisma.EventRegistrationFieldScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AccountsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  scope: 'scope',
+  accessToken: 'accessToken',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  accountId: 'accountId',
+  createdAt: 'createdAt',
+  idToken: 'idToken',
+  password: 'password',
+  providerId: 'providerId',
+  refreshToken: 'refreshToken',
+  refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SessionsScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
+  token: 'token',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent'
+};
+
+exports.Prisma.UsersScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  emailVerified: 'emailVerified',
+  image: 'image',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -254,14 +291,14 @@ exports.Prisma.TeamMemberScalarFieldEnum = {
 exports.Prisma.OrganizationInvitationScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  inviterId: 'inviterId',
   email: 'email',
   role: 'role',
   status: 'status',
   token: 'token',
   expiresAt: 'expiresAt',
   createdAt: 'createdAt',
-  respondedAt: 'respondedAt'
+  respondedAt: 'respondedAt',
+  inviterId: 'inviterId'
 };
 
 exports.Prisma.MembershipRequestScalarFieldEnum = {
@@ -503,6 +540,7 @@ exports.Prisma.TicketScalarFieldEnum = {
 exports.Prisma.ProfileScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  emailVerified: 'emailVerified',
   passwordHash: 'passwordHash',
   username: 'username',
   fullName: 'fullName',
@@ -597,7 +635,6 @@ exports.Prisma.VoteScalarFieldEnum = {
   eventId: 'eventId',
   optionId: 'optionId',
   categoryId: 'categoryId',
-  voterId: 'voterId',
   createdAt: 'createdAt',
   paymentId: 'paymentId',
   smsSent: 'smsSent',
@@ -605,7 +642,8 @@ exports.Prisma.VoteScalarFieldEnum = {
   voteCount: 'voteCount',
   voterEmail: 'voterEmail',
   voterPhone: 'voterPhone',
-  eventMemberId: 'eventMemberId'
+  eventMemberId: 'eventMemberId',
+  voterId: 'voterId'
 };
 
 exports.Prisma.SortOrder = {
@@ -800,6 +838,9 @@ exports.Prisma.ModelName = {
   EventSocialLink: 'EventSocialLink',
   EventMember: 'EventMember',
   EventRegistrationField: 'EventRegistrationField',
+  accounts: 'accounts',
+  sessions: 'sessions',
+  users: 'users',
   Organization: 'Organization',
   TeamMember: 'TeamMember',
   OrganizationInvitation: 'OrganizationInvitation',

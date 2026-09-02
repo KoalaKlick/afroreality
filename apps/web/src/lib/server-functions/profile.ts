@@ -11,7 +11,7 @@ export async function getProfile(): Promise<any> {
 
   const emailStr = session?.email || "user@example.com";
   const fallbackUsername = emailStr.split("@")[0]?.toLowerCase().replace(/[^a-z0-9_]/g, "") || "user";
-  
+
   const profile = await prisma.profile.upsert({
     where: { id: userId },
     update: {},
@@ -69,6 +69,7 @@ export async function completeOnboardingFlow({ data }: { data: any }): Promise<a
   const token = await signSession({
     userId: updated.id,
     email: updated.email,
+    emailVerified: Boolean(updated.emailVerified),
     fullName: updated.fullName || "",
     username: updated.username || "",
     onboardingCompleted: true,

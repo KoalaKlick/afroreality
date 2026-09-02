@@ -35,7 +35,7 @@ export function ResetPasswordContent({
 
 		setSubmitting(true);
 		try {
-			const res = await resetPassword(email, password);
+			const res = await resetPassword({ email, newPassword: password, otp: token });
 			if (res?.error) {
 				toast.error(res.error.message || "Failed to reset password.");
 			} else {

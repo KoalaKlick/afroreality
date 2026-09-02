@@ -6,6 +6,7 @@ export function toSafeUserDto(user: any): SafeUserDto {
   return {
     id: user.id,
     email: user.email,
+    emailVerified: user.emailVerified ?? false,
     fullName: user.fullName || '',
     avatarUrl: user.avatarUrl || null,
     username: user.username || null,

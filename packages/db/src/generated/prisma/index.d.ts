@@ -49,6 +49,21 @@ export type EventMember = $Result.DefaultSelection<Prisma.$EventMemberPayload>
  */
 export type EventRegistrationField = $Result.DefaultSelection<Prisma.$EventRegistrationFieldPayload>
 /**
+ * Model accounts
+ * 
+ */
+export type accounts = $Result.DefaultSelection<Prisma.$accountsPayload>
+/**
+ * Model sessions
+ * 
+ */
+export type sessions = $Result.DefaultSelection<Prisma.$sessionsPayload>
+/**
+ * Model users
+ * 
+ */
+export type users = $Result.DefaultSelection<Prisma.$usersPayload>
+/**
  * Model Organization
  * 
  */
@@ -691,6 +706,36 @@ export class PrismaClient<
     * ```
     */
   get eventRegistrationField(): Prisma.EventRegistrationFieldDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.accounts`: Exposes CRUD operations for the **accounts** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Accounts
+    * const accounts = await prisma.accounts.findMany()
+    * ```
+    */
+  get accounts(): Prisma.accountsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.sessions`: Exposes CRUD operations for the **sessions** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Sessions
+    * const sessions = await prisma.sessions.findMany()
+    * ```
+    */
+  get sessions(): Prisma.sessionsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.users`: Exposes CRUD operations for the **users** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Users
+    * const users = await prisma.users.findMany()
+    * ```
+    */
+  get users(): Prisma.usersDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.organization`: Exposes CRUD operations for the **Organization** model.
@@ -1375,6 +1420,9 @@ export namespace Prisma {
     EventSocialLink: 'EventSocialLink',
     EventMember: 'EventMember',
     EventRegistrationField: 'EventRegistrationField',
+    accounts: 'accounts',
+    sessions: 'sessions',
+    users: 'users',
     Organization: 'Organization',
     TeamMember: 'TeamMember',
     OrganizationInvitation: 'OrganizationInvitation',
@@ -1413,7 +1461,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "activityLog" | "event" | "eventSponsor" | "eventGalleryLink" | "eventSocialLink" | "eventMember" | "eventRegistrationField" | "organization" | "teamMember" | "organizationInvitation" | "membershipRequest" | "organizationSocialLink" | "wallet" | "transaction" | "payment" | "payout" | "feeConfiguration" | "promoter" | "referral" | "commission" | "ticketType" | "ticketOrder" | "ticket" | "profile" | "ussdSession" | "ussdState" | "verification" | "votingCategory" | "votingOption" | "vote"
+      modelProps: "activityLog" | "event" | "eventSponsor" | "eventGalleryLink" | "eventSocialLink" | "eventMember" | "eventRegistrationField" | "accounts" | "sessions" | "users" | "organization" | "teamMember" | "organizationInvitation" | "membershipRequest" | "organizationSocialLink" | "wallet" | "transaction" | "payment" | "payout" | "feeConfiguration" | "promoter" | "referral" | "commission" | "ticketType" | "ticketOrder" | "ticket" | "profile" | "ussdSession" | "ussdState" | "verification" | "votingCategory" | "votingOption" | "vote"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1932,6 +1980,228 @@ export namespace Prisma {
           count: {
             args: Prisma.EventRegistrationFieldCountArgs<ExtArgs>
             result: $Utils.Optional<EventRegistrationFieldCountAggregateOutputType> | number
+          }
+        }
+      }
+      accounts: {
+        payload: Prisma.$accountsPayload<ExtArgs>
+        fields: Prisma.accountsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.accountsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.accountsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>
+          }
+          findFirst: {
+            args: Prisma.accountsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.accountsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>
+          }
+          findMany: {
+            args: Prisma.accountsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>[]
+          }
+          create: {
+            args: Prisma.accountsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>
+          }
+          createMany: {
+            args: Prisma.accountsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.accountsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>[]
+          }
+          delete: {
+            args: Prisma.accountsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>
+          }
+          update: {
+            args: Prisma.accountsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>
+          }
+          deleteMany: {
+            args: Prisma.accountsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.accountsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.accountsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>[]
+          }
+          upsert: {
+            args: Prisma.accountsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$accountsPayload>
+          }
+          aggregate: {
+            args: Prisma.AccountsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAccounts>
+          }
+          groupBy: {
+            args: Prisma.accountsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AccountsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.accountsCountArgs<ExtArgs>
+            result: $Utils.Optional<AccountsCountAggregateOutputType> | number
+          }
+        }
+      }
+      sessions: {
+        payload: Prisma.$sessionsPayload<ExtArgs>
+        fields: Prisma.sessionsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.sessionsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.sessionsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>
+          }
+          findFirst: {
+            args: Prisma.sessionsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.sessionsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>
+          }
+          findMany: {
+            args: Prisma.sessionsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>[]
+          }
+          create: {
+            args: Prisma.sessionsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>
+          }
+          createMany: {
+            args: Prisma.sessionsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.sessionsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>[]
+          }
+          delete: {
+            args: Prisma.sessionsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>
+          }
+          update: {
+            args: Prisma.sessionsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>
+          }
+          deleteMany: {
+            args: Prisma.sessionsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.sessionsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.sessionsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>[]
+          }
+          upsert: {
+            args: Prisma.sessionsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$sessionsPayload>
+          }
+          aggregate: {
+            args: Prisma.SessionsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSessions>
+          }
+          groupBy: {
+            args: Prisma.sessionsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SessionsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.sessionsCountArgs<ExtArgs>
+            result: $Utils.Optional<SessionsCountAggregateOutputType> | number
+          }
+        }
+      }
+      users: {
+        payload: Prisma.$usersPayload<ExtArgs>
+        fields: Prisma.usersFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.usersFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.usersFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>
+          }
+          findFirst: {
+            args: Prisma.usersFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.usersFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>
+          }
+          findMany: {
+            args: Prisma.usersFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>[]
+          }
+          create: {
+            args: Prisma.usersCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>
+          }
+          createMany: {
+            args: Prisma.usersCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.usersCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>[]
+          }
+          delete: {
+            args: Prisma.usersDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>
+          }
+          update: {
+            args: Prisma.usersUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>
+          }
+          deleteMany: {
+            args: Prisma.usersDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.usersUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.usersUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>[]
+          }
+          upsert: {
+            args: Prisma.usersUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$usersPayload>
+          }
+          aggregate: {
+            args: Prisma.UsersAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUsers>
+          }
+          groupBy: {
+            args: Prisma.usersGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UsersGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.usersCountArgs<ExtArgs>
+            result: $Utils.Optional<UsersCountAggregateOutputType> | number
           }
         }
       }
@@ -3767,6 +4037,9 @@ export namespace Prisma {
     eventSocialLink?: EventSocialLinkOmit
     eventMember?: EventMemberOmit
     eventRegistrationField?: EventRegistrationFieldOmit
+    accounts?: accountsOmit
+    sessions?: sessionsOmit
+    users?: usersOmit
     organization?: OrganizationOmit
     teamMember?: TeamMemberOmit
     organizationInvitation?: OrganizationInvitationOmit
@@ -4018,27 +4291,67 @@ export namespace Prisma {
 
 
   /**
+   * Count Type UsersCountOutputType
+   */
+
+  export type UsersCountOutputType = {
+    accounts: number
+    sessions: number
+  }
+
+  export type UsersCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    accounts?: boolean | UsersCountOutputTypeCountAccountsArgs
+    sessions?: boolean | UsersCountOutputTypeCountSessionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UsersCountOutputType
+     */
+    select?: UsersCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountAccountsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: accountsWhereInput
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: sessionsWhereInput
+  }
+
+
+  /**
    * Count Type OrganizationCountOutputType
    */
 
   export type OrganizationCountOutputType = {
+    activityLogs: number
     events: number
     requests: number
     invitations: number
     team: number
     socialLinks: number
     wallets: number
-    activityLogs: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    activityLogs?: boolean | OrganizationCountOutputTypeCountActivityLogsArgs
     events?: boolean | OrganizationCountOutputTypeCountEventsArgs
     requests?: boolean | OrganizationCountOutputTypeCountRequestsArgs
     invitations?: boolean | OrganizationCountOutputTypeCountInvitationsArgs
     team?: boolean | OrganizationCountOutputTypeCountTeamArgs
     socialLinks?: boolean | OrganizationCountOutputTypeCountSocialLinksArgs
     wallets?: boolean | OrganizationCountOutputTypeCountWalletsArgs
-    activityLogs?: boolean | OrganizationCountOutputTypeCountActivityLogsArgs
   }
 
   // Custom InputTypes
@@ -4050,6 +4363,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the OrganizationCountOutputType
      */
     select?: OrganizationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountActivityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ActivityLogWhereInput
   }
 
   /**
@@ -4092,13 +4412,6 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountWalletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WalletWhereInput
-  }
-
-  /**
-   * OrganizationCountOutputType without action
-   */
-  export type OrganizationCountOutputTypeCountActivityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: ActivityLogWhereInput
   }
 
 
@@ -4338,6 +4651,7 @@ export namespace Prisma {
    */
 
   export type ProfileCountOutputType = {
+    activityLogs: number
     createdEvents: number
     resolvedRequests: number
     membershipRequests: number
@@ -4351,10 +4665,10 @@ export namespace Prisma {
     votes: number
     nominatedOptions: number
     wallets: number
-    activityLogs: number
   }
 
   export type ProfileCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    activityLogs?: boolean | ProfileCountOutputTypeCountActivityLogsArgs
     createdEvents?: boolean | ProfileCountOutputTypeCountCreatedEventsArgs
     resolvedRequests?: boolean | ProfileCountOutputTypeCountResolvedRequestsArgs
     membershipRequests?: boolean | ProfileCountOutputTypeCountMembershipRequestsArgs
@@ -4368,7 +4682,6 @@ export namespace Prisma {
     votes?: boolean | ProfileCountOutputTypeCountVotesArgs
     nominatedOptions?: boolean | ProfileCountOutputTypeCountNominatedOptionsArgs
     wallets?: boolean | ProfileCountOutputTypeCountWalletsArgs
-    activityLogs?: boolean | ProfileCountOutputTypeCountActivityLogsArgs
   }
 
   // Custom InputTypes
@@ -4380,6 +4693,13 @@ export namespace Prisma {
      * Select specific fields to fetch from the ProfileCountOutputType
      */
     select?: ProfileCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ProfileCountOutputType without action
+   */
+  export type ProfileCountOutputTypeCountActivityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ActivityLogWhereInput
   }
 
   /**
@@ -4471,13 +4791,6 @@ export namespace Prisma {
    */
   export type ProfileCountOutputTypeCountWalletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WalletWhereInput
-  }
-
-  /**
-   * ProfileCountOutputType without action
-   */
-  export type ProfileCountOutputTypeCountActivityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: ActivityLogWhereInput
   }
 
 
@@ -12996,6 +13309,3404 @@ export namespace Prisma {
 
 
   /**
+   * Model accounts
+   */
+
+  export type AggregateAccounts = {
+    _count: AccountsCountAggregateOutputType | null
+    _min: AccountsMinAggregateOutputType | null
+    _max: AccountsMaxAggregateOutputType | null
+  }
+
+  export type AccountsMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    scope: string | null
+    accessToken: string | null
+    accessTokenExpiresAt: Date | null
+    accountId: string | null
+    createdAt: Date | null
+    idToken: string | null
+    password: string | null
+    providerId: string | null
+    refreshToken: string | null
+    refreshTokenExpiresAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AccountsMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    scope: string | null
+    accessToken: string | null
+    accessTokenExpiresAt: Date | null
+    accountId: string | null
+    createdAt: Date | null
+    idToken: string | null
+    password: string | null
+    providerId: string | null
+    refreshToken: string | null
+    refreshTokenExpiresAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AccountsCountAggregateOutputType = {
+    id: number
+    userId: number
+    scope: number
+    accessToken: number
+    accessTokenExpiresAt: number
+    accountId: number
+    createdAt: number
+    idToken: number
+    password: number
+    providerId: number
+    refreshToken: number
+    refreshTokenExpiresAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AccountsMinAggregateInputType = {
+    id?: true
+    userId?: true
+    scope?: true
+    accessToken?: true
+    accessTokenExpiresAt?: true
+    accountId?: true
+    createdAt?: true
+    idToken?: true
+    password?: true
+    providerId?: true
+    refreshToken?: true
+    refreshTokenExpiresAt?: true
+    updatedAt?: true
+  }
+
+  export type AccountsMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    scope?: true
+    accessToken?: true
+    accessTokenExpiresAt?: true
+    accountId?: true
+    createdAt?: true
+    idToken?: true
+    password?: true
+    providerId?: true
+    refreshToken?: true
+    refreshTokenExpiresAt?: true
+    updatedAt?: true
+  }
+
+  export type AccountsCountAggregateInputType = {
+    id?: true
+    userId?: true
+    scope?: true
+    accessToken?: true
+    accessTokenExpiresAt?: true
+    accountId?: true
+    createdAt?: true
+    idToken?: true
+    password?: true
+    providerId?: true
+    refreshToken?: true
+    refreshTokenExpiresAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AccountsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which accounts to aggregate.
+     */
+    where?: accountsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of accounts to fetch.
+     */
+    orderBy?: accountsOrderByWithRelationInput | accountsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: accountsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` accounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` accounts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned accounts
+    **/
+    _count?: true | AccountsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AccountsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AccountsMaxAggregateInputType
+  }
+
+  export type GetAccountsAggregateType<T extends AccountsAggregateArgs> = {
+        [P in keyof T & keyof AggregateAccounts]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAccounts[P]>
+      : GetScalarType<T[P], AggregateAccounts[P]>
+  }
+
+
+
+
+  export type accountsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: accountsWhereInput
+    orderBy?: accountsOrderByWithAggregationInput | accountsOrderByWithAggregationInput[]
+    by: AccountsScalarFieldEnum[] | AccountsScalarFieldEnum
+    having?: accountsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AccountsCountAggregateInputType | true
+    _min?: AccountsMinAggregateInputType
+    _max?: AccountsMaxAggregateInputType
+  }
+
+  export type AccountsGroupByOutputType = {
+    id: string
+    userId: string
+    scope: string | null
+    accessToken: string | null
+    accessTokenExpiresAt: Date | null
+    accountId: string
+    createdAt: Date
+    idToken: string | null
+    password: string | null
+    providerId: string
+    refreshToken: string | null
+    refreshTokenExpiresAt: Date | null
+    updatedAt: Date
+    _count: AccountsCountAggregateOutputType | null
+    _min: AccountsMinAggregateOutputType | null
+    _max: AccountsMaxAggregateOutputType | null
+  }
+
+  type GetAccountsGroupByPayload<T extends accountsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AccountsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AccountsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AccountsGroupByOutputType[P]>
+            : GetScalarType<T[P], AccountsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type accountsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    scope?: boolean
+    accessToken?: boolean
+    accessTokenExpiresAt?: boolean
+    accountId?: boolean
+    createdAt?: boolean
+    idToken?: boolean
+    password?: boolean
+    providerId?: boolean
+    refreshToken?: boolean
+    refreshTokenExpiresAt?: boolean
+    updatedAt?: boolean
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accounts"]>
+
+  export type accountsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    scope?: boolean
+    accessToken?: boolean
+    accessTokenExpiresAt?: boolean
+    accountId?: boolean
+    createdAt?: boolean
+    idToken?: boolean
+    password?: boolean
+    providerId?: boolean
+    refreshToken?: boolean
+    refreshTokenExpiresAt?: boolean
+    updatedAt?: boolean
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accounts"]>
+
+  export type accountsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    scope?: boolean
+    accessToken?: boolean
+    accessTokenExpiresAt?: boolean
+    accountId?: boolean
+    createdAt?: boolean
+    idToken?: boolean
+    password?: boolean
+    providerId?: boolean
+    refreshToken?: boolean
+    refreshTokenExpiresAt?: boolean
+    updatedAt?: boolean
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accounts"]>
+
+  export type accountsSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    scope?: boolean
+    accessToken?: boolean
+    accessTokenExpiresAt?: boolean
+    accountId?: boolean
+    createdAt?: boolean
+    idToken?: boolean
+    password?: boolean
+    providerId?: boolean
+    refreshToken?: boolean
+    refreshTokenExpiresAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type accountsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "scope" | "accessToken" | "accessTokenExpiresAt" | "accountId" | "createdAt" | "idToken" | "password" | "providerId" | "refreshToken" | "refreshTokenExpiresAt" | "updatedAt", ExtArgs["result"]["accounts"]>
+  export type accountsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }
+  export type accountsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }
+  export type accountsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }
+
+  export type $accountsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "accounts"
+    objects: {
+      users: Prisma.$usersPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      scope: string | null
+      accessToken: string | null
+      accessTokenExpiresAt: Date | null
+      accountId: string
+      createdAt: Date
+      idToken: string | null
+      password: string | null
+      providerId: string
+      refreshToken: string | null
+      refreshTokenExpiresAt: Date | null
+      updatedAt: Date
+    }, ExtArgs["result"]["accounts"]>
+    composites: {}
+  }
+
+  type accountsGetPayload<S extends boolean | null | undefined | accountsDefaultArgs> = $Result.GetResult<Prisma.$accountsPayload, S>
+
+  type accountsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<accountsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AccountsCountAggregateInputType | true
+    }
+
+  export interface accountsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['accounts'], meta: { name: 'accounts' } }
+    /**
+     * Find zero or one Accounts that matches the filter.
+     * @param {accountsFindUniqueArgs} args - Arguments to find a Accounts
+     * @example
+     * // Get one Accounts
+     * const accounts = await prisma.accounts.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends accountsFindUniqueArgs>(args: SelectSubset<T, accountsFindUniqueArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Accounts that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {accountsFindUniqueOrThrowArgs} args - Arguments to find a Accounts
+     * @example
+     * // Get one Accounts
+     * const accounts = await prisma.accounts.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends accountsFindUniqueOrThrowArgs>(args: SelectSubset<T, accountsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Accounts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {accountsFindFirstArgs} args - Arguments to find a Accounts
+     * @example
+     * // Get one Accounts
+     * const accounts = await prisma.accounts.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends accountsFindFirstArgs>(args?: SelectSubset<T, accountsFindFirstArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Accounts that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {accountsFindFirstOrThrowArgs} args - Arguments to find a Accounts
+     * @example
+     * // Get one Accounts
+     * const accounts = await prisma.accounts.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends accountsFindFirstOrThrowArgs>(args?: SelectSubset<T, accountsFindFirstOrThrowArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Accounts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {accountsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Accounts
+     * const accounts = await prisma.accounts.findMany()
+     * 
+     * // Get first 10 Accounts
+     * const accounts = await prisma.accounts.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const accountsWithIdOnly = await prisma.accounts.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends accountsFindManyArgs>(args?: SelectSubset<T, accountsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Accounts.
+     * @param {accountsCreateArgs} args - Arguments to create a Accounts.
+     * @example
+     * // Create one Accounts
+     * const Accounts = await prisma.accounts.create({
+     *   data: {
+     *     // ... data to create a Accounts
+     *   }
+     * })
+     * 
+     */
+    create<T extends accountsCreateArgs>(args: SelectSubset<T, accountsCreateArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Accounts.
+     * @param {accountsCreateManyArgs} args - Arguments to create many Accounts.
+     * @example
+     * // Create many Accounts
+     * const accounts = await prisma.accounts.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends accountsCreateManyArgs>(args?: SelectSubset<T, accountsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Accounts and returns the data saved in the database.
+     * @param {accountsCreateManyAndReturnArgs} args - Arguments to create many Accounts.
+     * @example
+     * // Create many Accounts
+     * const accounts = await prisma.accounts.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Accounts and only return the `id`
+     * const accountsWithIdOnly = await prisma.accounts.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends accountsCreateManyAndReturnArgs>(args?: SelectSubset<T, accountsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Accounts.
+     * @param {accountsDeleteArgs} args - Arguments to delete one Accounts.
+     * @example
+     * // Delete one Accounts
+     * const Accounts = await prisma.accounts.delete({
+     *   where: {
+     *     // ... filter to delete one Accounts
+     *   }
+     * })
+     * 
+     */
+    delete<T extends accountsDeleteArgs>(args: SelectSubset<T, accountsDeleteArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Accounts.
+     * @param {accountsUpdateArgs} args - Arguments to update one Accounts.
+     * @example
+     * // Update one Accounts
+     * const accounts = await prisma.accounts.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends accountsUpdateArgs>(args: SelectSubset<T, accountsUpdateArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Accounts.
+     * @param {accountsDeleteManyArgs} args - Arguments to filter Accounts to delete.
+     * @example
+     * // Delete a few Accounts
+     * const { count } = await prisma.accounts.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends accountsDeleteManyArgs>(args?: SelectSubset<T, accountsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Accounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {accountsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Accounts
+     * const accounts = await prisma.accounts.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends accountsUpdateManyArgs>(args: SelectSubset<T, accountsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Accounts and returns the data updated in the database.
+     * @param {accountsUpdateManyAndReturnArgs} args - Arguments to update many Accounts.
+     * @example
+     * // Update many Accounts
+     * const accounts = await prisma.accounts.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Accounts and only return the `id`
+     * const accountsWithIdOnly = await prisma.accounts.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends accountsUpdateManyAndReturnArgs>(args: SelectSubset<T, accountsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Accounts.
+     * @param {accountsUpsertArgs} args - Arguments to update or create a Accounts.
+     * @example
+     * // Update or create a Accounts
+     * const accounts = await prisma.accounts.upsert({
+     *   create: {
+     *     // ... data to create a Accounts
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Accounts we want to update
+     *   }
+     * })
+     */
+    upsert<T extends accountsUpsertArgs>(args: SelectSubset<T, accountsUpsertArgs<ExtArgs>>): Prisma__accountsClient<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Accounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {accountsCountArgs} args - Arguments to filter Accounts to count.
+     * @example
+     * // Count the number of Accounts
+     * const count = await prisma.accounts.count({
+     *   where: {
+     *     // ... the filter for the Accounts we want to count
+     *   }
+     * })
+    **/
+    count<T extends accountsCountArgs>(
+      args?: Subset<T, accountsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AccountsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Accounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AccountsAggregateArgs>(args: Subset<T, AccountsAggregateArgs>): Prisma.PrismaPromise<GetAccountsAggregateType<T>>
+
+    /**
+     * Group by Accounts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {accountsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends accountsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: accountsGroupByArgs['orderBy'] }
+        : { orderBy?: accountsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, accountsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAccountsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the accounts model
+   */
+  readonly fields: accountsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for accounts.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__accountsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    users<T extends usersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, usersDefaultArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the accounts model
+   */
+  interface accountsFieldRefs {
+    readonly id: FieldRef<"accounts", 'String'>
+    readonly userId: FieldRef<"accounts", 'String'>
+    readonly scope: FieldRef<"accounts", 'String'>
+    readonly accessToken: FieldRef<"accounts", 'String'>
+    readonly accessTokenExpiresAt: FieldRef<"accounts", 'DateTime'>
+    readonly accountId: FieldRef<"accounts", 'String'>
+    readonly createdAt: FieldRef<"accounts", 'DateTime'>
+    readonly idToken: FieldRef<"accounts", 'String'>
+    readonly password: FieldRef<"accounts", 'String'>
+    readonly providerId: FieldRef<"accounts", 'String'>
+    readonly refreshToken: FieldRef<"accounts", 'String'>
+    readonly refreshTokenExpiresAt: FieldRef<"accounts", 'DateTime'>
+    readonly updatedAt: FieldRef<"accounts", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * accounts findUnique
+   */
+  export type accountsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * Filter, which accounts to fetch.
+     */
+    where: accountsWhereUniqueInput
+  }
+
+  /**
+   * accounts findUniqueOrThrow
+   */
+  export type accountsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * Filter, which accounts to fetch.
+     */
+    where: accountsWhereUniqueInput
+  }
+
+  /**
+   * accounts findFirst
+   */
+  export type accountsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * Filter, which accounts to fetch.
+     */
+    where?: accountsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of accounts to fetch.
+     */
+    orderBy?: accountsOrderByWithRelationInput | accountsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for accounts.
+     */
+    cursor?: accountsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` accounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` accounts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of accounts.
+     */
+    distinct?: AccountsScalarFieldEnum | AccountsScalarFieldEnum[]
+  }
+
+  /**
+   * accounts findFirstOrThrow
+   */
+  export type accountsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * Filter, which accounts to fetch.
+     */
+    where?: accountsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of accounts to fetch.
+     */
+    orderBy?: accountsOrderByWithRelationInput | accountsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for accounts.
+     */
+    cursor?: accountsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` accounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` accounts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of accounts.
+     */
+    distinct?: AccountsScalarFieldEnum | AccountsScalarFieldEnum[]
+  }
+
+  /**
+   * accounts findMany
+   */
+  export type accountsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * Filter, which accounts to fetch.
+     */
+    where?: accountsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of accounts to fetch.
+     */
+    orderBy?: accountsOrderByWithRelationInput | accountsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing accounts.
+     */
+    cursor?: accountsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` accounts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` accounts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of accounts.
+     */
+    distinct?: AccountsScalarFieldEnum | AccountsScalarFieldEnum[]
+  }
+
+  /**
+   * accounts create
+   */
+  export type accountsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a accounts.
+     */
+    data: XOR<accountsCreateInput, accountsUncheckedCreateInput>
+  }
+
+  /**
+   * accounts createMany
+   */
+  export type accountsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many accounts.
+     */
+    data: accountsCreateManyInput | accountsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * accounts createManyAndReturn
+   */
+  export type accountsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * The data used to create many accounts.
+     */
+    data: accountsCreateManyInput | accountsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * accounts update
+   */
+  export type accountsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a accounts.
+     */
+    data: XOR<accountsUpdateInput, accountsUncheckedUpdateInput>
+    /**
+     * Choose, which accounts to update.
+     */
+    where: accountsWhereUniqueInput
+  }
+
+  /**
+   * accounts updateMany
+   */
+  export type accountsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update accounts.
+     */
+    data: XOR<accountsUpdateManyMutationInput, accountsUncheckedUpdateManyInput>
+    /**
+     * Filter which accounts to update
+     */
+    where?: accountsWhereInput
+    /**
+     * Limit how many accounts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * accounts updateManyAndReturn
+   */
+  export type accountsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * The data used to update accounts.
+     */
+    data: XOR<accountsUpdateManyMutationInput, accountsUncheckedUpdateManyInput>
+    /**
+     * Filter which accounts to update
+     */
+    where?: accountsWhereInput
+    /**
+     * Limit how many accounts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * accounts upsert
+   */
+  export type accountsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the accounts to update in case it exists.
+     */
+    where: accountsWhereUniqueInput
+    /**
+     * In case the accounts found by the `where` argument doesn't exist, create a new accounts with this data.
+     */
+    create: XOR<accountsCreateInput, accountsUncheckedCreateInput>
+    /**
+     * In case the accounts was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<accountsUpdateInput, accountsUncheckedUpdateInput>
+  }
+
+  /**
+   * accounts delete
+   */
+  export type accountsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    /**
+     * Filter which accounts to delete.
+     */
+    where: accountsWhereUniqueInput
+  }
+
+  /**
+   * accounts deleteMany
+   */
+  export type accountsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which accounts to delete
+     */
+    where?: accountsWhereInput
+    /**
+     * Limit how many accounts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * accounts without action
+   */
+  export type accountsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model sessions
+   */
+
+  export type AggregateSessions = {
+    _count: SessionsCountAggregateOutputType | null
+    _min: SessionsMinAggregateOutputType | null
+    _max: SessionsMaxAggregateOutputType | null
+  }
+
+  export type SessionsMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    expiresAt: Date | null
+    token: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type SessionsMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    expiresAt: Date | null
+    token: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    ipAddress: string | null
+    userAgent: string | null
+  }
+
+  export type SessionsCountAggregateOutputType = {
+    id: number
+    userId: number
+    expiresAt: number
+    token: number
+    createdAt: number
+    updatedAt: number
+    ipAddress: number
+    userAgent: number
+    _all: number
+  }
+
+
+  export type SessionsMinAggregateInputType = {
+    id?: true
+    userId?: true
+    expiresAt?: true
+    token?: true
+    createdAt?: true
+    updatedAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type SessionsMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    expiresAt?: true
+    token?: true
+    createdAt?: true
+    updatedAt?: true
+    ipAddress?: true
+    userAgent?: true
+  }
+
+  export type SessionsCountAggregateInputType = {
+    id?: true
+    userId?: true
+    expiresAt?: true
+    token?: true
+    createdAt?: true
+    updatedAt?: true
+    ipAddress?: true
+    userAgent?: true
+    _all?: true
+  }
+
+  export type SessionsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which sessions to aggregate.
+     */
+    where?: sessionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of sessions to fetch.
+     */
+    orderBy?: sessionsOrderByWithRelationInput | sessionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: sessionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` sessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` sessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned sessions
+    **/
+    _count?: true | SessionsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SessionsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SessionsMaxAggregateInputType
+  }
+
+  export type GetSessionsAggregateType<T extends SessionsAggregateArgs> = {
+        [P in keyof T & keyof AggregateSessions]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSessions[P]>
+      : GetScalarType<T[P], AggregateSessions[P]>
+  }
+
+
+
+
+  export type sessionsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: sessionsWhereInput
+    orderBy?: sessionsOrderByWithAggregationInput | sessionsOrderByWithAggregationInput[]
+    by: SessionsScalarFieldEnum[] | SessionsScalarFieldEnum
+    having?: sessionsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SessionsCountAggregateInputType | true
+    _min?: SessionsMinAggregateInputType
+    _max?: SessionsMaxAggregateInputType
+  }
+
+  export type SessionsGroupByOutputType = {
+    id: string
+    userId: string
+    expiresAt: Date
+    token: string
+    createdAt: Date
+    updatedAt: Date
+    ipAddress: string | null
+    userAgent: string | null
+    _count: SessionsCountAggregateOutputType | null
+    _min: SessionsMinAggregateOutputType | null
+    _max: SessionsMaxAggregateOutputType | null
+  }
+
+  type GetSessionsGroupByPayload<T extends sessionsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SessionsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SessionsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SessionsGroupByOutputType[P]>
+            : GetScalarType<T[P], SessionsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type sessionsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    expiresAt?: boolean
+    token?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sessions"]>
+
+  export type sessionsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    expiresAt?: boolean
+    token?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sessions"]>
+
+  export type sessionsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    expiresAt?: boolean
+    token?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sessions"]>
+
+  export type sessionsSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    expiresAt?: boolean
+    token?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+  }
+
+  export type sessionsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "expiresAt" | "token" | "createdAt" | "updatedAt" | "ipAddress" | "userAgent", ExtArgs["result"]["sessions"]>
+  export type sessionsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }
+  export type sessionsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }
+  export type sessionsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    users?: boolean | usersDefaultArgs<ExtArgs>
+  }
+
+  export type $sessionsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "sessions"
+    objects: {
+      users: Prisma.$usersPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      expiresAt: Date
+      token: string
+      createdAt: Date
+      updatedAt: Date
+      ipAddress: string | null
+      userAgent: string | null
+    }, ExtArgs["result"]["sessions"]>
+    composites: {}
+  }
+
+  type sessionsGetPayload<S extends boolean | null | undefined | sessionsDefaultArgs> = $Result.GetResult<Prisma.$sessionsPayload, S>
+
+  type sessionsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<sessionsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SessionsCountAggregateInputType | true
+    }
+
+  export interface sessionsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['sessions'], meta: { name: 'sessions' } }
+    /**
+     * Find zero or one Sessions that matches the filter.
+     * @param {sessionsFindUniqueArgs} args - Arguments to find a Sessions
+     * @example
+     * // Get one Sessions
+     * const sessions = await prisma.sessions.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends sessionsFindUniqueArgs>(args: SelectSubset<T, sessionsFindUniqueArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Sessions that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {sessionsFindUniqueOrThrowArgs} args - Arguments to find a Sessions
+     * @example
+     * // Get one Sessions
+     * const sessions = await prisma.sessions.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends sessionsFindUniqueOrThrowArgs>(args: SelectSubset<T, sessionsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Sessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {sessionsFindFirstArgs} args - Arguments to find a Sessions
+     * @example
+     * // Get one Sessions
+     * const sessions = await prisma.sessions.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends sessionsFindFirstArgs>(args?: SelectSubset<T, sessionsFindFirstArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Sessions that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {sessionsFindFirstOrThrowArgs} args - Arguments to find a Sessions
+     * @example
+     * // Get one Sessions
+     * const sessions = await prisma.sessions.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends sessionsFindFirstOrThrowArgs>(args?: SelectSubset<T, sessionsFindFirstOrThrowArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Sessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {sessionsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Sessions
+     * const sessions = await prisma.sessions.findMany()
+     * 
+     * // Get first 10 Sessions
+     * const sessions = await prisma.sessions.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const sessionsWithIdOnly = await prisma.sessions.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends sessionsFindManyArgs>(args?: SelectSubset<T, sessionsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Sessions.
+     * @param {sessionsCreateArgs} args - Arguments to create a Sessions.
+     * @example
+     * // Create one Sessions
+     * const Sessions = await prisma.sessions.create({
+     *   data: {
+     *     // ... data to create a Sessions
+     *   }
+     * })
+     * 
+     */
+    create<T extends sessionsCreateArgs>(args: SelectSubset<T, sessionsCreateArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Sessions.
+     * @param {sessionsCreateManyArgs} args - Arguments to create many Sessions.
+     * @example
+     * // Create many Sessions
+     * const sessions = await prisma.sessions.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends sessionsCreateManyArgs>(args?: SelectSubset<T, sessionsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Sessions and returns the data saved in the database.
+     * @param {sessionsCreateManyAndReturnArgs} args - Arguments to create many Sessions.
+     * @example
+     * // Create many Sessions
+     * const sessions = await prisma.sessions.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Sessions and only return the `id`
+     * const sessionsWithIdOnly = await prisma.sessions.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends sessionsCreateManyAndReturnArgs>(args?: SelectSubset<T, sessionsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Sessions.
+     * @param {sessionsDeleteArgs} args - Arguments to delete one Sessions.
+     * @example
+     * // Delete one Sessions
+     * const Sessions = await prisma.sessions.delete({
+     *   where: {
+     *     // ... filter to delete one Sessions
+     *   }
+     * })
+     * 
+     */
+    delete<T extends sessionsDeleteArgs>(args: SelectSubset<T, sessionsDeleteArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Sessions.
+     * @param {sessionsUpdateArgs} args - Arguments to update one Sessions.
+     * @example
+     * // Update one Sessions
+     * const sessions = await prisma.sessions.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends sessionsUpdateArgs>(args: SelectSubset<T, sessionsUpdateArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Sessions.
+     * @param {sessionsDeleteManyArgs} args - Arguments to filter Sessions to delete.
+     * @example
+     * // Delete a few Sessions
+     * const { count } = await prisma.sessions.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends sessionsDeleteManyArgs>(args?: SelectSubset<T, sessionsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Sessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {sessionsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Sessions
+     * const sessions = await prisma.sessions.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends sessionsUpdateManyArgs>(args: SelectSubset<T, sessionsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Sessions and returns the data updated in the database.
+     * @param {sessionsUpdateManyAndReturnArgs} args - Arguments to update many Sessions.
+     * @example
+     * // Update many Sessions
+     * const sessions = await prisma.sessions.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Sessions and only return the `id`
+     * const sessionsWithIdOnly = await prisma.sessions.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends sessionsUpdateManyAndReturnArgs>(args: SelectSubset<T, sessionsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Sessions.
+     * @param {sessionsUpsertArgs} args - Arguments to update or create a Sessions.
+     * @example
+     * // Update or create a Sessions
+     * const sessions = await prisma.sessions.upsert({
+     *   create: {
+     *     // ... data to create a Sessions
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Sessions we want to update
+     *   }
+     * })
+     */
+    upsert<T extends sessionsUpsertArgs>(args: SelectSubset<T, sessionsUpsertArgs<ExtArgs>>): Prisma__sessionsClient<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Sessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {sessionsCountArgs} args - Arguments to filter Sessions to count.
+     * @example
+     * // Count the number of Sessions
+     * const count = await prisma.sessions.count({
+     *   where: {
+     *     // ... the filter for the Sessions we want to count
+     *   }
+     * })
+    **/
+    count<T extends sessionsCountArgs>(
+      args?: Subset<T, sessionsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SessionsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Sessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SessionsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SessionsAggregateArgs>(args: Subset<T, SessionsAggregateArgs>): Prisma.PrismaPromise<GetSessionsAggregateType<T>>
+
+    /**
+     * Group by Sessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {sessionsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends sessionsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: sessionsGroupByArgs['orderBy'] }
+        : { orderBy?: sessionsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, sessionsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSessionsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the sessions model
+   */
+  readonly fields: sessionsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for sessions.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__sessionsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    users<T extends usersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, usersDefaultArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the sessions model
+   */
+  interface sessionsFieldRefs {
+    readonly id: FieldRef<"sessions", 'String'>
+    readonly userId: FieldRef<"sessions", 'String'>
+    readonly expiresAt: FieldRef<"sessions", 'DateTime'>
+    readonly token: FieldRef<"sessions", 'String'>
+    readonly createdAt: FieldRef<"sessions", 'DateTime'>
+    readonly updatedAt: FieldRef<"sessions", 'DateTime'>
+    readonly ipAddress: FieldRef<"sessions", 'String'>
+    readonly userAgent: FieldRef<"sessions", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * sessions findUnique
+   */
+  export type sessionsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * Filter, which sessions to fetch.
+     */
+    where: sessionsWhereUniqueInput
+  }
+
+  /**
+   * sessions findUniqueOrThrow
+   */
+  export type sessionsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * Filter, which sessions to fetch.
+     */
+    where: sessionsWhereUniqueInput
+  }
+
+  /**
+   * sessions findFirst
+   */
+  export type sessionsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * Filter, which sessions to fetch.
+     */
+    where?: sessionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of sessions to fetch.
+     */
+    orderBy?: sessionsOrderByWithRelationInput | sessionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for sessions.
+     */
+    cursor?: sessionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` sessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` sessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of sessions.
+     */
+    distinct?: SessionsScalarFieldEnum | SessionsScalarFieldEnum[]
+  }
+
+  /**
+   * sessions findFirstOrThrow
+   */
+  export type sessionsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * Filter, which sessions to fetch.
+     */
+    where?: sessionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of sessions to fetch.
+     */
+    orderBy?: sessionsOrderByWithRelationInput | sessionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for sessions.
+     */
+    cursor?: sessionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` sessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` sessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of sessions.
+     */
+    distinct?: SessionsScalarFieldEnum | SessionsScalarFieldEnum[]
+  }
+
+  /**
+   * sessions findMany
+   */
+  export type sessionsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * Filter, which sessions to fetch.
+     */
+    where?: sessionsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of sessions to fetch.
+     */
+    orderBy?: sessionsOrderByWithRelationInput | sessionsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing sessions.
+     */
+    cursor?: sessionsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` sessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` sessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of sessions.
+     */
+    distinct?: SessionsScalarFieldEnum | SessionsScalarFieldEnum[]
+  }
+
+  /**
+   * sessions create
+   */
+  export type sessionsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a sessions.
+     */
+    data: XOR<sessionsCreateInput, sessionsUncheckedCreateInput>
+  }
+
+  /**
+   * sessions createMany
+   */
+  export type sessionsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many sessions.
+     */
+    data: sessionsCreateManyInput | sessionsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * sessions createManyAndReturn
+   */
+  export type sessionsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * The data used to create many sessions.
+     */
+    data: sessionsCreateManyInput | sessionsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * sessions update
+   */
+  export type sessionsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a sessions.
+     */
+    data: XOR<sessionsUpdateInput, sessionsUncheckedUpdateInput>
+    /**
+     * Choose, which sessions to update.
+     */
+    where: sessionsWhereUniqueInput
+  }
+
+  /**
+   * sessions updateMany
+   */
+  export type sessionsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update sessions.
+     */
+    data: XOR<sessionsUpdateManyMutationInput, sessionsUncheckedUpdateManyInput>
+    /**
+     * Filter which sessions to update
+     */
+    where?: sessionsWhereInput
+    /**
+     * Limit how many sessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * sessions updateManyAndReturn
+   */
+  export type sessionsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * The data used to update sessions.
+     */
+    data: XOR<sessionsUpdateManyMutationInput, sessionsUncheckedUpdateManyInput>
+    /**
+     * Filter which sessions to update
+     */
+    where?: sessionsWhereInput
+    /**
+     * Limit how many sessions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * sessions upsert
+   */
+  export type sessionsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the sessions to update in case it exists.
+     */
+    where: sessionsWhereUniqueInput
+    /**
+     * In case the sessions found by the `where` argument doesn't exist, create a new sessions with this data.
+     */
+    create: XOR<sessionsCreateInput, sessionsUncheckedCreateInput>
+    /**
+     * In case the sessions was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<sessionsUpdateInput, sessionsUncheckedUpdateInput>
+  }
+
+  /**
+   * sessions delete
+   */
+  export type sessionsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    /**
+     * Filter which sessions to delete.
+     */
+    where: sessionsWhereUniqueInput
+  }
+
+  /**
+   * sessions deleteMany
+   */
+  export type sessionsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which sessions to delete
+     */
+    where?: sessionsWhereInput
+    /**
+     * Limit how many sessions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * sessions without action
+   */
+  export type sessionsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model users
+   */
+
+  export type AggregateUsers = {
+    _count: UsersCountAggregateOutputType | null
+    _min: UsersMinAggregateOutputType | null
+    _max: UsersMaxAggregateOutputType | null
+  }
+
+  export type UsersMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    email: string | null
+    emailVerified: boolean | null
+    image: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UsersMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    email: string | null
+    emailVerified: boolean | null
+    image: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type UsersCountAggregateOutputType = {
+    id: number
+    name: number
+    email: number
+    emailVerified: number
+    image: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type UsersMinAggregateInputType = {
+    id?: true
+    name?: true
+    email?: true
+    emailVerified?: true
+    image?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UsersMaxAggregateInputType = {
+    id?: true
+    name?: true
+    email?: true
+    emailVerified?: true
+    image?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type UsersCountAggregateInputType = {
+    id?: true
+    name?: true
+    email?: true
+    emailVerified?: true
+    image?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type UsersAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which users to aggregate.
+     */
+    where?: usersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of users to fetch.
+     */
+    orderBy?: usersOrderByWithRelationInput | usersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: usersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` users from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` users.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned users
+    **/
+    _count?: true | UsersCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UsersMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UsersMaxAggregateInputType
+  }
+
+  export type GetUsersAggregateType<T extends UsersAggregateArgs> = {
+        [P in keyof T & keyof AggregateUsers]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUsers[P]>
+      : GetScalarType<T[P], AggregateUsers[P]>
+  }
+
+
+
+
+  export type usersGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: usersWhereInput
+    orderBy?: usersOrderByWithAggregationInput | usersOrderByWithAggregationInput[]
+    by: UsersScalarFieldEnum[] | UsersScalarFieldEnum
+    having?: usersScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UsersCountAggregateInputType | true
+    _min?: UsersMinAggregateInputType
+    _max?: UsersMaxAggregateInputType
+  }
+
+  export type UsersGroupByOutputType = {
+    id: string
+    name: string | null
+    email: string
+    emailVerified: boolean
+    image: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: UsersCountAggregateOutputType | null
+    _min: UsersMinAggregateOutputType | null
+    _max: UsersMaxAggregateOutputType | null
+  }
+
+  type GetUsersGroupByPayload<T extends usersGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UsersGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UsersGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UsersGroupByOutputType[P]>
+            : GetScalarType<T[P], UsersGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type usersSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    email?: boolean
+    emailVerified?: boolean
+    image?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    accounts?: boolean | users$accountsArgs<ExtArgs>
+    sessions?: boolean | users$sessionsArgs<ExtArgs>
+    _count?: boolean | UsersCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["users"]>
+
+  export type usersSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    email?: boolean
+    emailVerified?: boolean
+    image?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["users"]>
+
+  export type usersSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    email?: boolean
+    emailVerified?: boolean
+    image?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["users"]>
+
+  export type usersSelectScalar = {
+    id?: boolean
+    name?: boolean
+    email?: boolean
+    emailVerified?: boolean
+    image?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type usersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "createdAt" | "updatedAt", ExtArgs["result"]["users"]>
+  export type usersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    accounts?: boolean | users$accountsArgs<ExtArgs>
+    sessions?: boolean | users$sessionsArgs<ExtArgs>
+    _count?: boolean | UsersCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type usersIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type usersIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $usersPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "users"
+    objects: {
+      accounts: Prisma.$accountsPayload<ExtArgs>[]
+      sessions: Prisma.$sessionsPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string | null
+      email: string
+      emailVerified: boolean
+      image: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["users"]>
+    composites: {}
+  }
+
+  type usersGetPayload<S extends boolean | null | undefined | usersDefaultArgs> = $Result.GetResult<Prisma.$usersPayload, S>
+
+  type usersCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<usersFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UsersCountAggregateInputType | true
+    }
+
+  export interface usersDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['users'], meta: { name: 'users' } }
+    /**
+     * Find zero or one Users that matches the filter.
+     * @param {usersFindUniqueArgs} args - Arguments to find a Users
+     * @example
+     * // Get one Users
+     * const users = await prisma.users.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends usersFindUniqueArgs>(args: SelectSubset<T, usersFindUniqueArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Users that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {usersFindUniqueOrThrowArgs} args - Arguments to find a Users
+     * @example
+     * // Get one Users
+     * const users = await prisma.users.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends usersFindUniqueOrThrowArgs>(args: SelectSubset<T, usersFindUniqueOrThrowArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Users that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {usersFindFirstArgs} args - Arguments to find a Users
+     * @example
+     * // Get one Users
+     * const users = await prisma.users.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends usersFindFirstArgs>(args?: SelectSubset<T, usersFindFirstArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Users that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {usersFindFirstOrThrowArgs} args - Arguments to find a Users
+     * @example
+     * // Get one Users
+     * const users = await prisma.users.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends usersFindFirstOrThrowArgs>(args?: SelectSubset<T, usersFindFirstOrThrowArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Users that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {usersFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Users
+     * const users = await prisma.users.findMany()
+     * 
+     * // Get first 10 Users
+     * const users = await prisma.users.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const usersWithIdOnly = await prisma.users.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends usersFindManyArgs>(args?: SelectSubset<T, usersFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Users.
+     * @param {usersCreateArgs} args - Arguments to create a Users.
+     * @example
+     * // Create one Users
+     * const Users = await prisma.users.create({
+     *   data: {
+     *     // ... data to create a Users
+     *   }
+     * })
+     * 
+     */
+    create<T extends usersCreateArgs>(args: SelectSubset<T, usersCreateArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Users.
+     * @param {usersCreateManyArgs} args - Arguments to create many Users.
+     * @example
+     * // Create many Users
+     * const users = await prisma.users.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends usersCreateManyArgs>(args?: SelectSubset<T, usersCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Users and returns the data saved in the database.
+     * @param {usersCreateManyAndReturnArgs} args - Arguments to create many Users.
+     * @example
+     * // Create many Users
+     * const users = await prisma.users.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Users and only return the `id`
+     * const usersWithIdOnly = await prisma.users.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends usersCreateManyAndReturnArgs>(args?: SelectSubset<T, usersCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Users.
+     * @param {usersDeleteArgs} args - Arguments to delete one Users.
+     * @example
+     * // Delete one Users
+     * const Users = await prisma.users.delete({
+     *   where: {
+     *     // ... filter to delete one Users
+     *   }
+     * })
+     * 
+     */
+    delete<T extends usersDeleteArgs>(args: SelectSubset<T, usersDeleteArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Users.
+     * @param {usersUpdateArgs} args - Arguments to update one Users.
+     * @example
+     * // Update one Users
+     * const users = await prisma.users.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends usersUpdateArgs>(args: SelectSubset<T, usersUpdateArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Users.
+     * @param {usersDeleteManyArgs} args - Arguments to filter Users to delete.
+     * @example
+     * // Delete a few Users
+     * const { count } = await prisma.users.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends usersDeleteManyArgs>(args?: SelectSubset<T, usersDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Users.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {usersUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Users
+     * const users = await prisma.users.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends usersUpdateManyArgs>(args: SelectSubset<T, usersUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Users and returns the data updated in the database.
+     * @param {usersUpdateManyAndReturnArgs} args - Arguments to update many Users.
+     * @example
+     * // Update many Users
+     * const users = await prisma.users.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Users and only return the `id`
+     * const usersWithIdOnly = await prisma.users.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends usersUpdateManyAndReturnArgs>(args: SelectSubset<T, usersUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Users.
+     * @param {usersUpsertArgs} args - Arguments to update or create a Users.
+     * @example
+     * // Update or create a Users
+     * const users = await prisma.users.upsert({
+     *   create: {
+     *     // ... data to create a Users
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Users we want to update
+     *   }
+     * })
+     */
+    upsert<T extends usersUpsertArgs>(args: SelectSubset<T, usersUpsertArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Users.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {usersCountArgs} args - Arguments to filter Users to count.
+     * @example
+     * // Count the number of Users
+     * const count = await prisma.users.count({
+     *   where: {
+     *     // ... the filter for the Users we want to count
+     *   }
+     * })
+    **/
+    count<T extends usersCountArgs>(
+      args?: Subset<T, usersCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UsersCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Users.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UsersAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UsersAggregateArgs>(args: Subset<T, UsersAggregateArgs>): Prisma.PrismaPromise<GetUsersAggregateType<T>>
+
+    /**
+     * Group by Users.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {usersGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends usersGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: usersGroupByArgs['orderBy'] }
+        : { orderBy?: usersGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, usersGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUsersGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the users model
+   */
+  readonly fields: usersFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for users.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__usersClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    accounts<T extends users$accountsArgs<ExtArgs> = {}>(args?: Subset<T, users$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$accountsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sessions<T extends users$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, users$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$sessionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the users model
+   */
+  interface usersFieldRefs {
+    readonly id: FieldRef<"users", 'String'>
+    readonly name: FieldRef<"users", 'String'>
+    readonly email: FieldRef<"users", 'String'>
+    readonly emailVerified: FieldRef<"users", 'Boolean'>
+    readonly image: FieldRef<"users", 'String'>
+    readonly createdAt: FieldRef<"users", 'DateTime'>
+    readonly updatedAt: FieldRef<"users", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * users findUnique
+   */
+  export type usersFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * Filter, which users to fetch.
+     */
+    where: usersWhereUniqueInput
+  }
+
+  /**
+   * users findUniqueOrThrow
+   */
+  export type usersFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * Filter, which users to fetch.
+     */
+    where: usersWhereUniqueInput
+  }
+
+  /**
+   * users findFirst
+   */
+  export type usersFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * Filter, which users to fetch.
+     */
+    where?: usersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of users to fetch.
+     */
+    orderBy?: usersOrderByWithRelationInput | usersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for users.
+     */
+    cursor?: usersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` users from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` users.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of users.
+     */
+    distinct?: UsersScalarFieldEnum | UsersScalarFieldEnum[]
+  }
+
+  /**
+   * users findFirstOrThrow
+   */
+  export type usersFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * Filter, which users to fetch.
+     */
+    where?: usersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of users to fetch.
+     */
+    orderBy?: usersOrderByWithRelationInput | usersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for users.
+     */
+    cursor?: usersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` users from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` users.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of users.
+     */
+    distinct?: UsersScalarFieldEnum | UsersScalarFieldEnum[]
+  }
+
+  /**
+   * users findMany
+   */
+  export type usersFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * Filter, which users to fetch.
+     */
+    where?: usersWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of users to fetch.
+     */
+    orderBy?: usersOrderByWithRelationInput | usersOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing users.
+     */
+    cursor?: usersWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` users from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` users.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of users.
+     */
+    distinct?: UsersScalarFieldEnum | UsersScalarFieldEnum[]
+  }
+
+  /**
+   * users create
+   */
+  export type usersCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * The data needed to create a users.
+     */
+    data: XOR<usersCreateInput, usersUncheckedCreateInput>
+  }
+
+  /**
+   * users createMany
+   */
+  export type usersCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many users.
+     */
+    data: usersCreateManyInput | usersCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * users createManyAndReturn
+   */
+  export type usersCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * The data used to create many users.
+     */
+    data: usersCreateManyInput | usersCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * users update
+   */
+  export type usersUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * The data needed to update a users.
+     */
+    data: XOR<usersUpdateInput, usersUncheckedUpdateInput>
+    /**
+     * Choose, which users to update.
+     */
+    where: usersWhereUniqueInput
+  }
+
+  /**
+   * users updateMany
+   */
+  export type usersUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update users.
+     */
+    data: XOR<usersUpdateManyMutationInput, usersUncheckedUpdateManyInput>
+    /**
+     * Filter which users to update
+     */
+    where?: usersWhereInput
+    /**
+     * Limit how many users to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * users updateManyAndReturn
+   */
+  export type usersUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * The data used to update users.
+     */
+    data: XOR<usersUpdateManyMutationInput, usersUncheckedUpdateManyInput>
+    /**
+     * Filter which users to update
+     */
+    where?: usersWhereInput
+    /**
+     * Limit how many users to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * users upsert
+   */
+  export type usersUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * The filter to search for the users to update in case it exists.
+     */
+    where: usersWhereUniqueInput
+    /**
+     * In case the users found by the `where` argument doesn't exist, create a new users with this data.
+     */
+    create: XOR<usersCreateInput, usersUncheckedCreateInput>
+    /**
+     * In case the users was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<usersUpdateInput, usersUncheckedUpdateInput>
+  }
+
+  /**
+   * users delete
+   */
+  export type usersDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+    /**
+     * Filter which users to delete.
+     */
+    where: usersWhereUniqueInput
+  }
+
+  /**
+   * users deleteMany
+   */
+  export type usersDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which users to delete
+     */
+    where?: usersWhereInput
+    /**
+     * Limit how many users to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * users.accounts
+   */
+  export type users$accountsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the accounts
+     */
+    select?: accountsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the accounts
+     */
+    omit?: accountsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: accountsInclude<ExtArgs> | null
+    where?: accountsWhereInput
+    orderBy?: accountsOrderByWithRelationInput | accountsOrderByWithRelationInput[]
+    cursor?: accountsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountsScalarFieldEnum | AccountsScalarFieldEnum[]
+  }
+
+  /**
+   * users.sessions
+   */
+  export type users$sessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the sessions
+     */
+    select?: sessionsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the sessions
+     */
+    omit?: sessionsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: sessionsInclude<ExtArgs> | null
+    where?: sessionsWhereInput
+    orderBy?: sessionsOrderByWithRelationInput | sessionsOrderByWithRelationInput[]
+    cursor?: sessionsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SessionsScalarFieldEnum | SessionsScalarFieldEnum[]
+  }
+
+  /**
+   * users without action
+   */
+  export type usersDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the users
+     */
+    select?: usersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the users
+     */
+    omit?: usersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: usersInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Organization
    */
 
@@ -13295,6 +17006,7 @@ export namespace Prisma {
     tertiaryColor?: boolean
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: boolean | Organization$activityLogsArgs<ExtArgs>
     events?: boolean | Organization$eventsArgs<ExtArgs>
     requests?: boolean | Organization$requestsArgs<ExtArgs>
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
@@ -13302,7 +17014,6 @@ export namespace Prisma {
     socialLinks?: boolean | Organization$socialLinksArgs<ExtArgs>
     creator?: boolean | Organization$creatorArgs<ExtArgs>
     wallets?: boolean | Organization$walletsArgs<ExtArgs>
-    activityLogs?: boolean | Organization$activityLogsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -13385,6 +17096,7 @@ export namespace Prisma {
 
   export type OrganizationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "description" | "logoUrl" | "bannerUrl" | "primaryColor" | "secondaryColor" | "faviconUrl" | "websiteUrl" | "contactEmail" | "createdBy" | "createdAt" | "updatedAt" | "phone" | "paystackAccountName" | "paystackAccountNumber" | "paystackBankCode" | "subaccountCode" | "tertiaryColor" | "allowJoinRequests" | "autoPayout", ExtArgs["result"]["organization"]>
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    activityLogs?: boolean | Organization$activityLogsArgs<ExtArgs>
     events?: boolean | Organization$eventsArgs<ExtArgs>
     requests?: boolean | Organization$requestsArgs<ExtArgs>
     invitations?: boolean | Organization$invitationsArgs<ExtArgs>
@@ -13392,7 +17104,6 @@ export namespace Prisma {
     socialLinks?: boolean | Organization$socialLinksArgs<ExtArgs>
     creator?: boolean | Organization$creatorArgs<ExtArgs>
     wallets?: boolean | Organization$walletsArgs<ExtArgs>
-    activityLogs?: boolean | Organization$activityLogsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13405,6 +17116,7 @@ export namespace Prisma {
   export type $OrganizationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Organization"
     objects: {
+      activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
       events: Prisma.$EventPayload<ExtArgs>[]
       requests: Prisma.$MembershipRequestPayload<ExtArgs>[]
       invitations: Prisma.$OrganizationInvitationPayload<ExtArgs>[]
@@ -13412,7 +17124,6 @@ export namespace Prisma {
       socialLinks: Prisma.$OrganizationSocialLinkPayload<ExtArgs>[]
       creator: Prisma.$ProfilePayload<ExtArgs> | null
       wallets: Prisma.$WalletPayload<ExtArgs>[]
-      activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -13831,6 +17542,7 @@ export namespace Prisma {
    */
   export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    activityLogs<T extends Organization$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     events<T extends Organization$eventsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     requests<T extends Organization$requestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$requestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MembershipRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     invitations<T extends Organization$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -13838,7 +17550,6 @@ export namespace Prisma {
     socialLinks<T extends Organization$socialLinksArgs<ExtArgs> = {}>(args?: Subset<T, Organization$socialLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationSocialLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     creator<T extends Organization$creatorArgs<ExtArgs> = {}>(args?: Subset<T, Organization$creatorArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     wallets<T extends Organization$walletsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$walletsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    activityLogs<T extends Organization$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -14291,6 +18002,30 @@ export namespace Prisma {
   }
 
   /**
+   * Organization.activityLogs
+   */
+  export type Organization$activityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ActivityLog
+     */
+    omit?: ActivityLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ActivityLogInclude<ExtArgs> | null
+    where?: ActivityLogWhereInput
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    cursor?: ActivityLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
+  }
+
+  /**
    * Organization.events
    */
   export type Organization$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14451,30 +18186,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
-  }
-
-  /**
-   * Organization.activityLogs
-   */
-  export type Organization$activityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ActivityLog
-     */
-    select?: ActivityLogSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the ActivityLog
-     */
-    omit?: ActivityLogOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ActivityLogInclude<ExtArgs> | null
-    where?: ActivityLogWhereInput
-    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
-    cursor?: ActivityLogWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
   }
 
   /**
@@ -15593,7 +19304,6 @@ export namespace Prisma {
   export type OrganizationInvitationMinAggregateOutputType = {
     id: string | null
     organizationId: string | null
-    inviterId: string | null
     email: string | null
     role: $Enums.OrganizationRole | null
     status: $Enums.InvitationStatus | null
@@ -15601,12 +19311,12 @@ export namespace Prisma {
     expiresAt: Date | null
     createdAt: Date | null
     respondedAt: Date | null
+    inviterId: string | null
   }
 
   export type OrganizationInvitationMaxAggregateOutputType = {
     id: string | null
     organizationId: string | null
-    inviterId: string | null
     email: string | null
     role: $Enums.OrganizationRole | null
     status: $Enums.InvitationStatus | null
@@ -15614,12 +19324,12 @@ export namespace Prisma {
     expiresAt: Date | null
     createdAt: Date | null
     respondedAt: Date | null
+    inviterId: string | null
   }
 
   export type OrganizationInvitationCountAggregateOutputType = {
     id: number
     organizationId: number
-    inviterId: number
     email: number
     role: number
     status: number
@@ -15627,6 +19337,7 @@ export namespace Prisma {
     expiresAt: number
     createdAt: number
     respondedAt: number
+    inviterId: number
     _all: number
   }
 
@@ -15634,7 +19345,6 @@ export namespace Prisma {
   export type OrganizationInvitationMinAggregateInputType = {
     id?: true
     organizationId?: true
-    inviterId?: true
     email?: true
     role?: true
     status?: true
@@ -15642,12 +19352,12 @@ export namespace Prisma {
     expiresAt?: true
     createdAt?: true
     respondedAt?: true
+    inviterId?: true
   }
 
   export type OrganizationInvitationMaxAggregateInputType = {
     id?: true
     organizationId?: true
-    inviterId?: true
     email?: true
     role?: true
     status?: true
@@ -15655,12 +19365,12 @@ export namespace Prisma {
     expiresAt?: true
     createdAt?: true
     respondedAt?: true
+    inviterId?: true
   }
 
   export type OrganizationInvitationCountAggregateInputType = {
     id?: true
     organizationId?: true
-    inviterId?: true
     email?: true
     role?: true
     status?: true
@@ -15668,6 +19378,7 @@ export namespace Prisma {
     expiresAt?: true
     createdAt?: true
     respondedAt?: true
+    inviterId?: true
     _all?: true
   }
 
@@ -15746,7 +19457,6 @@ export namespace Prisma {
   export type OrganizationInvitationGroupByOutputType = {
     id: string
     organizationId: string
-    inviterId: string | null
     email: string
     role: $Enums.OrganizationRole
     status: $Enums.InvitationStatus
@@ -15754,6 +19464,7 @@ export namespace Prisma {
     expiresAt: Date | null
     createdAt: Date
     respondedAt: Date | null
+    inviterId: string | null
     _count: OrganizationInvitationCountAggregateOutputType | null
     _min: OrganizationInvitationMinAggregateOutputType | null
     _max: OrganizationInvitationMaxAggregateOutputType | null
@@ -15776,7 +19487,6 @@ export namespace Prisma {
   export type OrganizationInvitationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     organizationId?: boolean
-    inviterId?: boolean
     email?: boolean
     role?: boolean
     status?: boolean
@@ -15784,6 +19494,7 @@ export namespace Prisma {
     expiresAt?: boolean
     createdAt?: boolean
     respondedAt?: boolean
+    inviterId?: boolean
     inviter?: boolean | OrganizationInvitation$inviterArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organizationInvitation"]>
@@ -15791,7 +19502,6 @@ export namespace Prisma {
   export type OrganizationInvitationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     organizationId?: boolean
-    inviterId?: boolean
     email?: boolean
     role?: boolean
     status?: boolean
@@ -15799,6 +19509,7 @@ export namespace Prisma {
     expiresAt?: boolean
     createdAt?: boolean
     respondedAt?: boolean
+    inviterId?: boolean
     inviter?: boolean | OrganizationInvitation$inviterArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organizationInvitation"]>
@@ -15806,7 +19517,6 @@ export namespace Prisma {
   export type OrganizationInvitationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     organizationId?: boolean
-    inviterId?: boolean
     email?: boolean
     role?: boolean
     status?: boolean
@@ -15814,6 +19524,7 @@ export namespace Prisma {
     expiresAt?: boolean
     createdAt?: boolean
     respondedAt?: boolean
+    inviterId?: boolean
     inviter?: boolean | OrganizationInvitation$inviterArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organizationInvitation"]>
@@ -15821,7 +19532,6 @@ export namespace Prisma {
   export type OrganizationInvitationSelectScalar = {
     id?: boolean
     organizationId?: boolean
-    inviterId?: boolean
     email?: boolean
     role?: boolean
     status?: boolean
@@ -15829,9 +19539,10 @@ export namespace Prisma {
     expiresAt?: boolean
     createdAt?: boolean
     respondedAt?: boolean
+    inviterId?: boolean
   }
 
-  export type OrganizationInvitationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "inviterId" | "email" | "role" | "status" | "token" | "expiresAt" | "createdAt" | "respondedAt", ExtArgs["result"]["organizationInvitation"]>
+  export type OrganizationInvitationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "email" | "role" | "status" | "token" | "expiresAt" | "createdAt" | "respondedAt" | "inviterId", ExtArgs["result"]["organizationInvitation"]>
   export type OrganizationInvitationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     inviter?: boolean | OrganizationInvitation$inviterArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -15854,7 +19565,6 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       organizationId: string
-      inviterId: string | null
       email: string
       role: $Enums.OrganizationRole
       status: $Enums.InvitationStatus
@@ -15862,6 +19572,7 @@ export namespace Prisma {
       expiresAt: Date | null
       createdAt: Date
       respondedAt: Date | null
+      inviterId: string | null
     }, ExtArgs["result"]["organizationInvitation"]>
     composites: {}
   }
@@ -16289,7 +20000,6 @@ export namespace Prisma {
   interface OrganizationInvitationFieldRefs {
     readonly id: FieldRef<"OrganizationInvitation", 'String'>
     readonly organizationId: FieldRef<"OrganizationInvitation", 'String'>
-    readonly inviterId: FieldRef<"OrganizationInvitation", 'String'>
     readonly email: FieldRef<"OrganizationInvitation", 'String'>
     readonly role: FieldRef<"OrganizationInvitation", 'OrganizationRole'>
     readonly status: FieldRef<"OrganizationInvitation", 'InvitationStatus'>
@@ -16297,6 +20007,7 @@ export namespace Prisma {
     readonly expiresAt: FieldRef<"OrganizationInvitation", 'DateTime'>
     readonly createdAt: FieldRef<"OrganizationInvitation", 'DateTime'>
     readonly respondedAt: FieldRef<"OrganizationInvitation", 'DateTime'>
+    readonly inviterId: FieldRef<"OrganizationInvitation", 'String'>
   }
     
 
@@ -33211,6 +36922,7 @@ export namespace Prisma {
   export type ProfileMinAggregateOutputType = {
     id: string | null
     email: string | null
+    emailVerified: boolean | null
     passwordHash: string | null
     username: string | null
     fullName: string | null
@@ -33231,6 +36943,7 @@ export namespace Prisma {
   export type ProfileMaxAggregateOutputType = {
     id: string | null
     email: string | null
+    emailVerified: boolean | null
     passwordHash: string | null
     username: string | null
     fullName: string | null
@@ -33251,6 +36964,7 @@ export namespace Prisma {
   export type ProfileCountAggregateOutputType = {
     id: number
     email: number
+    emailVerified: number
     passwordHash: number
     username: number
     fullName: number
@@ -33283,6 +36997,7 @@ export namespace Prisma {
   export type ProfileMinAggregateInputType = {
     id?: true
     email?: true
+    emailVerified?: true
     passwordHash?: true
     username?: true
     fullName?: true
@@ -33303,6 +37018,7 @@ export namespace Prisma {
   export type ProfileMaxAggregateInputType = {
     id?: true
     email?: true
+    emailVerified?: true
     passwordHash?: true
     username?: true
     fullName?: true
@@ -33323,6 +37039,7 @@ export namespace Prisma {
   export type ProfileCountAggregateInputType = {
     id?: true
     email?: true
+    emailVerified?: true
     passwordHash?: true
     username?: true
     fullName?: true
@@ -33430,6 +37147,7 @@ export namespace Prisma {
   export type ProfileGroupByOutputType = {
     id: string
     email: string
+    emailVerified: boolean
     passwordHash: string | null
     username: string
     fullName: string
@@ -33469,6 +37187,7 @@ export namespace Prisma {
   export type ProfileSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
+    emailVerified?: boolean
     passwordHash?: boolean
     username?: boolean
     fullName?: boolean
@@ -33484,6 +37203,7 @@ export namespace Prisma {
     communicationCredits?: boolean
     isVerifiedPartner?: boolean
     pricingPlan?: boolean
+    activityLogs?: boolean | Profile$activityLogsArgs<ExtArgs>
     createdEvents?: boolean | Profile$createdEventsArgs<ExtArgs>
     resolvedRequests?: boolean | Profile$resolvedRequestsArgs<ExtArgs>
     membershipRequests?: boolean | Profile$membershipRequestsArgs<ExtArgs>
@@ -33499,13 +37219,13 @@ export namespace Prisma {
     votes?: boolean | Profile$votesArgs<ExtArgs>
     nominatedOptions?: boolean | Profile$nominatedOptionsArgs<ExtArgs>
     wallets?: boolean | Profile$walletsArgs<ExtArgs>
-    activityLogs?: boolean | Profile$activityLogsArgs<ExtArgs>
     _count?: boolean | ProfileCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["profile"]>
 
   export type ProfileSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
+    emailVerified?: boolean
     passwordHash?: boolean
     username?: boolean
     fullName?: boolean
@@ -33527,6 +37247,7 @@ export namespace Prisma {
   export type ProfileSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
+    emailVerified?: boolean
     passwordHash?: boolean
     username?: boolean
     fullName?: boolean
@@ -33548,6 +37269,7 @@ export namespace Prisma {
   export type ProfileSelectScalar = {
     id?: boolean
     email?: boolean
+    emailVerified?: boolean
     passwordHash?: boolean
     username?: boolean
     fullName?: boolean
@@ -33565,8 +37287,9 @@ export namespace Prisma {
     pricingPlan?: boolean
   }
 
-  export type ProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "passwordHash" | "username" | "fullName" | "avatarUrl" | "onboardingCompleted" | "onboardingStep" | "referredBy" | "currentOrganizationId" | "createdAt" | "updatedAt" | "phone" | "whatsappOptIn" | "communicationCredits" | "isVerifiedPartner" | "pricingPlan", ExtArgs["result"]["profile"]>
+  export type ProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "emailVerified" | "passwordHash" | "username" | "fullName" | "avatarUrl" | "onboardingCompleted" | "onboardingStep" | "referredBy" | "currentOrganizationId" | "createdAt" | "updatedAt" | "phone" | "whatsappOptIn" | "communicationCredits" | "isVerifiedPartner" | "pricingPlan", ExtArgs["result"]["profile"]>
   export type ProfileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    activityLogs?: boolean | Profile$activityLogsArgs<ExtArgs>
     createdEvents?: boolean | Profile$createdEventsArgs<ExtArgs>
     resolvedRequests?: boolean | Profile$resolvedRequestsArgs<ExtArgs>
     membershipRequests?: boolean | Profile$membershipRequestsArgs<ExtArgs>
@@ -33582,7 +37305,6 @@ export namespace Prisma {
     votes?: boolean | Profile$votesArgs<ExtArgs>
     nominatedOptions?: boolean | Profile$nominatedOptionsArgs<ExtArgs>
     wallets?: boolean | Profile$walletsArgs<ExtArgs>
-    activityLogs?: boolean | Profile$activityLogsArgs<ExtArgs>
     _count?: boolean | ProfileCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProfileIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -33595,6 +37317,7 @@ export namespace Prisma {
   export type $ProfilePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Profile"
     objects: {
+      activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
       createdEvents: Prisma.$EventPayload<ExtArgs>[]
       resolvedRequests: Prisma.$MembershipRequestPayload<ExtArgs>[]
       membershipRequests: Prisma.$MembershipRequestPayload<ExtArgs>[]
@@ -33610,11 +37333,11 @@ export namespace Prisma {
       votes: Prisma.$VotePayload<ExtArgs>[]
       nominatedOptions: Prisma.$VotingOptionPayload<ExtArgs>[]
       wallets: Prisma.$WalletPayload<ExtArgs>[]
-      activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       email: string
+      emailVerified: boolean
       passwordHash: string | null
       username: string
       fullName: string
@@ -34024,6 +37747,7 @@ export namespace Prisma {
    */
   export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    activityLogs<T extends Profile$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, Profile$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     createdEvents<T extends Profile$createdEventsArgs<ExtArgs> = {}>(args?: Subset<T, Profile$createdEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     resolvedRequests<T extends Profile$resolvedRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Profile$resolvedRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MembershipRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     membershipRequests<T extends Profile$membershipRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Profile$membershipRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MembershipRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -34039,7 +37763,6 @@ export namespace Prisma {
     votes<T extends Profile$votesArgs<ExtArgs> = {}>(args?: Subset<T, Profile$votesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     nominatedOptions<T extends Profile$nominatedOptionsArgs<ExtArgs> = {}>(args?: Subset<T, Profile$nominatedOptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotingOptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     wallets<T extends Profile$walletsArgs<ExtArgs> = {}>(args?: Subset<T, Profile$walletsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    activityLogs<T extends Profile$activityLogsArgs<ExtArgs> = {}>(args?: Subset<T, Profile$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -34071,6 +37794,7 @@ export namespace Prisma {
   interface ProfileFieldRefs {
     readonly id: FieldRef<"Profile", 'String'>
     readonly email: FieldRef<"Profile", 'String'>
+    readonly emailVerified: FieldRef<"Profile", 'Boolean'>
     readonly passwordHash: FieldRef<"Profile", 'String'>
     readonly username: FieldRef<"Profile", 'String'>
     readonly fullName: FieldRef<"Profile", 'String'>
@@ -34487,6 +38211,30 @@ export namespace Prisma {
   }
 
   /**
+   * Profile.activityLogs
+   */
+  export type Profile$activityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ActivityLog
+     */
+    select?: ActivityLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ActivityLog
+     */
+    omit?: ActivityLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ActivityLogInclude<ExtArgs> | null
+    where?: ActivityLogWhereInput
+    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
+    cursor?: ActivityLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
+  }
+
+  /**
    * Profile.createdEvents
    */
   export type Profile$createdEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -34834,30 +38582,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
-  }
-
-  /**
-   * Profile.activityLogs
-   */
-  export type Profile$activityLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ActivityLog
-     */
-    select?: ActivityLogSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the ActivityLog
-     */
-    omit?: ActivityLogOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ActivityLogInclude<ExtArgs> | null
-    where?: ActivityLogWhereInput
-    orderBy?: ActivityLogOrderByWithRelationInput | ActivityLogOrderByWithRelationInput[]
-    cursor?: ActivityLogWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: ActivityLogScalarFieldEnum | ActivityLogScalarFieldEnum[]
   }
 
   /**
@@ -40710,7 +44434,6 @@ export namespace Prisma {
     eventId: string | null
     optionId: string | null
     categoryId: string | null
-    voterId: string | null
     createdAt: Date | null
     paymentId: string | null
     smsSent: boolean | null
@@ -40719,6 +44442,7 @@ export namespace Prisma {
     voterEmail: string | null
     voterPhone: string | null
     eventMemberId: string | null
+    voterId: string | null
   }
 
   export type VoteMaxAggregateOutputType = {
@@ -40726,7 +44450,6 @@ export namespace Prisma {
     eventId: string | null
     optionId: string | null
     categoryId: string | null
-    voterId: string | null
     createdAt: Date | null
     paymentId: string | null
     smsSent: boolean | null
@@ -40735,6 +44458,7 @@ export namespace Prisma {
     voterEmail: string | null
     voterPhone: string | null
     eventMemberId: string | null
+    voterId: string | null
   }
 
   export type VoteCountAggregateOutputType = {
@@ -40742,7 +44466,6 @@ export namespace Prisma {
     eventId: number
     optionId: number
     categoryId: number
-    voterId: number
     createdAt: number
     paymentId: number
     smsSent: number
@@ -40751,6 +44474,7 @@ export namespace Prisma {
     voterEmail: number
     voterPhone: number
     eventMemberId: number
+    voterId: number
     _all: number
   }
 
@@ -40768,7 +44492,6 @@ export namespace Prisma {
     eventId?: true
     optionId?: true
     categoryId?: true
-    voterId?: true
     createdAt?: true
     paymentId?: true
     smsSent?: true
@@ -40777,6 +44500,7 @@ export namespace Prisma {
     voterEmail?: true
     voterPhone?: true
     eventMemberId?: true
+    voterId?: true
   }
 
   export type VoteMaxAggregateInputType = {
@@ -40784,7 +44508,6 @@ export namespace Prisma {
     eventId?: true
     optionId?: true
     categoryId?: true
-    voterId?: true
     createdAt?: true
     paymentId?: true
     smsSent?: true
@@ -40793,6 +44516,7 @@ export namespace Prisma {
     voterEmail?: true
     voterPhone?: true
     eventMemberId?: true
+    voterId?: true
   }
 
   export type VoteCountAggregateInputType = {
@@ -40800,7 +44524,6 @@ export namespace Prisma {
     eventId?: true
     optionId?: true
     categoryId?: true
-    voterId?: true
     createdAt?: true
     paymentId?: true
     smsSent?: true
@@ -40809,6 +44532,7 @@ export namespace Prisma {
     voterEmail?: true
     voterPhone?: true
     eventMemberId?: true
+    voterId?: true
     _all?: true
   }
 
@@ -40903,7 +44627,6 @@ export namespace Prisma {
     eventId: string
     optionId: string
     categoryId: string | null
-    voterId: string | null
     createdAt: Date
     paymentId: string | null
     smsSent: boolean
@@ -40912,6 +44635,7 @@ export namespace Prisma {
     voterEmail: string | null
     voterPhone: string | null
     eventMemberId: string | null
+    voterId: string | null
     _count: VoteCountAggregateOutputType | null
     _avg: VoteAvgAggregateOutputType | null
     _sum: VoteSumAggregateOutputType | null
@@ -40938,7 +44662,6 @@ export namespace Prisma {
     eventId?: boolean
     optionId?: boolean
     categoryId?: boolean
-    voterId?: boolean
     createdAt?: boolean
     paymentId?: boolean
     smsSent?: boolean
@@ -40947,6 +44670,7 @@ export namespace Prisma {
     voterEmail?: boolean
     voterPhone?: boolean
     eventMemberId?: boolean
+    voterId?: boolean
     category?: boolean | Vote$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
     eventMember?: boolean | Vote$eventMemberArgs<ExtArgs>
@@ -40960,7 +44684,6 @@ export namespace Prisma {
     eventId?: boolean
     optionId?: boolean
     categoryId?: boolean
-    voterId?: boolean
     createdAt?: boolean
     paymentId?: boolean
     smsSent?: boolean
@@ -40969,6 +44692,7 @@ export namespace Prisma {
     voterEmail?: boolean
     voterPhone?: boolean
     eventMemberId?: boolean
+    voterId?: boolean
     category?: boolean | Vote$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
     eventMember?: boolean | Vote$eventMemberArgs<ExtArgs>
@@ -40982,7 +44706,6 @@ export namespace Prisma {
     eventId?: boolean
     optionId?: boolean
     categoryId?: boolean
-    voterId?: boolean
     createdAt?: boolean
     paymentId?: boolean
     smsSent?: boolean
@@ -40991,6 +44714,7 @@ export namespace Prisma {
     voterEmail?: boolean
     voterPhone?: boolean
     eventMemberId?: boolean
+    voterId?: boolean
     category?: boolean | Vote$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
     eventMember?: boolean | Vote$eventMemberArgs<ExtArgs>
@@ -41004,7 +44728,6 @@ export namespace Prisma {
     eventId?: boolean
     optionId?: boolean
     categoryId?: boolean
-    voterId?: boolean
     createdAt?: boolean
     paymentId?: boolean
     smsSent?: boolean
@@ -41013,9 +44736,10 @@ export namespace Prisma {
     voterEmail?: boolean
     voterPhone?: boolean
     eventMemberId?: boolean
+    voterId?: boolean
   }
 
-  export type VoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "optionId" | "categoryId" | "voterId" | "createdAt" | "paymentId" | "smsSent" | "whatsappSent" | "voteCount" | "voterEmail" | "voterPhone" | "eventMemberId", ExtArgs["result"]["vote"]>
+  export type VoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "optionId" | "categoryId" | "createdAt" | "paymentId" | "smsSent" | "whatsappSent" | "voteCount" | "voterEmail" | "voterPhone" | "eventMemberId" | "voterId", ExtArgs["result"]["vote"]>
   export type VoteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     category?: boolean | Vote$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
@@ -41056,7 +44780,6 @@ export namespace Prisma {
       eventId: string
       optionId: string
       categoryId: string | null
-      voterId: string | null
       createdAt: Date
       paymentId: string | null
       smsSent: boolean
@@ -41065,6 +44788,7 @@ export namespace Prisma {
       voterEmail: string | null
       voterPhone: string | null
       eventMemberId: string | null
+      voterId: string | null
     }, ExtArgs["result"]["vote"]>
     composites: {}
   }
@@ -41498,7 +45222,6 @@ export namespace Prisma {
     readonly eventId: FieldRef<"Vote", 'String'>
     readonly optionId: FieldRef<"Vote", 'String'>
     readonly categoryId: FieldRef<"Vote", 'String'>
-    readonly voterId: FieldRef<"Vote", 'String'>
     readonly createdAt: FieldRef<"Vote", 'DateTime'>
     readonly paymentId: FieldRef<"Vote", 'String'>
     readonly smsSent: FieldRef<"Vote", 'Boolean'>
@@ -41507,6 +45230,7 @@ export namespace Prisma {
     readonly voterEmail: FieldRef<"Vote", 'String'>
     readonly voterPhone: FieldRef<"Vote", 'String'>
     readonly eventMemberId: FieldRef<"Vote", 'String'>
+    readonly voterId: FieldRef<"Vote", 'String'>
   }
     
 
@@ -42134,6 +45858,52 @@ export namespace Prisma {
   export type EventRegistrationFieldScalarFieldEnum = (typeof EventRegistrationFieldScalarFieldEnum)[keyof typeof EventRegistrationFieldScalarFieldEnum]
 
 
+  export const AccountsScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    scope: 'scope',
+    accessToken: 'accessToken',
+    accessTokenExpiresAt: 'accessTokenExpiresAt',
+    accountId: 'accountId',
+    createdAt: 'createdAt',
+    idToken: 'idToken',
+    password: 'password',
+    providerId: 'providerId',
+    refreshToken: 'refreshToken',
+    refreshTokenExpiresAt: 'refreshTokenExpiresAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AccountsScalarFieldEnum = (typeof AccountsScalarFieldEnum)[keyof typeof AccountsScalarFieldEnum]
+
+
+  export const SessionsScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    expiresAt: 'expiresAt',
+    token: 'token',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
+  };
+
+  export type SessionsScalarFieldEnum = (typeof SessionsScalarFieldEnum)[keyof typeof SessionsScalarFieldEnum]
+
+
+  export const UsersScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    email: 'email',
+    emailVerified: 'emailVerified',
+    image: 'image',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
+
+
   export const OrganizationScalarFieldEnum: {
     id: 'id',
     name: 'name',
@@ -42177,14 +45947,14 @@ export namespace Prisma {
   export const OrganizationInvitationScalarFieldEnum: {
     id: 'id',
     organizationId: 'organizationId',
-    inviterId: 'inviterId',
     email: 'email',
     role: 'role',
     status: 'status',
     token: 'token',
     expiresAt: 'expiresAt',
     createdAt: 'createdAt',
-    respondedAt: 'respondedAt'
+    respondedAt: 'respondedAt',
+    inviterId: 'inviterId'
   };
 
   export type OrganizationInvitationScalarFieldEnum = (typeof OrganizationInvitationScalarFieldEnum)[keyof typeof OrganizationInvitationScalarFieldEnum]
@@ -42468,6 +46238,7 @@ export namespace Prisma {
   export const ProfileScalarFieldEnum: {
     id: 'id',
     email: 'email',
+    emailVerified: 'emailVerified',
     passwordHash: 'passwordHash',
     username: 'username',
     fullName: 'fullName',
@@ -42580,7 +46351,6 @@ export namespace Prisma {
     eventId: 'eventId',
     optionId: 'optionId',
     categoryId: 'categoryId',
-    voterId: 'voterId',
     createdAt: 'createdAt',
     paymentId: 'paymentId',
     smsSent: 'smsSent',
@@ -42588,7 +46358,8 @@ export namespace Prisma {
     voteCount: 'voteCount',
     voterEmail: 'voterEmail',
     voterPhone: 'voterPhone',
-    eventMemberId: 'eventMemberId'
+    eventMemberId: 'eventMemberId',
+    voterId: 'voterId'
   };
 
   export type VoteScalarFieldEnum = (typeof VoteScalarFieldEnum)[keyof typeof VoteScalarFieldEnum]
@@ -43667,6 +47438,239 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"EventRegistrationField"> | Date | string
   }
 
+  export type accountsWhereInput = {
+    AND?: accountsWhereInput | accountsWhereInput[]
+    OR?: accountsWhereInput[]
+    NOT?: accountsWhereInput | accountsWhereInput[]
+    id?: StringFilter<"accounts"> | string
+    userId?: StringFilter<"accounts"> | string
+    scope?: StringNullableFilter<"accounts"> | string | null
+    accessToken?: StringNullableFilter<"accounts"> | string | null
+    accessTokenExpiresAt?: DateTimeNullableFilter<"accounts"> | Date | string | null
+    accountId?: StringFilter<"accounts"> | string
+    createdAt?: DateTimeFilter<"accounts"> | Date | string
+    idToken?: StringNullableFilter<"accounts"> | string | null
+    password?: StringNullableFilter<"accounts"> | string | null
+    providerId?: StringFilter<"accounts"> | string
+    refreshToken?: StringNullableFilter<"accounts"> | string | null
+    refreshTokenExpiresAt?: DateTimeNullableFilter<"accounts"> | Date | string | null
+    updatedAt?: DateTimeFilter<"accounts"> | Date | string
+    users?: XOR<UsersScalarRelationFilter, usersWhereInput>
+  }
+
+  export type accountsOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scope?: SortOrderInput | SortOrder
+    accessToken?: SortOrderInput | SortOrder
+    accessTokenExpiresAt?: SortOrderInput | SortOrder
+    accountId?: SortOrder
+    createdAt?: SortOrder
+    idToken?: SortOrderInput | SortOrder
+    password?: SortOrderInput | SortOrder
+    providerId?: SortOrder
+    refreshToken?: SortOrderInput | SortOrder
+    refreshTokenExpiresAt?: SortOrderInput | SortOrder
+    updatedAt?: SortOrder
+    users?: usersOrderByWithRelationInput
+  }
+
+  export type accountsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: accountsWhereInput | accountsWhereInput[]
+    OR?: accountsWhereInput[]
+    NOT?: accountsWhereInput | accountsWhereInput[]
+    userId?: StringFilter<"accounts"> | string
+    scope?: StringNullableFilter<"accounts"> | string | null
+    accessToken?: StringNullableFilter<"accounts"> | string | null
+    accessTokenExpiresAt?: DateTimeNullableFilter<"accounts"> | Date | string | null
+    accountId?: StringFilter<"accounts"> | string
+    createdAt?: DateTimeFilter<"accounts"> | Date | string
+    idToken?: StringNullableFilter<"accounts"> | string | null
+    password?: StringNullableFilter<"accounts"> | string | null
+    providerId?: StringFilter<"accounts"> | string
+    refreshToken?: StringNullableFilter<"accounts"> | string | null
+    refreshTokenExpiresAt?: DateTimeNullableFilter<"accounts"> | Date | string | null
+    updatedAt?: DateTimeFilter<"accounts"> | Date | string
+    users?: XOR<UsersScalarRelationFilter, usersWhereInput>
+  }, "id">
+
+  export type accountsOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scope?: SortOrderInput | SortOrder
+    accessToken?: SortOrderInput | SortOrder
+    accessTokenExpiresAt?: SortOrderInput | SortOrder
+    accountId?: SortOrder
+    createdAt?: SortOrder
+    idToken?: SortOrderInput | SortOrder
+    password?: SortOrderInput | SortOrder
+    providerId?: SortOrder
+    refreshToken?: SortOrderInput | SortOrder
+    refreshTokenExpiresAt?: SortOrderInput | SortOrder
+    updatedAt?: SortOrder
+    _count?: accountsCountOrderByAggregateInput
+    _max?: accountsMaxOrderByAggregateInput
+    _min?: accountsMinOrderByAggregateInput
+  }
+
+  export type accountsScalarWhereWithAggregatesInput = {
+    AND?: accountsScalarWhereWithAggregatesInput | accountsScalarWhereWithAggregatesInput[]
+    OR?: accountsScalarWhereWithAggregatesInput[]
+    NOT?: accountsScalarWhereWithAggregatesInput | accountsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"accounts"> | string
+    userId?: StringWithAggregatesFilter<"accounts"> | string
+    scope?: StringNullableWithAggregatesFilter<"accounts"> | string | null
+    accessToken?: StringNullableWithAggregatesFilter<"accounts"> | string | null
+    accessTokenExpiresAt?: DateTimeNullableWithAggregatesFilter<"accounts"> | Date | string | null
+    accountId?: StringWithAggregatesFilter<"accounts"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"accounts"> | Date | string
+    idToken?: StringNullableWithAggregatesFilter<"accounts"> | string | null
+    password?: StringNullableWithAggregatesFilter<"accounts"> | string | null
+    providerId?: StringWithAggregatesFilter<"accounts"> | string
+    refreshToken?: StringNullableWithAggregatesFilter<"accounts"> | string | null
+    refreshTokenExpiresAt?: DateTimeNullableWithAggregatesFilter<"accounts"> | Date | string | null
+    updatedAt?: DateTimeWithAggregatesFilter<"accounts"> | Date | string
+  }
+
+  export type sessionsWhereInput = {
+    AND?: sessionsWhereInput | sessionsWhereInput[]
+    OR?: sessionsWhereInput[]
+    NOT?: sessionsWhereInput | sessionsWhereInput[]
+    id?: StringFilter<"sessions"> | string
+    userId?: StringFilter<"sessions"> | string
+    expiresAt?: DateTimeFilter<"sessions"> | Date | string
+    token?: StringFilter<"sessions"> | string
+    createdAt?: DateTimeFilter<"sessions"> | Date | string
+    updatedAt?: DateTimeFilter<"sessions"> | Date | string
+    ipAddress?: StringNullableFilter<"sessions"> | string | null
+    userAgent?: StringNullableFilter<"sessions"> | string | null
+    users?: XOR<UsersScalarRelationFilter, usersWhereInput>
+  }
+
+  export type sessionsOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    expiresAt?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    users?: usersOrderByWithRelationInput
+  }
+
+  export type sessionsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token?: string
+    AND?: sessionsWhereInput | sessionsWhereInput[]
+    OR?: sessionsWhereInput[]
+    NOT?: sessionsWhereInput | sessionsWhereInput[]
+    userId?: StringFilter<"sessions"> | string
+    expiresAt?: DateTimeFilter<"sessions"> | Date | string
+    createdAt?: DateTimeFilter<"sessions"> | Date | string
+    updatedAt?: DateTimeFilter<"sessions"> | Date | string
+    ipAddress?: StringNullableFilter<"sessions"> | string | null
+    userAgent?: StringNullableFilter<"sessions"> | string | null
+    users?: XOR<UsersScalarRelationFilter, usersWhereInput>
+  }, "id" | "token">
+
+  export type sessionsOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    expiresAt?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    _count?: sessionsCountOrderByAggregateInput
+    _max?: sessionsMaxOrderByAggregateInput
+    _min?: sessionsMinOrderByAggregateInput
+  }
+
+  export type sessionsScalarWhereWithAggregatesInput = {
+    AND?: sessionsScalarWhereWithAggregatesInput | sessionsScalarWhereWithAggregatesInput[]
+    OR?: sessionsScalarWhereWithAggregatesInput[]
+    NOT?: sessionsScalarWhereWithAggregatesInput | sessionsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"sessions"> | string
+    userId?: StringWithAggregatesFilter<"sessions"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"sessions"> | Date | string
+    token?: StringWithAggregatesFilter<"sessions"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"sessions"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"sessions"> | Date | string
+    ipAddress?: StringNullableWithAggregatesFilter<"sessions"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"sessions"> | string | null
+  }
+
+  export type usersWhereInput = {
+    AND?: usersWhereInput | usersWhereInput[]
+    OR?: usersWhereInput[]
+    NOT?: usersWhereInput | usersWhereInput[]
+    id?: StringFilter<"users"> | string
+    name?: StringNullableFilter<"users"> | string | null
+    email?: StringFilter<"users"> | string
+    emailVerified?: BoolFilter<"users"> | boolean
+    image?: StringNullableFilter<"users"> | string | null
+    createdAt?: DateTimeFilter<"users"> | Date | string
+    updatedAt?: DateTimeFilter<"users"> | Date | string
+    accounts?: AccountsListRelationFilter
+    sessions?: SessionsListRelationFilter
+  }
+
+  export type usersOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrderInput | SortOrder
+    email?: SortOrder
+    emailVerified?: SortOrder
+    image?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    accounts?: accountsOrderByRelationAggregateInput
+    sessions?: sessionsOrderByRelationAggregateInput
+  }
+
+  export type usersWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    email?: string
+    AND?: usersWhereInput | usersWhereInput[]
+    OR?: usersWhereInput[]
+    NOT?: usersWhereInput | usersWhereInput[]
+    name?: StringNullableFilter<"users"> | string | null
+    emailVerified?: BoolFilter<"users"> | boolean
+    image?: StringNullableFilter<"users"> | string | null
+    createdAt?: DateTimeFilter<"users"> | Date | string
+    updatedAt?: DateTimeFilter<"users"> | Date | string
+    accounts?: AccountsListRelationFilter
+    sessions?: SessionsListRelationFilter
+  }, "id" | "email">
+
+  export type usersOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrderInput | SortOrder
+    email?: SortOrder
+    emailVerified?: SortOrder
+    image?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: usersCountOrderByAggregateInput
+    _max?: usersMaxOrderByAggregateInput
+    _min?: usersMinOrderByAggregateInput
+  }
+
+  export type usersScalarWhereWithAggregatesInput = {
+    AND?: usersScalarWhereWithAggregatesInput | usersScalarWhereWithAggregatesInput[]
+    OR?: usersScalarWhereWithAggregatesInput[]
+    NOT?: usersScalarWhereWithAggregatesInput | usersScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"users"> | string
+    name?: StringNullableWithAggregatesFilter<"users"> | string | null
+    email?: StringWithAggregatesFilter<"users"> | string
+    emailVerified?: BoolWithAggregatesFilter<"users"> | boolean
+    image?: StringNullableWithAggregatesFilter<"users"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"users"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"users"> | Date | string
+  }
+
   export type OrganizationWhereInput = {
     AND?: OrganizationWhereInput | OrganizationWhereInput[]
     OR?: OrganizationWhereInput[]
@@ -43693,6 +47697,7 @@ export namespace Prisma {
     tertiaryColor?: StringFilter<"Organization"> | string
     allowJoinRequests?: BoolFilter<"Organization"> | boolean
     autoPayout?: BoolFilter<"Organization"> | boolean
+    activityLogs?: ActivityLogListRelationFilter
     events?: EventListRelationFilter
     requests?: MembershipRequestListRelationFilter
     invitations?: OrganizationInvitationListRelationFilter
@@ -43700,7 +47705,6 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkListRelationFilter
     creator?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
     wallets?: WalletListRelationFilter
-    activityLogs?: ActivityLogListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -43726,6 +47730,7 @@ export namespace Prisma {
     tertiaryColor?: SortOrder
     allowJoinRequests?: SortOrder
     autoPayout?: SortOrder
+    activityLogs?: ActivityLogOrderByRelationAggregateInput
     events?: EventOrderByRelationAggregateInput
     requests?: MembershipRequestOrderByRelationAggregateInput
     invitations?: OrganizationInvitationOrderByRelationAggregateInput
@@ -43733,7 +47738,6 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkOrderByRelationAggregateInput
     creator?: ProfileOrderByWithRelationInput
     wallets?: WalletOrderByRelationAggregateInput
-    activityLogs?: ActivityLogOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -43762,6 +47766,7 @@ export namespace Prisma {
     tertiaryColor?: StringFilter<"Organization"> | string
     allowJoinRequests?: BoolFilter<"Organization"> | boolean
     autoPayout?: BoolFilter<"Organization"> | boolean
+    activityLogs?: ActivityLogListRelationFilter
     events?: EventListRelationFilter
     requests?: MembershipRequestListRelationFilter
     invitations?: OrganizationInvitationListRelationFilter
@@ -43769,7 +47774,6 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkListRelationFilter
     creator?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
     wallets?: WalletListRelationFilter
-    activityLogs?: ActivityLogListRelationFilter
   }, "id" | "slug">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -43898,7 +47902,6 @@ export namespace Prisma {
     NOT?: OrganizationInvitationWhereInput | OrganizationInvitationWhereInput[]
     id?: UuidFilter<"OrganizationInvitation"> | string
     organizationId?: UuidFilter<"OrganizationInvitation"> | string
-    inviterId?: StringNullableFilter<"OrganizationInvitation"> | string | null
     email?: StringFilter<"OrganizationInvitation"> | string
     role?: EnumOrganizationRoleFilter<"OrganizationInvitation"> | $Enums.OrganizationRole
     status?: EnumInvitationStatusFilter<"OrganizationInvitation"> | $Enums.InvitationStatus
@@ -43906,6 +47909,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"OrganizationInvitation"> | Date | string | null
     createdAt?: DateTimeFilter<"OrganizationInvitation"> | Date | string
     respondedAt?: DateTimeNullableFilter<"OrganizationInvitation"> | Date | string | null
+    inviterId?: StringNullableFilter<"OrganizationInvitation"> | string | null
     inviter?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
   }
@@ -43913,7 +47917,6 @@ export namespace Prisma {
   export type OrganizationInvitationOrderByWithRelationInput = {
     id?: SortOrder
     organizationId?: SortOrder
-    inviterId?: SortOrderInput | SortOrder
     email?: SortOrder
     role?: SortOrder
     status?: SortOrder
@@ -43921,6 +47924,7 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     respondedAt?: SortOrderInput | SortOrder
+    inviterId?: SortOrderInput | SortOrder
     inviter?: ProfileOrderByWithRelationInput
     organization?: OrganizationOrderByWithRelationInput
   }
@@ -43933,13 +47937,13 @@ export namespace Prisma {
     OR?: OrganizationInvitationWhereInput[]
     NOT?: OrganizationInvitationWhereInput | OrganizationInvitationWhereInput[]
     organizationId?: UuidFilter<"OrganizationInvitation"> | string
-    inviterId?: StringNullableFilter<"OrganizationInvitation"> | string | null
     email?: StringFilter<"OrganizationInvitation"> | string
     role?: EnumOrganizationRoleFilter<"OrganizationInvitation"> | $Enums.OrganizationRole
     status?: EnumInvitationStatusFilter<"OrganizationInvitation"> | $Enums.InvitationStatus
     expiresAt?: DateTimeNullableFilter<"OrganizationInvitation"> | Date | string | null
     createdAt?: DateTimeFilter<"OrganizationInvitation"> | Date | string
     respondedAt?: DateTimeNullableFilter<"OrganizationInvitation"> | Date | string | null
+    inviterId?: StringNullableFilter<"OrganizationInvitation"> | string | null
     inviter?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
   }, "id" | "token" | "organizationId_email_status">
@@ -43947,7 +47951,6 @@ export namespace Prisma {
   export type OrganizationInvitationOrderByWithAggregationInput = {
     id?: SortOrder
     organizationId?: SortOrder
-    inviterId?: SortOrderInput | SortOrder
     email?: SortOrder
     role?: SortOrder
     status?: SortOrder
@@ -43955,6 +47958,7 @@ export namespace Prisma {
     expiresAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     respondedAt?: SortOrderInput | SortOrder
+    inviterId?: SortOrderInput | SortOrder
     _count?: OrganizationInvitationCountOrderByAggregateInput
     _max?: OrganizationInvitationMaxOrderByAggregateInput
     _min?: OrganizationInvitationMinOrderByAggregateInput
@@ -43966,7 +47970,6 @@ export namespace Prisma {
     NOT?: OrganizationInvitationScalarWhereWithAggregatesInput | OrganizationInvitationScalarWhereWithAggregatesInput[]
     id?: UuidWithAggregatesFilter<"OrganizationInvitation"> | string
     organizationId?: UuidWithAggregatesFilter<"OrganizationInvitation"> | string
-    inviterId?: StringNullableWithAggregatesFilter<"OrganizationInvitation"> | string | null
     email?: StringWithAggregatesFilter<"OrganizationInvitation"> | string
     role?: EnumOrganizationRoleWithAggregatesFilter<"OrganizationInvitation"> | $Enums.OrganizationRole
     status?: EnumInvitationStatusWithAggregatesFilter<"OrganizationInvitation"> | $Enums.InvitationStatus
@@ -43974,6 +47977,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableWithAggregatesFilter<"OrganizationInvitation"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"OrganizationInvitation"> | Date | string
     respondedAt?: DateTimeNullableWithAggregatesFilter<"OrganizationInvitation"> | Date | string | null
+    inviterId?: StringNullableWithAggregatesFilter<"OrganizationInvitation"> | string | null
   }
 
   export type MembershipRequestWhereInput = {
@@ -45439,6 +49443,7 @@ export namespace Prisma {
     NOT?: ProfileWhereInput | ProfileWhereInput[]
     id?: StringFilter<"Profile"> | string
     email?: StringFilter<"Profile"> | string
+    emailVerified?: BoolFilter<"Profile"> | boolean
     passwordHash?: StringNullableFilter<"Profile"> | string | null
     username?: StringFilter<"Profile"> | string
     fullName?: StringFilter<"Profile"> | string
@@ -45454,6 +49459,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFilter<"Profile"> | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFilter<"Profile"> | boolean
     pricingPlan?: EnumPricingPlanFilter<"Profile"> | $Enums.PricingPlan
+    activityLogs?: ActivityLogListRelationFilter
     createdEvents?: EventListRelationFilter
     resolvedRequests?: MembershipRequestListRelationFilter
     membershipRequests?: MembershipRequestListRelationFilter
@@ -45469,12 +49475,12 @@ export namespace Prisma {
     votes?: VoteListRelationFilter
     nominatedOptions?: VotingOptionListRelationFilter
     wallets?: WalletListRelationFilter
-    activityLogs?: ActivityLogListRelationFilter
   }
 
   export type ProfileOrderByWithRelationInput = {
     id?: SortOrder
     email?: SortOrder
+    emailVerified?: SortOrder
     passwordHash?: SortOrderInput | SortOrder
     username?: SortOrder
     fullName?: SortOrder
@@ -45490,6 +49496,7 @@ export namespace Prisma {
     communicationCredits?: SortOrder
     isVerifiedPartner?: SortOrder
     pricingPlan?: SortOrder
+    activityLogs?: ActivityLogOrderByRelationAggregateInput
     createdEvents?: EventOrderByRelationAggregateInput
     resolvedRequests?: MembershipRequestOrderByRelationAggregateInput
     membershipRequests?: MembershipRequestOrderByRelationAggregateInput
@@ -45505,7 +49512,6 @@ export namespace Prisma {
     votes?: VoteOrderByRelationAggregateInput
     nominatedOptions?: VotingOptionOrderByRelationAggregateInput
     wallets?: WalletOrderByRelationAggregateInput
-    activityLogs?: ActivityLogOrderByRelationAggregateInput
   }
 
   export type ProfileWhereUniqueInput = Prisma.AtLeast<{
@@ -45516,6 +49522,7 @@ export namespace Prisma {
     AND?: ProfileWhereInput | ProfileWhereInput[]
     OR?: ProfileWhereInput[]
     NOT?: ProfileWhereInput | ProfileWhereInput[]
+    emailVerified?: BoolFilter<"Profile"> | boolean
     passwordHash?: StringNullableFilter<"Profile"> | string | null
     fullName?: StringFilter<"Profile"> | string
     avatarUrl?: StringNullableFilter<"Profile"> | string | null
@@ -45529,6 +49536,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFilter<"Profile"> | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFilter<"Profile"> | boolean
     pricingPlan?: EnumPricingPlanFilter<"Profile"> | $Enums.PricingPlan
+    activityLogs?: ActivityLogListRelationFilter
     createdEvents?: EventListRelationFilter
     resolvedRequests?: MembershipRequestListRelationFilter
     membershipRequests?: MembershipRequestListRelationFilter
@@ -45544,12 +49552,12 @@ export namespace Prisma {
     votes?: VoteListRelationFilter
     nominatedOptions?: VotingOptionListRelationFilter
     wallets?: WalletListRelationFilter
-    activityLogs?: ActivityLogListRelationFilter
   }, "id" | "email" | "username" | "phone">
 
   export type ProfileOrderByWithAggregationInput = {
     id?: SortOrder
     email?: SortOrder
+    emailVerified?: SortOrder
     passwordHash?: SortOrderInput | SortOrder
     username?: SortOrder
     fullName?: SortOrder
@@ -45578,6 +49586,7 @@ export namespace Prisma {
     NOT?: ProfileScalarWhereWithAggregatesInput | ProfileScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Profile"> | string
     email?: StringWithAggregatesFilter<"Profile"> | string
+    emailVerified?: BoolWithAggregatesFilter<"Profile"> | boolean
     passwordHash?: StringNullableWithAggregatesFilter<"Profile"> | string | null
     username?: StringWithAggregatesFilter<"Profile"> | string
     fullName?: StringWithAggregatesFilter<"Profile"> | string
@@ -46051,7 +50060,6 @@ export namespace Prisma {
     eventId?: UuidFilter<"Vote"> | string
     optionId?: UuidFilter<"Vote"> | string
     categoryId?: UuidNullableFilter<"Vote"> | string | null
-    voterId?: StringNullableFilter<"Vote"> | string | null
     createdAt?: DateTimeFilter<"Vote"> | Date | string
     paymentId?: UuidNullableFilter<"Vote"> | string | null
     smsSent?: BoolFilter<"Vote"> | boolean
@@ -46060,6 +50068,7 @@ export namespace Prisma {
     voterEmail?: StringNullableFilter<"Vote"> | string | null
     voterPhone?: StringNullableFilter<"Vote"> | string | null
     eventMemberId?: UuidNullableFilter<"Vote"> | string | null
+    voterId?: StringNullableFilter<"Vote"> | string | null
     category?: XOR<VotingCategoryNullableScalarRelationFilter, VotingCategoryWhereInput> | null
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
     eventMember?: XOR<EventMemberNullableScalarRelationFilter, EventMemberWhereInput> | null
@@ -46073,7 +50082,6 @@ export namespace Prisma {
     eventId?: SortOrder
     optionId?: SortOrder
     categoryId?: SortOrderInput | SortOrder
-    voterId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     paymentId?: SortOrderInput | SortOrder
     smsSent?: SortOrder
@@ -46082,6 +50090,7 @@ export namespace Prisma {
     voterEmail?: SortOrderInput | SortOrder
     voterPhone?: SortOrderInput | SortOrder
     eventMemberId?: SortOrderInput | SortOrder
+    voterId?: SortOrderInput | SortOrder
     category?: VotingCategoryOrderByWithRelationInput
     event?: EventOrderByWithRelationInput
     eventMember?: EventMemberOrderByWithRelationInput
@@ -46098,7 +50107,6 @@ export namespace Prisma {
     eventId?: UuidFilter<"Vote"> | string
     optionId?: UuidFilter<"Vote"> | string
     categoryId?: UuidNullableFilter<"Vote"> | string | null
-    voterId?: StringNullableFilter<"Vote"> | string | null
     createdAt?: DateTimeFilter<"Vote"> | Date | string
     paymentId?: UuidNullableFilter<"Vote"> | string | null
     smsSent?: BoolFilter<"Vote"> | boolean
@@ -46107,6 +50115,7 @@ export namespace Prisma {
     voterEmail?: StringNullableFilter<"Vote"> | string | null
     voterPhone?: StringNullableFilter<"Vote"> | string | null
     eventMemberId?: UuidNullableFilter<"Vote"> | string | null
+    voterId?: StringNullableFilter<"Vote"> | string | null
     category?: XOR<VotingCategoryNullableScalarRelationFilter, VotingCategoryWhereInput> | null
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
     eventMember?: XOR<EventMemberNullableScalarRelationFilter, EventMemberWhereInput> | null
@@ -46120,7 +50129,6 @@ export namespace Prisma {
     eventId?: SortOrder
     optionId?: SortOrder
     categoryId?: SortOrderInput | SortOrder
-    voterId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     paymentId?: SortOrderInput | SortOrder
     smsSent?: SortOrder
@@ -46129,6 +50137,7 @@ export namespace Prisma {
     voterEmail?: SortOrderInput | SortOrder
     voterPhone?: SortOrderInput | SortOrder
     eventMemberId?: SortOrderInput | SortOrder
+    voterId?: SortOrderInput | SortOrder
     _count?: VoteCountOrderByAggregateInput
     _avg?: VoteAvgOrderByAggregateInput
     _max?: VoteMaxOrderByAggregateInput
@@ -46144,7 +50153,6 @@ export namespace Prisma {
     eventId?: UuidWithAggregatesFilter<"Vote"> | string
     optionId?: UuidWithAggregatesFilter<"Vote"> | string
     categoryId?: UuidNullableWithAggregatesFilter<"Vote"> | string | null
-    voterId?: StringNullableWithAggregatesFilter<"Vote"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Vote"> | Date | string
     paymentId?: UuidNullableWithAggregatesFilter<"Vote"> | string | null
     smsSent?: BoolWithAggregatesFilter<"Vote"> | boolean
@@ -46153,6 +50161,7 @@ export namespace Prisma {
     voterEmail?: StringNullableWithAggregatesFilter<"Vote"> | string | null
     voterPhone?: StringNullableWithAggregatesFilter<"Vote"> | string | null
     eventMemberId?: UuidNullableWithAggregatesFilter<"Vote"> | string | null
+    voterId?: StringNullableWithAggregatesFilter<"Vote"> | string | null
   }
 
   export type ActivityLogCreateInput = {
@@ -46873,6 +50882,271 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type accountsCreateInput = {
+    id: string
+    scope?: string | null
+    accessToken?: string | null
+    accessTokenExpiresAt?: Date | string | null
+    accountId: string
+    createdAt?: Date | string
+    idToken?: string | null
+    password?: string | null
+    providerId: string
+    refreshToken?: string | null
+    refreshTokenExpiresAt?: Date | string | null
+    updatedAt?: Date | string
+    users: usersCreateNestedOneWithoutAccountsInput
+  }
+
+  export type accountsUncheckedCreateInput = {
+    id: string
+    userId: string
+    scope?: string | null
+    accessToken?: string | null
+    accessTokenExpiresAt?: Date | string | null
+    accountId: string
+    createdAt?: Date | string
+    idToken?: string | null
+    password?: string | null
+    providerId: string
+    refreshToken?: string | null
+    refreshTokenExpiresAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type accountsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idToken?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: StringFieldUpdateOperationsInput | string
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    users?: usersUpdateOneRequiredWithoutAccountsNestedInput
+  }
+
+  export type accountsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idToken?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: StringFieldUpdateOperationsInput | string
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type accountsCreateManyInput = {
+    id: string
+    userId: string
+    scope?: string | null
+    accessToken?: string | null
+    accessTokenExpiresAt?: Date | string | null
+    accountId: string
+    createdAt?: Date | string
+    idToken?: string | null
+    password?: string | null
+    providerId: string
+    refreshToken?: string | null
+    refreshTokenExpiresAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type accountsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idToken?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: StringFieldUpdateOperationsInput | string
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type accountsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idToken?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: StringFieldUpdateOperationsInput | string
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type sessionsCreateInput = {
+    id: string
+    expiresAt: Date | string
+    token: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+    users: usersCreateNestedOneWithoutSessionsInput
+  }
+
+  export type sessionsUncheckedCreateInput = {
+    id: string
+    userId: string
+    expiresAt: Date | string
+    token: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type sessionsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    users?: usersUpdateOneRequiredWithoutSessionsNestedInput
+  }
+
+  export type sessionsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type sessionsCreateManyInput = {
+    id: string
+    userId: string
+    expiresAt: Date | string
+    token: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type sessionsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type sessionsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type usersCreateInput = {
+    id: string
+    name?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: accountsCreateNestedManyWithoutUsersInput
+    sessions?: sessionsCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersUncheckedCreateInput = {
+    id: string
+    name?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: accountsUncheckedCreateNestedManyWithoutUsersInput
+    sessions?: sessionsUncheckedCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: accountsUpdateManyWithoutUsersNestedInput
+    sessions?: sessionsUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: accountsUncheckedUpdateManyWithoutUsersNestedInput
+    sessions?: sessionsUncheckedUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersCreateManyInput = {
+    id: string
+    name?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type usersUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type usersUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type OrganizationCreateInput = {
     id?: string
     name: string
@@ -46895,6 +51169,7 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     events?: EventCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
@@ -46902,7 +51177,6 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -46928,13 +51202,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -46959,6 +51233,7 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     events?: EventUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
@@ -46966,7 +51241,6 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -46992,13 +51266,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -47152,7 +51426,6 @@ export namespace Prisma {
   export type OrganizationInvitationUncheckedCreateInput = {
     id?: string
     organizationId: string
-    inviterId?: string | null
     email: string
     role?: $Enums.OrganizationRole
     status?: $Enums.InvitationStatus
@@ -47160,6 +51433,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     createdAt?: Date | string
     respondedAt?: Date | string | null
+    inviterId?: string | null
   }
 
   export type OrganizationInvitationUpdateInput = {
@@ -47178,7 +51452,6 @@ export namespace Prisma {
   export type OrganizationInvitationUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
-    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
     role?: EnumOrganizationRoleFieldUpdateOperationsInput | $Enums.OrganizationRole
     status?: EnumInvitationStatusFieldUpdateOperationsInput | $Enums.InvitationStatus
@@ -47186,12 +51459,12 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type OrganizationInvitationCreateManyInput = {
     id?: string
     organizationId: string
-    inviterId?: string | null
     email: string
     role?: $Enums.OrganizationRole
     status?: $Enums.InvitationStatus
@@ -47199,6 +51472,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     createdAt?: Date | string
     respondedAt?: Date | string | null
+    inviterId?: string | null
   }
 
   export type OrganizationInvitationUpdateManyMutationInput = {
@@ -47215,7 +51489,6 @@ export namespace Prisma {
   export type OrganizationInvitationUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
-    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
     role?: EnumOrganizationRoleFieldUpdateOperationsInput | $Enums.OrganizationRole
     status?: EnumInvitationStatusFieldUpdateOperationsInput | $Enums.InvitationStatus
@@ -47223,6 +51496,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type MembershipRequestCreateInput = {
@@ -48901,6 +53175,7 @@ export namespace Prisma {
   export type ProfileCreateInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -48915,6 +53190,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -48930,12 +53206,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -48951,6 +53227,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -48965,12 +53242,12 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -48985,6 +53262,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -49000,12 +53278,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -49021,6 +53299,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -49035,12 +53314,12 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileCreateManyInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -49061,6 +53340,7 @@ export namespace Prisma {
   export type ProfileUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -49080,6 +53360,7 @@ export namespace Prisma {
   export type ProfileUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -49630,7 +53911,6 @@ export namespace Prisma {
     eventId: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -49639,6 +53919,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VoteUpdateInput = {
@@ -49662,7 +53943,6 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -49671,6 +53951,7 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VoteCreateManyInput = {
@@ -49678,7 +53959,6 @@ export namespace Prisma {
     eventId: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -49687,6 +53967,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VoteUpdateManyMutationInput = {
@@ -49704,7 +53985,6 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -49713,6 +53993,7 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UuidFilter<$PrismaModel = never> = {
@@ -50509,6 +54790,148 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type UsersScalarRelationFilter = {
+    is?: usersWhereInput
+    isNot?: usersWhereInput
+  }
+
+  export type accountsCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scope?: SortOrder
+    accessToken?: SortOrder
+    accessTokenExpiresAt?: SortOrder
+    accountId?: SortOrder
+    createdAt?: SortOrder
+    idToken?: SortOrder
+    password?: SortOrder
+    providerId?: SortOrder
+    refreshToken?: SortOrder
+    refreshTokenExpiresAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type accountsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scope?: SortOrder
+    accessToken?: SortOrder
+    accessTokenExpiresAt?: SortOrder
+    accountId?: SortOrder
+    createdAt?: SortOrder
+    idToken?: SortOrder
+    password?: SortOrder
+    providerId?: SortOrder
+    refreshToken?: SortOrder
+    refreshTokenExpiresAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type accountsMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    scope?: SortOrder
+    accessToken?: SortOrder
+    accessTokenExpiresAt?: SortOrder
+    accountId?: SortOrder
+    createdAt?: SortOrder
+    idToken?: SortOrder
+    password?: SortOrder
+    providerId?: SortOrder
+    refreshToken?: SortOrder
+    refreshTokenExpiresAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type sessionsCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    expiresAt?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type sessionsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    expiresAt?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type sessionsMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    expiresAt?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+  }
+
+  export type AccountsListRelationFilter = {
+    every?: accountsWhereInput
+    some?: accountsWhereInput
+    none?: accountsWhereInput
+  }
+
+  export type SessionsListRelationFilter = {
+    every?: sessionsWhereInput
+    some?: sessionsWhereInput
+    none?: sessionsWhereInput
+  }
+
+  export type accountsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type sessionsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type usersCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    emailVerified?: SortOrder
+    image?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type usersMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    emailVerified?: SortOrder
+    image?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type usersMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    email?: SortOrder
+    emailVerified?: SortOrder
+    image?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ActivityLogListRelationFilter = {
+    every?: ActivityLogWhereInput
+    some?: ActivityLogWhereInput
+    none?: ActivityLogWhereInput
+  }
+
   export type EventListRelationFilter = {
     every?: EventWhereInput
     some?: EventWhereInput
@@ -50545,10 +54968,8 @@ export namespace Prisma {
     none?: WalletWhereInput
   }
 
-  export type ActivityLogListRelationFilter = {
-    every?: ActivityLogWhereInput
-    some?: ActivityLogWhereInput
-    none?: ActivityLogWhereInput
+  export type ActivityLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type EventOrderByRelationAggregateInput = {
@@ -50572,10 +54993,6 @@ export namespace Prisma {
   }
 
   export type WalletOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type ActivityLogOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -50724,7 +55141,6 @@ export namespace Prisma {
   export type OrganizationInvitationCountOrderByAggregateInput = {
     id?: SortOrder
     organizationId?: SortOrder
-    inviterId?: SortOrder
     email?: SortOrder
     role?: SortOrder
     status?: SortOrder
@@ -50732,12 +55148,12 @@ export namespace Prisma {
     expiresAt?: SortOrder
     createdAt?: SortOrder
     respondedAt?: SortOrder
+    inviterId?: SortOrder
   }
 
   export type OrganizationInvitationMaxOrderByAggregateInput = {
     id?: SortOrder
     organizationId?: SortOrder
-    inviterId?: SortOrder
     email?: SortOrder
     role?: SortOrder
     status?: SortOrder
@@ -50745,12 +55161,12 @@ export namespace Prisma {
     expiresAt?: SortOrder
     createdAt?: SortOrder
     respondedAt?: SortOrder
+    inviterId?: SortOrder
   }
 
   export type OrganizationInvitationMinOrderByAggregateInput = {
     id?: SortOrder
     organizationId?: SortOrder
-    inviterId?: SortOrder
     email?: SortOrder
     role?: SortOrder
     status?: SortOrder
@@ -50758,6 +55174,7 @@ export namespace Prisma {
     expiresAt?: SortOrder
     createdAt?: SortOrder
     respondedAt?: SortOrder
+    inviterId?: SortOrder
   }
 
   export type EnumInvitationStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -52030,6 +56447,7 @@ export namespace Prisma {
   export type ProfileCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    emailVerified?: SortOrder
     passwordHash?: SortOrder
     username?: SortOrder
     fullName?: SortOrder
@@ -52055,6 +56473,7 @@ export namespace Prisma {
   export type ProfileMaxOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    emailVerified?: SortOrder
     passwordHash?: SortOrder
     username?: SortOrder
     fullName?: SortOrder
@@ -52075,6 +56494,7 @@ export namespace Prisma {
   export type ProfileMinOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    emailVerified?: SortOrder
     passwordHash?: SortOrder
     username?: SortOrder
     fullName?: SortOrder
@@ -52399,7 +56819,6 @@ export namespace Prisma {
     eventId?: SortOrder
     optionId?: SortOrder
     categoryId?: SortOrder
-    voterId?: SortOrder
     createdAt?: SortOrder
     paymentId?: SortOrder
     smsSent?: SortOrder
@@ -52408,6 +56827,7 @@ export namespace Prisma {
     voterEmail?: SortOrder
     voterPhone?: SortOrder
     eventMemberId?: SortOrder
+    voterId?: SortOrder
   }
 
   export type VoteAvgOrderByAggregateInput = {
@@ -52419,7 +56839,6 @@ export namespace Prisma {
     eventId?: SortOrder
     optionId?: SortOrder
     categoryId?: SortOrder
-    voterId?: SortOrder
     createdAt?: SortOrder
     paymentId?: SortOrder
     smsSent?: SortOrder
@@ -52428,6 +56847,7 @@ export namespace Prisma {
     voterEmail?: SortOrder
     voterPhone?: SortOrder
     eventMemberId?: SortOrder
+    voterId?: SortOrder
   }
 
   export type VoteMinOrderByAggregateInput = {
@@ -52435,7 +56855,6 @@ export namespace Prisma {
     eventId?: SortOrder
     optionId?: SortOrder
     categoryId?: SortOrder
-    voterId?: SortOrder
     createdAt?: SortOrder
     paymentId?: SortOrder
     smsSent?: SortOrder
@@ -52444,6 +56863,7 @@ export namespace Prisma {
     voterEmail?: SortOrder
     voterPhone?: SortOrder
     eventMemberId?: SortOrder
+    voterId?: SortOrder
   }
 
   export type VoteSumOrderByAggregateInput = {
@@ -53152,6 +57572,125 @@ export namespace Prisma {
     update?: XOR<XOR<EventUpdateToOneWithWhereWithoutRegistrationFieldsInput, EventUpdateWithoutRegistrationFieldsInput>, EventUncheckedUpdateWithoutRegistrationFieldsInput>
   }
 
+  export type usersCreateNestedOneWithoutAccountsInput = {
+    create?: XOR<usersCreateWithoutAccountsInput, usersUncheckedCreateWithoutAccountsInput>
+    connectOrCreate?: usersCreateOrConnectWithoutAccountsInput
+    connect?: usersWhereUniqueInput
+  }
+
+  export type usersUpdateOneRequiredWithoutAccountsNestedInput = {
+    create?: XOR<usersCreateWithoutAccountsInput, usersUncheckedCreateWithoutAccountsInput>
+    connectOrCreate?: usersCreateOrConnectWithoutAccountsInput
+    upsert?: usersUpsertWithoutAccountsInput
+    connect?: usersWhereUniqueInput
+    update?: XOR<XOR<usersUpdateToOneWithWhereWithoutAccountsInput, usersUpdateWithoutAccountsInput>, usersUncheckedUpdateWithoutAccountsInput>
+  }
+
+  export type usersCreateNestedOneWithoutSessionsInput = {
+    create?: XOR<usersCreateWithoutSessionsInput, usersUncheckedCreateWithoutSessionsInput>
+    connectOrCreate?: usersCreateOrConnectWithoutSessionsInput
+    connect?: usersWhereUniqueInput
+  }
+
+  export type usersUpdateOneRequiredWithoutSessionsNestedInput = {
+    create?: XOR<usersCreateWithoutSessionsInput, usersUncheckedCreateWithoutSessionsInput>
+    connectOrCreate?: usersCreateOrConnectWithoutSessionsInput
+    upsert?: usersUpsertWithoutSessionsInput
+    connect?: usersWhereUniqueInput
+    update?: XOR<XOR<usersUpdateToOneWithWhereWithoutSessionsInput, usersUpdateWithoutSessionsInput>, usersUncheckedUpdateWithoutSessionsInput>
+  }
+
+  export type accountsCreateNestedManyWithoutUsersInput = {
+    create?: XOR<accountsCreateWithoutUsersInput, accountsUncheckedCreateWithoutUsersInput> | accountsCreateWithoutUsersInput[] | accountsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: accountsCreateOrConnectWithoutUsersInput | accountsCreateOrConnectWithoutUsersInput[]
+    createMany?: accountsCreateManyUsersInputEnvelope
+    connect?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+  }
+
+  export type sessionsCreateNestedManyWithoutUsersInput = {
+    create?: XOR<sessionsCreateWithoutUsersInput, sessionsUncheckedCreateWithoutUsersInput> | sessionsCreateWithoutUsersInput[] | sessionsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: sessionsCreateOrConnectWithoutUsersInput | sessionsCreateOrConnectWithoutUsersInput[]
+    createMany?: sessionsCreateManyUsersInputEnvelope
+    connect?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+  }
+
+  export type accountsUncheckedCreateNestedManyWithoutUsersInput = {
+    create?: XOR<accountsCreateWithoutUsersInput, accountsUncheckedCreateWithoutUsersInput> | accountsCreateWithoutUsersInput[] | accountsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: accountsCreateOrConnectWithoutUsersInput | accountsCreateOrConnectWithoutUsersInput[]
+    createMany?: accountsCreateManyUsersInputEnvelope
+    connect?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+  }
+
+  export type sessionsUncheckedCreateNestedManyWithoutUsersInput = {
+    create?: XOR<sessionsCreateWithoutUsersInput, sessionsUncheckedCreateWithoutUsersInput> | sessionsCreateWithoutUsersInput[] | sessionsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: sessionsCreateOrConnectWithoutUsersInput | sessionsCreateOrConnectWithoutUsersInput[]
+    createMany?: sessionsCreateManyUsersInputEnvelope
+    connect?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+  }
+
+  export type accountsUpdateManyWithoutUsersNestedInput = {
+    create?: XOR<accountsCreateWithoutUsersInput, accountsUncheckedCreateWithoutUsersInput> | accountsCreateWithoutUsersInput[] | accountsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: accountsCreateOrConnectWithoutUsersInput | accountsCreateOrConnectWithoutUsersInput[]
+    upsert?: accountsUpsertWithWhereUniqueWithoutUsersInput | accountsUpsertWithWhereUniqueWithoutUsersInput[]
+    createMany?: accountsCreateManyUsersInputEnvelope
+    set?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    disconnect?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    delete?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    connect?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    update?: accountsUpdateWithWhereUniqueWithoutUsersInput | accountsUpdateWithWhereUniqueWithoutUsersInput[]
+    updateMany?: accountsUpdateManyWithWhereWithoutUsersInput | accountsUpdateManyWithWhereWithoutUsersInput[]
+    deleteMany?: accountsScalarWhereInput | accountsScalarWhereInput[]
+  }
+
+  export type sessionsUpdateManyWithoutUsersNestedInput = {
+    create?: XOR<sessionsCreateWithoutUsersInput, sessionsUncheckedCreateWithoutUsersInput> | sessionsCreateWithoutUsersInput[] | sessionsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: sessionsCreateOrConnectWithoutUsersInput | sessionsCreateOrConnectWithoutUsersInput[]
+    upsert?: sessionsUpsertWithWhereUniqueWithoutUsersInput | sessionsUpsertWithWhereUniqueWithoutUsersInput[]
+    createMany?: sessionsCreateManyUsersInputEnvelope
+    set?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    disconnect?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    delete?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    connect?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    update?: sessionsUpdateWithWhereUniqueWithoutUsersInput | sessionsUpdateWithWhereUniqueWithoutUsersInput[]
+    updateMany?: sessionsUpdateManyWithWhereWithoutUsersInput | sessionsUpdateManyWithWhereWithoutUsersInput[]
+    deleteMany?: sessionsScalarWhereInput | sessionsScalarWhereInput[]
+  }
+
+  export type accountsUncheckedUpdateManyWithoutUsersNestedInput = {
+    create?: XOR<accountsCreateWithoutUsersInput, accountsUncheckedCreateWithoutUsersInput> | accountsCreateWithoutUsersInput[] | accountsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: accountsCreateOrConnectWithoutUsersInput | accountsCreateOrConnectWithoutUsersInput[]
+    upsert?: accountsUpsertWithWhereUniqueWithoutUsersInput | accountsUpsertWithWhereUniqueWithoutUsersInput[]
+    createMany?: accountsCreateManyUsersInputEnvelope
+    set?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    disconnect?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    delete?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    connect?: accountsWhereUniqueInput | accountsWhereUniqueInput[]
+    update?: accountsUpdateWithWhereUniqueWithoutUsersInput | accountsUpdateWithWhereUniqueWithoutUsersInput[]
+    updateMany?: accountsUpdateManyWithWhereWithoutUsersInput | accountsUpdateManyWithWhereWithoutUsersInput[]
+    deleteMany?: accountsScalarWhereInput | accountsScalarWhereInput[]
+  }
+
+  export type sessionsUncheckedUpdateManyWithoutUsersNestedInput = {
+    create?: XOR<sessionsCreateWithoutUsersInput, sessionsUncheckedCreateWithoutUsersInput> | sessionsCreateWithoutUsersInput[] | sessionsUncheckedCreateWithoutUsersInput[]
+    connectOrCreate?: sessionsCreateOrConnectWithoutUsersInput | sessionsCreateOrConnectWithoutUsersInput[]
+    upsert?: sessionsUpsertWithWhereUniqueWithoutUsersInput | sessionsUpsertWithWhereUniqueWithoutUsersInput[]
+    createMany?: sessionsCreateManyUsersInputEnvelope
+    set?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    disconnect?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    delete?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    connect?: sessionsWhereUniqueInput | sessionsWhereUniqueInput[]
+    update?: sessionsUpdateWithWhereUniqueWithoutUsersInput | sessionsUpdateWithWhereUniqueWithoutUsersInput[]
+    updateMany?: sessionsUpdateManyWithWhereWithoutUsersInput | sessionsUpdateManyWithWhereWithoutUsersInput[]
+    deleteMany?: sessionsScalarWhereInput | sessionsScalarWhereInput[]
+  }
+
+  export type ActivityLogCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput> | ActivityLogCreateWithoutOrganizationInput[] | ActivityLogUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutOrganizationInput | ActivityLogCreateOrConnectWithoutOrganizationInput[]
+    createMany?: ActivityLogCreateManyOrganizationInputEnvelope
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+  }
+
   export type EventCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<EventCreateWithoutOrganizationInput, EventUncheckedCreateWithoutOrganizationInput> | EventCreateWithoutOrganizationInput[] | EventUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: EventCreateOrConnectWithoutOrganizationInput | EventCreateOrConnectWithoutOrganizationInput[]
@@ -53200,7 +57739,7 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
-  export type ActivityLogCreateNestedManyWithoutOrganizationInput = {
+  export type ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput> | ActivityLogCreateWithoutOrganizationInput[] | ActivityLogUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: ActivityLogCreateOrConnectWithoutOrganizationInput | ActivityLogCreateOrConnectWithoutOrganizationInput[]
     createMany?: ActivityLogCreateManyOrganizationInputEnvelope
@@ -53249,11 +57788,18 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
-  export type ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput = {
+  export type ActivityLogUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput> | ActivityLogCreateWithoutOrganizationInput[] | ActivityLogUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: ActivityLogCreateOrConnectWithoutOrganizationInput | ActivityLogCreateOrConnectWithoutOrganizationInput[]
+    upsert?: ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput | ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput[]
     createMany?: ActivityLogCreateManyOrganizationInputEnvelope
+    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
     connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    update?: ActivityLogUpdateWithWhereUniqueWithoutOrganizationInput | ActivityLogUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: ActivityLogUpdateManyWithWhereWithoutOrganizationInput | ActivityLogUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
   }
 
   export type EventUpdateManyWithoutOrganizationNestedInput = {
@@ -53350,7 +57896,7 @@ export namespace Prisma {
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
   }
 
-  export type ActivityLogUpdateManyWithoutOrganizationNestedInput = {
+  export type ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput> | ActivityLogCreateWithoutOrganizationInput[] | ActivityLogUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: ActivityLogCreateOrConnectWithoutOrganizationInput | ActivityLogCreateOrConnectWithoutOrganizationInput[]
     upsert?: ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput | ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput[]
@@ -53446,20 +57992,6 @@ export namespace Prisma {
     update?: WalletUpdateWithWhereUniqueWithoutOrganizationInput | WalletUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: WalletUpdateManyWithWhereWithoutOrganizationInput | WalletUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
-  }
-
-  export type ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput = {
-    create?: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput> | ActivityLogCreateWithoutOrganizationInput[] | ActivityLogUncheckedCreateWithoutOrganizationInput[]
-    connectOrCreate?: ActivityLogCreateOrConnectWithoutOrganizationInput | ActivityLogCreateOrConnectWithoutOrganizationInput[]
-    upsert?: ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput | ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput[]
-    createMany?: ActivityLogCreateManyOrganizationInputEnvelope
-    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    update?: ActivityLogUpdateWithWhereUniqueWithoutOrganizationInput | ActivityLogUpdateWithWhereUniqueWithoutOrganizationInput[]
-    updateMany?: ActivityLogUpdateManyWithWhereWithoutOrganizationInput | ActivityLogUpdateManyWithWhereWithoutOrganizationInput[]
-    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutTeamInput = {
@@ -54414,6 +58946,13 @@ export namespace Prisma {
     update?: XOR<XOR<TicketTypeUpdateToOneWithWhereWithoutTicketsInput, TicketTypeUpdateWithoutTicketsInput>, TicketTypeUncheckedUpdateWithoutTicketsInput>
   }
 
+  export type ActivityLogCreateNestedManyWithoutUserInput = {
+    create?: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput> | ActivityLogCreateWithoutUserInput[] | ActivityLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutUserInput | ActivityLogCreateOrConnectWithoutUserInput[]
+    createMany?: ActivityLogCreateManyUserInputEnvelope
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+  }
+
   export type EventCreateNestedManyWithoutCreatorInput = {
     create?: XOR<EventCreateWithoutCreatorInput, EventUncheckedCreateWithoutCreatorInput> | EventCreateWithoutCreatorInput[] | EventUncheckedCreateWithoutCreatorInput[]
     connectOrCreate?: EventCreateOrConnectWithoutCreatorInput | EventCreateOrConnectWithoutCreatorInput[]
@@ -54517,7 +59056,7 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
-  export type ActivityLogCreateNestedManyWithoutUserInput = {
+  export type ActivityLogUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput> | ActivityLogCreateWithoutUserInput[] | ActivityLogUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ActivityLogCreateOrConnectWithoutUserInput | ActivityLogCreateOrConnectWithoutUserInput[]
     createMany?: ActivityLogCreateManyUserInputEnvelope
@@ -54621,15 +59160,22 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
-  export type ActivityLogUncheckedCreateNestedManyWithoutUserInput = {
-    create?: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput> | ActivityLogCreateWithoutUserInput[] | ActivityLogUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: ActivityLogCreateOrConnectWithoutUserInput | ActivityLogCreateOrConnectWithoutUserInput[]
-    createMany?: ActivityLogCreateManyUserInputEnvelope
-    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-  }
-
   export type EnumPricingPlanFieldUpdateOperationsInput = {
     set?: $Enums.PricingPlan
+  }
+
+  export type ActivityLogUpdateManyWithoutUserNestedInput = {
+    create?: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput> | ActivityLogCreateWithoutUserInput[] | ActivityLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: ActivityLogCreateOrConnectWithoutUserInput | ActivityLogCreateOrConnectWithoutUserInput[]
+    upsert?: ActivityLogUpsertWithWhereUniqueWithoutUserInput | ActivityLogUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: ActivityLogCreateManyUserInputEnvelope
+    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
+    update?: ActivityLogUpdateWithWhereUniqueWithoutUserInput | ActivityLogUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: ActivityLogUpdateManyWithWhereWithoutUserInput | ActivityLogUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
   }
 
   export type EventUpdateManyWithoutCreatorNestedInput = {
@@ -54834,7 +59380,7 @@ export namespace Prisma {
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
   }
 
-  export type ActivityLogUpdateManyWithoutUserNestedInput = {
+  export type ActivityLogUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput> | ActivityLogCreateWithoutUserInput[] | ActivityLogUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ActivityLogCreateOrConnectWithoutUserInput | ActivityLogCreateOrConnectWithoutUserInput[]
     upsert?: ActivityLogUpsertWithWhereUniqueWithoutUserInput | ActivityLogUpsertWithWhereUniqueWithoutUserInput[]
@@ -55038,20 +59584,6 @@ export namespace Prisma {
     update?: WalletUpdateWithWhereUniqueWithoutUserInput | WalletUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: WalletUpdateManyWithWhereWithoutUserInput | WalletUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
-  }
-
-  export type ActivityLogUncheckedUpdateManyWithoutUserNestedInput = {
-    create?: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput> | ActivityLogCreateWithoutUserInput[] | ActivityLogUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: ActivityLogCreateOrConnectWithoutUserInput | ActivityLogCreateOrConnectWithoutUserInput[]
-    upsert?: ActivityLogUpsertWithWhereUniqueWithoutUserInput | ActivityLogUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: ActivityLogCreateManyUserInputEnvelope
-    set?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    disconnect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    delete?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    connect?: ActivityLogWhereUniqueInput | ActivityLogWhereUniqueInput[]
-    update?: ActivityLogUpdateWithWhereUniqueWithoutUserInput | ActivityLogUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: ActivityLogUpdateManyWithWhereWithoutUserInput | ActivityLogUpdateManyWithWhereWithoutUserInput[]
-    deleteMany?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
   }
 
   export type EnumUssdSessionStatusFieldUpdateOperationsInput = {
@@ -56125,6 +60657,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutActivityLogsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -56159,6 +60692,7 @@ export namespace Prisma {
   export type ProfileUncheckedCreateWithoutActivityLogsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -56282,6 +60816,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutActivityLogsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -56316,6 +60851,7 @@ export namespace Prisma {
   export type ProfileUncheckedUpdateWithoutActivityLogsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -56496,6 +61032,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutCreatedEventsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -56510,6 +61047,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
     organizationInvitations?: OrganizationInvitationCreateNestedManyWithoutInviterInput
@@ -56524,12 +61062,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutCreatedEventsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -56545,6 +61083,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
     organizationInvitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -56558,7 +61097,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutCreatedEventsInput = {
@@ -56588,13 +61126,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutEventsInput = {
@@ -56620,12 +61158,12 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutEventsInput = {
@@ -56792,7 +61330,6 @@ export namespace Prisma {
     id?: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -56801,6 +61338,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VoteCreateOrConnectWithoutEventInput = {
@@ -57084,6 +61622,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutCreatedEventsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -57098,6 +61637,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
     organizationInvitations?: OrganizationInvitationUpdateManyWithoutInviterNestedInput
@@ -57112,12 +61652,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutCreatedEventsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -57133,6 +61673,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
     organizationInvitations?: OrganizationInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -57146,7 +61687,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutEventsInput = {
@@ -57182,13 +61722,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutEventsInput = {
@@ -57214,12 +61754,12 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type TicketOrderUpsertWithWhereUniqueWithoutEventInput = {
@@ -57359,7 +61899,6 @@ export namespace Prisma {
     eventId?: UuidFilter<"Vote"> | string
     optionId?: UuidFilter<"Vote"> | string
     categoryId?: UuidNullableFilter<"Vote"> | string | null
-    voterId?: StringNullableFilter<"Vote"> | string | null
     createdAt?: DateTimeFilter<"Vote"> | Date | string
     paymentId?: UuidNullableFilter<"Vote"> | string | null
     smsSent?: BoolFilter<"Vote"> | boolean
@@ -57368,6 +61907,7 @@ export namespace Prisma {
     voterEmail?: StringNullableFilter<"Vote"> | string | null
     voterPhone?: StringNullableFilter<"Vote"> | string | null
     eventMemberId?: UuidNullableFilter<"Vote"> | string | null
+    voterId?: StringNullableFilter<"Vote"> | string | null
   }
 
   export type VotingCategoryUpsertWithWhereUniqueWithoutEventInput = {
@@ -58099,7 +62639,6 @@ export namespace Prisma {
     eventId: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -58107,6 +62646,7 @@ export namespace Prisma {
     voteCount?: number
     voterEmail?: string | null
     voterPhone?: string | null
+    voterId?: string | null
   }
 
   export type VoteCreateOrConnectWithoutEventMemberInput = {
@@ -58408,6 +62948,297 @@ export namespace Prisma {
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
   }
 
+  export type usersCreateWithoutAccountsInput = {
+    id: string
+    name?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: sessionsCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersUncheckedCreateWithoutAccountsInput = {
+    id: string
+    name?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    sessions?: sessionsUncheckedCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersCreateOrConnectWithoutAccountsInput = {
+    where: usersWhereUniqueInput
+    create: XOR<usersCreateWithoutAccountsInput, usersUncheckedCreateWithoutAccountsInput>
+  }
+
+  export type usersUpsertWithoutAccountsInput = {
+    update: XOR<usersUpdateWithoutAccountsInput, usersUncheckedUpdateWithoutAccountsInput>
+    create: XOR<usersCreateWithoutAccountsInput, usersUncheckedCreateWithoutAccountsInput>
+    where?: usersWhereInput
+  }
+
+  export type usersUpdateToOneWithWhereWithoutAccountsInput = {
+    where?: usersWhereInput
+    data: XOR<usersUpdateWithoutAccountsInput, usersUncheckedUpdateWithoutAccountsInput>
+  }
+
+  export type usersUpdateWithoutAccountsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: sessionsUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersUncheckedUpdateWithoutAccountsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: sessionsUncheckedUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersCreateWithoutSessionsInput = {
+    id: string
+    name?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: accountsCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersUncheckedCreateWithoutSessionsInput = {
+    id: string
+    name?: string | null
+    email: string
+    emailVerified?: boolean
+    image?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    accounts?: accountsUncheckedCreateNestedManyWithoutUsersInput
+  }
+
+  export type usersCreateOrConnectWithoutSessionsInput = {
+    where: usersWhereUniqueInput
+    create: XOR<usersCreateWithoutSessionsInput, usersUncheckedCreateWithoutSessionsInput>
+  }
+
+  export type usersUpsertWithoutSessionsInput = {
+    update: XOR<usersUpdateWithoutSessionsInput, usersUncheckedUpdateWithoutSessionsInput>
+    create: XOR<usersCreateWithoutSessionsInput, usersUncheckedCreateWithoutSessionsInput>
+    where?: usersWhereInput
+  }
+
+  export type usersUpdateToOneWithWhereWithoutSessionsInput = {
+    where?: usersWhereInput
+    data: XOR<usersUpdateWithoutSessionsInput, usersUncheckedUpdateWithoutSessionsInput>
+  }
+
+  export type usersUpdateWithoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: accountsUpdateManyWithoutUsersNestedInput
+  }
+
+  export type usersUncheckedUpdateWithoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    accounts?: accountsUncheckedUpdateManyWithoutUsersNestedInput
+  }
+
+  export type accountsCreateWithoutUsersInput = {
+    id: string
+    scope?: string | null
+    accessToken?: string | null
+    accessTokenExpiresAt?: Date | string | null
+    accountId: string
+    createdAt?: Date | string
+    idToken?: string | null
+    password?: string | null
+    providerId: string
+    refreshToken?: string | null
+    refreshTokenExpiresAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type accountsUncheckedCreateWithoutUsersInput = {
+    id: string
+    scope?: string | null
+    accessToken?: string | null
+    accessTokenExpiresAt?: Date | string | null
+    accountId: string
+    createdAt?: Date | string
+    idToken?: string | null
+    password?: string | null
+    providerId: string
+    refreshToken?: string | null
+    refreshTokenExpiresAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type accountsCreateOrConnectWithoutUsersInput = {
+    where: accountsWhereUniqueInput
+    create: XOR<accountsCreateWithoutUsersInput, accountsUncheckedCreateWithoutUsersInput>
+  }
+
+  export type accountsCreateManyUsersInputEnvelope = {
+    data: accountsCreateManyUsersInput | accountsCreateManyUsersInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type sessionsCreateWithoutUsersInput = {
+    id: string
+    expiresAt: Date | string
+    token: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type sessionsUncheckedCreateWithoutUsersInput = {
+    id: string
+    expiresAt: Date | string
+    token: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type sessionsCreateOrConnectWithoutUsersInput = {
+    where: sessionsWhereUniqueInput
+    create: XOR<sessionsCreateWithoutUsersInput, sessionsUncheckedCreateWithoutUsersInput>
+  }
+
+  export type sessionsCreateManyUsersInputEnvelope = {
+    data: sessionsCreateManyUsersInput | sessionsCreateManyUsersInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type accountsUpsertWithWhereUniqueWithoutUsersInput = {
+    where: accountsWhereUniqueInput
+    update: XOR<accountsUpdateWithoutUsersInput, accountsUncheckedUpdateWithoutUsersInput>
+    create: XOR<accountsCreateWithoutUsersInput, accountsUncheckedCreateWithoutUsersInput>
+  }
+
+  export type accountsUpdateWithWhereUniqueWithoutUsersInput = {
+    where: accountsWhereUniqueInput
+    data: XOR<accountsUpdateWithoutUsersInput, accountsUncheckedUpdateWithoutUsersInput>
+  }
+
+  export type accountsUpdateManyWithWhereWithoutUsersInput = {
+    where: accountsScalarWhereInput
+    data: XOR<accountsUpdateManyMutationInput, accountsUncheckedUpdateManyWithoutUsersInput>
+  }
+
+  export type accountsScalarWhereInput = {
+    AND?: accountsScalarWhereInput | accountsScalarWhereInput[]
+    OR?: accountsScalarWhereInput[]
+    NOT?: accountsScalarWhereInput | accountsScalarWhereInput[]
+    id?: StringFilter<"accounts"> | string
+    userId?: StringFilter<"accounts"> | string
+    scope?: StringNullableFilter<"accounts"> | string | null
+    accessToken?: StringNullableFilter<"accounts"> | string | null
+    accessTokenExpiresAt?: DateTimeNullableFilter<"accounts"> | Date | string | null
+    accountId?: StringFilter<"accounts"> | string
+    createdAt?: DateTimeFilter<"accounts"> | Date | string
+    idToken?: StringNullableFilter<"accounts"> | string | null
+    password?: StringNullableFilter<"accounts"> | string | null
+    providerId?: StringFilter<"accounts"> | string
+    refreshToken?: StringNullableFilter<"accounts"> | string | null
+    refreshTokenExpiresAt?: DateTimeNullableFilter<"accounts"> | Date | string | null
+    updatedAt?: DateTimeFilter<"accounts"> | Date | string
+  }
+
+  export type sessionsUpsertWithWhereUniqueWithoutUsersInput = {
+    where: sessionsWhereUniqueInput
+    update: XOR<sessionsUpdateWithoutUsersInput, sessionsUncheckedUpdateWithoutUsersInput>
+    create: XOR<sessionsCreateWithoutUsersInput, sessionsUncheckedCreateWithoutUsersInput>
+  }
+
+  export type sessionsUpdateWithWhereUniqueWithoutUsersInput = {
+    where: sessionsWhereUniqueInput
+    data: XOR<sessionsUpdateWithoutUsersInput, sessionsUncheckedUpdateWithoutUsersInput>
+  }
+
+  export type sessionsUpdateManyWithWhereWithoutUsersInput = {
+    where: sessionsScalarWhereInput
+    data: XOR<sessionsUpdateManyMutationInput, sessionsUncheckedUpdateManyWithoutUsersInput>
+  }
+
+  export type sessionsScalarWhereInput = {
+    AND?: sessionsScalarWhereInput | sessionsScalarWhereInput[]
+    OR?: sessionsScalarWhereInput[]
+    NOT?: sessionsScalarWhereInput | sessionsScalarWhereInput[]
+    id?: StringFilter<"sessions"> | string
+    userId?: StringFilter<"sessions"> | string
+    expiresAt?: DateTimeFilter<"sessions"> | Date | string
+    token?: StringFilter<"sessions"> | string
+    createdAt?: DateTimeFilter<"sessions"> | Date | string
+    updatedAt?: DateTimeFilter<"sessions"> | Date | string
+    ipAddress?: StringNullableFilter<"sessions"> | string | null
+    userAgent?: StringNullableFilter<"sessions"> | string | null
+  }
+
+  export type ActivityLogCreateWithoutOrganizationInput = {
+    id?: string
+    action: string
+    entityType: string
+    entityId?: string | null
+    description: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+    user?: ProfileCreateNestedOneWithoutActivityLogsInput
+  }
+
+  export type ActivityLogUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    userId?: string | null
+    action: string
+    entityType: string
+    entityId?: string | null
+    description: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ActivityLogCreateOrConnectWithoutOrganizationInput = {
+    where: ActivityLogWhereUniqueInput
+    create: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type ActivityLogCreateManyOrganizationInputEnvelope = {
+    data: ActivityLogCreateManyOrganizationInput | ActivityLogCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type EventCreateWithoutOrganizationInput = {
     id?: string
     title: string
@@ -58546,7 +63377,6 @@ export namespace Prisma {
 
   export type OrganizationInvitationUncheckedCreateWithoutOrganizationInput = {
     id?: string
-    inviterId?: string | null
     email: string
     role?: $Enums.OrganizationRole
     status?: $Enums.InvitationStatus
@@ -58554,6 +63384,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     createdAt?: Date | string
     respondedAt?: Date | string | null
+    inviterId?: string | null
   }
 
   export type OrganizationInvitationCreateOrConnectWithoutOrganizationInput = {
@@ -58619,6 +63450,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutCreatedOrganizationsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -58633,6 +63465,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -58647,12 +63480,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutCreatedOrganizationsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -58668,6 +63501,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -58681,7 +63515,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutCreatedOrganizationsInput = {
@@ -58733,40 +63566,37 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type ActivityLogCreateWithoutOrganizationInput = {
-    id?: string
-    action: string
-    entityType: string
-    entityId?: string | null
-    description: string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: string | null
-    userAgent?: string | null
-    createdAt?: Date | string
-    user?: ProfileCreateNestedOneWithoutActivityLogsInput
-  }
-
-  export type ActivityLogUncheckedCreateWithoutOrganizationInput = {
-    id?: string
-    userId?: string | null
-    action: string
-    entityType: string
-    entityId?: string | null
-    description: string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: string | null
-    userAgent?: string | null
-    createdAt?: Date | string
-  }
-
-  export type ActivityLogCreateOrConnectWithoutOrganizationInput = {
+  export type ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput = {
     where: ActivityLogWhereUniqueInput
+    update: XOR<ActivityLogUpdateWithoutOrganizationInput, ActivityLogUncheckedUpdateWithoutOrganizationInput>
     create: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput>
   }
 
-  export type ActivityLogCreateManyOrganizationInputEnvelope = {
-    data: ActivityLogCreateManyOrganizationInput | ActivityLogCreateManyOrganizationInput[]
-    skipDuplicates?: boolean
+  export type ActivityLogUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: ActivityLogWhereUniqueInput
+    data: XOR<ActivityLogUpdateWithoutOrganizationInput, ActivityLogUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type ActivityLogUpdateManyWithWhereWithoutOrganizationInput = {
+    where: ActivityLogScalarWhereInput
+    data: XOR<ActivityLogUpdateManyMutationInput, ActivityLogUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type ActivityLogScalarWhereInput = {
+    AND?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
+    OR?: ActivityLogScalarWhereInput[]
+    NOT?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
+    id?: UuidFilter<"ActivityLog"> | string
+    organizationId?: UuidNullableFilter<"ActivityLog"> | string | null
+    userId?: StringNullableFilter<"ActivityLog"> | string | null
+    action?: StringFilter<"ActivityLog"> | string
+    entityType?: StringFilter<"ActivityLog"> | string
+    entityId?: StringNullableFilter<"ActivityLog"> | string | null
+    description?: StringFilter<"ActivityLog"> | string
+    metadata?: JsonNullableFilter<"ActivityLog">
+    ipAddress?: StringNullableFilter<"ActivityLog"> | string | null
+    userAgent?: StringNullableFilter<"ActivityLog"> | string | null
+    createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
   }
 
   export type EventUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -58872,7 +63702,6 @@ export namespace Prisma {
     NOT?: OrganizationInvitationScalarWhereInput | OrganizationInvitationScalarWhereInput[]
     id?: UuidFilter<"OrganizationInvitation"> | string
     organizationId?: UuidFilter<"OrganizationInvitation"> | string
-    inviterId?: StringNullableFilter<"OrganizationInvitation"> | string | null
     email?: StringFilter<"OrganizationInvitation"> | string
     role?: EnumOrganizationRoleFilter<"OrganizationInvitation"> | $Enums.OrganizationRole
     status?: EnumInvitationStatusFilter<"OrganizationInvitation"> | $Enums.InvitationStatus
@@ -58880,6 +63709,7 @@ export namespace Prisma {
     expiresAt?: DateTimeNullableFilter<"OrganizationInvitation"> | Date | string | null
     createdAt?: DateTimeFilter<"OrganizationInvitation"> | Date | string
     respondedAt?: DateTimeNullableFilter<"OrganizationInvitation"> | Date | string | null
+    inviterId?: StringNullableFilter<"OrganizationInvitation"> | string | null
   }
 
   export type TeamMemberUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -58951,6 +63781,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutCreatedOrganizationsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -58965,6 +63796,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -58979,12 +63811,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutCreatedOrganizationsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -59000,6 +63832,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -59013,7 +63846,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithWhereUniqueWithoutOrganizationInput = {
@@ -59051,39 +63883,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
 
-  export type ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput = {
-    where: ActivityLogWhereUniqueInput
-    update: XOR<ActivityLogUpdateWithoutOrganizationInput, ActivityLogUncheckedUpdateWithoutOrganizationInput>
-    create: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput>
-  }
-
-  export type ActivityLogUpdateWithWhereUniqueWithoutOrganizationInput = {
-    where: ActivityLogWhereUniqueInput
-    data: XOR<ActivityLogUpdateWithoutOrganizationInput, ActivityLogUncheckedUpdateWithoutOrganizationInput>
-  }
-
-  export type ActivityLogUpdateManyWithWhereWithoutOrganizationInput = {
-    where: ActivityLogScalarWhereInput
-    data: XOR<ActivityLogUpdateManyMutationInput, ActivityLogUncheckedUpdateManyWithoutOrganizationInput>
-  }
-
-  export type ActivityLogScalarWhereInput = {
-    AND?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
-    OR?: ActivityLogScalarWhereInput[]
-    NOT?: ActivityLogScalarWhereInput | ActivityLogScalarWhereInput[]
-    id?: UuidFilter<"ActivityLog"> | string
-    organizationId?: UuidNullableFilter<"ActivityLog"> | string | null
-    userId?: StringNullableFilter<"ActivityLog"> | string | null
-    action?: StringFilter<"ActivityLog"> | string
-    entityType?: StringFilter<"ActivityLog"> | string
-    entityId?: StringNullableFilter<"ActivityLog"> | string | null
-    description?: StringFilter<"ActivityLog"> | string
-    metadata?: JsonNullableFilter<"ActivityLog">
-    ipAddress?: StringNullableFilter<"ActivityLog"> | string | null
-    userAgent?: StringNullableFilter<"ActivityLog"> | string | null
-    createdAt?: DateTimeFilter<"ActivityLog"> | Date | string
-  }
-
   export type OrganizationCreateWithoutTeamInput = {
     id?: string
     name: string
@@ -59106,13 +63905,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     events?: EventCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutTeamInput = {
@@ -59138,12 +63937,12 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutTeamInput = {
@@ -59154,6 +63953,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutTeamMembershipsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59168,6 +63968,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -59182,12 +63983,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutTeamMembershipsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59203,6 +64004,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -59216,7 +64018,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutTeamMembershipsInput = {
@@ -59257,13 +64058,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     events?: EventUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutTeamInput = {
@@ -59289,12 +64090,12 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProfileUpsertWithoutTeamMembershipsInput = {
@@ -59311,6 +64112,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutTeamMembershipsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -59325,6 +64127,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -59339,12 +64142,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutTeamMembershipsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -59360,6 +64163,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -59373,12 +64177,12 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileCreateWithoutOrganizationInvitationsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59393,6 +64197,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -59407,12 +64212,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutOrganizationInvitationsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59428,6 +64233,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -59441,7 +64247,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutOrganizationInvitationsInput = {
@@ -59471,13 +64276,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     events?: EventCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -59503,12 +64308,12 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -59530,6 +64335,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutOrganizationInvitationsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -59544,6 +64350,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -59558,12 +64365,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutOrganizationInvitationsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -59579,6 +64386,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -59592,7 +64400,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationUpsertWithoutInvitationsInput = {
@@ -59628,13 +64435,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     events?: EventUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -59660,12 +64467,12 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutRequestsInput = {
@@ -59690,13 +64497,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     events?: EventCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutRequestsInput = {
@@ -59722,12 +64529,12 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutRequestsInput = {
@@ -59738,6 +64545,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutResolvedRequestsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59752,6 +64560,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
     organizationInvitations?: OrganizationInvitationCreateNestedManyWithoutInviterInput
@@ -59766,12 +64575,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutResolvedRequestsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59787,6 +64596,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
     organizationInvitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -59800,7 +64610,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutResolvedRequestsInput = {
@@ -59811,6 +64620,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutMembershipRequestsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59825,6 +64635,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     organizationInvitations?: OrganizationInvitationCreateNestedManyWithoutInviterInput
@@ -59839,12 +64650,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutMembershipRequestsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -59860,6 +64671,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     organizationInvitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -59873,7 +64685,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutMembershipRequestsInput = {
@@ -59914,13 +64725,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     events?: EventUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutRequestsInput = {
@@ -59946,12 +64757,12 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProfileUpsertWithoutResolvedRequestsInput = {
@@ -59968,6 +64779,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutResolvedRequestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -59982,6 +64794,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
     organizationInvitations?: OrganizationInvitationUpdateManyWithoutInviterNestedInput
@@ -59996,12 +64809,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutResolvedRequestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -60017,6 +64830,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
     organizationInvitations?: OrganizationInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -60030,7 +64844,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUpsertWithoutMembershipRequestsInput = {
@@ -60047,6 +64860,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutMembershipRequestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -60061,6 +64875,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     organizationInvitations?: OrganizationInvitationUpdateManyWithoutInviterNestedInput
@@ -60075,12 +64890,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutMembershipRequestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -60096,6 +64911,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     organizationInvitations?: OrganizationInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -60109,7 +64925,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type OrganizationCreateWithoutSocialLinksInput = {
@@ -60134,13 +64949,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     events?: EventCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSocialLinksInput = {
@@ -60166,12 +64981,12 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSocialLinksInput = {
@@ -60212,13 +65027,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     events?: EventUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSocialLinksInput = {
@@ -60244,12 +65059,12 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type PayoutCreateWithoutWalletInput = {
@@ -60396,13 +65211,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     events?: EventCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutWalletsInput = {
@@ -60428,12 +65243,12 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutWalletsInput = {
@@ -60444,6 +65259,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutWalletsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -60458,6 +65274,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -60472,12 +65289,12 @@ export namespace Prisma {
     ticketOrders?: TicketOrderCreateNestedManyWithoutBuyerInput
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutWalletsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -60493,6 +65310,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -60506,7 +65324,6 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUncheckedCreateNestedManyWithoutBuyerInput
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutWalletsInput = {
@@ -60638,13 +65455,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     events?: EventUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutWalletsInput = {
@@ -60670,12 +65487,12 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProfileUpsertWithoutWalletsInput = {
@@ -60692,6 +65509,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutWalletsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -60706,6 +65524,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -60720,12 +65539,12 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUpdateManyWithoutBuyerNestedInput
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutWalletsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -60741,6 +65560,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -60754,7 +65574,6 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUncheckedUpdateManyWithoutBuyerNestedInput
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PaymentCreateWithoutTransactionsInput = {
@@ -60944,6 +65763,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutPaymentsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -60958,6 +65778,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -60972,12 +65793,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutPaymentsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -60993,6 +65814,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -61006,7 +65828,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutPaymentsInput = {
@@ -61134,7 +65955,6 @@ export namespace Prisma {
     eventId: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     smsSent?: boolean
     whatsappSent?: boolean
@@ -61142,6 +65962,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VoteCreateOrConnectWithoutPaymentInput = {
@@ -61168,6 +65989,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutPaymentsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -61182,6 +66004,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -61196,12 +66019,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutPaymentsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -61217,6 +66040,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -61230,7 +66054,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TicketOrderUpsertWithWhereUniqueWithoutPaymentInput = {
@@ -61284,6 +66107,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutApprovedPayoutsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -61298,6 +66122,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -61312,12 +66137,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutApprovedPayoutsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -61333,6 +66158,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -61346,7 +66172,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutApprovedPayoutsInput = {
@@ -61407,6 +66232,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutApprovedPayoutsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -61421,6 +66247,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -61435,12 +66262,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutApprovedPayoutsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -61456,6 +66283,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -61469,7 +66297,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutPayoutsInput = {
@@ -61568,6 +66395,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutReferrerInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -61582,6 +66410,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -61596,12 +66425,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutReferrerInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -61616,6 +66445,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -61630,7 +66460,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutReferrerInput = {
@@ -61646,6 +66475,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutPromoterInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -61660,6 +66490,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -61674,12 +66505,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutPromoterInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -61695,6 +66526,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -61708,7 +66540,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutPromoterInput = {
@@ -61823,6 +66654,7 @@ export namespace Prisma {
     NOT?: ProfileScalarWhereInput | ProfileScalarWhereInput[]
     id?: StringFilter<"Profile"> | string
     email?: StringFilter<"Profile"> | string
+    emailVerified?: BoolFilter<"Profile"> | boolean
     passwordHash?: StringNullableFilter<"Profile"> | string | null
     username?: StringFilter<"Profile"> | string
     fullName?: StringFilter<"Profile"> | string
@@ -61854,6 +66686,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutPromoterInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -61868,6 +66701,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -61882,12 +66716,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutPromoterInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -61903,6 +66737,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -61916,7 +66751,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ReferralUpsertWithWhereUniqueWithoutPromoterInput = {
@@ -62046,6 +66880,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutReferralsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -62060,6 +66895,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -62074,12 +66910,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutReferralsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -62095,6 +66931,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -62108,7 +66945,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutReferralsInput = {
@@ -62191,6 +67027,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutReferralsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -62205,6 +67042,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -62219,12 +67057,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutReferralsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -62240,6 +67078,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -62253,7 +67092,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PromoterCreateWithoutCommissionsInput = {
@@ -62803,6 +67641,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutTicketOrdersInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -62817,6 +67656,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -62831,12 +67671,12 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutTicketOrdersInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -62852,6 +67692,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -62865,7 +67706,6 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutTicketOrdersInput = {
@@ -63075,6 +67915,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutTicketOrdersInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -63089,6 +67930,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -63103,12 +67945,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutTicketOrdersInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -63124,6 +67966,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -63137,7 +67980,6 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TicketUpsertWithWhereUniqueWithoutOrderInput = {
@@ -63524,6 +68366,42 @@ export namespace Prisma {
     designVariant?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type ActivityLogCreateWithoutUserInput = {
+    id?: string
+    action: string
+    entityType: string
+    entityId?: string | null
+    description: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+    organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
+  }
+
+  export type ActivityLogUncheckedCreateWithoutUserInput = {
+    id?: string
+    organizationId?: string | null
+    action: string
+    entityType: string
+    entityId?: string | null
+    description: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ActivityLogCreateOrConnectWithoutUserInput = {
+    where: ActivityLogWhereUniqueInput
+    create: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput>
+  }
+
+  export type ActivityLogCreateManyUserInputEnvelope = {
+    data: ActivityLogCreateManyUserInput | ActivityLogCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type EventCreateWithoutCreatorInput = {
     id?: string
     title: string
@@ -63762,13 +68640,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
     events?: EventCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCreatorInput = {
@@ -63793,13 +68671,13 @@ export namespace Prisma {
     tertiaryColor?: string
     allowJoinRequests?: boolean
     autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
     events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
     requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCreatorInput = {
@@ -64232,40 +69110,20 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type ActivityLogCreateWithoutUserInput = {
-    id?: string
-    action: string
-    entityType: string
-    entityId?: string | null
-    description: string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: string | null
-    userAgent?: string | null
-    createdAt?: Date | string
-    organization?: OrganizationCreateNestedOneWithoutActivityLogsInput
-  }
-
-  export type ActivityLogUncheckedCreateWithoutUserInput = {
-    id?: string
-    organizationId?: string | null
-    action: string
-    entityType: string
-    entityId?: string | null
-    description: string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: string | null
-    userAgent?: string | null
-    createdAt?: Date | string
-  }
-
-  export type ActivityLogCreateOrConnectWithoutUserInput = {
+  export type ActivityLogUpsertWithWhereUniqueWithoutUserInput = {
     where: ActivityLogWhereUniqueInput
+    update: XOR<ActivityLogUpdateWithoutUserInput, ActivityLogUncheckedUpdateWithoutUserInput>
     create: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput>
   }
 
-  export type ActivityLogCreateManyUserInputEnvelope = {
-    data: ActivityLogCreateManyUserInput | ActivityLogCreateManyUserInput[]
-    skipDuplicates?: boolean
+  export type ActivityLogUpdateWithWhereUniqueWithoutUserInput = {
+    where: ActivityLogWhereUniqueInput
+    data: XOR<ActivityLogUpdateWithoutUserInput, ActivityLogUncheckedUpdateWithoutUserInput>
+  }
+
+  export type ActivityLogUpdateManyWithWhereWithoutUserInput = {
+    where: ActivityLogScalarWhereInput
+    data: XOR<ActivityLogUpdateManyMutationInput, ActivityLogUncheckedUpdateManyWithoutUserInput>
   }
 
   export type EventUpsertWithWhereUniqueWithoutCreatorInput = {
@@ -64616,22 +69474,6 @@ export namespace Prisma {
     data: XOR<WalletUpdateManyMutationInput, WalletUncheckedUpdateManyWithoutUserInput>
   }
 
-  export type ActivityLogUpsertWithWhereUniqueWithoutUserInput = {
-    where: ActivityLogWhereUniqueInput
-    update: XOR<ActivityLogUpdateWithoutUserInput, ActivityLogUncheckedUpdateWithoutUserInput>
-    create: XOR<ActivityLogCreateWithoutUserInput, ActivityLogUncheckedCreateWithoutUserInput>
-  }
-
-  export type ActivityLogUpdateWithWhereUniqueWithoutUserInput = {
-    where: ActivityLogWhereUniqueInput
-    data: XOR<ActivityLogUpdateWithoutUserInput, ActivityLogUncheckedUpdateWithoutUserInput>
-  }
-
-  export type ActivityLogUpdateManyWithWhereWithoutUserInput = {
-    where: ActivityLogScalarWhereInput
-    data: XOR<ActivityLogUpdateManyMutationInput, ActivityLogUncheckedUpdateManyWithoutUserInput>
-  }
-
   export type VoteCreateWithoutCategoryInput = {
     id?: string
     createdAt?: Date | string
@@ -64651,7 +69493,6 @@ export namespace Prisma {
     id?: string
     eventId: string
     optionId: string
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -64660,6 +69501,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VoteCreateOrConnectWithoutCategoryInput = {
@@ -64957,7 +69799,6 @@ export namespace Prisma {
     id?: string
     eventId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -64966,6 +69807,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VoteCreateOrConnectWithoutOptionInput = {
@@ -65119,6 +69961,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutNominatedOptionsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -65133,6 +69976,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -65147,12 +69991,12 @@ export namespace Prisma {
     ticketOrders?: TicketOrderCreateNestedManyWithoutBuyerInput
     votes?: VoteCreateNestedManyWithoutVoterInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutNominatedOptionsInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -65168,6 +70012,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -65181,7 +70026,6 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUncheckedCreateNestedManyWithoutBuyerInput
     votes?: VoteUncheckedCreateNestedManyWithoutVoterInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutNominatedOptionsInput = {
@@ -65369,6 +70213,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutNominatedOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -65383,6 +70228,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -65397,12 +70243,12 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUpdateManyWithoutBuyerNestedInput
     votes?: VoteUpdateManyWithoutVoterNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutNominatedOptionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -65418,6 +70264,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -65431,7 +70278,6 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUncheckedUpdateManyWithoutBuyerNestedInput
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type VotingCategoryCreateWithoutVotesInput = {
@@ -65702,6 +70548,7 @@ export namespace Prisma {
   export type ProfileCreateWithoutVotesInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -65716,6 +70563,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
     createdEvents?: EventCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestCreateNestedManyWithoutUserInput
@@ -65730,12 +70578,12 @@ export namespace Prisma {
     ticketOrders?: TicketOrderCreateNestedManyWithoutBuyerInput
     nominatedOptions?: VotingOptionCreateNestedManyWithoutNominatedByInput
     wallets?: WalletCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogCreateNestedManyWithoutUserInput
   }
 
   export type ProfileUncheckedCreateWithoutVotesInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -65751,6 +70599,7 @@ export namespace Prisma {
     communicationCredits?: Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: boolean
     pricingPlan?: $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
     createdEvents?: EventUncheckedCreateNestedManyWithoutCreatorInput
     resolvedRequests?: MembershipRequestUncheckedCreateNestedManyWithoutResolverInput
     membershipRequests?: MembershipRequestUncheckedCreateNestedManyWithoutUserInput
@@ -65764,7 +70613,6 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUncheckedCreateNestedManyWithoutBuyerInput
     nominatedOptions?: VotingOptionUncheckedCreateNestedManyWithoutNominatedByInput
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type ProfileCreateOrConnectWithoutVotesInput = {
@@ -66081,6 +70929,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutVotesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -66095,6 +70944,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -66109,12 +70959,12 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUpdateManyWithoutBuyerNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutVotesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -66130,6 +70980,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -66143,7 +70994,6 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUncheckedUpdateManyWithoutBuyerNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type EventGalleryLinkCreateManyEventInput = {
@@ -66250,7 +71100,6 @@ export namespace Prisma {
     id?: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -66259,6 +71108,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VotingCategoryCreateManyEventInput = {
@@ -66628,7 +71478,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -66637,13 +71486,13 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VoteUncheckedUpdateManyWithoutEventInput = {
     id?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -66652,6 +71501,7 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VotingCategoryUpdateWithoutEventInput = {
@@ -66791,7 +71641,6 @@ export namespace Prisma {
     eventId: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -66799,6 +71648,7 @@ export namespace Prisma {
     voteCount?: number
     voterEmail?: string | null
     voterPhone?: string | null
+    voterId?: string | null
   }
 
   export type VoteUpdateWithoutEventMemberInput = {
@@ -66821,7 +71671,6 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -66829,6 +71678,7 @@ export namespace Prisma {
     voteCount?: IntFieldUpdateOperationsInput | number
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VoteUncheckedUpdateManyWithoutEventMemberInput = {
@@ -66836,7 +71686,6 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -66844,6 +71693,120 @@ export namespace Prisma {
     voteCount?: IntFieldUpdateOperationsInput | number
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type accountsCreateManyUsersInput = {
+    id: string
+    scope?: string | null
+    accessToken?: string | null
+    accessTokenExpiresAt?: Date | string | null
+    accountId: string
+    createdAt?: Date | string
+    idToken?: string | null
+    password?: string | null
+    providerId: string
+    refreshToken?: string | null
+    refreshTokenExpiresAt?: Date | string | null
+    updatedAt?: Date | string
+  }
+
+  export type sessionsCreateManyUsersInput = {
+    id: string
+    expiresAt: Date | string
+    token: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    ipAddress?: string | null
+    userAgent?: string | null
+  }
+
+  export type accountsUpdateWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idToken?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: StringFieldUpdateOperationsInput | string
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type accountsUncheckedUpdateWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idToken?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: StringFieldUpdateOperationsInput | string
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type accountsUncheckedUpdateManyWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    scope?: NullableStringFieldUpdateOperationsInput | string | null
+    accessToken?: NullableStringFieldUpdateOperationsInput | string | null
+    accessTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    accountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    idToken?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    providerId?: StringFieldUpdateOperationsInput | string
+    refreshToken?: NullableStringFieldUpdateOperationsInput | string | null
+    refreshTokenExpiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type sessionsUpdateWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type sessionsUncheckedUpdateWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type sessionsUncheckedUpdateManyWithoutUsersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ActivityLogCreateManyOrganizationInput = {
+    id?: string
+    userId?: string | null
+    action: string
+    entityType: string
+    entityId?: string | null
+    description: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
   }
 
   export type EventCreateManyOrganizationInput = {
@@ -66889,7 +71852,6 @@ export namespace Prisma {
 
   export type OrganizationInvitationCreateManyOrganizationInput = {
     id?: string
-    inviterId?: string | null
     email: string
     role?: $Enums.OrganizationRole
     status?: $Enums.InvitationStatus
@@ -66897,6 +71859,7 @@ export namespace Prisma {
     expiresAt?: Date | string | null
     createdAt?: Date | string
     respondedAt?: Date | string | null
+    inviterId?: string | null
   }
 
   export type TeamMemberCreateManyOrganizationInput = {
@@ -66929,17 +71892,43 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type ActivityLogCreateManyOrganizationInput = {
-    id?: string
-    userId?: string | null
-    action: string
-    entityType: string
-    entityId?: string | null
-    description: string
+  export type ActivityLogUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: string | null
-    userAgent?: string | null
-    createdAt?: Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: ProfileUpdateOneWithoutActivityLogsNestedInput
+  }
+
+  export type ActivityLogUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ActivityLogUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EventUpdateWithoutOrganizationInput = {
@@ -67101,7 +72090,6 @@ export namespace Prisma {
 
   export type OrganizationInvitationUncheckedUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
     role?: EnumOrganizationRoleFieldUpdateOperationsInput | $Enums.OrganizationRole
     status?: EnumInvitationStatusFieldUpdateOperationsInput | $Enums.InvitationStatus
@@ -67109,11 +72097,11 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type OrganizationInvitationUncheckedUpdateManyWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
     role?: EnumOrganizationRoleFieldUpdateOperationsInput | $Enums.OrganizationRole
     status?: EnumInvitationStatusFieldUpdateOperationsInput | $Enums.InvitationStatus
@@ -67121,6 +72109,7 @@ export namespace Prisma {
     expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     respondedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    inviterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TeamMemberUpdateWithoutOrganizationInput = {
@@ -67215,45 +72204,6 @@ export namespace Prisma {
     lastTransactionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type ActivityLogUpdateWithoutOrganizationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: StringFieldUpdateOperationsInput | string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: ProfileUpdateOneWithoutActivityLogsNestedInput
-  }
-
-  export type ActivityLogUncheckedUpdateWithoutOrganizationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: StringFieldUpdateOperationsInput | string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type ActivityLogUncheckedUpdateManyWithoutOrganizationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: StringFieldUpdateOperationsInput | string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PayoutCreateManyWalletInput = {
@@ -67504,7 +72454,6 @@ export namespace Prisma {
     eventId: string
     optionId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     smsSent?: boolean
     whatsappSent?: boolean
@@ -67512,6 +72461,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type TicketOrderUpdateWithoutPaymentInput = {
@@ -67653,7 +72603,6 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     smsSent?: BoolFieldUpdateOperationsInput | boolean
     whatsappSent?: BoolFieldUpdateOperationsInput | boolean
@@ -67661,6 +72610,7 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VoteUncheckedUpdateManyWithoutPaymentInput = {
@@ -67668,7 +72618,6 @@ export namespace Prisma {
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     smsSent?: BoolFieldUpdateOperationsInput | boolean
     whatsappSent?: BoolFieldUpdateOperationsInput | boolean
@@ -67676,6 +72625,7 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CommissionCreateManyPromoterInput = {
@@ -67700,6 +72650,7 @@ export namespace Prisma {
   export type ProfileCreateManyReferrerInput = {
     id: string
     email: string
+    emailVerified?: boolean
     passwordHash?: string | null
     username: string
     fullName: string
@@ -67793,6 +72744,7 @@ export namespace Prisma {
   export type ProfileUpdateWithoutReferrerInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -67807,6 +72759,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
     createdEvents?: EventUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUpdateManyWithoutUserNestedInput
@@ -67821,12 +72774,12 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateWithoutReferrerInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -67841,6 +72794,7 @@ export namespace Prisma {
     communicationCredits?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isVerifiedPartner?: BoolFieldUpdateOperationsInput | boolean
     pricingPlan?: EnumPricingPlanFieldUpdateOperationsInput | $Enums.PricingPlan
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
     createdEvents?: EventUncheckedUpdateManyWithoutCreatorNestedInput
     resolvedRequests?: MembershipRequestUncheckedUpdateManyWithoutResolverNestedInput
     membershipRequests?: MembershipRequestUncheckedUpdateManyWithoutUserNestedInput
@@ -67855,12 +72809,12 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     nominatedOptions?: VotingOptionUncheckedUpdateManyWithoutNominatedByNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ProfileUncheckedUpdateManyWithoutReferrerInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: BoolFieldUpdateOperationsInput | boolean
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     username?: StringFieldUpdateOperationsInput | string
     fullName?: StringFieldUpdateOperationsInput | string
@@ -68134,6 +73088,19 @@ export namespace Prisma {
     whatsappSent?: BoolFieldUpdateOperationsInput | boolean
   }
 
+  export type ActivityLogCreateManyUserInput = {
+    id?: string
+    organizationId?: string | null
+    action: string
+    entityType: string
+    entityId?: string | null
+    description: string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: string | null
+    userAgent?: string | null
+    createdAt?: Date | string
+  }
+
   export type EventCreateManyCreatorInput = {
     id?: string
     organizationId: string
@@ -68358,17 +73325,43 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type ActivityLogCreateManyUserInput = {
-    id?: string
-    organizationId?: string | null
-    action: string
-    entityType: string
-    entityId?: string | null
-    description: string
+  export type ActivityLogUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: string | null
-    userAgent?: string | null
-    createdAt?: Date | string
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
+  }
+
+  export type ActivityLogUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ActivityLogUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EventUpdateWithoutCreatorInput = {
@@ -68631,13 +73624,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
     events?: EventUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCreatorInput = {
@@ -68662,13 +73655,13 @@ export namespace Prisma {
     tertiaryColor?: StringFieldUpdateOperationsInput | string
     allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
     autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
     events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
     requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
-    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateManyWithoutCreatorInput = {
@@ -69095,50 +74088,10 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type ActivityLogUpdateWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    action?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: StringFieldUpdateOperationsInput | string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    organization?: OrganizationUpdateOneWithoutActivityLogsNestedInput
-  }
-
-  export type ActivityLogUncheckedUpdateWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: StringFieldUpdateOperationsInput | string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type ActivityLogUncheckedUpdateManyWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
-    action?: StringFieldUpdateOperationsInput | string
-    entityType?: StringFieldUpdateOperationsInput | string
-    entityId?: NullableStringFieldUpdateOperationsInput | string | null
-    description?: StringFieldUpdateOperationsInput | string
-    metadata?: NullableJsonNullValueInput | InputJsonValue
-    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
-    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type VoteCreateManyCategoryInput = {
     id?: string
     eventId: string
     optionId: string
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -69147,6 +74100,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VotingOptionCreateManyCategoryInput = {
@@ -69189,7 +74143,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -69198,13 +74151,13 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VoteUncheckedUpdateManyWithoutCategoryInput = {
     id?: StringFieldUpdateOperationsInput | string
     eventId?: StringFieldUpdateOperationsInput | string
     optionId?: StringFieldUpdateOperationsInput | string
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -69213,6 +74166,7 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VotingOptionUpdateWithoutCategoryInput = {
@@ -69284,7 +74238,6 @@ export namespace Prisma {
     id?: string
     eventId: string
     categoryId?: string | null
-    voterId?: string | null
     createdAt?: Date | string
     paymentId?: string | null
     smsSent?: boolean
@@ -69293,6 +74246,7 @@ export namespace Prisma {
     voterEmail?: string | null
     voterPhone?: string | null
     eventMemberId?: string | null
+    voterId?: string | null
   }
 
   export type VoteUpdateWithoutOptionInput = {
@@ -69314,7 +74268,6 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     eventId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -69323,13 +74276,13 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VoteUncheckedUpdateManyWithoutOptionInput = {
     id?: StringFieldUpdateOperationsInput | string
     eventId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
-    voterId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     paymentId?: NullableStringFieldUpdateOperationsInput | string | null
     smsSent?: BoolFieldUpdateOperationsInput | boolean
@@ -69338,6 +74291,7 @@ export namespace Prisma {
     voterEmail?: NullableStringFieldUpdateOperationsInput | string | null
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
+    voterId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
 

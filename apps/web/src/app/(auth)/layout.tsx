@@ -1,12 +1,26 @@
 import { AfricaMap } from "@/components/shared/africa-map";
 import { FextivaLogo } from "@/components/shared/FextivaLogo";
 import Link from "next/link";
+import { getAuthState, mustVerifyEmail } from "@/lib/auth-guards";
+import { redirect } from "next/navigation";
 
-export default function AuthLayout({
+export const dynamic = "force-dynamic";
+
+export default async function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Fully authenticated (onboarded or grandfathered legacy) users are sent to
+  // their natural home so they never see auth screens again.
+  // New accounts that still need to verify their email are intentionally NOT
+  // redirected here — /verify lives inside this group and the proxy already
+  // funnels them there from login/register/onboarding.
+  const state = await getAuthState();
+  if (state && !mustVerifyEmail(state)) {
+    redirect(state.onboardingCompleted ? "/dashboard" : "/onboarding");
+  }
+
   return (
     <div className="h-dvh bg-background lg:bg-transparent flex flex-col lg:flex-row font-poppins overflow-hidden">
       {/* Left hero / brand side with animated Africa Map */}

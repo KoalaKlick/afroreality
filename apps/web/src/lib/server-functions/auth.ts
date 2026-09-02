@@ -6,8 +6,60 @@ import { signSession, setSessionCookie, clearSessionCookie } from "@/lib/session
 import { toSafeUserDto } from "@/lib/dal/auth";
 import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email/auth";
 
-// In-memory or temporary OTP storage for password recovery & verification
-const otpStore = new Map<string, { code: string; expiresAt: number }>();
+// ============================================================
+// Auth service (email + password)
+//
+// All OTP codes are persisted in the `verifications` table so they
+// survive server restarts and multi-instance deployments (unlike an
+// in-memory Map). Identifiers are namespaced per purpose:
+//   - `email-verification:<userId>`  → email verification
+//   - `password-reset:<userId>`      → password recovery
+// ============================================================
+
+const EMAIL_VERIFY_PREFIX = "email-verification";
+const PASSWORD_RESET_PREFIX = "password-reset";
+const OTP_TTL_MINUTES = 15;
+
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function createOtpRecord(identifier: string, otp: string): Promise<void> {
+  // Replace any previous live code for the same identifier
+  await prisma.verification.deleteMany({ where: { identifier } }).catch(() => { });
+  await prisma.verification.create({
+    data: {
+      id: `ver_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`,
+      identifier,
+      value: otp,
+      expiresAt: new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000),
+    },
+  });
+}
+
+async function consumeOtp(identifier: string, otp: string): Promise<boolean> {
+  const valid = await peekOtp(identifier, otp);
+  if (!valid) return false;
+  // Codes are single-use: remove them so they cannot be replayed.
+  await prisma.verification.deleteMany({ where: { identifier } }).catch(() => { });
+  return true;
+}
+
+/**
+ * Validates an OTP WITHOUT consuming it. Used by the password-recovery flow,
+ * where the code is verified on one screen and then consumed when the new
+ * password is actually saved (resetPasswordAction).
+ */
+async function peekOtp(identifier: string, otp: string): Promise<boolean> {
+  const record = await prisma.verification.findFirst({
+    where: { identifier },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!record || new Date() > record.expiresAt || record.value !== otp.trim()) {
+    return false;
+  }
+  return true;
+}
 
 export async function loginAction({
   identifier,
@@ -34,11 +86,26 @@ export async function loginAction({
       return { success: false, error: "Invalid email/username or password" };
     }
 
+    // Accounts that predate email verification already completed onboarding and
+    // keep full access (grandfathered). Only accounts that have NOT completed
+    // onboarding must verify their email before continuing.
+    const onboardingCompleted = Boolean(user.onboardingCompleted);
+    if (!user.emailVerified && !onboardingCompleted) {
+      return {
+        success: false,
+        needsVerification: true,
+        email: user.email,
+        error: "Please verify your email address before continuing.",
+      };
+    }
+
     const token = await signSession({
       userId: user.id,
       email: user.email,
+      emailVerified: Boolean(user.emailVerified),
       fullName: user.fullName || "",
       username: user.username || "",
+      onboardingCompleted,
     });
 
     await setSessionCookie(token);
@@ -46,7 +113,8 @@ export async function loginAction({
     return {
       success: true,
       user: toSafeUserDto(user),
-      onboardingCompleted: Boolean(user.onboardingCompleted),
+      emailVerified: Boolean(user.emailVerified),
+      onboardingCompleted,
     };
   } catch (error: any) {
     console.error("loginAction error:", error);
@@ -73,6 +141,16 @@ export async function registerAction({
     });
 
     if (existing) {
+      // Legacy accounts that completed onboarding simply exist — direct them to
+      // sign in. New-but-unverified accounts are sent to the verify flow.
+      if (!existing.emailVerified && !existing.onboardingCompleted) {
+        return {
+          success: false,
+          needsVerification: true,
+          email: existing.email,
+          error: "An account with this email already exists. Please verify your email.",
+        };
+      }
       return { success: false, error: "An account with this email already exists" };
     }
 
@@ -86,15 +164,16 @@ export async function registerAction({
         fullName: fullName.trim(),
         username: (username || fallbackUsername).toLowerCase().trim(),
         passwordHash,
+        emailVerified: false,
         onboardingCompleted: false,
         onboardingStep: 0,
       },
     });
 
-    // Generate and send verification email
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(`verify:${cleanEmail}`, { code: otp, expiresAt: Date.now() + 15 * 60 * 1000 });
-    
+    // Generate and persist a verification code, then email it to the user.
+    const otp = generateOtp();
+    await createOtpRecord(`${EMAIL_VERIFY_PREFIX}:${user.id}`, otp);
+
     // Asynchronously send email without blocking registration
     sendVerificationEmail({
       email: cleanEmail,
@@ -102,23 +181,69 @@ export async function registerAction({
       otp,
     }).catch((err) => console.error("Error sending registration verification email:", err));
 
+    // Sign the user in so we know who they are, but with emailVerified=false.
+    // The centralized proxy / route guards will send them to /verify before they
+    // can reach onboarding or any protected screen.
     const token = await signSession({
       userId: user.id,
       email: user.email,
+      emailVerified: false,
       fullName: user.fullName || "",
       username: user.username || "",
+      onboardingCompleted: false,
     });
-
     await setSessionCookie(token);
 
     return {
       success: true,
+      requiresVerification: true,
+      emailVerified: false,
       user: toSafeUserDto(user),
       onboardingCompleted: false,
     };
   } catch (error: any) {
     console.error("registerAction error:", error);
     return { success: false, error: error.message || "Failed to create account" };
+  }
+}
+
+export async function sendVerificationEmailAction({
+  email,
+}: {
+  email: string;
+}): Promise<any> {
+  const cleanEmail = email.toLowerCase().trim();
+
+  try {
+    const user = await prisma.profile.findUnique({
+      where: { email: cleanEmail },
+    });
+
+    if (!user) {
+      return { success: false, error: "No account found for this email address." };
+    }
+
+    if (user.emailVerified) {
+      return { success: true, alreadyVerified: true };
+    }
+
+    const otp = generateOtp();
+    await createOtpRecord(`${EMAIL_VERIFY_PREFIX}:${user.id}`, otp);
+
+    const res = await sendVerificationEmail({
+      email: cleanEmail,
+      name: user.fullName || undefined,
+      otp,
+    });
+
+    if (!res.success) {
+      return { success: false, error: res.error || "Failed to send verification email." };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("sendVerificationEmailAction error:", err);
+    return { success: false, error: err.message || "Failed to send verification email." };
   }
 }
 
@@ -135,8 +260,8 @@ export async function sendRecoveryOtpAction({ email }: { email: string }): Promi
       return { success: true };
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(`recovery:${cleanEmail}`, { code: otp, expiresAt: Date.now() + 15 * 60 * 1000 });
+    const otp = generateOtp();
+    await createOtpRecord(`${PASSWORD_RESET_PREFIX}:${user.id}`, otp);
 
     const res = await sendPasswordResetEmail({
       email: cleanEmail,
@@ -158,39 +283,81 @@ export async function sendRecoveryOtpAction({ email }: { email: string }): Promi
 export async function verifyOtpAction({
   email,
   otp,
-  type = "recovery",
+  type = "verify",
 }: {
   email: string;
   otp: string;
-  type?: "recovery" | "verify";
+  type?: "verify" | "recovery";
 }): Promise<any> {
   const cleanEmail = email.toLowerCase().trim();
-  const key = `${type}:${cleanEmail}`;
-  const stored = otpStore.get(key);
 
-  if (!stored) {
-    return { success: false, error: "Verification code expired or not found. Please request a new one." };
+  try {
+    const user = await prisma.profile.findUnique({
+      where: { email: cleanEmail },
+    });
+
+    if (!user) {
+      return { success: false, error: "Account not found." };
+    }
+
+    const identifier =
+      type === "recovery"
+        ? `${PASSWORD_RESET_PREFIX}:${user.id}`
+        : `${EMAIL_VERIFY_PREFIX}:${user.id}`;
+
+    // Recovery: validate WITHOUT consuming — the code is needed again when the
+    // new password is actually saved in resetPasswordAction.
+    if (type === "recovery") {
+      const valid = await peekOtp(identifier, otp);
+      if (!valid) {
+        return { success: false, error: "Invalid or expired verification code." };
+      }
+      return { success: true, purpose: "recovery" };
+    }
+
+    const valid = await consumeOtp(identifier, otp);
+    if (!valid) {
+      return { success: false, error: "Invalid or expired verification code." };
+    }
+
+    // Email verification: flip the flag and issue a real session so the user
+    // can continue into onboarding/dashboard.
+    await prisma.profile.update({
+      where: { id: user.id },
+      data: { emailVerified: true },
+    });
+
+    const token = await signSession({
+      userId: user.id,
+      email: user.email,
+      emailVerified: true,
+      fullName: user.fullName || "",
+      username: user.username || "",
+      onboardingCompleted: Boolean(user.onboardingCompleted),
+    });
+    await setSessionCookie(token);
+
+    return {
+      success: true,
+      purpose: "verify",
+      emailVerified: true,
+      user: toSafeUserDto({ ...user, emailVerified: true }),
+      onboardingCompleted: Boolean(user.onboardingCompleted),
+    };
+  } catch (error: any) {
+    console.error("verifyOtpAction error:", error);
+    return { success: false, error: error.message || "Verification failed" };
   }
-
-  if (Date.now() > stored.expiresAt) {
-    otpStore.delete(key);
-    return { success: false, error: "Verification code expired. Please request a new one." };
-  }
-
-  if (stored.code !== otp.trim()) {
-    return { success: false, error: "Invalid verification code." };
-  }
-
-  otpStore.delete(key);
-  return { success: true };
 }
 
 export async function resetPasswordAction({
   email,
   newPassword,
+  otp,
 }: {
   email: string;
   newPassword: string;
+  otp?: string;
 }): Promise<any> {
   const cleanEmail = email.toLowerCase().trim();
 
@@ -201,6 +368,16 @@ export async function resetPasswordAction({
 
     if (!user) {
       return { success: false, error: "User not found" };
+    }
+
+    // The recovery code must be validated before the password is changed.
+    if (!otp) {
+      return { success: false, error: "A verification code is required to reset your password." };
+    }
+
+    const valid = await consumeOtp(`${PASSWORD_RESET_PREFIX}:${user.id}`, otp);
+    if (!valid) {
+      return { success: false, error: "Invalid or expired verification code." };
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
@@ -238,17 +415,26 @@ export async function googleOAuthAction({
           email: cleanEmail,
           fullName,
           username: fallbackUsername,
+          emailVerified: true, // OAuth providers have already verified the email
           onboardingCompleted: false,
           onboardingStep: 0,
         },
+      });
+    } else if (!user.emailVerified) {
+      // An OAuth sign-in with a Google-verified address is sufficient proof.
+      user = await prisma.profile.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
       });
     }
 
     const token = await signSession({
       userId: user.id,
       email: user.email,
+      emailVerified: true,
       fullName: user.fullName || "",
       username: user.username || "",
+      onboardingCompleted: Boolean(user.onboardingCompleted),
     });
 
     await setSessionCookie(token);
@@ -256,6 +442,7 @@ export async function googleOAuthAction({
     return {
       success: true,
       user: toSafeUserDto(user),
+      emailVerified: true,
       onboardingCompleted: Boolean(user.onboardingCompleted),
     };
   } catch (error: any) {

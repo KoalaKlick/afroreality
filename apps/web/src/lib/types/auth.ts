@@ -1,6 +1,7 @@
 export interface SafeUserDto {
   id: string;
   email: string;
+  emailVerified?: boolean;
   fullName: string;
   username?: string | null;
   role?: string;
@@ -12,6 +13,7 @@ export interface SafeUserDto {
 export interface SessionPayload {
   userId: string;
   email: string;
+  emailVerified?: boolean;
   username?: string;
   fullName?: string;
   role?: string;
@@ -22,6 +24,7 @@ export interface SessionPayload {
 export interface AuthSession {
   userId: string;
   email: string;
+  emailVerified?: boolean;
   role?: string;
   currentOrganizationId?: string | null;
   onboardingCompleted?: boolean;

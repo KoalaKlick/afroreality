@@ -5,34 +5,71 @@ import type { SafeUserDto } from "@/lib/types/auth";
 import {
   loginAction,
   registerAction,
-  googleOAuthAction,
   logoutAction,
   sendRecoveryOtpAction,
+  sendVerificationEmailAction,
   verifyOtpAction,
   resetPasswordAction,
 } from "@/lib/server-functions/auth";
 import { toast } from "sonner";
+
+export interface AuthError {
+  message: string;
+  needsVerification?: boolean;
+  email?: string;
+}
 
 export interface AuthContextType {
   user: SafeUserDto | null;
   isLoading: boolean;
   loading: boolean;
   setUser: (user: SafeUserDto | null) => void;
+  /** Legacy alias kept for compatibility — positional form. */
   login: (identifier: string, pass: string) => Promise<any>;
-  signInWithPassword: (credentials: any, options?: any) => Promise<{ data?: any; error: { message: string } | null }>;
+  signInWithPassword: (credentials: {
+    identifier?: string;
+    email?: string;
+    password: string;
+    redirectTo?: string;
+  }) => Promise<{ data?: SafeUserDto | null; error: AuthError | null }>;
+  /** Legacy alias kept for compatibility — positional form. */
   register: (email: string, pass: string, fullName: string, username?: string) => Promise<any>;
-  signUp: (data: any, options?: any, extra?: any) => Promise<{ data?: any; error: { message: string } | null }>;
+  signUp: (data: {
+    email: string;
+    password: string;
+    fullName?: string;
+    full_name?: string;
+    username?: string;
+    phone?: string;
+    redirectTo?: string;
+  }) => Promise<{ data?: SafeUserDto | null; error: AuthError | null }>;
   logout: () => Promise<void>;
   signOut: () => Promise<void>;
   signInWithOAuth: (provider: string) => Promise<{ data?: any; error: { message: string } | null }>;
-  updatePassword: (data: any, options?: any) => Promise<any>;
-  verifyOtp: (data: any, options?: any, extra?: any) => Promise<any>;
-  sendVerificationEmail: (email: string) => Promise<any>;
-  sendRecoveryOtp: (email: string) => Promise<any>;
-  resetPassword: (email: string, newPass?: string) => Promise<any>;
+  verifyOtp: (input: { email: string; otp: string; type?: "verify" | "recovery" }) => Promise<{
+    error: AuthError | null;
+    data?: any;
+  }>;
+  sendVerificationEmail: (email: string) => Promise<{ error: AuthError | null }>;
+  sendRecoveryOtp: (email: string) => Promise<{ error: AuthError | null }>;
+  resetPassword: (input: { email: string; newPassword: string; otp?: string }) => Promise<{
+    error: AuthError | null;
+  }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+/**
+ * Builds the `/verify` URL used whenever an account exists but its email is
+ * not yet verified.
+ */
+function buildVerifyUrl(email: string, next?: string | null): string {
+  const params = new URLSearchParams();
+  if (email) params.set("email", email);
+  if (next) params.set("next", next);
+  const qs = params.toString();
+  return `/verify${qs ? `?${qs}` : ""}`;
+}
 
 export function AuthProvider({
   children,
@@ -51,6 +88,8 @@ export function AuthProvider({
       if (res.success && res.user) {
         setUser(res.user);
         window.location.href = res.onboardingCompleted ? "/dashboard" : "/onboarding";
+      } else if (res.needsVerification && res.email) {
+        window.location.href = buildVerifyUrl(res.email);
       }
       return res;
     } finally {
@@ -58,18 +97,39 @@ export function AuthProvider({
     }
   };
 
-  const handleSignInWithPassword = async (credentials: any, options?: any) => {
+  const handleSignInWithPassword = async (credentials: {
+    identifier?: string;
+    email?: string;
+    password: string;
+    redirectTo?: string;
+  }) => {
     setIsLoading(true);
     const id = credentials.identifier || credentials.email || "";
     const password = credentials.password || "";
-    const redirectTo = options?.redirectTo || credentials.redirectTo;
+    const redirectTo = credentials.redirectTo;
 
     try {
       const res = await loginAction({ identifier: id, password });
+
+      if (res.needsVerification) {
+        // Account exists but its email is not verified — send them to verify.
+        const email = res.email || id;
+        window.location.href = buildVerifyUrl(email, redirectTo);
+        return {
+          data: null,
+          error: {
+            message: res.error || "Please verify your email address.",
+            needsVerification: true,
+            email,
+          },
+        };
+      }
+
       if (res.success && res.user) {
         setUser(res.user);
         toast.success("Signed in successfully!");
-        const nextUrl = redirectTo || (res.onboardingCompleted ? "/dashboard" : "/onboarding");
+        const nextUrl =
+          redirectTo || (res.onboardingCompleted ? "/dashboard" : "/onboarding");
         window.location.href = nextUrl;
         return { data: res.user, error: null };
       } else {
@@ -92,7 +152,10 @@ export function AuthProvider({
       const res = await registerAction({ email, password: pass, fullName, username });
       if (res.success && res.user) {
         setUser(res.user);
-        window.location.href = "/onboarding";
+        // New registrations must verify their email before onboarding/app access.
+        window.location.href = buildVerifyUrl(res.user.email);
+      } else if (res.needsVerification && res.email) {
+        window.location.href = buildVerifyUrl(res.email);
       }
       return res;
     } finally {
@@ -100,27 +163,47 @@ export function AuthProvider({
     }
   };
 
-  const handleSignUp = async (data: any, options?: any) => {
+  const handleSignUp = async (data: {
+    email: string;
+    password: string;
+    fullName?: string;
+    full_name?: string;
+    username?: string;
+    phone?: string;
+    redirectTo?: string;
+  }) => {
     setIsLoading(true);
     const email = data.email || "";
     const password = data.password || "";
     const fullName = data.fullName || data.full_name || "";
     const username = data.username || undefined;
-    const redirectTo = options?.redirectTo || data.redirectTo;
+    const redirectTo = data.redirectTo;
 
     try {
       const res = await registerAction({ email, password, fullName, username });
+
       if (res.success && res.user) {
         setUser(res.user);
-        toast.success("Account created successfully!");
-        const nextUrl = redirectTo || "/onboarding";
-        window.location.href = nextUrl;
+        toast.success("Account created! Please verify your email to continue.");
+        window.location.href = buildVerifyUrl(res.user.email, redirectTo);
         return { data: res.user, error: null };
-      } else {
-        const errorMsg = res.error || "Failed to create account";
-        toast.error(errorMsg);
-        return { data: null, error: { message: errorMsg } };
       }
+
+      if (res.needsVerification && res.email) {
+        window.location.href = buildVerifyUrl(res.email, redirectTo);
+        return {
+          data: null,
+          error: {
+            message: res.error || "Please verify your email.",
+            needsVerification: true,
+            email: res.email,
+          },
+        };
+      }
+
+      const errorMsg = res.error || "Failed to create account";
+      toast.error(errorMsg);
+      return { data: null, error: { message: errorMsg } };
     } catch (err: any) {
       const errorMsg = err.message || "Registration failed";
       toast.error(errorMsg);
@@ -146,30 +229,57 @@ export function AuthProvider({
     return { data: null, error: { message: "Provider not supported" } };
   };
 
-  const handleUpdatePassword = async (data: any) => {
-    return { success: true };
-  };
-
-  const handleVerifyOtp = async (data: any) => {
+  const handleVerifyOtp = async (input: {
+    email: string;
+    otp: string;
+    type?: "verify" | "recovery";
+  }) => {
     setIsLoading(true);
     try {
-      const email = data.email || "";
-      const otp = data.otp || data.token || "";
-      const type = data.type || "recovery";
+      const email = input.email || "";
+      const otp = input.otp || "";
+      const type = input.type || "verify";
       const res = await verifyOtpAction({ email, otp, type });
+
       if (res.success) {
-        toast.success("Verification successful!");
-        return { error: null };
+        if (res.user) setUser(res.user);
+        if (type === "verify") {
+          toast.success("Email verified successfully!");
+        }
+        return { error: null, data: res };
       }
-      toast.error(res.error || "Invalid verification code");
-      return { error: { message: res.error || "Invalid verification code" } };
+      const errorMsg = res.error || "Invalid verification code";
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
+    } catch (err: any) {
+      const errorMsg = err.message || "Invalid verification code";
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSendVerificationEmail = async (email: string) => {
-    return { success: true };
+    setIsLoading(true);
+    try {
+      const res = await sendVerificationEmailAction({ email });
+      if (res.success) {
+        if (!res.alreadyVerified) {
+          toast.success("Verification code sent to your email!");
+        }
+        return { error: null };
+      }
+      const errorMsg = res.error || "Failed to send verification code";
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
+    } catch (err: any) {
+      const errorMsg = err.message || "Failed to send verification code";
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSendRecoveryOtp = async (email: string) => {
@@ -187,11 +297,18 @@ export function AuthProvider({
     }
   };
 
-  const handleResetPassword = async (email: string, newPass?: string) => {
-    if (!newPass) return { success: false };
+  const handleResetPassword = async (input: {
+    email: string;
+    newPassword: string;
+    otp?: string;
+  }) => {
     setIsLoading(true);
     try {
-      const res = await resetPasswordAction({ email, newPassword: newPass });
+      const res = await resetPasswordAction({
+        email: input.email,
+        newPassword: input.newPassword,
+        otp: input.otp,
+      });
       if (res.success) {
         toast.success("Password reset successfully! Please sign in.");
         window.location.href = "/login";
@@ -199,6 +316,10 @@ export function AuthProvider({
       }
       toast.error(res.error || "Failed to reset password");
       return { error: { message: res.error || "Failed to reset password" } };
+    } catch (err: any) {
+      const errorMsg = err.message || "Failed to reset password";
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
     } finally {
       setIsLoading(false);
     }
@@ -218,7 +339,6 @@ export function AuthProvider({
         logout: handleLogout,
         signOut: handleLogout,
         signInWithOAuth: handleSignInWithOAuth,
-        updatePassword: handleUpdatePassword,
         verifyOtp: handleVerifyOtp,
         sendVerificationEmail: handleSendVerificationEmail,
         sendRecoveryOtp: handleSendRecoveryOtp,

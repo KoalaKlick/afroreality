@@ -1,14 +1,12 @@
 "use client";
 // src/components/organization/invite/InviteRegisterForm.tsx
 
-import React, { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { UserPlus, Loader2, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
-import { acceptOrgInvitation } from "@/lib/server-functions/organization-join";
 
 interface InviteRegisterFormProps {
 	readonly token: string;
@@ -21,13 +19,11 @@ export function InviteRegisterForm({
 	email,
 	organizationName,
 }: InviteRegisterFormProps) {
-	const router = useRouter();
 	const { signUp } = useAuth();
 	const [fullName, setFullName] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [isPending, startTransition] = useTransition();
 
 	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -44,6 +40,7 @@ export function InviteRegisterForm({
 				email,
 				password,
 				fullName,
+				redirectTo: `/invite/${token}`,
 			});
 
 			if (res.error) {
@@ -52,16 +49,14 @@ export function InviteRegisterForm({
 				return;
 			}
 
-			startTransition(async () => {
-				try {
-					await acceptOrgInvitation({ data: { token } });
-					toast.success(`Account created! Welcome to ${organizationName}!`);
-					router.push("/dashboard");
-					router.refresh();
-				} catch (err: any) {
-					toast.error(err.message || "Failed to accept invitation");
-				}
-			});
+			// A brand-new account must verify its email first. The provider
+			// redirects to /verify?next=/invite/<token>; after verification the
+			// user returns here (as a signed-in user) to accept the invitation.
+			// No redirect to /dashboard happens until verification + acceptance.
+			toast.success(
+				"Account created! Check your email to verify before joining.",
+			);
+			setLoading(false);
 		} catch (err: any) {
 			toast.error(err.message || "Registration failed");
 			setLoading(false);
@@ -131,14 +126,14 @@ export function InviteRegisterForm({
 				<Button
 					type="submit"
 					className="w-full font-semibold gap-2"
-					disabled={loading || isPending}
+					disabled={loading}
 				>
-					{loading || isPending ? (
+					{loading ? (
 						<Loader2 className="size-4 animate-spin" />
 					) : (
 						<UserPlus className="size-4" />
 					)}
-					Create Account & Accept
+					Create Account & Continue
 				</Button>
 			</form>
 		</div>

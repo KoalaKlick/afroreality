@@ -49,7 +49,9 @@ export async function GET(request: Request) {
     const fullName = googleUser.name || cleanEmail.split('@')[0];
     const avatarUrl = googleUser.picture || null;
 
-    // 3. Find or create profile in database
+    // 3. Find or create profile in database.
+    // OAuth providers return an address that they have already verified, so
+    // emailVerified is set to true on both create and (if needed) update.
     let profile = await prisma.profile.findUnique({
       where: { email: cleanEmail },
     });
@@ -63,23 +65,31 @@ export async function GET(request: Request) {
           fullName,
           avatarUrl,
           username: fallbackUsername,
+          emailVerified: true,
           onboardingCompleted: false,
           onboardingStep: 0,
         },
       });
-    } else if (avatarUrl && !profile.avatarUrl) {
-      await prisma.profile.update({
-        where: { id: profile.id },
-        data: { avatarUrl },
-      });
+    } else {
+      const updateData: any = {};
+      if (avatarUrl && !profile.avatarUrl) updateData.avatarUrl = avatarUrl;
+      if (!profile.emailVerified) updateData.emailVerified = true;
+      if (Object.keys(updateData).length > 0) {
+        profile = await prisma.profile.update({
+          where: { id: profile.id },
+          data: updateData,
+        });
+      }
     }
 
     // 4. Set session JWT
     const token = await signSession({
       userId: profile.id,
       email: profile.email,
+      emailVerified: true,
       fullName: profile.fullName || '',
       username: profile.username || '',
+      onboardingCompleted: Boolean(profile.onboardingCompleted),
     });
 
     await setSessionCookie(token);

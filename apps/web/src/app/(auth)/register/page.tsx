@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 import { RegisterForm } from "@/components/auth/register-form";
 
 export const metadata = {
@@ -5,6 +7,23 @@ export const metadata = {
   description: "Create your fextiva account",
 };
 
-export default function RegisterPage() {
-  return <RegisterForm />;
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const params = await searchParams;
+  const next = params.next || null;
+
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+        </div>
+      }
+    >
+      <RegisterForm next={next} />
+    </Suspense>
+  );
 }
