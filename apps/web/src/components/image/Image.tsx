@@ -15,13 +15,13 @@ export function Image({
   src,
   alt = "fextiva Image",
   className,
-  fallback = "/placeholder.png",
+  fallback,
   width = 400,
   height = 300,
   ...props
 }: ImageProps) {
   const [error, setError] = React.useState(false);
-  const resolvedSrc = error || !src ? fallback : getImageUrl(src);
+  const resolvedSrc = error || !src ? fallback || "" : getImageUrl(src);
 
   if (!resolvedSrc) {
     return <div className={cn("bg-neutral-100 dark:bg-neutral-800", className)} />;
