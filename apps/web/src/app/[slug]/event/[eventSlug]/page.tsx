@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getPublicEventDetails } from "@/lib/dal/public";
-import { getEventImageUrl } from "@/lib/image-url-utils";
+import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { Section } from "@/components/Landing/shared/Section";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
@@ -213,7 +213,7 @@ export default async function PublicEventPage({
 		</div>
 	);
 
-	// Schema.org JSON-LD structured data: Event & VotingSystem to decouple from pharmaceutical keywords
+	// Schema.org JSON-LD structured data: Dynamic Event Page Blueprint aligned with Fextiva platform architecture
 	const eventPageUrl = `${BASE_URL.replace(/\/$/, "")}/${orgSlug}/event/${eventSlug}`;
 	const eventCover =
 		getEventImageUrl(
@@ -226,9 +226,52 @@ export default async function PublicEventPage({
 		? eventCover
 		: `${BASE_URL.replace(/\/$/, "")}${eventCover}`;
 
+	const countryToIsoCode: Record<string, string> = {
+		Ghana: "GH",
+		Nigeria: "NG",
+		Kenya: "KE",
+		"South Africa": "ZA",
+		Rwanda: "RW",
+		Uganda: "UG",
+		Tanzania: "TZ",
+		Cameroon: "CM",
+		"Ivory Coast": "CI",
+		"Côte d'Ivoire": "CI",
+		Senegal: "SN",
+	};
+	const countryCode =
+		countryToIsoCode[event.venueCountry] ||
+		(event.venueCountry?.length === 2
+			? event.venueCountry.toUpperCase()
+			: "GH");
+
+	const eventOffers =
+		ticketTypes.length > 0
+			? ticketTypes.map((t: any) => ({
+					"@type": "Offer",
+					name: t.name,
+					price: t.price,
+					priceCurrency: "GHS",
+					category: "Ticketing / Voting",
+					availability:
+						t.status === "available"
+							? "https://schema.org/InStock"
+							: "https://schema.org/SoldOut",
+					url: eventPageUrl,
+					validFrom: t.salesStart ? new Date(t.salesStart).toISOString() : undefined,
+				}))
+			: {
+					"@type": "Offer",
+					url: eventPageUrl,
+					category: "Ticketing / Voting",
+					price: 0,
+					priceCurrency: "GHS",
+					availability: "https://schema.org/InStock",
+				};
+
 	const eventJsonLd: any = {
 		"@type": "Event",
-		name: event.title,
+		name: `${event.title} on Fextiva`,
 		description:
 			event.description?.replaceAll(/<[^>]*>/g, "").slice(0, 300) ||
 			`${event.title} - African event hosting, ticketing and secure voting on Fextiva.`,
@@ -252,7 +295,7 @@ export default async function PublicEventPage({
 						"@type": "PostalAddress",
 						streetAddress: event.venueAddress || undefined,
 						addressLocality: event.venueCity || undefined,
-						addressCountry: event.venueCountry || "Ghana",
+						addressCountry: countryCode,
 					},
 					...(event.latitude && event.longitude
 						? {
@@ -268,19 +311,17 @@ export default async function PublicEventPage({
 			"@type": "Organization",
 			name: organization.name,
 			url: `${BASE_URL.replace(/\/$/, "")}/${orgSlug}`,
+			...(organization.logoUrl ? { logo: getOrgImageUrl(organization.logoUrl) } : {}),
 		},
-		offers: ticketTypes.map((t: any) => ({
-			"@type": "Offer",
-			name: t.name,
-			price: t.price,
-			priceCurrency: "GHS",
-			availability:
-				t.status === "available"
-					? "https://schema.org/InStock"
-					: "https://schema.org/SoldOut",
-			url: eventPageUrl,
-			validFrom: t.salesStart ? new Date(t.salesStart).toISOString() : undefined,
-		})),
+		offers: eventOffers,
+		...(sponsors.length > 0
+			? {
+					sponsor: sponsors.map((s: any) => ({
+						"@type": "Organization",
+						name: s.name,
+					})),
+				}
+			: {}),
 	};
 
 	const schemaGraph: any = {

@@ -20,9 +20,28 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `${PROJ_NAME} - Create Unforgettable Events`,
+		title: "Fextiva | Africa's Ultimate Event Ticketing, Pubs & Voting Platform",
 		description:
-			"All-in-one ticketing, payments & live voting platform. Launch events in minutes.",
+			"Discover, ticket, and host African events on Fextiva. The leading platform for concerts, pub nights, secure awards voting, and ticketing. Better than Tix4u, Eventix, and Afrotix.",
+		keywords: [
+			"Fextiva events",
+			"Fextiva ticketing",
+			"African event platform",
+			"eventpulse",
+			"eventix",
+			"afrotix",
+			"voting platform Africa",
+			"ticketing pubs Ghana Nigeria",
+			"book African events",
+		],
+		openGraph: {
+			type: "website",
+			url: "https://fextiva.com",
+			title: "Fextiva - African Event Management & Voting Platform",
+			description:
+				"Host general events, manage pub ticketing, or run secure online voting across Africa.",
+			images: ["/landing/a.webp"],
+		},
 	};
 }
 

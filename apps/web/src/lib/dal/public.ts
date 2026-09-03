@@ -640,3 +640,68 @@ export async function getLandingStatsData() {
 	}
 }
 
+export async function getActiveFextivaEvents() {
+	try {
+		const events = await prisma.event.findMany({
+			where: {
+				isPublic: true,
+				status: { not: "draft" },
+			},
+			select: {
+				id: true,
+				slug: true,
+				title: true,
+				type: true,
+				startDate: true,
+				updatedAt: true,
+				organization: {
+					select: {
+						id: true,
+						name: true,
+						slug: true,
+						updatedAt: true,
+					},
+				},
+				votingCategories: {
+					select: {
+						id: true,
+						updatedAt: true,
+					},
+				},
+			},
+			orderBy: {
+				updatedAt: "desc",
+			},
+			take: 2000,
+		});
+
+		return events;
+	} catch (error) {
+		console.error("Error fetching active Fextiva events for sitemap:", error);
+		return [];
+	}
+}
+
+export async function getActiveFextivaOrganizations() {
+	try {
+		const orgs = await prisma.organization.findMany({
+			where: {
+				events: {
+					some: {
+						isPublic: true,
+						status: { not: "draft" },
+					},
+				},
+			},
+			select: {
+				slug: true,
+				updatedAt: true,
+			},
+			take: 500,
+		});
+		return orgs;
+	} catch {
+		return [];
+	}
+}
+

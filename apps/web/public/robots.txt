@@ -1,0 +1,45 @@
+# Robots.txt for Fextiva (https://fextiva.com)
+# Pan-African Event Hosting, Ticketing, Pubs & Secure Voting Platform
+
+# Explicit AI & Search Engine Crawler Allowances
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: Google-Extended
+User-agent: AnthropicBot
+User-agent: PerplexityBot
+Allow: /
+Allow: /events
+Allow: /events/
+Allow: /voting
+Allow: /voting/
+Allow: /pubs
+Allow: /pubs/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /checkout/
+Disallow: /verify-vote/
+Disallow: /payment/
+Disallow: /ticket/verify
+
+# Default Crawlers
+User-agent: *
+Allow: /
+Allow: /events
+Allow: /events/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /checkout/
+Disallow: /verify-vote/
+Disallow: /payment/
+Disallow: /ticket/verify
+Disallow: /organization/billing
+Disallow: /organization/manage
+Disallow: /organization/members
+Disallow: /organization/wallet
+Disallow: /my-events/
+Disallow: /onboarding/
+
+# Production Sitemap
+Sitemap: https://fextiva.com/sitemap.xml
