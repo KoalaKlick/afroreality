@@ -1,8 +1,8 @@
-import { AfricaMap } from "@/components/shared/africa-map";
-import { FextivaLogo } from "@/components/shared/FextivaLogo";
+
 import Link from "next/link";
 import { getAuthState, mustVerifyEmail } from "@/lib/auth-guards";
 import { redirect } from "next/navigation";
+import AfricaMap, { FextivaLogo } from "@/components/shared/africa-map";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export default async function AuthLayout({
   return (
     <div className="h-dvh bg-background lg:bg-transparent flex flex-col lg:flex-row font-poppins overflow-hidden">
       {/* Left hero / brand side with animated Africa Map */}
-      <div className="relative w-full lg:w-1/2 h-[35dvh] lg:h-full overflow-hidden bg-secondary-50 flex-shrink-0">
+      <div className="relative w-full lg:w-1/2 h-[35dvh] lg:h-full overflow-hidden bg-secondary-50 dark:bg-zinc-950 flex-shrink-0 [--left-bg:var(--color-secondary-50)] dark:[--left-bg:#09090b]">
         <AfricaMap
           images={["/landing/g.webp", "/landing/b.webp", "/landing/h.webp"]}
           interval={9000}
@@ -33,10 +33,15 @@ export default async function AuthLayout({
         />
 
         {/* Hero copy */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-6 right-6 lg:space-y-6 max-w-[15rem] sm:max-w-[18rem] md:max-w-xs pointer-events-none z-10">
+        <div className="absolute top-1/2 -translate-y-1/2 left-6 right-6 lg:space-y-6 max-w-[10rem] sm:max-w-[12rem] md:max-w-[10rem] pointer-events-none z-10">
           <div className="flex items-center gap-2">
             <Link href="/" className="pointer-events-auto">
-              <FextivaLogo className="w-28 sm:w-32 md:w-36 lg:w-40 h-auto p-2 bg-secondary-50/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-lg" />
+              <FextivaLogo
+                withStroke={true}
+                strokeWidth={16}
+                strokeColor="var(--left-bg, #f8f5f1)"
+                className="w-28 sm:w-32 md:w-36 lg:w-40 h-auto shadow-none"
+              />
             </Link>
           </div>
           <span className="mt-2 text-sm inline bg-secondary-50/90 dark:bg-zinc-900/90 px-2 py-1 backdrop-blur-sm font-medium text-foreground/80 rounded box-decoration-clone">

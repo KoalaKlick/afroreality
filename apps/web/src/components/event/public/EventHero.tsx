@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, MapPin, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, Share2, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EventInfoPill } from "@/components/shared/EventInfoPill";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { shareEvent } from "@/lib/utils/share-utils";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
+import { EventInfoPill } from "@/components/shared/EventInfoPill";
 
 interface EventHeroProps {
 	readonly event: {
@@ -107,28 +107,30 @@ export function EventHero({
 			{/* ── Sticky Top Navigation Bar ── */}
 			<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+					{/* Clickable Organization Brand Logo & Name */}
 					<Link
 						href={`/${orgSlug}`}
-						className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors group"
+						className="inline-flex items-center gap-2.5 text-foreground hover:text-primary transition-colors group"
+						title={`Visit ${organization.name}`}
 					>
-						<ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
-						<span>Back to {organization.name}</span>
+						{orgLogoUrl ? (
+							<img
+								src={orgLogoUrl}
+								alt={organization.name}
+								className="size-7 rounded-lg border object-cover group-hover:border-primary/50 transition-colors shrink-0"
+							/>
+						) : (
+							<div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+								<Building2 className="size-4" />
+							</div>
+						)}
+						<span className="text-xs sm:text-sm font-black uppercase tracking-tight truncate max-w-[180px] sm:max-w-xs font-millik">
+							{organization.name}
+						</span>
 					</Link>
 
-					<div className="flex items-center gap-3">
-						<div className="hidden sm:flex items-center gap-2">
-							{orgLogoUrl ? (
-								<img
-									src={orgLogoUrl}
-									alt={organization.name}
-									className="rounded-full border size-6 object-cover"
-								/>
-							) : null}
-							<span className="text-xs font-black uppercase tracking-tight text-foreground truncate max-w-[120px] md:max-w-xs">
-								{organization.name}
-							</span>
-						</div>
-
+					{/* Right: Actions */}
+					<div className="flex items-center gap-2.5">
 						{/* Social Media Handles */}
 						{socialLinks.length > 0 && (
 							<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
@@ -138,11 +140,11 @@ export function EventHero({
 							variant="outline"
 							size="sm"
 							onClick={handleShareEvent}
-							className="rounded-full text-xs font-bold gap-1.5 h-8 border-border hover:border-primary/50"
+							className="rounded-lg text-xs font-semibold gap-1.5 h-8 border-border hover:border-primary/50 hover:text-primary shadow-none"
 							title="Share Event"
 						>
 							<Share2 className="size-3.5" />
-							<span className="hidden sm:inline">Share</span>
+							<span>Share</span>
 						</Button>
 					</div>
 				</div>

@@ -95,8 +95,13 @@ export function EventCreationCTABanner({
 			{/* Brand footer strip */}
 			<div className="w-full bg-background border-t px-6 sm:px-10 lg:px-16 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
 				<div className="flex items-center gap-3">
-					<Link href="/" className="inline-flex items-center">
-						<FextivaLogo className="h-6 w-auto" />
+					<Link href="/" className="inline-flex items-center hover:opacity-90 transition-opacity">
+						<FextivaLogo
+							showWordmark
+							layout="horizontal"
+							className="h-5 w-auto"
+							wordmarkClassName="text-sm font-black tracking-tight"
+						/>
 					</Link>
 					<span className="text-xs text-muted-foreground hidden sm:inline">|</span>
 					<p className="text-xs text-muted-foreground font-medium">
