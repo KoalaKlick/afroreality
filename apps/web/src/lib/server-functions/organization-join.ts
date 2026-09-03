@@ -11,13 +11,20 @@ function isUuid(str: string): boolean {
 	);
 }
 
-export async function acceptOrgInvitation({
-	data,
-}: {
-	data: any;
-}): Promise<any> {
+export async function acceptOrgInvitation(
+	args: any,
+): Promise<{ success: boolean; organizationId?: string; error?: string }> {
 	const session = await requireSession();
-	const token = data.token || data.invitationId;
+	const token =
+		typeof args === "string"
+			? args
+			: args?.data?.token ||
+			  args?.data?.invitationId ||
+			  args?.data?.id ||
+			  args?.token ||
+			  args?.invitationId ||
+			  args?.id;
+
 	if (!token) throw new Error("Invitation token is required.");
 
 	const whereCondition: any = isUuid(token)
@@ -61,12 +68,13 @@ export async function acceptOrgInvitation({
 		},
 	});
 
-	// Mark onboarding as completed for this user since they are now part of an organization
+	// Mark onboarding as completed for this user and set active organization
 	await prisma.profile.update({
 		where: { id: session.userId },
 		data: {
 			onboardingCompleted: true,
 			onboardingStep: 3,
+			currentOrganizationId: invite.organizationId,
 		},
 	}).catch(() => null);
 
@@ -83,18 +91,26 @@ export async function acceptOrgInvitation({
 
 	revalidatePath("/organization/members");
 	revalidatePath("/dashboard");
+	revalidatePath("/", "layout");
 	return { success: true, organizationId: invite.organizationId };
 }
 
 export const acceptInvitation = acceptOrgInvitation;
 
-export async function declineOrgInvitation({
-	data,
-}: {
-	data: any;
-}): Promise<any> {
+export async function declineOrgInvitation(
+	args: any,
+): Promise<{ success: boolean; error?: string }> {
 	await requireSession();
-	const token = data.token || data.invitationId;
+	const token =
+		typeof args === "string"
+			? args
+			: args?.data?.token ||
+			  args?.data?.invitationId ||
+			  args?.data?.id ||
+			  args?.token ||
+			  args?.invitationId ||
+			  args?.id;
+
 	if (!token) return { success: true };
 
 	const whereCondition: any = isUuid(token)
@@ -114,6 +130,7 @@ export async function declineOrgInvitation({
 		});
 	}
 	revalidatePath("/organization/members");
+	revalidatePath("/", "layout");
 	return { success: true };
 }
 
@@ -162,13 +179,86 @@ export async function resolveMembershipRequest({
 
 export const handleJoinRequest = resolveMembershipRequest;
 
+export async function requestToJoinOrganization({
+	organizationId,
+	message,
+}: {
+	organizationId: string;
+	message?: string;
+}): Promise<{ success: boolean; error?: string }> {
+	const session = await requireSession();
+	if (!session || !session.userId) {
+		return { success: false, error: "Not authenticated" };
+	}
+
+	const org = await prisma.organization.findUnique({
+		where: { id: organizationId },
+		select: { id: true, slug: true, allowJoinRequests: true },
+	});
+	if (!org) {
+		return { success: false, error: "Organization not found" };
+	}
+	if (!org.allowJoinRequests) {
+		return {
+			success: false,
+			error: "This organization is not accepting join requests.",
+		};
+	}
+
+	// Check if already a member
+	const existingMember = await prisma.teamMember.findUnique({
+		where: {
+			organizationId_userId: {
+				organizationId: org.id,
+				userId: session.userId,
+			},
+		},
+	});
+	if (existingMember) {
+		return {
+			success: false,
+			error: "You are already a member of this organization.",
+		};
+	}
+
+	// Check if already has a pending request
+	const existingRequest = await prisma.membershipRequest.findFirst({
+		where: {
+			organizationId: org.id,
+			userId: session.userId,
+			status: "pending",
+		},
+	});
+	if (existingRequest) {
+		return {
+			success: false,
+			error: "You already have a pending request for this organization.",
+		};
+	}
+
+	await prisma.membershipRequest.create({
+		data: {
+			organizationId: org.id,
+			userId: session.userId,
+			message: message?.trim() || null,
+			status: "pending",
+		},
+	});
+
+	revalidatePath(`/${org.slug}`);
+	return { success: true };
+}
+
 export async function getPendingInvitationsForEmail(): Promise<any[]> {
 	try {
 		const session = await getSession();
 		if (!session || !session.email) return [];
 		const invites = await prisma.organizationInvitation.findMany({
 			where: {
-				email: session.email.toLowerCase().trim(),
+				email: {
+					equals: session.email.toLowerCase().trim(),
+					mode: "insensitive",
+				},
 				status: "pending",
 				expiresAt: { gt: new Date() },
 			},

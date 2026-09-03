@@ -98,6 +98,12 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 		new Map(combinedSocialLinks.map((s: any) => [s.url, s])).values(),
 	) as any[];
 
+	// Collect unique gallery links from organization events
+	const allGalleryLinks = rawEvents.flatMap((e: any) => e.galleryLinks || []);
+	const uniqueGalleryLinks = Array.from(
+		new Map(allGalleryLinks.map((g: any) => [g.url, g])).values(),
+	) as Array<{ id?: string; name: string; url: string }>;
+
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
 
 	const brandVars = {
@@ -120,6 +126,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 						bannerUrl: organization.bannerUrl,
 						websiteUrl: organization.websiteUrl,
 						contactEmail: organization.contactEmail,
+						phone: organization.phone,
 						primaryColor: organization.primaryColor || "#ca0808",
 						secondaryColor: organization.secondaryColor || "#e88722",
 						tertiaryColor: organization.tertiaryColor || "#53967a",
@@ -146,7 +153,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 					/>
 				</div>
 
-				{/* 3. Organization Details Footer (Our Partners, About Org, Connect with Us) */}
+				{/* 3. Organization Details Footer (About Org in main column, Partners & Galleries on right) */}
 				<OrgDetailsFooter
 					organization={{
 						id: organization.id,
@@ -159,6 +166,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
 						primaryColor: organization.primaryColor,
 					}}
 					sponsors={uniqueSponsors}
+					galleryLinks={uniqueGalleryLinks}
 				/>
 			</div>
 

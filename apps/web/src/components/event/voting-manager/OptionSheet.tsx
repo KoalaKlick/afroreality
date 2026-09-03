@@ -22,6 +22,7 @@ import {
 } from "@/lib/server-functions/voting-options";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getEventImageUrl } from "@/lib/image-url-utils";
+import AddFilesIcon from "@/assets/add-files.svg";
 import { getErrorMessage } from "@/lib/utils";
 
 export interface OptionItem {
@@ -196,8 +197,8 @@ export function OptionSheet({
 									<Loader2 className="size-6 animate-spin" />
 								) : (
 									<>
-										<Upload className="size-5" />
-										<span className="text-[10px]">Upload Photo</span>
+										<AddFilesIcon className="size-8 text-primary/80 mb-0.5" />
+										<span className="text-[10px] font-medium">Upload Photo</span>
 									</>
 								)}
 							</button>

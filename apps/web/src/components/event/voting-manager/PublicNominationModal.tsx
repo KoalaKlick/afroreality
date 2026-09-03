@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { submitPublicNomination } from "@/lib/server-functions/voting-votes";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getEventImageUrl } from "@/lib/image-url-utils";
+import AddFilesIcon from "@/assets/add-files.svg";
 import { getErrorMessage } from "@/lib/utils";
 
 interface PublicNominationModalProps {
@@ -177,8 +178,8 @@ export function PublicNominationModal({
 									<Loader2 className="size-5 animate-spin" />
 								) : (
 									<>
-										<Upload className="size-4" />
-										<span className="text-[10px]">Photo</span>
+										<AddFilesIcon className="size-6 text-primary/80 mb-0.5" />
+										<span className="text-[10px] font-medium">Photo</span>
 									</>
 								)}
 								<input

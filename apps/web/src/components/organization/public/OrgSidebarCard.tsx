@@ -93,12 +93,39 @@ export function OrgSidebarCard({
 						className="w-full h-full object-cover"
 					/>
 				) : (
-					<div
+					<svg
+						viewBox="0 0 1440 260"
+						preserveAspectRatio="none"
 						className="w-full h-full"
-						style={{
-							background: `linear-gradient(135deg, ${primaryColor || "#009A44"}cc 0%, ${secondaryColor || "#FFD100"}99 50%, ${tertiaryColor || "#EF3340"}cc 100%)`,
-						}}
-					/>
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<rect
+							width="1440"
+							height="260"
+							fill={primaryColor || "#ca0808"}
+							fillOpacity="0.08"
+						/>
+						<polygon
+							points="0,0 520,0 200,260 0,260"
+							fill={secondaryColor || "#e88722"}
+							fillOpacity="0.85"
+						/>
+						<polygon
+							points="100,0 380,0 260,260 0,180"
+							fill={primaryColor || "#ca0808"}
+							fillOpacity="0.95"
+						/>
+						<polygon
+							points="0,0 180,0 0,180"
+							fill={tertiaryColor || "#53967a"}
+							fillOpacity="0.90"
+						/>
+						<polygon
+							points="320,0 640,0 380,260 260,260"
+							fill={secondaryColor || "#e88722"}
+							fillOpacity="0.35"
+						/>
+					</svg>
 				)}
 			</div>
 
@@ -106,7 +133,7 @@ export function OrgSidebarCard({
 			<div className="p-6 space-y-6">
 				{/* Logo & Title */}
 				<div className="flex items-start gap-4 -mt-14 relative z-10">
-					<div className="size-20 rounded-2xl bg-card p-1.5 border border-border overflow-hidden shrink-0 flex items-center justify-center">
+					<div className="size-20 rounded-2xl bg-background p-1 border-4 border-background overflow-hidden shrink-0 flex items-center justify-center shadow-none">
 						{logoImageUrl ? (
 							<img
 								src={logoImageUrl}
@@ -124,10 +151,10 @@ export function OrgSidebarCard({
 						<h1 className="text-xl font-black uppercase tracking-tight text-foreground truncate">
 							{organization.name}
 						</h1>
-						<div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mt-0.5">
+						{/* <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mt-0.5">
 							<Users className="size-3.5" />
 							<span>{organization._count?.members ?? 0} Members</span>
-						</div>
+						</div> */}
 					</div>
 				</div>
 

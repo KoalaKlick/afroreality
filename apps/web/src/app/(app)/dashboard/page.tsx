@@ -38,7 +38,7 @@ export default async function DashboardPage() {
     <Suspense
       fallback={
         <div className="flex justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       }
     >

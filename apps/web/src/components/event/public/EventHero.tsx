@@ -101,7 +101,6 @@ export function EventHero({
 						alt={event.title}
 						className="w-full h-full object-cover"
 					/>
-					<div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
 				</div>
 			)}
 
@@ -117,7 +116,7 @@ export function EventHero({
 					</Link>
 
 					<div className="flex items-center gap-3">
-						<div className="flex items-center gap-2">
+						<div className="hidden sm:flex items-center gap-2">
 							{orgLogoUrl ? (
 								<img
 									src={orgLogoUrl}
@@ -125,10 +124,15 @@ export function EventHero({
 									className="rounded-full border size-6 object-cover"
 								/>
 							) : null}
-							<span className="text-xs font-black uppercase tracking-tight text-foreground truncate max-w-[150px] sm:max-w-xs">
+							<span className="text-xs font-black uppercase tracking-tight text-foreground truncate max-w-[120px] md:max-w-xs">
 								{organization.name}
 							</span>
 						</div>
+
+						{/* Social Media Handles */}
+						{socialLinks.length > 0 && (
+							<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
+						)}
 
 						<Button
 							variant="outline"
@@ -180,21 +184,6 @@ export function EventHero({
 							/>
 						)}
 					</div>
-
-					{/* Event Social Links */}
-					<SocialLinksList
-						socialLinks={socialLinks}
-						labelPrefix="Follow:"
-						iconSize="sm"
-						className="pt-2"
-					/>
-
-					{/* Event Sponsors */}
-					<SponsorsList
-						sponsors={sponsors}
-						labelPrefix="Official Sponsors &amp; Partners:"
-						className="pt-2"
-					/>
 				</div>
 			</div>
 		</div>

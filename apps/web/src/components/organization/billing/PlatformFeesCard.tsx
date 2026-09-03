@@ -16,7 +16,7 @@ export function PlatformFeesCard({
 	return (
 		<Card className={cn("bg-card p-6", className)}>
 			<div className="flex items-center gap-2 mb-6">
-				<CreditCard className="w-5 h-5 text-[#009A44]" />
+				<CreditCard className="w-5 h-5 text-primary-600" />
 				<h3 className="font-semibold text-lg">Platform Fees</h3>
 				{isVerifiedPartner && (
 					<span className="ml-auto inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFCD00]/10 text-[#b8960a] text-[10px] font-bold uppercase tracking-wider">
@@ -26,7 +26,7 @@ export function PlatformFeesCard({
 				)}
 			</div>
 
-			<div className="rounded-md border border-primary-200 bg-[#009A44]/3 p-5">
+			<div className="rounded-md border border-primary-200 bg-primary/3 p-5">
 				<p className="text-2xl font-black mb-1">
 					Free
 					<span className="text-xs font-normal text-muted-foreground ml-1">

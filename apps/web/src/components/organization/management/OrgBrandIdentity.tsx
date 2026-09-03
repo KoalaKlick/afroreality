@@ -172,7 +172,7 @@ export function OrgBrandIdentity({
 								<Loader2 className="size-8 text-primary animate-spin" />
 							) : (
 								<>
-									<ImagePlus className="size-9 text-primary/80 mb-1.5" />
+									<AddFilesIcon className="size-14 text-primary/80 mb-1.5" />
 									<p className="text-sm font-semibold text-foreground">
 										Click to upload banner
 									</p>
@@ -192,7 +192,7 @@ export function OrgBrandIdentity({
 					<div className="flex flex-col sm:flex-row gap-5 sm:items-end">
 						{/* Logo Image (Overlaps Banner Only) */}
 						<div className="relative shrink-0 -mt-14 sm:-mt-16 z-20">
-							<div className="size-28 sm:size-36 rounded-2xl border-4 border-card bg-background overflow-hidden group/logo relative shadow-sm border-primary-200/80 dark:border-primary-800/40">
+							<div className="size-28 sm:size-36 rounded-2xl border-4 border-background bg-background overflow-hidden group/logo relative shadow-none">
 								{logoDisplayUrl ? (
 									<>
 										<img

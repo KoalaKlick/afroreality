@@ -19,15 +19,7 @@ import {
 } from "lucide-react";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getEventImageUrl } from "@/lib/image-url-utils";
-
-const AddFilesIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <polyline points="14 2 14 8 20 8" />
-    <line x1="12" y1="18" x2="12" y2="12" />
-    <line x1="9" y1="15" x2="15" y2="15" />
-  </svg>
-);
+import AddFilesIcon from "@/assets/add-files.svg";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SelectionCard } from "./SelectionCard";
@@ -58,10 +50,14 @@ function PrivateIllustration({ className }: { className?: string }) {
 	);
 }
 
-const visibilityIllustrations: Record<string, React.ReactNode> = {
-	public: <PublicIllustration className="text-primary" />,
-	private: <PrivateIllustration className="text-muted-foreground" />,
-};
+function getVisibilityIllustration(type: "public" | "private", isSelected: boolean) {
+	const color = isSelected ? "text-primary" : "text-muted-foreground/60";
+	return type === "public" ? (
+		<PublicIllustration className={color} />
+	) : (
+		<PrivateIllustration className={color} />
+	);
+}
 
 interface EventStep3Props {
 	readonly initialData: {
@@ -315,14 +311,14 @@ export function EventStep3MediaSettings({
 						<Label>Event Visibility</Label>
 						<div className="grid @lg:grid-cols-2 gap-3">
 							<SelectionCard
-								illustration={visibilityIllustrations.public}
+								illustration={getVisibilityIllustration("public", isPublic)}
 								label="Public"
 								description="Anyone can find and view your event"
 								isSelected={isPublic}
 								onClick={() => setIsPublic(true)}
 							/>
 							<SelectionCard
-								illustration={visibilityIllustrations.private}
+								illustration={getVisibilityIllustration("private", isPrivate)}
 								label="Private"
 								description="Only organization members can view this event"
 								isSelected={isPrivate}

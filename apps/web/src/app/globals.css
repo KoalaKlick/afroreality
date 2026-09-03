@@ -229,6 +229,16 @@ html {
   body {
     @apply bg-background text-foreground;
   }
+
+  ::selection {
+    background-color: var(--color-primary-600);
+    color: #ffffff;
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-primary-600);
+    color: #ffffff;
+  }
 }
 
 /* TipTap ProseMirror Editor Styling */

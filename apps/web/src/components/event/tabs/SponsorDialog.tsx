@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getSponsorImageUrl } from "@/lib/image-url-utils";
+import AddFilesIcon from "@/assets/add-files.svg";
 import type { EventSponsor } from "./types";
 
 interface SponsorDialogProps {
@@ -115,8 +116,8 @@ export function SponsorDialog({
 									<Loader2 className="size-5 animate-spin" />
 								) : (
 									<>
-										<Upload className="size-4 mb-1" />
-										<span className="text-[9px]">Logo</span>
+										<AddFilesIcon className="size-6 text-primary/80 mb-0.5" />
+										<span className="text-[9px] font-medium">Logo</span>
 									</>
 								)}
 							</button>

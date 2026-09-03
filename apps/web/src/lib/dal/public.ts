@@ -115,6 +115,19 @@ export async function getPublicOrganizationProfile(
 
 		if (!org) return null;
 
+		let isUserPendingJoin = false;
+		if (currentUserId && org.id) {
+			const pendingReq = await prisma.membershipRequest.findFirst({
+				where: {
+					organizationId: org.id,
+					userId: currentUserId,
+					status: "pending",
+				},
+				select: { id: true },
+			});
+			isUserPendingJoin = !!pendingReq;
+		}
+
 		const sanitized = sanitizePrismaData(org);
 
 		return {
@@ -124,7 +137,7 @@ export async function getPublicOrganizationProfile(
 				events: sanitized.events?.length ?? 0,
 			},
 			isOrganizer,
-			isUserPendingJoin: false,
+			isUserPendingJoin,
 		};
 	} catch (error) {
 		console.error("Error fetching public organization profile:", error);

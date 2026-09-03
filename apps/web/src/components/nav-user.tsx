@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { Avatar } from "@/components/image/Image";
 import { UserProfileSheet } from "@/components/shared/UserProfileSheet";
 import { NotificationsSheet } from "@/components/shared/NotificationsSheet";
+import { getPendingInvitationsForEmail } from "@/lib/server-functions/organization-join";
 import { useTheme } from "@/components/theme-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -102,6 +103,18 @@ export function NavUser({
 		setInvitations(pendingInvitations);
 	}, [pendingInvitations]);
 
+	const handleOpenNotifications = async () => {
+		setNotificationOpen(true);
+		try {
+			const fresh = await getPendingInvitationsForEmail();
+			if (Array.isArray(fresh)) {
+				setInvitations(fresh);
+			}
+		} catch {
+			// Ignore
+		}
+	};
+
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
@@ -169,15 +182,14 @@ export function NavUser({
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem
-								onClick={() => setNotificationOpen(true)}
+								onClick={handleOpenNotifications}
 								className="relative cursor-pointer"
 							>
 								<Bell className="mr-2 size-4" />
 								Notifications
 								{invitations.length > 0 && (
 									<Badge
-										variant="destructive"
-										className="ml-auto h-5 w-5 p-0 flex items-center justify-center text-[10px]"
+										className="ml-auto h-5 w-5 p-0 flex items-center justify-center text-[10px] bg-primary text-primary-foreground font-bold"
 									>
 										{invitations.length > 9 ? "9+" : invitations.length}
 									</Badge>

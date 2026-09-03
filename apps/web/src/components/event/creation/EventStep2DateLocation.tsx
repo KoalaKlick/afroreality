@@ -42,10 +42,14 @@ function VirtualIllustration({ className }: { className?: string }) {
 	);
 }
 
-const formatIllustrations: Record<string, React.ReactNode> = {
-	inPerson: <InPersonIllustration className="text-emerald-500" />,
-	virtual: <VirtualIllustration className="text-blue-500" />,
-};
+function getFormatIllustration(format: "inPerson" | "virtual", isSelected: boolean) {
+	const color = isSelected ? "text-primary" : "text-muted-foreground/60";
+	return format === "inPerson" ? (
+		<InPersonIllustration className={color} />
+	) : (
+		<VirtualIllustration className={color} />
+	);
+}
 
 interface EventStep2Props {
 	readonly initialData?: {
@@ -155,14 +159,14 @@ export function EventStep2DateLocation({
 				<CardContent>
 					<div className="grid @lg:grid-cols-2 gap-3">
 						<SelectionCard
-							illustration={formatIllustrations.inPerson}
+							illustration={getFormatIllustration("inPerson", !isVirtual)}
 							label="In-Person"
 							description="Host your event at a physical venue"
 							isSelected={!isVirtual}
 							onClick={() => setIsVirtual(false)}
 						/>
 						<SelectionCard
-							illustration={formatIllustrations.virtual}
+							illustration={getFormatIllustration("virtual", isVirtual)}
 							label="Virtual"
 							description="Host your event online with a meeting link"
 							isSelected={isVirtual}

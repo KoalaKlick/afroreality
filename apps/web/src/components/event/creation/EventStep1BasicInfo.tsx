@@ -62,32 +62,42 @@ function StandardIllustration({ className }: { className?: string }) {
 	);
 }
 
-const typeIllustrations: Record<string, React.ReactNode> = {
-	ticketed: <TicketIllustration className="text-violet-500" />,
-	voting: <VoteIllustration className="text-sky-500" />,
-	standard: <StandardIllustration className="text-amber-500" />,
-};
+function getTypeIllustration(typeValue: string, isSelected: boolean) {
+	const color = isSelected ? "text-primary" : "text-muted-foreground/60";
+	switch (typeValue) {
+		case "ticketed":
+			return <TicketIllustration className={color} />;
+		case "voting":
+			return <VoteIllustration className={color} />;
+		case "standard":
+		default:
+			return <StandardIllustration className={color} />;
+	}
+}
 
-const votingModeIllustrations: Record<string, React.ReactNode> = {
-	general: (
-		<svg className="text-primary" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<circle cx="40" cy="40" r="28" fill="currentColor" fillOpacity="0.12"/>
-			<circle cx="40" cy="40" r="28" stroke="currentColor" strokeWidth="2" fill="none"/>
-			<circle cx="40" cy="40" r="10" fill="currentColor" fillOpacity="0.35"/>
-			<circle cx="40" cy="40" r="5" fill="currentColor" fillOpacity="0.7"/>
-			<path d="M40 24 V30 M40 50 V56 M24 40 H30 M50 40 H56" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-		</svg>
-	),
-	internal: (
-		<svg className="text-secondary" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+function getVotingModeIllustration(modeValue: string, isSelected: boolean) {
+	const color = isSelected ? "text-primary" : "text-muted-foreground/60";
+	if (modeValue === "general") {
+		return (
+			<svg className={color} width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<circle cx="40" cy="40" r="28" fill="currentColor" fillOpacity="0.12"/>
+				<circle cx="40" cy="40" r="28" stroke="currentColor" strokeWidth="2" fill="none"/>
+				<circle cx="40" cy="40" r="10" fill="currentColor" fillOpacity="0.35"/>
+				<circle cx="40" cy="40" r="5" fill="currentColor" fillOpacity="0.7"/>
+				<path d="M40 24 V30 M40 50 V56 M24 40 H30 M50 40 H56" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+			</svg>
+		);
+	}
+	return (
+		<svg className={color} width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
 			<rect x="12" y="18" width="56" height="44" rx="6" fill="currentColor" fillOpacity="0.12"/>
 			<rect x="12" y="18" width="56" height="44" rx="6" stroke="currentColor" strokeWidth="2" fill="none"/>
 			<circle cx="40" cy="36" r="10" fill="currentColor" fillOpacity="0.35"/>
 			<path d="M28 56 Q40 46 52 56" stroke="currentColor" strokeWidth="2.5" fill="none"/>
 			<path d="M56 24 Q68 30 68 48" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
 		</svg>
-	),
-};
+	);
+}
 
 interface EventStep1Props {
 	readonly initialData?: {
@@ -176,7 +186,7 @@ export function EventStep1BasicInfo({
 							return (
 								<SelectionCard
 									key={eventType.value}
-									illustration={typeIllustrations[eventType.value] || <StandardIllustration className="text-primary" />}
+									illustration={getTypeIllustration(eventType.value, isSelected)}
 									label={eventType.label}
 									description={eventType.description}
 									isSelected={isSelected}
@@ -209,7 +219,7 @@ export function EventStep1BasicInfo({
 								return (
 									<SelectionCard
 										key={mode.value}
-										illustration={votingModeIllustrations[mode.value]}
+										illustration={getVotingModeIllustration(mode.value, isSelected)}
 										label={mode.label}
 										description={mode.description}
 										isSelected={isSelected}

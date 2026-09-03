@@ -20,7 +20,7 @@ export default async function LoginPage({
     <Suspense
       fallback={
         <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       }
     >

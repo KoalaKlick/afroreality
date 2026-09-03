@@ -21,17 +21,20 @@ export function SelectionCard({
 			type="button"
 			onClick={onClick}
 			className={cn(
-				"relative flex items-center justify-between gap-4 p-4 rounded-md text-left transition-all overflow-hidden",
-				"bg-muted/30 hover:bg-muted/50",
-				isSelected && "bg-primary/10",
+				"relative flex items-center justify-between gap-4 p-4 rounded-xl border text-left transition-all overflow-hidden shadow-none cursor-pointer",
+				isSelected
+					? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/30"
+					: "border-border bg-card hover:bg-muted/40 text-foreground",
 			)}
 		>
 			{/* Content */}
 			<div className="relative z-10 flex-1 min-w-0">
-				<span className={cn(
-					"font-medium",
-					isSelected ? "text-primary" : "text-foreground",
-				)}>
+				<span
+					className={cn(
+						"font-semibold text-sm transition-colors",
+						isSelected ? "text-primary" : "text-foreground",
+					)}
+				>
 					{label}
 				</span>
 				<p className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -39,12 +42,11 @@ export function SelectionCard({
 				</p>
 			</div>
 
-			{/* Illustration at right, full height, overflow hidden */}
+			{/* Illustration at right */}
 			<div
 				className={cn(
-					"relative shrink-0 h-20 w-20 flex items-center justify-center",
-					"opacity-80",
-					isSelected && "opacity-100",
+					"relative shrink-0 h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center transition-colors duration-200",
+					isSelected ? "text-primary opacity-100" : "text-muted-foreground/60 opacity-60",
 				)}
 			>
 				<div className="absolute inset-0 flex items-center justify-center">
