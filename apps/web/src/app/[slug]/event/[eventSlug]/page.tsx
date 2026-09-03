@@ -37,9 +37,9 @@ export async function generateMetadata({
 	const coverImage =
 		getEventImageUrl(
 			event.flierUrl ||
-				event.bannerUrl ||
-				(event as any).flierImage ||
-				(event as any).bannerImage,
+			event.bannerUrl ||
+			(event as any).flierImage ||
+			(event as any).bannerImage,
 		) ?? "/landing/a.webp";
 	const absoluteImage = coverImage.startsWith("http")
 		? coverImage
