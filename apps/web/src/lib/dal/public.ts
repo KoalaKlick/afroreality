@@ -645,7 +645,9 @@ export async function getActiveFextivaEvents() {
 		const events = await prisma.event.findMany({
 			where: {
 				isPublic: true,
-				status: { not: "draft" },
+				status: {
+					in: ["published", "ongoing", "ended"],
+				},
 			},
 			select: {
 				id: true,
@@ -689,7 +691,9 @@ export async function getActiveFextivaOrganizations() {
 				events: {
 					some: {
 						isPublic: true,
-						status: { not: "draft" },
+						status: {
+							in: ["published", "ongoing", "ended"],
+						},
 					},
 				},
 			},

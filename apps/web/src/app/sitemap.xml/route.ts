@@ -23,12 +23,18 @@ function formatDate(date?: Date | string | null): string {
 }
 
 export async function GET() {
-	// Ensure Search Console indexed URLs use production https://fextiva.com domain
+	// Canonical serving domain on Vercel is https://www.fextiva.com
 	const configuredUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL;
-	const baseUrl =
-		configuredUrl && !configuredUrl.includes("localhost")
-			? configuredUrl.replace(/\/$/, "")
-			: "https://fextiva.com";
+	let baseUrl = "https://www.fextiva.com";
+
+	if (configuredUrl && !configuredUrl.includes("localhost")) {
+		const clean = configuredUrl.replace(/\/$/, "");
+		// Force canonical www host to prevent Google Search Console redirect chains
+		baseUrl =
+			clean === "https://fextiva.com" || clean === "http://fextiva.com"
+				? "https://www.fextiva.com"
+				: clean;
+	}
 
 	const [events, organizations] = await Promise.all([
 		getActiveFextivaEvents(),

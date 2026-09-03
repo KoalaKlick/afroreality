@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
 		],
 		openGraph: {
 			type: "website",
-			url: "https://fextiva.com",
+			url: "https://www.fextiva.com",
 			title: "Fextiva - Highly Customizable African Event Platform | General Events, Ticketing & Voting",
 			description:
 				"Host free general events for brand advertisement, club ticketing, or secure voting. Fully customize with your brand colors and logo on a platform your attendees can trust.",

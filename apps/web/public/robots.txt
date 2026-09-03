@@ -46,4 +46,4 @@ Disallow: /my-events/
 Disallow: /onboarding/
 
 # Production Sitemap
-Sitemap: https://fextiva.com/sitemap.xml
+Sitemap: https://www.fextiva.com/sitemap.xml

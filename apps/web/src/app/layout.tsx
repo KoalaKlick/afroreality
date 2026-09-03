@@ -4,7 +4,7 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://fextiva.com'),
+  metadataBase: new URL('https://www.fextiva.com'),
   title: {
     default: "Fextiva | Africa's Most Customizable Event Platform - Ticketing, General Events & Voting",
     template: '%s | Fextiva',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   category: 'Event Hosting, Ticketing & Voting Software',
   openGraph: {
     type: 'website',
-    url: 'https://fextiva.com',
+    url: 'https://www.fextiva.com',
     title: 'Fextiva - Highly Customizable African Event Platform | General Events, Ticketing & Voting',
     description:
       'Host free general events for brand advertisement, club ticketing, or secure voting. Fully customize with your brand colors and logo on a platform your attendees can trust.',
@@ -64,7 +64,7 @@ const softwareApplicationSchema = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
   name: 'Fextiva',
-  url: 'https://fextiva.com',
+  url: 'https://www.fextiva.com',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'All',
   description:
