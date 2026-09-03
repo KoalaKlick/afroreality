@@ -4,6 +4,8 @@ import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 import { BrandingSync } from "@/components/providers/BrandingSync";
 
+export const dynamic = "force-dynamic";
+
 interface OrgLayoutProps {
 	readonly children: React.ReactNode;
 	readonly params: Promise<{ slug: string }>;

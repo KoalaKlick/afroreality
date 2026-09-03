@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getPublicOrganizationProfile } from "@/lib/dal/public";
 import { getSession } from "@/lib/session";
 import { OrgProfileHero } from "@/components/organization/public/OrgProfileHero";
+
+export const dynamic = "force-dynamic";
 import { OrgDetailsFooter } from "@/components/organization/public/OrgDetailsFooter";
 import { OrgEventsListSection } from "@/components/organization/public/OrgEventsListSection";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";

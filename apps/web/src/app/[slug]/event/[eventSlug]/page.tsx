@@ -16,6 +16,8 @@ import { getFrontendBaseUrl } from "@/lib/utils";
 import { ImageIcon } from "lucide-react";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 interface PublicEventPageProps {
 	params: Promise<{
 		slug: string;
