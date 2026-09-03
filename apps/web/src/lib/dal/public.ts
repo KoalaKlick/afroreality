@@ -24,10 +24,16 @@ async function isUserOrgOrganizer(
 	if (!userId) return false;
 
 	try {
+		// `slugOrId` may be an org slug (non-UUID) or an org id (UUID). Passing a
+		// slug into the `id` comparison would make Postgres throw
+		// "invalid input syntax for type uuid", so branch on the shape first.
+		const isUuid =
+			/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+				slugOrId,
+			);
+
 		const org = await prisma.organization.findFirst({
-			where: {
-				OR: [{ slug: slugOrId }, { id: slugOrId }],
-			},
+			where: isUuid ? { id: slugOrId } : { slug: slugOrId },
 			select: {
 				id: true,
 				createdBy: true,
@@ -78,11 +84,11 @@ export async function getPublicOrganizationProfile(
 					where: isOrganizer
 						? undefined
 						: {
-								isPublic: true,
-								status: {
-									not: "draft",
-								},
-						  },
+							isPublic: true,
+							status: {
+								not: "draft",
+							},
+						},
 					orderBy: {
 						startDate: "desc",
 					},
