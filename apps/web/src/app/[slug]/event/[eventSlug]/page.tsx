@@ -45,30 +45,46 @@ export async function generateMetadata({
 		? coverImage
 		: `${BASE_URL.replace(/\/$/, "")}${coverImage}`;
 	const pageUrl = `${BASE_URL.replace(/\/$/, "")}/${orgSlug}/event/${eventSlug}`;
-	const description =
-		event.description?.replaceAll(/<[^>]*>/g, "").slice(0, 200) ||
-		`${event.title} - organized by ${event.organization.name} on fextiva.`;
+	const rawDesc = event.description?.replaceAll(/<[^>]*>/g, "").slice(0, 180) || "";
+	const description = rawDesc
+		? `${rawDesc} - Hosted on Fextiva, the African event hosting, ticketing & secure voting platform.`
+		: `${event.title} - organized by ${event.organization.name} on Fextiva, the African event hosting, ticketing & secure voting platform.`;
 
 	return {
-		title: `${event.title} - ${event.organization.name}`,
+		title: `${event.title} | Fextiva African Event Hosting & Ticketing`,
 		description,
+		keywords: [
+			'Event Hosting Platform',
+			'African Ticketing',
+			'Secure Event Voting',
+			'Fextiva',
+			`${event.title} tickets`,
+			`${event.title} voting`,
+			event.organization.name,
+			event.venueCity || 'Ghana Events',
+			'Online Event Ticketing Africa',
+			'USSD Event Ticketing',
+			'Eventbrite Africa Alternative',
+		],
+		category: 'Event Hosting, African Ticketing & Voting Platform',
 		openGraph: {
-			title: `${event.title} - ${event.organization.name}`,
+			title: `${event.title} - ${event.organization.name} | Fextiva`,
 			description,
 			url: pageUrl,
 			type: "website",
+			siteName: "Fextiva - African Event Hosting, Ticketing & Secure Voting",
 			images: [
 				{
 					url: absoluteImage,
 					width: 1200,
 					height: 630,
-					alt: event.title,
+					alt: `${event.title} - African Event Ticketing & Voting on Fextiva`,
 				},
 			],
 		},
 		twitter: {
 			card: "summary_large_image",
-			title: event.title,
+			title: `${event.title} | Fextiva`,
 			description,
 			images: [absoluteImage],
 		},
@@ -197,11 +213,117 @@ export default async function PublicEventPage({
 		</div>
 	);
 
+	// Schema.org JSON-LD structured data: Event & VotingSystem to decouple from pharmaceutical keywords
+	const eventPageUrl = `${BASE_URL.replace(/\/$/, "")}/${orgSlug}/event/${eventSlug}`;
+	const eventCover =
+		getEventImageUrl(
+			event.flierUrl ||
+			event.bannerUrl ||
+			(event as any).flierImage ||
+			(event as any).bannerImage,
+		) ?? "/landing/a.webp";
+	const eventAbsoluteImage = eventCover.startsWith("http")
+		? eventCover
+		: `${BASE_URL.replace(/\/$/, "")}${eventCover}`;
+
+	const eventJsonLd: any = {
+		"@type": "Event",
+		name: event.title,
+		description:
+			event.description?.replaceAll(/<[^>]*>/g, "").slice(0, 300) ||
+			`${event.title} - African event hosting, ticketing and secure voting on Fextiva.`,
+		url: eventPageUrl,
+		image: [eventAbsoluteImage],
+		startDate: event.startDate ? new Date(event.startDate).toISOString() : undefined,
+		endDate: event.endDate ? new Date(event.endDate).toISOString() : undefined,
+		eventStatus: "https://schema.org/EventScheduled",
+		eventAttendanceMode: event.isVirtual
+			? "https://schema.org/OnlineEventAttendanceMode"
+			: "https://schema.org/OfflineEventAttendanceMode",
+		location: event.isVirtual
+			? {
+					"@type": "VirtualLocation",
+					url: event.virtualLink || eventPageUrl,
+				}
+			: {
+					"@type": "Place",
+					name: event.venueName || event.venueCity || "Event Venue",
+					address: {
+						"@type": "PostalAddress",
+						streetAddress: event.venueAddress || undefined,
+						addressLocality: event.venueCity || undefined,
+						addressCountry: event.venueCountry || "Ghana",
+					},
+					...(event.latitude && event.longitude
+						? {
+								geo: {
+									"@type": "GeoCoordinates",
+									latitude: event.latitude,
+									longitude: event.longitude,
+								},
+							}
+						: {}),
+				},
+		organizer: {
+			"@type": "Organization",
+			name: organization.name,
+			url: `${BASE_URL.replace(/\/$/, "")}/${orgSlug}`,
+		},
+		offers: ticketTypes.map((t: any) => ({
+			"@type": "Offer",
+			name: t.name,
+			price: t.price,
+			priceCurrency: "GHS",
+			availability:
+				t.status === "available"
+					? "https://schema.org/InStock"
+					: "https://schema.org/SoldOut",
+			url: eventPageUrl,
+			validFrom: t.salesStart ? new Date(t.salesStart).toISOString() : undefined,
+		})),
+	};
+
+	const schemaGraph: any = {
+		"@context": "https://schema.org",
+		"@graph": [
+			eventJsonLd,
+			...(isVoting
+				? [
+						{
+							"@type": "WebPage",
+							"@id": `${eventPageUrl}#voting`,
+							name: `${event.title} - Secure African Event Voting`,
+							description: `Cast secure votes for nominees and contestants in ${event.title} on Fextiva event voting platform.`,
+							isPartOf: {
+								"@type": "WebSite",
+								name: "Fextiva",
+								url: BASE_URL,
+								description:
+									"Premier African Event Hosting, Ticketing & Secure Voting Platform",
+							},
+							about: {
+								"@type": "Thing",
+								name: "VotingSystem",
+								description:
+									"Secure Pan-African event voting system for pageants, awards, and competitions",
+							},
+						},
+					]
+				: []),
+		],
+	};
+
 	return (
 		<main
 			className="min-h-[100svh] bg-background @7xl:bg-primary- text-foreground flex flex-col justify-between"
 			style={brandVars}
 		>
+			{/* Schema.org JSON-LD Structured Data */}
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
+			/>
+
 			{/* Mobile / Tablet View (< xl) */}
 			<div className="flex flex-col xl:hidden flex-1">
 				<EventHero

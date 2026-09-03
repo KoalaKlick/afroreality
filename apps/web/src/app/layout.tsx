@@ -4,8 +4,27 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: 'fextiva - African Event Management & Ticketing',
-  description: 'Manage events, tickets, voting, and organizations effortlessly.',
+  title: {
+    default: 'Fextiva - African Event Hosting, Ticketing & Secure Voting Platform',
+    template: '%s | Fextiva',
+  },
+  description:
+    'Pan-African event hosting platform for secure voting, ticketing, and event management across Ghana, Nigeria, Kenya, South Africa, and beyond.',
+  keywords: [
+    'Event Hosting Platform',
+    'African Ticketing',
+    'Secure Event Voting',
+    'Fextiva',
+    'Fextiva Events',
+    'Online Event Ticketing Africa',
+    'USSD Event Ticketing',
+    'Award Voting System Africa',
+    'Pageant Voting Platform',
+    'Eventbrite Africa Alternative',
+    'Tix4u Alternative',
+    'Eventpulse Alternative',
+  ],
+  category: 'Event Hosting, Ticketing & Voting Software',
   icons: {
     icon: '/logo.svg',
     shortcut: '/logo.svg',
