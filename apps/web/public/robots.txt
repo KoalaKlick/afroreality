@@ -14,6 +14,8 @@ Allow: /voting
 Allow: /voting/
 Allow: /pubs
 Allow: /pubs/
+Allow: /register
+Allow: /login
 Disallow: /api/
 Disallow: /admin/
 Disallow: /dashboard/
@@ -27,6 +29,8 @@ User-agent: *
 Allow: /
 Allow: /events
 Allow: /events/
+Allow: /register
+Allow: /login
 Disallow: /api/
 Disallow: /admin/
 Disallow: /dashboard/

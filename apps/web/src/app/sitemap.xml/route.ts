@@ -23,7 +23,12 @@ function formatDate(date?: Date | string | null): string {
 }
 
 export async function GET() {
-	const baseUrl = getFrontendBaseUrl().replace(/\/$/, "");
+	// Ensure Search Console indexed URLs use production https://fextiva.com domain
+	const configuredUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL;
+	const baseUrl =
+		configuredUrl && !configuredUrl.includes("localhost")
+			? configuredUrl.replace(/\/$/, "")
+			: "https://fextiva.com";
 
 	const [events, organizations] = await Promise.all([
 		getActiveFextivaEvents(),
@@ -32,10 +37,12 @@ export async function GET() {
 
 	const urls: string[] = [];
 
-	// 1. Base Platform Routes (Priority 1.0, Daily)
+	// 1. Core Primary Routes (Homepage, Events, Register, Login)
 	const baseRoutes = [
 		{ path: "/", priority: "1.0", changefreq: "daily" },
 		{ path: "/events", priority: "1.0", changefreq: "daily" },
+		{ path: "/register", priority: "0.9", changefreq: "monthly" },
+		{ path: "/login", priority: "0.8", changefreq: "monthly" },
 		{ path: "/voting", priority: "0.95", changefreq: "daily" },
 		{ path: "/pubs", priority: "0.90", changefreq: "daily" },
 	];
