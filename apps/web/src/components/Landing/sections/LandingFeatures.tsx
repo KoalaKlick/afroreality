@@ -9,10 +9,18 @@ import {
 	Users,
 	BarChart3,
 	ShieldCheck,
+	Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const FEATURES = [
+	{
+		title: "100% Bespoke Organizer Branding",
+		description:
+			"Customize your event with your own brand colors, custom logo, banner, and themes so attendees feel your unique identity.",
+		icon: Palette,
+		iconBg: "bg-primary/10 text-primary",
+	},
 	{
 		title: "Smart African Ticketing",
 		description:

@@ -6,19 +6,24 @@ import { Toaster } from 'sonner';
 export const metadata: Metadata = {
   metadataBase: new URL('https://fextiva.com'),
   title: {
-    default: "Fextiva | Africa's Ultimate Event Ticketing, Pubs & Voting Platform",
+    default: "Fextiva | Africa's Most Customizable Event Hosting, Ticketing & Voting Platform",
     template: '%s | Fextiva',
   },
   description:
-    'Discover, ticket, and host African events on Fextiva. The leading platform for concerts, pub nights, secure awards voting, and ticketing. Better than Tix4u, Eventix, and Afrotix.',
+    'Host, brand, and ticket African events on Fextiva. The best customizable event platform where organizers can use their own brand colors, logos, and tailored themes. Powering concerts, pub nights, and secure awards voting.',
   keywords: [
+    'best customizable event hosting platform',
+    'custom branded event pages',
+    'custom event colors and logos',
+    'white-label event ticketing Africa',
     'Fextiva events',
     'Fextiva ticketing',
     'African event platform',
+    'custom event voting',
     'eventpulse',
     'eventix',
     'afrotix',
-    'voting platform Africa',
+    'tix4u alternative',
     'ticketing pubs Ghana Nigeria',
     'book African events',
   ],
@@ -26,24 +31,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: 'https://fextiva.com',
-    title: 'Fextiva - African Event Management & Voting Platform',
+    title: 'Fextiva - Highly Customizable African Event Management & Voting Platform',
     description:
-      'Host general events, manage pub ticketing, or run secure online voting across Africa.',
+      'Make every event look 100% like your brand. Full customization with your brand colors, logo, custom fliers, pub ticketing, and secure online voting across Africa.',
     siteName: 'Fextiva',
     images: [
       {
         url: '/landing/a.webp',
         width: 1200,
         height: 630,
-        alt: "Fextiva | Africa's Ultimate Event Ticketing, Pubs & Voting Platform",
+        alt: "Fextiva | Africa's Most Customizable Event Hosting, Ticketing & Voting Platform",
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Fextiva - African Event Management & Voting Platform',
+    title: 'Fextiva - Highly Customizable African Event Management & Voting Platform',
     description:
-      'Host general events, manage pub ticketing, or run secure online voting across Africa.',
+      'Make every event look 100% like your brand. Full customization with your brand colors, logo, custom fliers, pub ticketing, and secure online voting across Africa.',
     images: ['/landing/a.webp'],
   },
   icons: {
@@ -61,7 +66,7 @@ const softwareApplicationSchema = {
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'All',
   description:
-    'A comprehensive Pan-African event hosting platform specializing in general events, nightlife/pub ticketing, and secure public voting systems.',
+    'The premier customizable Pan-African event hosting platform. Allows organizers to fully brand their event pages with custom brand colors, logos, and themes, alongside nightlife/pub ticketing and secure public voting systems.',
   alternativeOf: [
     { '@type': 'SoftwareApplication', name: 'Eventix' },
     { '@type': 'SoftwareApplication', name: 'Tix4u' },

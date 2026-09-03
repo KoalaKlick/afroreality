@@ -11,16 +11,21 @@ export function LandingHero() {
 		<Section class="mt-12 sm:mt-16 pt-6" content-class="relative space-y-10">
 			{/* Text Area */}
 			<div className="sm:z-20 relative space-y-5 text-center max-w-3xl mx-auto">
+				<div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 tracking-wide uppercase">
+					<span className="inline-block size-2 rounded-full bg-primary animate-pulse" />
+					Africa&apos;s Most Customizable Event Platform
+				</div>
+
 				<h1 className="font-bold text-3xl sm:text-5xl md:text-6xl tracking-tight text-foreground font-millik leading-tight">
-					Power Events Across Africa{" "}
+					Power Bespoke Events{" "}
 					<span className="text-primary block sm:inline">
-						With Simplicity
+						Across Africa
 					</span>
 				</h1>
 
 				<p className="max-w-2xl mx-auto text-muted-foreground text-sm sm:text-base leading-relaxed">
-					Run events, sell tickets, collect live audience votes, and receive instant payouts across Africa.
-					Works online, offline via USSD , and through native Mobile Money &amp; cards.
+					Make every event look 100% like your brand with custom colors, your logo, and tailored themes.
+					Sell tickets, run secure awards &amp; pageant voting, and receive instant payouts via Mobile Money, cards, and offline USSD.
 				</p>
 
 				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
