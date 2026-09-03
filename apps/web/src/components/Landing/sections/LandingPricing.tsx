@@ -7,14 +7,14 @@ import { Check, Infinity as InfinityIcon, ArrowRight } from "lucide-react";
 import { Section } from "../Section";
 
 const FEATURES = [
-	"Unlimited African events",
-	"Unlimited digital QR passes",
+	"Free general & brand awareness events",
+	"100% custom brand colors & logo",
+	"Instant digital QR tickets",
 	"Web & USSD (*928#) live voting",
-	"MTN, Telecel, AT Mobile Money",
-	"Visa, Mastercard & bank transfers",
-	"Real-time event & voting analytics",
-	"Gate crew & scanner permissions",
-	"Instant organizer wallet payouts",
+	"MTN MoMo, Telecel, AT & M-Pesa",
+	"Visa, Mastercard & bank cards",
+	"Gate crew fast scanner roles",
+	"Direct organizer wallet payouts",
 ];
 
 export function LandingPricing() {
@@ -27,45 +27,36 @@ export function LandingPricing() {
 			{/* Section Header */}
 			<div className="mx-auto text-center space-y-3 max-w-2xl">
 				<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white font-millik">
-					Free to Start,{" "}
-					<span className="text-white/95">Pay As You Grow</span>
+					Simple, Transparent{" "}
+					<span className="text-white/95">Pay As You Go</span>
 				</h2>
 
 				<p className="text-white/90 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-					Zero monthly subscription fees. No upfront charges. Only pay when you make sales across Africa.
+					No monthly subscriptions. No hidden fees. Free events stay free, and you only pay when you make sales.
 				</p>
 			</div>
 
-			{/* Main Pricing Card (Preline Clean Style: rounded-xl, 1px border, NO shadows) */}
+			{/* Main Pricing Card */}
 			<div className="max-w-4xl mx-auto">
 				<div className="relative bg-card text-card-foreground border border-border rounded-xl overflow-hidden shadow-none p-6 sm:p-10">
 					<div className="space-y-8">
 						<div className="flex flex-col md:flex-row gap-8 items-start">
 							{/* Left: Rate Info */}
-							<div className="basis-2/5 space-y-3">
+							<div className="basis-2/5 space-y-4">
 								<Badge className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-md border border-primary/30 shadow-none">
 									<InfinityIcon className="size-3.5 text-primary" />
-									Pay As You Earn
+									Pure Pay-As-You-Go
 								</Badge>
 
-								<div className="space-y-1.5">
-									<div className="flex items-baseline gap-2">
-										<span className="text-5xl sm:text-6xl font-black tracking-tight text-foreground font-millik">
-											5
-										</span>
-										<span className="text-3xl sm:text-4xl font-black text-primary">
-											%
-										</span>
-									</div>
-									<p className="text-base font-bold text-foreground">
-										per successful transaction
+								<div className="space-y-2">
+									<h3 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground font-millik">
+										Pay As You Earn
+									</h3>
+									<p className="text-sm font-semibold text-primary">
+										Zero upfront cost. Zero monthly fees.
 									</p>
 									<p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-										You keep{" "}
-										<span className="text-base text-primary font-bold">
-											95%
-										</span>{" "}
-										of every ticket sale and vote. We only earn when you succeed.
+										Host free events to advertise your brand at no cost. For ticketed events and voting, we only take a small fee on successful sales. Your money goes straight to your wallet with clear, instant payouts.
 									</p>
 								</div>
 							</div>

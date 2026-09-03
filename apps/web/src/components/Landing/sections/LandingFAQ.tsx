@@ -11,33 +11,38 @@ import { PROJ_NAME } from "@/lib/constants/branding";
 
 const FAQS = [
 	{
-		question: `How much does ${PROJ_NAME} cost for African organizers?`,
-		answer: `${PROJ_NAME} is completely free to start! There are no monthly subscription fees or upfront software costs. We charge a simple 5% fee on successful paid ticket and voting transactions—you keep 95% of every transaction. Free events and RSVP registrations are 100% free with zero fees.`,
+		question: `How does pricing work on ${PROJ_NAME}?`,
+		answer: `${PROJ_NAME} operates on a pure pay-as-you-go model. There are zero signup fees, zero monthly subscriptions, and zero hidden maintenance charges. Free events and community gatherings are 100% free forever. For paid tickets and voting, we only deduct a small fee per successful transaction. You keep the rest with direct, transparent payouts.`,
 	},
 	{
-		question: "Which African payment methods and currencies are supported?",
+		question: "Can I host free events just to advertise our brand or community?",
 		answer:
-			"We support direct Mobile Money collections including MTN MoMo, Telecel Cash, AT Money, and M-Pesa. In addition, we accept international debit and credit cards (Visa, Mastercard) processed securely via Paystack, supporting GHS (Ghanaian Cedis), NGN (Nigerian Naira), KES (Kenyan Shillings), USD, and more.",
+			"Yes, absolutely. Unlike other platforms that only care about ticket commissions, Fextiva lets you host free general events, brand launches, and community festivals to gain reach and trust. You get full customization with your own colors, logo, and event map at no cost.",
+	},
+	{
+		question: "How much can I customize my event page?",
+		answer:
+			"Completely. Every event page is designed to look like your own bespoke website. You choose your brand colors, upload your organizer logo and fliers, list your sponsors, and display an interactive venue map so your audience connects with your brand.",
 	},
 	{
 		question: "How does offline USSD voting (*928#) work?",
 		answer:
-			"Our proprietary USSD integration connects directly to African telecom networks. Anyone with any mobile phone (smartphone or basic feature phone) can dial *928#, enter the event code, select their nominee, and approve payment instantly from their Mobile Money wallet. Votes are counted in real-time alongside web votes.",
+			"Anyone with any phone—smartphones or basic keypad phones—can dial *928#, enter your event code, select their contestant, and confirm payment with their Mobile Money PIN. Votes tally in real time alongside online votes on your live dashboard.",
 	},
 	{
-		question: "Can I customize our African festival page and ticket categories?",
+		question: "Which payment methods and currencies are supported?",
 		answer:
-			"Absolutely! You can upload full-resolution artwork, fliers, and schedules. Create unlimited ticket tiers (Regular, VIP, VVIP, Backstage, Early Bird, Group Passes), limit capacity, and share direct checkout links to social media and WhatsApp.",
+			"We support direct Mobile Money collections including MTN MoMo, Telecel Cash, AT Money, and M-Pesa, alongside Visa and Mastercard processed securely through Paystack. Currencies include GHS (Ghanaian Cedis), NGN (Nigerian Naira), KES, USD, and more.",
 	},
 	{
-		question: "How fast are organizer payouts processed?",
+		question: "How fast do organizers receive payouts?",
 		answer:
-			"Organizers can request settlements directly into their local bank account or Mobile Money wallet. Payouts are fast and transparent, helping you cover event logistics, venue deposits, and artist bookings without delay.",
+			"All event earnings settle directly into your organizer wallet in real time. You can request payouts straight to your Mobile Money wallet or bank account whenever you want, with clear accounting and zero surprise deductions.",
 	},
 	{
-		question: "Can our gate security crew scan tickets offline at the venue?",
+		question: "How does gate security verify tickets at the venue?",
 		answer:
-			"Yes! You can assign dedicated scanner team members right from your dashboard. They can scan QR codes using their phone cameras, preventing duplicate tickets and counterfeit passes even under crowded or weak internet venue conditions.",
+			"Assign fast scanner roles to your gate crew from your dashboard. They can scan attendee QR codes using their phone cameras in under a second, stopping counterfeit passes and duplicate entries on the spot.",
 	},
 ];
 

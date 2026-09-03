@@ -10,56 +10,64 @@ import {
 	BarChart3,
 	ShieldCheck,
 	Palette,
+	Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const FEATURES = [
 	{
-		title: "100% Bespoke Organizer Branding",
+		title: "Your Brand, Front & Center",
 		description:
-			"Customize your event with your own brand colors, custom logo, banner, and themes so attendees feel your unique identity.",
+			"Your colors, your logo, your identity. Make every event page look completely yours.",
 		icon: Palette,
 		iconBg: "bg-primary/10 text-primary",
 	},
 	{
-		title: "Smart African Ticketing",
+		title: "Free Events & Brand Reach",
 		description:
-			"Create, manage, and sell tickets with automated QR codes, multi-currency support, and flexible VIP tiers.",
+			"Host free community events, product launches, and club nights to build authentic audience trust.",
+		icon: Megaphone,
+		iconBg: "bg-primary/10 text-primary",
+	},
+	{
+		title: "Instant QR Ticketing",
+		description:
+			"Sell tickets in seconds with automated QR codes, VIP tiers, and multi-currency support.",
 		icon: Ticket,
 		iconBg: "bg-primary/10 text-primary",
 	},
 	{
-		title: "Native Mobile Money & Cards",
+		title: "MoMo & Card Settlements",
 		description:
-			"Seamless integration with MTN MoMo, Telecel Cash, AT Money, M-Pesa, and cards via Paystack with instant settlements.",
+			"Direct payouts via MTN MoMo, Telecel, AT Money, M-Pesa, and cards with instant settlements.",
 		icon: CreditCard,
 		iconBg: "bg-primary/10 text-primary",
 	},
 	{
-		title: "Web & USSD Voting (*928#)",
+		title: "Online & USSD Voting (*928#)",
 		description:
-			"Run national awards, pageants, and talent contests. Anyone across Africa can dial *928# offline or vote online in real-time.",
+			"Run trusted awards and pageants. Audience votes online or dials *928# offline with zero friction.",
 		icon: Vote,
 		iconBg: "bg-primary/10 text-primary",
 	},
 	{
-		title: "Team & Gate Crew Roles",
+		title: "Gate Crew & Anti-Fraud",
 		description:
-			"Assign scanner, manager, and cashier permissions to your event team to streamline gate check-ins and eliminate gate fraud.",
+			"Equip your door crew with high-speed scanner roles to eliminate ticket fraud on entry.",
 		icon: Users,
 		iconBg: "bg-primary/10 text-primary",
 	},
 	{
-		title: "Real-Time African Analytics",
+		title: "Live Analytics",
 		description:
-			"Gain deep insights into attendee demographics, ticket sales velocity, and voter rankings across cities and countries.",
+			"Track sales velocity, voter leaderboards, and attendee traffic in real time.",
 		icon: BarChart3,
 		iconBg: "bg-primary/10 text-primary",
 	},
 	{
-		title: "High-Traffic Scalability",
+		title: "Stadium-Grade Scale",
 		description:
-			"Enterprise infrastructure tested for 50,000+ attendee stadium festivals, high-speed gate scanning, and 99.9% uptime.",
+			"Battle-tested infrastructure with 99.9% uptime for massive African crowds.",
 		icon: ShieldCheck,
 		iconBg: "bg-primary/10 text-primary",
 	},

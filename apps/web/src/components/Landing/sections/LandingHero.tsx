@@ -17,15 +17,14 @@ export function LandingHero() {
 				</div>
 
 				<h1 className="font-bold text-3xl sm:text-5xl md:text-6xl tracking-tight text-foreground font-millik leading-tight">
-					Power Bespoke Events{" "}
+					Your Event. Your Brand.{" "}
 					<span className="text-primary block sm:inline">
-						Across Africa
+						Across Africa.
 					</span>
 				</h1>
 
-				<p className="max-w-2xl mx-auto text-muted-foreground text-sm sm:text-base leading-relaxed">
-					Make every event look 100% like your brand with custom colors, your logo, and tailored themes.
-					Sell tickets, run secure awards &amp; pageant voting, and receive instant payouts via Mobile Money, cards, and offline USSD.
+				<p className="max-w-xl mx-auto text-muted-foreground text-sm sm:text-base leading-relaxed">
+					Launch free events for brand reach, sell tickets with instant payouts, or run trusted live voting. Fully branded with your colors and logo.
 				</p>
 
 				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -41,6 +40,21 @@ export function LandingHero() {
 							Explore Events
 						</Button>
 					</Link>
+				</div>
+
+				<div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-2 text-xs text-muted-foreground font-medium">
+					<span className="flex items-center gap-1.5">
+						<span className="size-1.5 rounded-full bg-primary" />
+						Free General Events
+					</span>
+					<span className="flex items-center gap-1.5">
+						<span className="size-1.5 rounded-full bg-primary" />
+						100% Your Branding
+					</span>
+					<span className="flex items-center gap-1.5">
+						<span className="size-1.5 rounded-full bg-primary" />
+						Online &amp; USSD Voting
+					</span>
 				</div>
 			</div>
 

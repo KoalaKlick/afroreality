@@ -20,17 +20,19 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: "Fextiva | Africa's Most Customizable Event Hosting, Ticketing & Voting Platform",
+		title: "Fextiva | Africa's Most Customizable Event Platform - Ticketing, General Events & Voting",
 		description:
-			"Host and fully brand African events on Fextiva. The best customizable event platform with your own brand colors, logos, and tailored themes. Powering concerts, pub nights, and secure awards voting across Africa.",
+			"Host, brand, and promote African events on Fextiva. The most customizable and trusted platform for free general events for brand advertisement, nightlife & pub ticketing, and secure awards voting across Africa.",
 		keywords: [
 			"best customizable event hosting platform",
+			"general event hosting Africa",
+			"free event advertisement platform",
 			"custom branded event pages",
 			"custom event colors and logos",
 			"white-label event ticketing Africa",
+			"trusted African event platform",
 			"Fextiva events",
 			"Fextiva ticketing",
-			"African event platform",
 			"custom event voting",
 			"eventpulse",
 			"eventix",
@@ -42,9 +44,9 @@ export async function generateMetadata(): Promise<Metadata> {
 		openGraph: {
 			type: "website",
 			url: "https://fextiva.com",
-			title: "Fextiva - Highly Customizable African Event Management & Voting Platform",
+			title: "Fextiva - Highly Customizable African Event Platform | General Events, Ticketing & Voting",
 			description:
-				"Make every event look 100% like your brand. Full customization with your brand colors, logo, custom fliers, pub ticketing, and secure online voting across Africa.",
+				"Host free general events for brand advertisement, club ticketing, or secure voting. Fully customize with your brand colors and logo on a platform your attendees can trust.",
 			images: ["/landing/a.webp"],
 		},
 	};
