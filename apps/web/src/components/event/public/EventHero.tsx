@@ -147,17 +147,6 @@ export function EventHero({
 			{/* ── Main Hero Details ── */}
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
 				<div className="space-y-6 max-w-4xl">
-					{/* Organization badge */}
-					<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-semibold">
-						<span
-							className="size-2 rounded-full animate-pulse"
-							style={{ backgroundColor: primaryColor }}
-						/>
-						<span className="text-muted-foreground">Official Event by</span>
-						<span className="font-bold text-foreground">
-							{organization.name}
-						</span>
-					</div>
 
 					{/* Event Title */}
 					<h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground leading-[1.1] font-millik">
