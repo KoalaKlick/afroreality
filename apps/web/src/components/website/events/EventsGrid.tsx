@@ -2,14 +2,22 @@
 
 import Link from "next/link";
 import { EventCard, type TawnyEventData } from "./EventCard";
-import { CalendarX } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Button } from "@/components/ui/button";
 
 interface EventsGridProps {
 	readonly events: TawnyEventData[];
 	readonly loading?: boolean;
+	readonly onReset?: () => void;
+	readonly hasActiveFilters?: boolean;
 }
 
-export function EventsGrid({ events, loading = false }: EventsGridProps) {
+export function EventsGrid({
+	events,
+	loading = false,
+	onReset,
+	hasActiveFilters = false,
+}: EventsGridProps) {
 	if (loading) {
 		return (
 			<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -26,17 +34,37 @@ export function EventsGrid({ events, loading = false }: EventsGridProps) {
 
 	if (events.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center py-16 text-center border border-border rounded-xl">
-				<div className="size-12 rounded-lg bg-muted flex items-center justify-center mb-3">
-					<CalendarX className="size-6 text-muted-foreground" />
-				</div>
-				<h3 className="text-base font-semibold mb-1 text-foreground">
-					No events found
-				</h3>
-				<p className="text-muted-foreground max-w-sm text-xs">
-					We couldn&apos;t find any events matching your search. Try adjusting your
-					filters or search term.
-				</p>
+			<div className="border border-border rounded-2xl bg-card/30 p-6 sm:p-12">
+				<EmptyState
+					variant="data"
+					svgClassName="w-40 h-40 sm:w-48 sm:h-48 mb-4"
+					title="No Events Found"
+					description={
+						hasActiveFilters
+							? "We couldn't find any events matching your search or filter criteria. Try adjusting your query or resetting filters."
+							: "There are currently no events listed in this section. Check back soon or host your own African event!"
+					}
+					action={
+						hasActiveFilters && onReset ? (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={onReset}
+								className="rounded-lg text-xs font-semibold shadow-none hover:border-primary/50 hover:text-primary"
+							>
+								Clear Filters
+							</Button>
+						) : (
+							<Button
+								asChild
+								size="sm"
+								className="rounded-lg text-xs font-semibold shadow-none"
+							>
+								<Link href="/my-events/create">Host an Event</Link>
+							</Button>
+						)
+					}
+				/>
 			</div>
 		);
 	}

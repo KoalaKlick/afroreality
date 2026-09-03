@@ -178,7 +178,7 @@ export function OrgProfileHero({
 					{/* Left: Logo & Details */}
 					<div className="flex flex-col sm:flex-row gap-5 items-start sm:items-end">
 						{/* Logo (No Shadow) */}
-						<div className="relative size-24 md:size-32 rounded-2xl bg-card p-2 border border-border overflow-hidden shrink-0 flex items-center justify-center shadow-none">
+						<div className="relative size-24 md:size-32 rounded-2xl bg-card p-2 overflow-hidden shrink-0 flex items-center justify-center shadow-none">
 							{logoImageUrl ? (
 								<img
 									src={logoImageUrl}

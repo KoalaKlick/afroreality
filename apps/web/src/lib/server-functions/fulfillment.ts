@@ -1,5 +1,7 @@
 import { prisma } from "@repo/db";
 import { createTicketToken } from "@/lib/ticket-crypto";
+import { generateNomineeCode } from "@/lib/server-functions/voting-options";
+import { sendNominationConfirmationEmail } from "@/lib/email/nomination";
 
 export interface FulfillmentResult {
 	success: boolean;
@@ -175,25 +177,88 @@ export async function fulfillSuccessfulPayment({
 
 		// 4. C: Nomination Fulfillment
 		if (payment.purpose === "nomination" || metadata.purpose === "nomination") {
-			const optionId = metadata.optionId || metadata.nomineeId;
+			let optionId = metadata.optionId || metadata.nomineeId;
+			let option: any = null;
+
 			if (optionId) {
-				const option = await prisma.votingOption.findUnique({
+				option = await prisma.votingOption.findUnique({
 					where: { id: optionId },
-					include: { category: true },
+					include: {
+						category: true,
+						event: { include: { organization: true } },
+					},
+				});
+			}
+
+			// If option was not pre-created, create it now from payment metadata
+			if (!option && metadata.eventId && metadata.categoryId && metadata.nomineeName) {
+				const category = await prisma.votingCategory.findUnique({
+					where: { id: metadata.categoryId },
+				});
+				const requireApproval = category?.requireApproval ?? true;
+				const newStatus = requireApproval ? "pending" : "approved";
+				const deletionCode = Math.floor(100000 + Math.random() * 900000).toString();
+				const nomineeCode = await generateNomineeCode(metadata.eventId, metadata.nomineeName);
+
+				option = await prisma.votingOption.create({
+					data: {
+						eventId: metadata.eventId,
+						categoryId: metadata.categoryId,
+						optionText: String(metadata.nomineeName).trim(),
+						email: metadata.nomineeEmail || null,
+						description: metadata.nomineeBio || metadata.description || null,
+						imageUrl: metadata.nomineeImageUrl || metadata.imageUrl || null,
+						nominatedByName: metadata.nominatorName || null,
+						nominatedByEmail: metadata.nominatorEmail || payment.email || null,
+						status: newStatus as any,
+						isPublicNomination: true,
+						nomineeCode,
+						deletionCode,
+					},
+					include: {
+						category: true,
+						event: { include: { organization: true } },
+					},
 				});
 
-				if (option) {
-					const requireApproval = option.category?.requireApproval ?? true;
-					const newStatus = requireApproval ? "pending" : "approved";
-					const deletionCode = Math.floor(100000 + Math.random() * 900000).toString();
+				metadata.optionId = option.id;
+			} else if (option) {
+				const requireApproval = option.category?.requireApproval ?? true;
+				const newStatus = requireApproval ? "pending" : "approved";
+				const deletionCode =
+					option.deletionCode ||
+					Math.floor(100000 + Math.random() * 900000).toString();
 
-					await prisma.votingOption.update({
-						where: { id: optionId },
-						data: {
-							status: newStatus as any,
-							deletionCode,
-						},
-					});
+				option = await prisma.votingOption.update({
+					where: { id: option.id },
+					data: {
+						status: newStatus as any,
+						deletionCode,
+					},
+					include: {
+						category: true,
+						event: { include: { organization: true } },
+					},
+				});
+			}
+
+			// Send confirmation email with exit key / review status
+			if (option) {
+				const recipientEmail =
+					option.nominatedByEmail || option.email || payment.email;
+				if (recipientEmail) {
+					sendNominationConfirmationEmail({
+						email: recipientEmail,
+						recipientName: option.nominatedByName || recipientEmail,
+						nomineeName: option.optionText,
+						categoryName: option.category?.name || "Category",
+						eventName: option.event?.title || "Event",
+						deletionCode: option.status === "approved" ? option.deletionCode : null,
+						organizationName: option.event?.organization?.name || "Fextiva",
+						bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+					}).catch((err) =>
+						console.error("[fulfillment] Failed to send nomination email:", err),
+					);
 				}
 			}
 		}

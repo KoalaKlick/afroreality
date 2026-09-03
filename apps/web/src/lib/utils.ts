@@ -173,3 +173,24 @@ export function getFrontendBaseUrl(): string {
 
 export const getBaseUrl = getFrontendBaseUrl;
 
+/**
+ * Strips HTML tags and decodes common HTML entities to return clean plain text.
+ * Safe for both server and client rendering with zero hydration mismatches.
+ */
+export function stripHtmlToText(html?: string | null): string {
+	if (!html) return "";
+	return html
+		.replace(/<br\s*\/?>/gi, " ")
+		.replace(/<\/p>/gi, " ")
+		.replace(/<[^>]*>/g, "")
+		.replace(/&nbsp;/g, " ")
+		.replace(/&amp;/g, "&")
+		.replace(/&lt;/g, "<")
+		.replace(/&gt;/g, ">")
+		.replace(/&quot;/g, '"')
+		.replace(/&#39;/g, "'")
+		.replace(/&apos;/g, "'")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+

@@ -8,9 +8,13 @@ import { EventGallery } from "@/components/shared/EventGallery";
 import { EventLocationDisplayMap } from "@/components/shared/map";
 import { ImageIcon, ChevronRight, Trophy, MapPin } from "lucide-react";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
+import { Badge } from "@/components/ui/badge";
+import { TagPill } from "@/components/ui/tag-pill";
 
 interface EventDetailsSectionProps {
 	readonly description?: string | null;
+	readonly category?: string | null;
+	readonly tags?: string[];
 	readonly socialLinks?: any[];
 	readonly galleryLinks?: any[];
 	readonly galleryImages?: string[];
@@ -26,6 +30,8 @@ interface EventDetailsSectionProps {
 
 export function EventDetailsSection({
 	description,
+	category,
+	tags = [],
 	socialLinks = [],
 	galleryLinks = [],
 	galleryImages = [],
@@ -67,6 +73,19 @@ export function EventDetailsSection({
 									</p>
 								)}
 							</div>
+
+							{(category || (tags && tags.length > 0)) && (
+								<div className="flex flex-wrap items-center gap-1.5 pt-2">
+									{category && (
+										<Badge variant="secondary" className="font-semibold text-xs rounded-sm px-2.5 py-0.5 border">
+											{category}
+										</Badge>
+									)}
+									{tags && tags.length > 0 && tags.map((tag) => (
+										<TagPill key={tag} tag={tag} size="sm" variant="secondary" />
+									))}
+								</div>
+							)}
 						</div>
 
 						{hasCoordinates && (

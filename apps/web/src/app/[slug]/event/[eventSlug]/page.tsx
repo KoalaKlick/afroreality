@@ -13,7 +13,7 @@ import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
 import { UssdFloatingWidget } from "@/components/event/public/UssdFloatingWidget";
 import { EventGallery } from "@/components/shared/EventGallery";
 import { getFrontendBaseUrl } from "@/lib/utils";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -113,6 +113,11 @@ export default async function PublicEventPage({
 	const eventSocialLinks = event.socialLinks || [];
 	const orgSocialLinks = organization.socialLinks || [];
 
+	const isEnded =
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(Boolean(event.endDate) && new Date(event.endDate).getTime() < Date.now());
+
 	// Merge event & organization social links so organizer handles repeat on the event page
 	const socialLinksMap = new Map<string, any>();
 	const normalizeUrl = (url: string) => {
@@ -175,6 +180,7 @@ export default async function PublicEventPage({
 						}))}
 						orgSlug={orgSlug}
 						eventSlug={eventSlug}
+						isEnded={isEnded}
 						event={{
 							id: event.id,
 							organizationId: event.organizationId,
@@ -367,6 +373,14 @@ export default async function PublicEventPage({
 
 			{/* Mobile / Tablet View (< xl) */}
 			<div className="flex flex-col xl:hidden flex-1">
+				{isEnded && (
+					<div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
+						<AlertTriangle className="size-4 shrink-0" />
+						<p className="text-xs font-bold uppercase tracking-wider">
+							This event has ended &mdash; you&apos;re viewing an archive.
+						</p>
+					</div>
+				)}
 				<EventHero
 					event={event as any}
 					orgSlug={orgSlug}
@@ -406,6 +420,8 @@ export default async function PublicEventPage({
 
 				<EventDetailsSection
 					description={event.description}
+					category={event.category}
+					tags={event.tags}
 					socialLinks={socialLinks}
 					galleryLinks={galleryLinks}
 					galleryImages={(event as any).galleryImages || []}
@@ -421,7 +437,15 @@ export default async function PublicEventPage({
 			</div>
 
 			{/* Large Screen View (xl+) */}
-			<div className="hidden xl:flex flex-1 min-h-[100svh] max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
+			<div className="hidden xl:flex flex-col flex-1 min-h-[100svh] max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
+				{isEnded && (
+					<div className="mb-6 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
+						<AlertTriangle className="size-4 shrink-0" />
+						<p className="text-xs font-bold uppercase tracking-wider">
+							This event has ended &mdash; you&apos;re viewing an archive.
+						</p>
+					</div>
+				)}
 				<div className="grid grid-cols-12 gap-8 w-full items-start">
 					{/* Left Column: Sticky Sidebar Panel */}
 					<aside className="col-span-4 sticky top-6 max-h-[calc(100svh-3rem)] overflow-y-auto pr-1">

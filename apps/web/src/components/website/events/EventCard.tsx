@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Vote, Ticket } from "lucide-react";
+import { MapPin, Vote, Ticket, Smartphone } from "lucide-react";
 import { getEventImageUrl } from "@/lib/image-url-utils";
-import { getUssdRootDialCode } from "@/lib/utils/ussd";
+import { getUssdDialCode, getUssdRootDialCode } from "@/lib/utils/ussd";
 
 export interface TawnyEventData {
 	id: string;
@@ -21,6 +21,7 @@ export interface TawnyEventData {
 	venueCity?: string | null;
 	venueCountry?: string | null;
 	hasUssd?: boolean;
+	ussdCode?: string | null;
 	minPrice?: number | null;
 	maxPrice?: number | null;
 	category?: string | null;
@@ -68,8 +69,8 @@ export function EventCard({ event, isPast = false }: EventCardProps) {
 	const posterUrl = getEventImageUrl(rawPoster);
 
 	const eventCode = event.hasUssd
-		? getUssdRootDialCode()
-		: event.id.slice(0, 6).toUpperCase();
+		? (event.ussdCode ? getUssdDialCode(event.ussdCode) : getUssdRootDialCode())
+		: null;
 
 	const category = event.category || (isVoting ? "Live Voting" : "African Festival");
 	const venue = [event.venueName, event.venueCity].filter(Boolean).join(", ") || "Ghana";
@@ -112,10 +113,11 @@ export function EventCard({ event, isPast = false }: EventCardProps) {
 					</span>
 				</div>
 
-				{/* Top-right USSD badge */}
-				{!isPast && (
-					<div className="absolute top-2.5 right-2.5 bg-background/95 backdrop-blur-md rounded-md px-2 py-1 border border-primary/30 shadow-none z-10">
-						<span className="text-xs font-bold text-primary tracking-wide">
+				{/* Top-right USSD badge - only shown if event has USSD enabled */}
+				{!isPast && event.hasUssd && eventCode && (
+					<div className="absolute top-2.5 right-2.5 bg-background/95 backdrop-blur-md rounded-md px-2 py-1 border border-primary/30 shadow-none z-10 flex items-center gap-1">
+						<Smartphone className="size-3 text-primary shrink-0" />
+						<span className="text-xs font-bold text-primary tracking-wide font-mono">
 							{eventCode}
 						</span>
 					</div>
@@ -143,7 +145,7 @@ export function EventCard({ event, isPast = false }: EventCardProps) {
 			{/* Bottom Metadata */}
 			<div className="flex flex-col gap-1 px-0.5">
 				<div className="flex items-center">
-					<Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-none">
+					<Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0 rounded-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-none">
 						{category}
 					</Badge>
 				</div>

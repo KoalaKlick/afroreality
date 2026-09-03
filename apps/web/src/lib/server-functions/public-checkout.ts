@@ -6,6 +6,7 @@ import { createTicketToken, verifyTicketToken } from "@/lib/ticket-crypto";
 import { getFrontendBaseUrl } from "@/lib/utils";
 import { computeChargeAmount, toPesewas, round2 } from "@/lib/utils/pricing";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
+import { submitPublicNomination } from "@/lib/server-functions/voting-options";
 
 export interface PublicTicketCheckoutInput {
 	eventId: string;
@@ -30,6 +31,19 @@ export interface VerifyTicketInput {
 	token?: string;
 	ticketCode?: string;
 	action?: "check_in" | "check_out" | "status";
+}
+
+export interface PublicNominationCheckoutInput {
+	eventId: string;
+	categoryId: string;
+	nomineeName: string;
+	nomineeEmail?: string;
+	nomineeBio?: string;
+	nomineeImageUrl?: string;
+	nominatorName?: string;
+	nominatorEmail?: string;
+	orgSlug?: string;
+	eventSlug?: string;
 }
 
 /**
@@ -555,7 +569,202 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 }
 
 /**
- * 3. Gate Verification & Check-In
+ * 3. Public Nomination Application & Checkout (Free or Paid with Paystack)
+ */
+export async function initiatePublicNomination({
+	data,
+}: {
+	data: PublicNominationCheckoutInput;
+}) {
+	try {
+		const {
+			eventId,
+			categoryId,
+			nomineeName,
+			nomineeEmail,
+			nomineeBio,
+			nomineeImageUrl,
+			nominatorName,
+			nominatorEmail,
+			orgSlug,
+			eventSlug,
+		} = data;
+
+		if (!eventId || !categoryId || !nomineeName?.trim()) {
+			return {
+				success: false,
+				error: "Missing required nomination parameters.",
+			};
+		}
+
+		const category = await prisma.votingCategory.findUnique({
+			where: { id: categoryId },
+			include: {
+				event: {
+					include: { organization: true },
+				},
+			},
+		});
+
+		if (!category || category.eventId !== eventId) {
+			return {
+				success: false,
+				error: "Voting category not found.",
+			};
+		}
+
+		if (!category.allowPublicNomination) {
+			return {
+				success: false,
+				error: "This category does not accept public nominations.",
+			};
+		}
+
+		if (
+			category.nominationDeadline &&
+			new Date() > new Date(category.nominationDeadline)
+		) {
+			return {
+				success: false,
+				error: "Nomination deadline has passed.",
+			};
+		}
+
+		const nominationPrice = Number(category.nominationPrice || 0);
+		const isFree = nominationPrice === 0;
+
+		// 1. If Free Nomination: Submit directly
+		if (isFree) {
+			const result = await submitPublicNomination({
+				data: {
+					eventId,
+					categoryId,
+					optionText: nomineeName.trim(),
+					email: nomineeEmail,
+					description: nomineeBio,
+					imageUrl: nomineeImageUrl,
+					nominatorName,
+					nominatorEmail,
+				},
+			});
+			return {
+				...result,
+				isFree: true,
+			};
+		}
+
+		// 2. If Paid Nomination: Initialize Paystack
+		const payerEmail =
+			nominatorEmail?.trim() ||
+			nomineeEmail?.trim() ||
+			`nom-${Date.now().toString().slice(-6)}@pay.fextiva.com`;
+
+		const feeCalc = computeChargeAmount(nominationPrice, "nomination");
+		const totalToCharge = feeCalc.totalToCharge;
+		const paystackFee = feeCalc.paystackFee;
+		const platformFee = feeCalc.platformFee;
+		const organizerReceives = feeCalc.organizerReceives;
+		const splitChargePesewas = feeCalc.splitChargePesewas;
+		const organization = category.event.organization;
+		const subaccountCode = (organization as any)?.subaccountCode || null;
+
+		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
+
+		const paystackRes = await paystack.transaction.initialize({
+			email: payerEmail,
+			amount: toPesewas(totalToCharge),
+			currency: "GHS",
+			callback_url: callbackUrl,
+			subaccount: subaccountCode || undefined,
+			bearer: subaccountCode ? "account" : undefined,
+			transaction_charge:
+				subaccountCode && splitChargePesewas > 0 ? splitChargePesewas : undefined,
+			metadata: {
+				purpose: "nomination",
+				eventId,
+				categoryId,
+				categoryName: category.name,
+				nomineeName: nomineeName.trim(),
+				nomineeEmail: nomineeEmail || null,
+				nomineeBio: nomineeBio || null,
+				nomineeImageUrl: nomineeImageUrl || null,
+				nominatorName: nominatorName || null,
+				nominatorEmail: nominatorEmail || null,
+				organizationId: organization.id,
+				orgSlug: orgSlug || organization.slug,
+				eventSlug: eventSlug || category.event.slug,
+				baseAmount: nominationPrice,
+				platformFee,
+				organizerReceives,
+				paystackFee,
+				totalToCharge,
+				isSplit: !!subaccountCode,
+				sourcePath: `/${orgSlug || organization.slug}/event/${eventSlug || category.event.slug}/category/${categoryId}`,
+			},
+		});
+
+		if (!paystackRes?.status || !paystackRes?.data) {
+			return {
+				success: false,
+				error:
+					paystackRes?.message ||
+					"Failed to initialize payment gateway for nomination fee.",
+			};
+		}
+
+		// Create Payment record in DB
+		await prisma.payment.create({
+			data: {
+				reference: paystackRes.data.reference,
+				email: payerEmail,
+				purpose: "nomination",
+				amount: nominationPrice,
+				currency: "GHS",
+				provider: "paystack",
+				status: "pending",
+				metadata: {
+					purpose: "nomination",
+					eventId,
+					categoryId,
+					categoryName: category.name,
+					nomineeName: nomineeName.trim(),
+					nomineeEmail: nomineeEmail || null,
+					nomineeBio: nomineeBio || null,
+					nomineeImageUrl: nomineeImageUrl || null,
+					nominatorName: nominatorName || null,
+					nominatorEmail: nominatorEmail || null,
+					organizationId: organization.id,
+					orgSlug: orgSlug || organization.slug,
+					eventSlug: eventSlug || category.event.slug,
+					baseAmount: nominationPrice,
+					platformFee,
+					organizerReceives,
+					paystackFee,
+					totalToCharge,
+					isSplit: !!subaccountCode,
+					sourcePath: `/${orgSlug || organization.slug}/event/${eventSlug || category.event.slug}/category/${categoryId}`,
+				},
+			},
+		});
+
+		return {
+			success: true,
+			isFree: false,
+			authorizationUrl: paystackRes.data.authorization_url,
+			accessCode: paystackRes.data.access_code,
+			reference: paystackRes.data.reference,
+		};
+	} catch (error: any) {
+		console.error("Public nomination initiation error:", error);
+		return {
+			success: false,
+			error: error.message || "Something went wrong initiating nomination.",
+		};
+	}
+}
+
+/**
+ * 4. Gate Verification & Check-In
  */
 export async function verifyAndCheckInTicket({
 	data,

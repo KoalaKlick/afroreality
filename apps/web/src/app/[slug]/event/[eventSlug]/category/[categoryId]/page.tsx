@@ -94,6 +94,11 @@ export default async function PublicCategoryPage({
 	const { organization } = event;
 	const isInternalVoting = event.votingMode === "internal";
 
+	const isEnded =
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(Boolean(event.endDate) && new Date(event.endDate).getTime() < Date.now());
+
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
 
 	const brandVars = {
@@ -150,6 +155,7 @@ export default async function PublicCategoryPage({
 				votingOptions: category.votingOptions || [],
 			}}
 			eventId={event.id}
+			isEnded={isEnded}
 			votingMode={event.votingMode || "general"}
 			brandVars={brandVars}
 			orgSlug={orgSlug}

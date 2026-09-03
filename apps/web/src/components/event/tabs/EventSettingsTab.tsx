@@ -15,12 +15,15 @@ import {
 	Trash2,
 	Video,
 	Check,
+	Tag,
+	X,
 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { AnimatedDeleteDialog } from "@/components/common/AnimatedDeleteDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
@@ -34,6 +37,8 @@ import {
 import { cn, formatDate, getErrorMessage } from "@/lib/utils";
 import { getGalleryProvider, getSocialPlatform } from "@/lib/utils/event-icons";
 import { LocationPickerModal } from "@/components/shared/map";
+import { EVENT_CATEGORIES } from "@/lib/validations/event";
+import { TagPill, TagPillInput } from "@/components/ui/tag-pill";
 
 import { GalleryLinkDialog } from "./GalleryLinkDialog";
 import { SocialLinkDialog } from "./SocialLinkDialog";
@@ -72,6 +77,8 @@ export function EventSettingsTab({
 
 	const [formData, setFormData] = useState({
 		description: event.description ?? "",
+		category: event.category ?? "",
+		tags: (event.tags ?? []) as string[],
 		startDate: event.startDate
 			? new Date(event.startDate).toISOString().slice(0, 16)
 			: "",
@@ -195,6 +202,175 @@ export function EventSettingsTab({
 							className="text-muted-foreground"
 							fallback="No description provided."
 						/>
+					)}
+				</Card>
+
+				{/* Category & Tags */}
+				<Card className="p-6 @container">
+					<div className="flex items-center justify-between mb-4">
+						<div>
+							<h3 className="text-base font-semibold">Category &amp; Tags</h3>
+							<p className="text-xs text-muted-foreground">
+								Help attendees discover and filter your event on the public explore page
+							</p>
+						</div>
+						{canEdit && editingSection !== "category-tags" && (
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => {
+									setFormData((p) => ({
+										...p,
+										category: event.category ?? "",
+										tags: (event.tags ?? []) as string[],
+									}));
+									setEditingSection("category-tags");
+								}}
+							>
+								<Pencil className="size-4 mr-2" /> Edit
+							</Button>
+						)}
+					</div>
+					{editingSection === "category-tags" ? (
+						<div className="space-y-5">
+							{/* Category Selection */}
+							<div className="space-y-2">
+								<Label>Category</Label>
+								<div className="flex flex-wrap gap-1.5 pt-1">
+									{EVENT_CATEGORIES.map((cat) => {
+										const isSelected = formData.category === cat;
+										return (
+											<button
+												key={cat}
+												type="button"
+												onClick={() =>
+													setFormData((p) => ({
+														...p,
+														category: isSelected ? "" : cat,
+													}))
+												}
+												className={cn(
+													"text-xs font-semibold px-2.5 py-1 rounded-sm border transition-all cursor-pointer",
+													isSelected
+														? "bg-primary text-primary-foreground border-primary shadow-xs"
+														: "bg-muted/40 text-muted-foreground border-border hover:text-foreground hover:bg-muted/70",
+												)}
+											>
+												{cat}
+											</button>
+										);
+									})}
+								</div>
+								{formData.category && (
+									<p className="text-xs text-muted-foreground">
+										Selected: <span className="font-medium text-foreground">{formData.category}</span>
+										<button
+											type="button"
+											onClick={() => setFormData((p) => ({ ...p, category: "" }))}
+											className="ml-2 text-primary hover:underline text-xs cursor-pointer"
+										>
+											Clear
+										</button>
+									</p>
+								)}
+							</div>
+
+							{/* Tags Input using reusable TagPillInput */}
+							<div className="space-y-2">
+								<div className="flex items-center justify-between">
+									<Label htmlFor="edit-tags">Tags</Label>
+									<span className="text-xs text-muted-foreground">
+										{formData.tags.length}/5 tags
+									</span>
+								</div>
+								<TagPillInput
+									id="edit-tags"
+									tags={formData.tags}
+									onChange={(newTags) =>
+										setFormData((p) => ({ ...p, tags: newTags }))
+									}
+									maxTags={5}
+									maxTagLength={24}
+									placeholder="Type tag and press Enter"
+								/>
+								<p className="text-xs text-muted-foreground">
+									Type a tag and press <kbd className="px-1.5 py-0.5 text-[10px] font-semibold bg-muted border border-border rounded-sm">Enter</kbd> to add (max 5 tags, 24 chars each).
+								</p>
+							</div>
+
+							<div className="flex justify-end gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										setFormData((p) => ({
+											...p,
+											category: event.category ?? "",
+											tags: (event.tags ?? []) as string[],
+										}));
+										setEditingSection(null);
+									}}
+								>
+									Cancel
+								</Button>
+								<Button
+									id="save-section-category-tags"
+									size="sm"
+									onClick={() => {
+										saveFields({
+											category: formData.category || null,
+											tags: formData.tags,
+										});
+									}}
+									disabled={isPending}
+								>
+									{isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
+									Save Category &amp; Tags
+								</Button>
+							</div>
+						</div>
+					) : (
+						<div className="space-y-4 @2xl:grid grid-cols-2 gap-4">
+							<div className="p-3 rounded-lg border bg-muted/20 flex flex-col gap-2 h-fit">
+								<div className="flex items-center gap-2">
+									<Tag className="size-4 text-primary shrink-0" />
+									<span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+										Category
+									</span>
+								</div>
+								<div>
+									{event.category ? (
+										<Badge variant="secondary" className="font-semibold text-xs rounded-sm px-2.5 py-0.5">
+											{event.category}
+										</Badge>
+									) : (
+										<span className="text-sm text-muted-foreground italic">
+											No category set
+										</span>
+									)}
+								</div>
+							</div>
+
+							<div className="p-3 rounded-lg border bg-muted/20  h-fit flex flex-col gap-2 ">
+								<div className="flex items-center gap-2">
+									<Tag className="size-4 text-primary shrink-0" />
+									<span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+										Tags
+									</span>
+								</div>
+								<div className="flex flex-wrap gap-1.5">
+									{event.tags && event.tags.length > 0 ? (
+										event.tags.map((tag: string) => (
+											<TagPill key={tag} tag={tag} variant="outline" size="sm" />
+										))
+									) : (
+										<span className="text-sm text-muted-foreground italic">
+											No tags added
+										</span>
+									)}
+								</div>
+							</div>
+						</div>
 					)}
 				</Card>
 

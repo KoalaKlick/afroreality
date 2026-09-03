@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TagPill } from "@/components/ui/tag-pill";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -416,6 +417,15 @@ export function EventDetailHeader({
 								)}
 							</div>
 
+							{/* Event Tags */}
+							{event.tags && event.tags.length > 0 && (
+								<div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+									{event.tags.map((tag: string) => (
+										<TagPill key={tag} tag={tag} size="sm" variant="secondary" />
+									))}
+								</div>
+							)}
+
 							{/* Action Buttons & Status Badges Row */}
 							<div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
 								{/* Left: Action Buttons */}
@@ -532,6 +542,11 @@ export function EventDetailHeader({
 										text={activeStatusLabel}
 									/>
 									<StatusBadge variant={event.type} text={event.type} />
+									{event.category && (
+										<Badge variant="secondary" className="font-semibold text-xs rounded-sm px-2.5 py-0.5 border">
+											{event.category}
+										</Badge>
+									)}
 									{!event.isPublic && (
 										<Badge variant="secondary" className="gap-1 text-xs font-medium">
 											<EyeOff className="size-3" />

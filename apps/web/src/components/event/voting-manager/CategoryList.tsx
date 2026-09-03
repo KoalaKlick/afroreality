@@ -273,120 +273,114 @@ export function CategoryList({
 							</div>
 
 							{/* Category Options / Nominees Grid */}
-							<div className="p-4 sm:p-5">
-								{cat.votingOptions.length === 0 ? (
-									<div className="flex flex-col items-center justify-center py-8 text-center rounded-xl border border-dashed bg-muted/5">
-										<NoNomineeIllustration className="w-36 h-auto mb-3 opacity-80" />
-										<h5 className="font-semibold text-sm">No nominees yet</h5>
-										<p className="text-xs text-muted-foreground mt-0.5 mb-3 max-w-xs">
-											Add candidates to this category to start voting.
-										</p>
-										{canEdit && (
-											<Button
-												size="sm"
-												variant="outline"
-												onClick={() => handleAddOption(cat)}
-												className="gap-1.5"
-											>
-												<Plus className="size-3.5" />
-												Add First Nominee
-											</Button>
-										)}
-									</div>
-								) : (
-									<div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-										{cat.votingOptions.map((opt) => (
-											<div
-												key={opt.id}
-												className={`p-3 rounded-lg border bg-background flex items-center gap-3 relative group ${
-													opt.status === "pending"
-														? "border-yellow-300 bg-yellow-50/30"
-														: opt.status === "rejected"
-															? "border-red-300 bg-red-50/30 opacity-75"
-															: ""
-												}`}
-											>
-												{opt.imageUrl ? (
-													<img
-														src={getEventImageUrl(opt.imageUrl) ?? ""}
-														alt={opt.optionText}
-														className="size-12 rounded-lg object-cover shrink-0"
-													/>
-												) : (
-													<div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
-														<User className="size-5 text-muted-foreground" />
-													</div>
-												)}
+							{(() => {
+								const approvedNominees = cat.votingOptions.filter(
+									(o) => o.status === "approved" || (!o.status && !(o as any).isPublicNomination)
+								);
+								const pendingCount = cat.votingOptions.filter(
+									(o) => o.status === "pending"
+								).length;
 
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-1.5">
-														<p className="font-semibold text-sm truncate">
-															{opt.optionText}
-														</p>
-														{opt.status && opt.status !== "approved" && (
-															<Badge
-																variant="outline"
-																className={`text-[10px] px-1 py-0 capitalize ${
-																	statusBadgeStyles[opt.status]
-																}`}
-															>
-																{opt.status}
-															</Badge>
-														)}
-													</div>
-													{opt.nomineeCode && (
-														<p className="text-[10px] font-mono text-muted-foreground uppercase">
-															Code: {opt.nomineeCode}
-														</p>
-													)}
-													<p className="text-xs font-bold text-primary mt-0.5">
-														{Number(opt.votesCount || 0).toLocaleString()} votes
-													</p>
-												</div>
-
+								return (
+									<div className="p-4 sm:p-5">
+										{approvedNominees.length === 0 ? (
+											<div className="flex flex-col items-center justify-center py-8 text-center rounded-xl border border-dashed bg-muted/5">
+												<NoNomineeIllustration className="w-36 h-auto mb-3 opacity-80" />
+												<h5 className="font-semibold text-sm">
+													{pendingCount > 0 ? "Nominees Pending Review" : "No nominees yet"}
+												</h5>
+												<p className="text-xs text-muted-foreground mt-0.5 mb-3 max-w-xs">
+													{pendingCount > 0
+														? `You have ${pendingCount} public nomination request${pendingCount > 1 ? "s" : ""} waiting for review.`
+														: "Add candidates to this category to start voting."}
+												</p>
 												{canEdit && (
-													<div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-														{opt.status === "pending" && (
-															<>
-																<button
-																	type="button"
-																	onClick={() => handleApproveOption(opt.id)}
-																	className="p-1 hover:bg-green-100 rounded text-green-600"
-																	title="Approve"
-																>
-																	<Check className="size-3.5" />
-																</button>
-																<button
-																	type="button"
-																	onClick={() => handleRejectOption(opt.id)}
-																	className="p-1 hover:bg-red-100 rounded text-red-600"
-																	title="Reject"
-																>
-																	<X className="size-3.5" />
-																</button>
-															</>
+													<div className="flex items-center gap-2">
+														{pendingCount > 0 && cat.allowPublicNomination && (
+															<Button
+																size="sm"
+																variant="outline"
+																onClick={() => handleOpenNominations(cat)}
+																className="gap-1.5"
+															>
+																<Inbox className="size-3.5" />
+																Review Requests ({pendingCount})
+															</Button>
 														)}
-														<button
-															type="button"
-															onClick={() => handleEditOption(cat, opt)}
-															className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+														<Button
+															size="sm"
+															variant="outline"
+															onClick={() => handleAddOption(cat)}
+															className="gap-1.5"
 														>
-															<Pencil className="size-3.5" />
-														</button>
-														<button
-															type="button"
-															onClick={() => setOptionToDelete(opt)}
-															className="p-1 hover:bg-destructive/10 rounded text-destructive"
-														>
-															<Trash2 className="size-3.5" />
-														</button>
+															<Plus className="size-3.5" />
+															Add Nominee
+														</Button>
 													</div>
 												)}
 											</div>
-										))}
+										) : (
+											<div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+												{approvedNominees.map((opt) => (
+													<div
+														key={opt.id}
+														className="p-3 rounded-lg border bg-background flex items-center gap-3 relative group hover:border-primary/40 transition-colors shadow-2xs"
+													>
+														{opt.imageUrl ? (
+															<img
+																src={getEventImageUrl(opt.imageUrl) ?? ""}
+																alt={opt.optionText}
+																className="size-12 rounded-lg object-cover shrink-0"
+															/>
+														) : (
+															<div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
+																<User className="size-5 text-muted-foreground" />
+															</div>
+														)}
+
+														<div className="flex-1 min-w-0">
+															<div className="flex items-center gap-1.5">
+																<p className="font-semibold text-sm truncate">
+																	{opt.optionText}
+																</p>
+															</div>
+															{opt.nomineeCode && (
+																<p className="text-[10px] font-mono text-muted-foreground uppercase">
+																	Code: {opt.nomineeCode}
+																</p>
+															)}
+															<p className="text-xs font-bold text-primary mt-0.5">
+																{Number(opt.votesCount || 0).toLocaleString()} votes
+															</p>
+														</div>
+
+														{canEdit && (
+															<div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
+																<button
+																	type="button"
+																	onClick={() => handleEditOption(cat, opt)}
+																	className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors"
+																	title="Edit nominee"
+																>
+																	<Pencil className="size-3.5" />
+																</button>
+																<button
+																	type="button"
+																	onClick={() => setOptionToDelete(opt)}
+																	className="p-1 hover:bg-destructive/10 rounded text-destructive transition-colors"
+																	title="Delete nominee"
+																>
+																	<Trash2 className="size-3.5" />
+																</button>
+															</div>
+														)}
+													</div>
+												))}
+											</div>
+										)}
 									</div>
-								)}
-							</div>
+								);
+							})()}
 						</div>
 					))}
 				</div>

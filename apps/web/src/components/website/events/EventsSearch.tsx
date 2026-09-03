@@ -27,18 +27,21 @@ interface EventsSearchProps {
 }
 
 const EVENT_TYPES = [
-	{ value: "all", label: "All African Events" },
+	{ value: "all", label: "All Event Types" },
+	{ value: "standard", label: "General Events (Free & Promo)" },
 	{ value: "ticketed", label: "Tickets & Passes" },
-	{ value: "voting", label: "Live & USSD Voting" },
+	{ value: "voting", label: "Awards & Live Voting" },
+	{ value: "hybrid", label: "Hybrid (Tickets + Voting)" },
 ];
 
 const CATEGORIES = [
 	{ value: "all", label: "All Categories" },
 	{ value: "music", label: "Music & Concerts" },
-	{ value: "awards", label: "Awards & Galas" },
-	{ value: "conference", label: "Tech & Business Summits" },
+	{ value: "awards", label: "Awards & Pageants" },
+	{ value: "tech", label: "Tech & Business Summits" },
 	{ value: "festival", label: "Cultural Festivals" },
-	{ value: "culture", label: "Arts & Fashion" },
+	{ value: "arts", label: "Arts & Fashion" },
+	{ value: "nightlife", label: "Nightlife & Pubs" },
 	{ value: "sports", label: "Sports & Competitions" },
 	{ value: "other", label: "Other Gatherings" },
 ];
@@ -89,7 +92,7 @@ export function EventsSearch({
 
 					{/* FILTERS dropdown on the right of search bar */}
 					<DropdownMenu>
-						<DropdownMenuTrigger as-child>
+						<DropdownMenuTrigger asChild>
 							<button
 								type="button"
 								className="h-full px-3.5 gap-1.5 text-xs font-semibold tracking-wide bg-muted/40 text-foreground border-l border-border flex items-center shrink-0 transition-colors hover:text-primary"
@@ -164,7 +167,7 @@ export function EventsSearch({
 				{/* SORT BY Category Dropdown */}
 				<div className="shrink-0">
 					<DropdownMenu>
-						<DropdownMenuTrigger as-child>
+						<DropdownMenuTrigger asChild>
 							<Button
 								variant="outline"
 								className="rounded-lg gap-1.5 text-xs font-semibold tracking-wide border-border bg-background h-8 px-3 hover:border-primary/60 hover:text-primary shadow-none"

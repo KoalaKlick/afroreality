@@ -123,6 +123,8 @@ export async function createNewEvent({ data }: { data: any }) {
 			title: (data.title || "Untitled Event").trim(),
 			slug,
 			type: data.type || "ticketed",
+			category: data.category || null,
+			tags: Array.isArray(data.tags) ? data.tags : [],
 			description: data.description || null,
 			startDate: data.startDate ? new Date(data.startDate) : null,
 			endDate: data.endDate ? new Date(data.endDate) : null,

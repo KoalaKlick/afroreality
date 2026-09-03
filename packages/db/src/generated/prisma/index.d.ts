@@ -6089,6 +6089,7 @@ export namespace Prisma {
     endDate: Date | null
     timezone: string | null
     isPublic: boolean | null
+    category: string | null
     flierImage: string | null
     bannerImage: string | null
     venueName: string | null
@@ -6121,6 +6122,7 @@ export namespace Prisma {
     endDate: Date | null
     timezone: string | null
     isPublic: boolean | null
+    category: string | null
     flierImage: string | null
     bannerImage: string | null
     venueName: string | null
@@ -6153,6 +6155,8 @@ export namespace Prisma {
     endDate: number
     timezone: number
     isPublic: number
+    category: number
+    tags: number
     flierImage: number
     bannerImage: number
     venueName: number
@@ -6200,6 +6204,7 @@ export namespace Prisma {
     endDate?: true
     timezone?: true
     isPublic?: true
+    category?: true
     flierImage?: true
     bannerImage?: true
     venueName?: true
@@ -6232,6 +6237,7 @@ export namespace Prisma {
     endDate?: true
     timezone?: true
     isPublic?: true
+    category?: true
     flierImage?: true
     bannerImage?: true
     venueName?: true
@@ -6264,6 +6270,8 @@ export namespace Prisma {
     endDate?: true
     timezone?: true
     isPublic?: true
+    category?: true
+    tags?: true
     flierImage?: true
     bannerImage?: true
     venueName?: true
@@ -6384,6 +6392,8 @@ export namespace Prisma {
     endDate: Date | null
     timezone: string
     isPublic: boolean
+    category: string | null
+    tags: string[]
     flierImage: string | null
     bannerImage: string | null
     venueName: string | null
@@ -6436,6 +6446,8 @@ export namespace Prisma {
     endDate?: boolean
     timezone?: boolean
     isPublic?: boolean
+    category?: boolean
+    tags?: boolean
     flierImage?: boolean
     bannerImage?: boolean
     venueName?: boolean
@@ -6483,6 +6495,8 @@ export namespace Prisma {
     endDate?: boolean
     timezone?: boolean
     isPublic?: boolean
+    category?: boolean
+    tags?: boolean
     flierImage?: boolean
     bannerImage?: boolean
     venueName?: boolean
@@ -6518,6 +6532,8 @@ export namespace Prisma {
     endDate?: boolean
     timezone?: boolean
     isPublic?: boolean
+    category?: boolean
+    tags?: boolean
     flierImage?: boolean
     bannerImage?: boolean
     venueName?: boolean
@@ -6553,6 +6569,8 @@ export namespace Prisma {
     endDate?: boolean
     timezone?: boolean
     isPublic?: boolean
+    category?: boolean
+    tags?: boolean
     flierImage?: boolean
     bannerImage?: boolean
     venueName?: boolean
@@ -6573,7 +6591,7 @@ export namespace Prisma {
     galleryImages?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "latitude" | "longitude" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode" | "galleryImages", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "category" | "tags" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "latitude" | "longitude" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode" | "galleryImages", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     galleryLinks?: boolean | Event$galleryLinksArgs<ExtArgs>
     members?: boolean | Event$membersArgs<ExtArgs>
@@ -6629,6 +6647,8 @@ export namespace Prisma {
       endDate: Date | null
       timezone: string
       isPublic: boolean
+      category: string | null
+      tags: string[]
       flierImage: string | null
       bannerImage: string | null
       venueName: string | null
@@ -7095,6 +7115,8 @@ export namespace Prisma {
     readonly endDate: FieldRef<"Event", 'DateTime'>
     readonly timezone: FieldRef<"Event", 'String'>
     readonly isPublic: FieldRef<"Event", 'Boolean'>
+    readonly category: FieldRef<"Event", 'String'>
+    readonly tags: FieldRef<"Event", 'String[]'>
     readonly flierImage: FieldRef<"Event", 'String'>
     readonly bannerImage: FieldRef<"Event", 'String'>
     readonly venueName: FieldRef<"Event", 'String'>
@@ -45804,6 +45826,8 @@ export namespace Prisma {
     endDate: 'endDate',
     timezone: 'timezone',
     isPublic: 'isPublic',
+    category: 'category',
+    tags: 'tags',
     flierImage: 'flierImage',
     bannerImage: 'bannerImage',
     venueName: 'venueName',
@@ -46939,6 +46963,8 @@ export namespace Prisma {
     endDate?: DateTimeNullableFilter<"Event"> | Date | string | null
     timezone?: StringFilter<"Event"> | string
     isPublic?: BoolFilter<"Event"> | boolean
+    category?: StringNullableFilter<"Event"> | string | null
+    tags?: StringNullableListFilter<"Event">
     flierImage?: StringNullableFilter<"Event"> | string | null
     bannerImage?: StringNullableFilter<"Event"> | string | null
     venueName?: StringNullableFilter<"Event"> | string | null
@@ -46985,6 +47011,8 @@ export namespace Prisma {
     endDate?: SortOrderInput | SortOrder
     timezone?: SortOrder
     isPublic?: SortOrder
+    category?: SortOrderInput | SortOrder
+    tags?: SortOrder
     flierImage?: SortOrderInput | SortOrder
     bannerImage?: SortOrderInput | SortOrder
     venueName?: SortOrderInput | SortOrder
@@ -47036,6 +47064,8 @@ export namespace Prisma {
     endDate?: DateTimeNullableFilter<"Event"> | Date | string | null
     timezone?: StringFilter<"Event"> | string
     isPublic?: BoolFilter<"Event"> | boolean
+    category?: StringNullableFilter<"Event"> | string | null
+    tags?: StringNullableListFilter<"Event">
     flierImage?: StringNullableFilter<"Event"> | string | null
     bannerImage?: StringNullableFilter<"Event"> | string | null
     venueName?: StringNullableFilter<"Event"> | string | null
@@ -47081,6 +47111,8 @@ export namespace Prisma {
     endDate?: SortOrderInput | SortOrder
     timezone?: SortOrder
     isPublic?: SortOrder
+    category?: SortOrderInput | SortOrder
+    tags?: SortOrder
     flierImage?: SortOrderInput | SortOrder
     bannerImage?: SortOrderInput | SortOrder
     venueName?: SortOrderInput | SortOrder
@@ -47122,6 +47154,8 @@ export namespace Prisma {
     endDate?: DateTimeNullableWithAggregatesFilter<"Event"> | Date | string | null
     timezone?: StringWithAggregatesFilter<"Event"> | string
     isPublic?: BoolWithAggregatesFilter<"Event"> | boolean
+    category?: StringNullableWithAggregatesFilter<"Event"> | string | null
+    tags?: StringNullableListFilter<"Event">
     flierImage?: StringNullableWithAggregatesFilter<"Event"> | string | null
     bannerImage?: StringNullableWithAggregatesFilter<"Event"> | string | null
     venueName?: StringNullableWithAggregatesFilter<"Event"> | string | null
@@ -50317,6 +50351,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -50363,6 +50399,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -50405,6 +50443,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50451,6 +50491,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50495,6 +50537,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -50526,6 +50570,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -50559,6 +50605,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -54335,6 +54383,14 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
   export type FloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -54355,14 +54411,6 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type StringNullableListFilter<$PrismaModel = never> = {
-    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    has?: string | StringFieldRefInput<$PrismaModel> | null
-    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
-    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
-    isEmpty?: boolean
   }
 
   export type EventGalleryLinkListRelationFilter = {
@@ -54498,6 +54546,8 @@ export namespace Prisma {
     endDate?: SortOrder
     timezone?: SortOrder
     isPublic?: SortOrder
+    category?: SortOrder
+    tags?: SortOrder
     flierImage?: SortOrder
     bannerImage?: SortOrder
     venueName?: SortOrder
@@ -54537,6 +54587,7 @@ export namespace Prisma {
     endDate?: SortOrder
     timezone?: SortOrder
     isPublic?: SortOrder
+    category?: SortOrder
     flierImage?: SortOrder
     bannerImage?: SortOrder
     venueName?: SortOrder
@@ -54569,6 +54620,7 @@ export namespace Prisma {
     endDate?: SortOrder
     timezone?: SortOrder
     isPublic?: SortOrder
+    category?: SortOrder
     flierImage?: SortOrder
     bannerImage?: SortOrder
     venueName?: SortOrder
@@ -57011,6 +57063,10 @@ export namespace Prisma {
     update?: XOR<XOR<ProfileUpdateToOneWithWhereWithoutActivityLogsInput, ProfileUpdateWithoutActivityLogsInput>, ProfileUncheckedUpdateWithoutActivityLogsInput>
   }
 
+  export type EventCreatetagsInput = {
+    set: string[]
+  }
+
   export type EventCreategalleryImagesInput = {
     set: string[]
   }
@@ -57195,6 +57251,11 @@ export namespace Prisma {
 
   export type BoolFieldUpdateOperationsInput = {
     set?: boolean
+  }
+
+  export type EventUpdatetagsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type NullableFloatFieldUpdateOperationsInput = {
@@ -62124,6 +62185,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62169,6 +62232,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62226,6 +62291,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62271,6 +62338,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62312,6 +62381,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62357,6 +62428,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62414,6 +62487,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62459,6 +62534,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62500,6 +62577,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62545,6 +62624,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62602,6 +62683,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62647,6 +62730,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62688,6 +62773,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62733,6 +62820,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62830,6 +62919,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62875,6 +62966,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -62932,6 +63025,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -62977,6 +63072,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -63034,6 +63131,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -63079,6 +63178,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -63411,6 +63512,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -63455,6 +63558,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -63796,6 +63901,8 @@ export namespace Prisma {
     endDate?: DateTimeNullableFilter<"Event"> | Date | string | null
     timezone?: StringFilter<"Event"> | string
     isPublic?: BoolFilter<"Event"> | boolean
+    category?: StringNullableFilter<"Event"> | string | null
+    tags?: StringNullableListFilter<"Event">
     flierImage?: StringNullableFilter<"Event"> | string | null
     bannerImage?: StringNullableFilter<"Event"> | string | null
     venueName?: StringNullableFilter<"Event"> | string | null
@@ -67444,6 +67551,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -67489,6 +67598,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -67588,6 +67699,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -67633,6 +67746,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -67690,6 +67805,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -67735,6 +67852,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -67956,6 +68075,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68001,6 +68122,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68192,6 +68315,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -68237,6 +68362,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -68382,6 +68509,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68427,6 +68556,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -68604,6 +68735,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -68648,6 +68781,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -69720,6 +69855,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -69765,6 +69902,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -69892,6 +70031,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -69937,6 +70078,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -70085,6 +70228,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -70130,6 +70275,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -70335,6 +70482,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -70380,6 +70529,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -70553,6 +70704,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -70598,6 +70751,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -70914,6 +71069,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -70959,6 +71116,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72040,6 +72199,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -72163,6 +72324,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72207,6 +72370,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72250,6 +72415,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73340,6 +73507,8 @@ export namespace Prisma {
     endDate?: Date | string | null
     timezone?: string
     isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
     flierImage?: string | null
     bannerImage?: string | null
     venueName?: string | null
@@ -73604,6 +73773,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73648,6 +73819,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -73691,6 +73864,8 @@ export namespace Prisma {
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     timezone?: StringFieldUpdateOperationsInput | string
     isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
     flierImage?: NullableStringFieldUpdateOperationsInput | string | null
     bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
     venueName?: NullableStringFieldUpdateOperationsInput | string | null

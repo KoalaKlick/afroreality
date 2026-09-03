@@ -225,6 +225,8 @@ model Event {
   endDate              DateTime?                @map("end_date") @db.Timestamptz(6)
   timezone             String                   @default("Africa/Accra")
   isPublic             Boolean                  @default(true) @map("is_public")
+  category             String?                  @map("category") @db.VarChar(32)
+  tags                 String[]                 @default([]) @map("tags")
   flierImage           String?                  @map("flier_image")
   bannerImage          String?                  @map("banner_image")
   venueName            String?                  @map("venue_name")
@@ -265,6 +267,7 @@ model Event {
   @@index([slug], map: "idx_events_slug")
   @@index([startDate], map: "idx_events_start_date")
   @@index([isPublic], map: "idx_events_is_public")
+  @@index([category], map: "idx_events_category")
   @@index([galleryImages], map: "idx_events_gallery_images", type: Gin)
   @@map("events")
 }

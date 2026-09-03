@@ -18,6 +18,8 @@ interface EventFormData {
 	title: string;
 	slug: string;
 	type: string;
+	category?: string;
+	tags?: string[];
 	votingMode?: string;
 	description?: string;
 	startDate?: string;
@@ -58,6 +60,8 @@ export function EventCreationClient({
 		title: string;
 		slug: string;
 		type: string;
+		category?: string;
+		tags?: string[];
 		votingMode?: string;
 		description?: string;
 	}) {
@@ -127,6 +131,8 @@ export function EventCreationClient({
 					title: data.title,
 					slug: data.slug,
 					type: data.type,
+					category: data.category || undefined,
+					tags: data.tags || undefined,
 					description: data.description || undefined,
 					startDate: data.startDate || new Date().toISOString(),
 					endDate: data.endDate || undefined,

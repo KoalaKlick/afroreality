@@ -101,10 +101,24 @@ export const timezoneOptions = [
 	"Asia/Tokyo",
 ] as const;
 
+export const eventCategorySchema = z
+	.string()
+	.max(32, "Category must be at most 32 characters")
+	.optional()
+	.or(z.literal(""));
+
+export const eventTagsSchema = z
+	.array(z.string().max(24, "Tag must be at most 24 characters"))
+	.max(5, "Maximum 5 tags allowed")
+	.optional()
+	.default([]);
+
 export const createEventStep1Schema = z.object({
 	title: eventTitleSchema,
 	slug: eventSlugSchema,
 	type: eventTypeSchema,
+	category: eventCategorySchema,
+	tags: eventTagsSchema,
 	description: eventDescriptionSchema,
 	status: eventStatusSchema.optional().default("draft"),
 });
@@ -178,6 +192,8 @@ export const createEventSchema = z.object({
 	title: eventTitleSchema,
 	slug: eventSlugSchema,
 	type: eventTypeSchema,
+	category: eventCategorySchema,
+	tags: eventTagsSchema,
 	description: eventDescriptionSchema,
 	status: eventStatusSchema.optional().default("draft"),
 	startDate: z.string().optional(),
@@ -216,6 +232,8 @@ export const updateEventSchema = z.object({
 	title: eventTitleSchema.optional(),
 	slug: eventSlugSchema.optional(),
 	type: eventTypeSchema.optional(),
+	category: eventCategorySchema,
+	tags: eventTagsSchema,
 	status: eventStatusSchema.optional(),
 	description: eventDescriptionSchema,
 	startDate: z.string().optional(),
@@ -261,20 +279,36 @@ export const TOTAL_EVENT_CREATION_STEPS = 4;
 
 export const EVENT_TYPES = [
 	{
+		value: "standard" as const,
+		label: "General Event",
+		description: "Free brand showcase, advertisement & community gathering",
+	},
+	{
 		value: "ticketed" as const,
 		label: "Ticketed Event",
-		description: "Sell tickets to your event",
+		description: "Sell tickets & passes for concerts, nightlife & festivals",
 	},
 	{
 		value: "voting" as const,
 		label: "Voting Event",
-		description: "Run polls or award shows with voting",
+		description: "Run awards, polls or pageants with USSD & online voting",
 	},
 	{
-		value: "standard" as const,
-		label: "Standard Event",
-		description: "General event for showcase and attendance",
+		value: "hybrid" as const,
+		label: "Hybrid Event",
+		description: "Complete solution with both ticketing and voting",
 	},
+] as const;
+
+export const EVENT_CATEGORIES = [
+	"Music & Concerts",
+	"Awards & Pageants",
+	"Tech & Business Summits",
+	"Cultural Festivals",
+	"Arts & Fashion",
+	"Nightlife & Pubs",
+	"Sports & Competitions",
+	"Other Gatherings",
 ] as const;
 
 export const VOTING_MODES = [

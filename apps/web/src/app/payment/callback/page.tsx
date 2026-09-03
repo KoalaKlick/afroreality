@@ -101,6 +101,8 @@ function PaymentCallbackContent() {
 		purpose === "ticket_purchase" || meta.ticketOrderId || !!meta.ticketTypeId;
 	const isVotePayment =
 		purpose === "vote_purchase" || !!meta.categoryId || !!meta.optionId;
+	const isNominationPayment =
+		purpose === "nomination" || meta.purpose === "nomination";
 
 	const destinationUrl =
 		meta.sourcePath ||
@@ -162,7 +164,9 @@ function PaymentCallbackContent() {
 										? "Ticket Confirmed!"
 										: isVotePayment
 											? "Vote Confirmed!"
-											: "Payment Successful!"}
+											: isNominationPayment
+												? "Nomination Confirmed!"
+												: "Payment Successful!"}
 								</h1>
 
 								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mb-6">
@@ -174,7 +178,9 @@ function PaymentCallbackContent() {
 											? `${meta.voteCount || 1} vote${
 													Number(meta.voteCount || 1) > 1 ? "s" : ""
 												} for "${meta.nomineeName || "your nominee"}" recorded successfully.`
-											: "Your payment has been completed and verified successfully."}
+											: isNominationPayment
+												? `Nomination for "${meta.nomineeName || "your nominee"}" submitted successfully. A confirmation receipt and exit key have been emailed to you.`
+												: "Your payment has been completed and verified successfully."}
 								</p>
 
 								{payment?.amount !== undefined && (

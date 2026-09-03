@@ -31,6 +31,8 @@ export async function createNewEvent({ data }: { data: CreateEventInput & { orga
       title: data.title.trim(),
       slug: data.slug.toLowerCase().trim(),
       type: data.type as any,
+      category: data.category || null,
+      tags: data.tags || [],
       description: data.description || null,
       startDate: data.startDate ? new Date(data.startDate) : null,
       endDate: data.endDate ? new Date(data.endDate) : null,

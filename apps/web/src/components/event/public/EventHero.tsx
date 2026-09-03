@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, MapPin, Share2, Building2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TagPill } from "@/components/ui/tag-pill";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { shareEvent } from "@/lib/utils/share-utils";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
@@ -14,6 +16,8 @@ interface EventHeroProps {
 		id: string;
 		title: string;
 		type: string;
+		category?: string | null;
+		tags?: string[];
 		description?: string | null;
 		startDate?: Date | string | null;
 		endDate?: Date | string | null;
@@ -154,6 +158,18 @@ export function EventHero({
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
 				<div className="space-y-6 max-w-4xl">
 
+					{/* Category & Type Badges */}
+					<div className="flex flex-wrap items-center gap-2">
+						<Badge className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 rounded-sm px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide shadow-none">
+							{event.type}
+						</Badge>
+						{event.category && (
+							<Badge variant="secondary" className="rounded-sm px-2.5 py-0.5 text-xs font-semibold border">
+								{event.category}
+							</Badge>
+						)}
+					</div>
+
 					{/* Event Title */}
 					<h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground leading-[1.1] font-millik">
 						{event.title}
@@ -186,6 +202,15 @@ export function EventHero({
 							/>
 						)}
 					</div>
+
+					{/* Tags */}
+					{event.tags && event.tags.length > 0 && (
+						<div className="flex flex-wrap items-center gap-1.5 pt-1">
+							{event.tags.map((tag) => (
+								<TagPill key={tag} tag={tag} size="sm" variant="secondary" />
+							))}
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

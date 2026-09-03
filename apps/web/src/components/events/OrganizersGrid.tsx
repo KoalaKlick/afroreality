@@ -1,14 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { OrganizerCard, type TawnyOrganizerData } from "@/components/website/events/OrganizerCard";
-import { Users } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { Button } from "@/components/ui/button";
 
 interface OrganizersGridProps {
 	readonly organizers: TawnyOrganizerData[];
 	readonly loading?: boolean;
+	readonly onReset?: () => void;
+	readonly hasActiveFilters?: boolean;
 }
 
-export function OrganizersGrid({ organizers, loading = false }: OrganizersGridProps) {
+export function OrganizersGrid({
+	organizers,
+	loading = false,
+	onReset,
+	hasActiveFilters = false,
+}: OrganizersGridProps) {
 	if (loading) {
 		return (
 			<div className="flex flex-col gap-3">
@@ -36,17 +45,37 @@ export function OrganizersGrid({ organizers, loading = false }: OrganizersGridPr
 
 	if (organizers.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center py-16 text-center border border-border rounded-xl">
-				<div className="size-12 rounded-lg bg-muted flex items-center justify-center mb-3">
-					<Users className="size-6 text-muted-foreground" />
-				</div>
-				<h3 className="text-base font-semibold mb-1 text-foreground">
-					No organizers found
-				</h3>
-				<p className="text-muted-foreground max-w-sm text-xs">
-					We couldn&apos;t find any organizers matching your search. Try adjusting
-					your filters or search term.
-				</p>
+			<div className="border border-border rounded-2xl bg-card/30 p-6 sm:p-12">
+				<EmptyState
+					variant="users"
+					svgClassName="w-40 h-40 sm:w-48 sm:h-48 mb-4"
+					title="No Organizers Found"
+					description={
+						hasActiveFilters
+							? "We couldn't find any organizers matching your search keyword. Try adjusting your query."
+							: "There are currently no public organizations available. Create an organization to start hosting events!"
+					}
+					action={
+						hasActiveFilters && onReset ? (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={onReset}
+								className="rounded-lg text-xs font-semibold shadow-none hover:border-primary/50 hover:text-primary"
+							>
+								Clear Search
+							</Button>
+						) : (
+							<Button
+								asChild
+								size="sm"
+								className="rounded-lg text-xs font-semibold shadow-none"
+							>
+								<Link href="/organization/manage">Register Organization</Link>
+							</Button>
+						)
+					}
+				/>
 			</div>
 		);
 	}

@@ -39,6 +39,7 @@ interface NomineeGridProps {
 	readonly categoryId: string;
 	readonly categoryName?: string;
 	readonly votingMode?: string;
+	readonly isEnded?: boolean;
 	readonly showTotalVotesPublicly?: boolean;
 	readonly templateConfig?: {
 		resultDisplayType?: "percentage" | "count";
@@ -56,6 +57,7 @@ export function NomineeGrid({
 	categoryId,
 	categoryName = "",
 	votingMode = "general",
+	isEnded = false,
 	showTotalVotesPublicly = true,
 	templateConfig,
 	brandVars,
@@ -192,14 +194,17 @@ export function NomineeGrid({
 									size="sm"
 									onClick={() => handleOpenVoteModal(nominee)}
 									className="text-xs font-bold gap-1.5 h-8 flex-1"
+									disabled={isEnded}
 								>
 									<Vote className="size-3.5" />
 									<span>
-										{votingMode === "internal"
-											? "Cast Ballot"
-											: isFree
-												? "Vote Free"
-												: `Vote (GHS ${votePrice.toFixed(2)})`}
+										{isEnded
+											? "Voting Closed"
+											: votingMode === "internal"
+												? "Cast Ballot"
+												: isFree
+													? "Vote Free"
+													: `Vote (GHS ${votePrice.toFixed(2)})`}
 									</span>
 								</Button>
 							</div>
@@ -270,6 +275,7 @@ export function NomineeGrid({
 								<div className="flex items-center gap-3 pt-4 border-t">
 									<Button
 										className="flex-1 font-bold gap-2"
+										disabled={isEnded}
 										onClick={() => {
 											setSheetOpen(false);
 											setVoteModalOpen(true);
@@ -277,11 +283,13 @@ export function NomineeGrid({
 									>
 										<Vote className="size-4" />
 										<span>
-											{votingMode === "internal"
-												? "Cast Ballot"
-												: isFree
-													? "Vote Free"
-													: `Vote (GHS ${votePrice.toFixed(2)})`}
+											{isEnded
+												? "Voting Closed"
+												: votingMode === "internal"
+													? "Cast Ballot"
+													: isFree
+														? "Vote Free"
+														: `Vote (GHS ${votePrice.toFixed(2)})`}
 										</span>
 									</Button>
 									<Button
@@ -334,6 +342,7 @@ interface PublicNomineeSheetProps {
 		votingOptions?: VotingOption[];
 	};
 	readonly eventId: string;
+	readonly isEnded?: boolean;
 	readonly votingMode?: string;
 	readonly brandVars?: React.CSSProperties;
 	readonly orgSlug: string;
@@ -343,6 +352,7 @@ interface PublicNomineeSheetProps {
 export function PublicNomineeSheet({
 	category,
 	eventId,
+	isEnded = false,
 	votingMode = "general",
 	brandVars,
 	orgSlug,
@@ -351,7 +361,7 @@ export function PublicNomineeSheet({
 	return (
 		<div className="space-y-8">
 			{/* Public Nomination Banner */}
-			{category.allowPublicNomination && (
+			{category.allowPublicNomination && !isEnded && (
 				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-lg bg-card text-foreground">
 					<div className="space-y-1 text-center sm:text-left">
 						<h4 className="font-black text-sm uppercase tracking-tight flex items-center justify-center sm:justify-start gap-2">
@@ -401,6 +411,7 @@ export function PublicNomineeSheet({
 				categoryId={category.id}
 				categoryName={category.name}
 				votingMode={votingMode}
+				isEnded={isEnded}
 				showTotalVotesPublicly={category.showTotalVotesPublicly ?? true}
 				templateConfig={category.templateConfig}
 				brandVars={brandVars}

@@ -29,20 +29,48 @@ export function EventsPageClient({
 	const [selectedCategory, setSelectedCategory] = useState("all");
 	const [activeFilter, setActiveFilter] = useState("all");
 
+	const hasActiveFilters = Boolean(
+		searchQuery.trim() ||
+		selectedType !== "all" ||
+		selectedCategory !== "all" ||
+		activeFilter !== "all"
+	);
+
+	const handleResetFilters = () => {
+		setSearchQuery("");
+		setSelectedType("all");
+		setSelectedCategory("all");
+		setActiveFilter("all");
+	};
+
 	// Filtered events
 	const filteredEvents = useMemo(() => {
+		const now = Date.now();
 		return initialEvents.filter((event) => {
+			// Status Filter tabs (Upcoming vs Past vs All)
+			const isEnded =
+				event.status === "ended" ||
+				event.status === "cancelled" ||
+				(Boolean(event.endDate) && new Date(event.endDate!).getTime() < now);
+
+			if (activeFilter === "upcoming" && isEnded) return false;
+			if (activeFilter === "past" && !isEnded) return false;
+
 			// Type filter
 			if (selectedType !== "all") {
-				if (selectedType === "ticketed" && event.type === "voting") return false;
-				if (selectedType === "voting" && event.type !== "voting") return false;
+				if (selectedType === "standard" && event.type !== "standard") return false;
+				if (selectedType === "ticketed" && event.type !== "ticketed" && event.type !== "hybrid") return false;
+				if (selectedType === "voting" && event.type !== "voting" && event.type !== "hybrid") return false;
+				if (selectedType === "hybrid" && event.type !== "hybrid") return false;
 			}
 
 			// Category filter
 			if (selectedCategory !== "all") {
 				const cat = (event.category || "").toLowerCase();
-				if (!cat.includes(selectedCategory.toLowerCase())) {
-					// Soft match
+				const tags = ((event as any).tags || []).join(" ").toLowerCase();
+				const matchTarget = `${cat} ${tags}`;
+				if (!matchTarget.includes(selectedCategory.toLowerCase())) {
+					return false;
 				}
 			}
 
@@ -54,12 +82,14 @@ export function EventsPageClient({
 				const venueMatch = event.venueName?.toLowerCase().includes(q) ?? false;
 				const cityMatch = event.venueCity?.toLowerCase().includes(q) ?? false;
 				const orgMatch = event.organization.name.toLowerCase().includes(q);
-				return titleMatch || descMatch || venueMatch || cityMatch || orgMatch;
+				const catMatch = (event.category || "").toLowerCase().includes(q);
+				const tagsMatch = ((event as any).tags || []).some((t: string) => t.toLowerCase().includes(q));
+				return titleMatch || descMatch || venueMatch || cityMatch || orgMatch || catMatch || tagsMatch;
 			}
 
 			return true;
 		});
-	}, [initialEvents, selectedType, selectedCategory, searchQuery]);
+	}, [initialEvents, selectedType, selectedCategory, searchQuery, activeFilter]);
 
 	// Filtered organizers
 	const filteredOrganizers = useMemo(() => {
@@ -161,9 +191,17 @@ export function EventsPageClient({
 				<section className="pb-16 sm:pb-20">
 					<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-6">
 						{activeTab === "events" ? (
-							<EventsGrid events={filteredEvents} />
+							<EventsGrid
+								events={filteredEvents}
+								onReset={handleResetFilters}
+								hasActiveFilters={hasActiveFilters}
+							/>
 						) : (
-							<OrganizersGrid organizers={filteredOrganizers} />
+							<OrganizersGrid
+								organizers={filteredOrganizers}
+								onReset={handleResetFilters}
+								hasActiveFilters={Boolean(searchQuery.trim())}
+							/>
 						)}
 					</div>
 				</section>

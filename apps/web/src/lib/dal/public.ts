@@ -209,6 +209,7 @@ export async function getPublicEventDetails(
 					},
 					include: {
 						votingOptions: {
+							where: isOrganizer ? undefined : { status: "approved" },
 							orderBy: {
 								orderIdx: "asc",
 							},
@@ -350,6 +351,7 @@ export async function getPublicCategoryDetails(
 			},
 			include: {
 				votingOptions: {
+					where: isOrganizer ? undefined : { status: "approved" },
 					orderBy: {
 						orderIdx: "asc",
 					},
@@ -410,31 +412,43 @@ export async function getPublicEventsList(options: GetPublicEventsOptions = {}) 
 			sort = "upcoming",
 		} = options;
 
-		const where: any = {
-			isPublic: true,
-			status: {
-				not: "draft",
-			},
-		};
+		const now = new Date();
+		const andConditions: any[] = [{ isPublic: true }];
 
-		if (type && type !== "all") {
-			where.type = type;
+		if (!orgSlug) {
+			// In public discovery / landing page, only show active events (not ended or cancelled)
+			andConditions.push({ status: { in: ["published", "ongoing"] } });
+			andConditions.push({
+				OR: [
+					{ endDate: null },
+					{ endDate: { gte: now } },
+				],
+			});
+		} else {
+			// On the organization's page, show all public events (including past/ended archives)
+			andConditions.push({ organization: { slug: orgSlug } });
+			andConditions.push({ status: { not: "draft" } });
 		}
 
-		if (orgSlug) {
-			where.organization = { slug: orgSlug };
+		if (type && type !== "all") {
+			andConditions.push({ type });
 		}
 
 		if (query && query.trim()) {
 			const cleanQuery = query.trim();
-			where.OR = [
-				{ title: { contains: cleanQuery, mode: "insensitive" } },
-				{ description: { contains: cleanQuery, mode: "insensitive" } },
-				{ venueCity: { contains: cleanQuery, mode: "insensitive" } },
-				{ venueCountry: { contains: cleanQuery, mode: "insensitive" } },
-				{ organization: { name: { contains: cleanQuery, mode: "insensitive" } } },
-			];
+			andConditions.push({
+				OR: [
+					{ title: { contains: cleanQuery, mode: "insensitive" } },
+					{ description: { contains: cleanQuery, mode: "insensitive" } },
+					{ venueCity: { contains: cleanQuery, mode: "insensitive" } },
+					{ venueCountry: { contains: cleanQuery, mode: "insensitive" } },
+					{ category: { contains: cleanQuery, mode: "insensitive" } },
+					{ organization: { name: { contains: cleanQuery, mode: "insensitive" } } },
+				],
+			});
 		}
+
+		const where: any = { AND: andConditions };
 
 		let orderBy: any = { startDate: "asc" };
 		if (sort === "recent") {

@@ -147,6 +147,8 @@ exports.Prisma.EventScalarFieldEnum = {
   endDate: 'endDate',
   timezone: 'timezone',
   isPublic: 'isPublic',
+  category: 'category',
+  tags: 'tags',
   flierImage: 'flierImage',
   bannerImage: 'bannerImage',
   venueName: 'venueName',

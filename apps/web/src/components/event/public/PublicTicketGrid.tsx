@@ -36,6 +36,7 @@ interface PublicTicketGridProps {
   readonly tickets: PublicTicket[];
   readonly orgSlug: string;
   readonly eventSlug: string;
+  readonly isEnded?: boolean;
   readonly event: {
     readonly id: string;
     readonly organizationId: string;
@@ -79,6 +80,7 @@ export function PublicTicketGrid({
   tickets,
   orgSlug,
   eventSlug,
+  isEnded = false,
   event,
   organization,
 }: PublicTicketGridProps) {
@@ -282,6 +284,7 @@ export function PublicTicketGrid({
                   size="lg"
                   className="w-full"
                   disabled={
+                    isEnded ||
                     selectedTicket.status !== "available" ||
                     (selectedTicket.quantityTotal !== null &&
                       selectedTicket.quantityTotal -
@@ -293,7 +296,7 @@ export function PublicTicketGrid({
                     setSelectedTicket(null);
                   }}
                 >
-                  Purchase Ticket
+                  {isEnded ? "Event Ended — Sales Closed" : "Purchase Ticket"}
                 </Button>
               </SheetFooter>
             </>

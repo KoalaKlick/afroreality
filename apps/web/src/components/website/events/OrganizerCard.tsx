@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { getOrgImageUrl } from "@/lib/image-url-utils";
+import { stripHtmlToText } from "@/lib/utils";
 
 export interface TawnyOrganizerData {
 	id: string;
@@ -34,23 +35,25 @@ export function OrganizerCard({ organizer }: OrganizerCardProps) {
 		? organizer.categories
 		: ["African Festivals", "Concerts", "Live Awards"];
 
+	const logoImageUrl = getOrgImageUrl(organizer.logoUrl);
+	const cleanDescription = stripHtmlToText(organizer.description);
+
 	return (
 		<Link
 			href={`/${organizer.slug}`}
-			className="group flex flex-col sm:flex-row sm:items-stretch gap-3 sm:gap-5 p-4 sm:p-5 rounded-xl border border-border bg-card hover:border-primary/50 transition-colors shadow-none"
+			className="group flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 p-4 sm:p-5 rounded-xl border border-border bg-card hover:border-primary/50 transition-colors shadow-none"
 		>
-			{/* Left Image / Initials (Preline clean rounded-lg) */}
-			<div className="w-full sm:w-[180px] sm:shrink-0 aspect-[16/10] sm:aspect-[4/5] overflow-hidden bg-muted rounded-lg relative border border-border shadow-none">
-				{organizer.logoUrl ? (
-					<Image
-						src={organizer.logoUrl}
+			{/* Left: Square Logo (matching org page) */}
+			<div className="size-20 sm:size-24 rounded-xl bg-card p-2 border border-border overflow-hidden shrink-0 flex items-center justify-center shadow-none">
+				{logoImageUrl ? (
+					<img
+						src={logoImageUrl}
 						alt={organizer.name}
-						fill
-						className="object-cover group-hover:scale-105 transition-transform duration-300"
-						sizes="(max-width: 640px) 100vw, 180px"
+						className="size-full object-contain group-hover:scale-105 transition-transform duration-300"
+						loading="lazy"
 					/>
 				) : (
-					<div className="size-full flex items-center justify-center bg-muted text-primary font-bold text-3xl font-millik">
+					<div className="size-full flex items-center justify-center bg-muted text-primary font-bold text-2xl font-millik">
 						{getInitials(organizer.name)}
 					</div>
 				)}
@@ -90,12 +93,12 @@ export function OrganizerCard({ organizer }: OrganizerCardProps) {
 
 				<div className="h-px bg-border my-2" />
 
-				{organizer.description && (
+				{cleanDescription && (
 					<p className="text-xs sm:text-sm text-foreground/80 line-clamp-2 mb-2 leading-relaxed">
 						<span className="font-semibold text-foreground">
 							{organizer.name}:
 						</span>{" "}
-						{organizer.description}
+						{cleanDescription}
 					</p>
 				)}
 

@@ -11,6 +11,7 @@ import {
 	Trophy,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { TagPill } from "@/components/ui/tag-pill";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
@@ -24,6 +25,8 @@ interface EventSidebarCardProps {
 		id: string;
 		title: string;
 		slug: string;
+		category?: string | null;
+		tags?: string[];
 		hasUssd?: boolean | null;
 		ussdCode?: string | null;
 		description: string | null;
@@ -118,7 +121,7 @@ export function EventSidebarCard({
 				)}
 
 				<div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-					<Badge className="text-[10px] font-bold uppercase bg-background/90 text-foreground backdrop-blur-md border border-border">
+					<Badge className="text-[10px] font-bold uppercase bg-background/90 text-foreground backdrop-blur-md border border-border rounded-sm">
 						{event.type || "Event"}
 					</Badge>
 				</div>
@@ -169,6 +172,23 @@ export function EventSidebarCard({
 							<span className="truncate">{locationText}</span>
 						</div>
 					</div>
+
+					{/* Category & Tags */}
+					{(event.category || (event.tags && event.tags.length > 0)) && (
+						<div className="flex flex-wrap items-center gap-1.5 pt-1">
+							{event.category && (
+								<Badge
+									variant="secondary"
+									className="text-xs font-semibold rounded-sm px-2 py-0.5 border"
+								>
+									{event.category}
+								</Badge>
+							)}
+							{event.tags && event.tags.length > 0 && event.tags.map((tag: string) => (
+								<TagPill key={tag} tag={tag} size="sm" variant="outline" />
+							))}
+						</div>
+					)}
 				</div>
 
 				<PanAfricanDivider className="shrink-0" />

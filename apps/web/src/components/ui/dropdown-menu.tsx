@@ -142,22 +142,14 @@ function DropdownMenuRadioItem({
 				"nth-[3n+1_of_[data-slot=dropdown-menu-radio-item]]:focus:bg-[#02a605]/10 ",
 				"nth-[3n+2_of_[data-slot=dropdown-menu-radio-item]]:focus:bg-[#ffe100]/12 ",
 				"nth-[3n+3_of_[data-slot=dropdown-menu-radio-item]]:focus:bg-[#dc2626]/10 ",
-				"nth-[3n+1_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:bg-[#02a605]/18 nth-[3n+1_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:text-[#02a605]",
-				"nth-[3n+2_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:bg-[#ffe100]/20 nth-[3n+2_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:text-[#ffe100]",
-				"nth-[3n+3_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:bg-[#dc2626]/18 nth-[3n+3_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:text-[#dc2626]",
+				"nth-[3n+1_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:bg-[#02a605]/18 ",
+				"nth-[3n+2_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:bg-[#ffe100]/20 ",
+				"nth-[3n+3_of_[data-slot=dropdown-menu-radio-item]]:data-[state=checked]:bg-[#dc2626]/18 ",
 				"data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 				className,
 			)}
 			{...props}
 		>
-			<span
-				data-slot="dropdown-menu-radio-item-indicator"
-				className="absolute left-2 flex size-3.5 items-center justify-center"
-			>
-				<DropdownMenuPrimitive.ItemIndicator>
-					<CircleIcon className="size-2 fill-current" />
-				</DropdownMenuPrimitive.ItemIndicator>
-			</span>
 			{children}
 		</DropdownMenuPrimitive.RadioItem>
 	);

@@ -9,8 +9,10 @@ import {
 	ArrowRight,
 	Lock,
 } from "lucide-react";
+import { TagPillInput } from "@/components/ui/tag-pill";
 import {
 	EVENT_TYPES,
+	EVENT_CATEGORIES,
 	VOTING_MODES,
 	isVotingEventType,
 	createEventStep1Schema,
@@ -62,6 +64,19 @@ function StandardIllustration({ className }: { className?: string }) {
 	);
 }
 
+function HybridIllustration({ className }: { className?: string }) {
+	return (
+		<svg className={className} width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<rect x="8" y="18" width="40" height="44" rx="6" fill="currentColor" fillOpacity="0.12"/>
+			<rect x="8" y="18" width="40" height="44" rx="6" stroke="currentColor" strokeWidth="2" fill="none"/>
+			<circle cx="20" cy="40" r="5" fill="currentColor" fillOpacity="0.5"/>
+			<rect x="32" y="22" width="40" height="40" rx="6" fill="currentColor" fillOpacity="0.2"/>
+			<rect x="32" y="22" width="40" height="40" rx="6" stroke="currentColor" strokeWidth="2" fill="none"/>
+			<path d="M40 42 L46 48 L60 34" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+		</svg>
+	);
+}
+
 function getTypeIllustration(typeValue: string, isSelected: boolean) {
 	const color = isSelected ? "text-primary" : "text-muted-foreground/60";
 	switch (typeValue) {
@@ -69,6 +84,8 @@ function getTypeIllustration(typeValue: string, isSelected: boolean) {
 			return <TicketIllustration className={color} />;
 		case "voting":
 			return <VoteIllustration className={color} />;
+		case "hybrid":
+			return <HybridIllustration className={color} />;
 		case "standard":
 		default:
 			return <StandardIllustration className={color} />;
@@ -104,6 +121,8 @@ interface EventStep1Props {
 		title?: string;
 		slug?: string;
 		type?: string;
+		category?: string;
+		tags?: string[];
 		votingMode?: string;
 		description?: string;
 	};
@@ -111,6 +130,8 @@ interface EventStep1Props {
 		title: string;
 		slug: string;
 		type: string;
+		category?: string;
+		tags?: string[];
 		votingMode?: string;
 		description?: string;
 	}) => void;
@@ -123,6 +144,8 @@ export function EventStep1BasicInfo({
 	const [title, setTitle] = useState(initialData?.title ?? "");
 	const [slug, setSlug] = useState(initialData?.slug ?? "");
 	const [type, setType] = useState(initialData?.type ?? "ticketed");
+	const [category, setCategory] = useState(initialData?.category ?? "");
+	const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
 	const [votingMode, setVotingMode] = useState(
 		initialData?.votingMode ?? "general",
 	);
@@ -151,6 +174,8 @@ export function EventStep1BasicInfo({
 			title,
 			slug,
 			type,
+			category: category || undefined,
+			tags,
 			votingMode: isVotingEventType(type) ? votingMode : undefined,
 			description,
 		};
@@ -161,6 +186,8 @@ export function EventStep1BasicInfo({
 				title: parsed.data.title,
 				slug: parsed.data.slug,
 				type: parsed.data.type,
+				category: parsed.data.category || undefined,
+				tags: parsed.data.tags || [],
 				votingMode: isVotingEventType(type) ? votingMode : undefined,
 				description: parsed.data.description,
 			});
@@ -179,7 +206,7 @@ export function EventStep1BasicInfo({
 					<CardDescription>Choose the type of event you want to create</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="grid @lg:grid-cols-3 gap-3">
+					<div className="grid @lg:grid-cols-4 sm:grid-cols-2 gap-3">
 						{EVENT_TYPES.map((eventType) => {
 							const isSelected = type === eventType.value;
 
@@ -236,9 +263,9 @@ export function EventStep1BasicInfo({
 			<Card>
 				<CardHeader>
 					<CardTitle>Event Details</CardTitle>
-					<CardDescription>Enter the name and URL for your event</CardDescription>
+					<CardDescription>Enter the name, URL, and category for your event</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
+				<CardContent className="space-y-5">
 					{/* Event Title */}
 					<div className="space-y-2">
 						<Label htmlFor="title">Event Title *</Label>
@@ -275,6 +302,56 @@ export function EventStep1BasicInfo({
 							<p className="text-xs text-muted-foreground">
 								This will be your event's unique URL
 							</p>
+						)}
+					</div>
+
+					{/* Category Selection */}
+					<div className="space-y-2">
+						<Label htmlFor="category">Category (Optional)</Label>
+						<div className="flex flex-wrap gap-1.5 pt-1">
+							{EVENT_CATEGORIES.map((cat) => {
+								const isSelected = category === cat;
+								return (
+									<button
+										key={cat}
+										type="button"
+										onClick={() => setCategory(isSelected ? "" : cat)}
+										className={cn(
+											"text-xs font-semibold px-2.5 py-1 rounded-sm border transition-all cursor-pointer",
+											isSelected
+												? "bg-primary text-primary-foreground border-primary shadow-xs"
+												: "bg-muted/40 text-muted-foreground border-border hover:text-foreground hover:bg-muted/70",
+										)}
+									>
+										{cat}
+									</button>
+								);
+							})}
+						</div>
+						{errors.category && (
+							<p className="text-sm text-destructive">{errors.category[0]}</p>
+						)}
+					</div>
+
+					{/* Event Tags */}
+					<div className="space-y-2">
+						<div className="flex items-center justify-between">
+							<Label htmlFor="tags">Tags</Label>
+							<span className="text-xs text-muted-foreground">{tags.length}/5 tags</span>
+						</div>
+						<TagPillInput
+							id="tags"
+							tags={tags}
+							onChange={setTags}
+							maxTags={5}
+							maxTagLength={24}
+							placeholder="Type tag and press Enter"
+						/>
+						<p className="text-xs text-muted-foreground">
+							Type a tag and press <kbd className="px-1.5 py-0.5 text-[10px] font-semibold bg-muted border border-border rounded-sm">Enter</kbd> to add (max 5 tags, 24 chars each).
+						</p>
+						{errors.tags && (
+							<p className="text-sm text-destructive">{errors.tags[0]}</p>
 						)}
 					</div>
 				</CardContent>
