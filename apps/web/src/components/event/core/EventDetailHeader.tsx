@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import {
-   useRouter } from "next/navigation";
+	useRouter
+} from "next/navigation";
 import {
 	Calendar,
 	Check,
@@ -139,7 +140,10 @@ export function EventDetailHeader({
 
 	const organization = event?.organization;
 	const flierDisplayUrl = flierImage ? getEventImageUrl(flierImage) : null;
-	const hasPaymentAccount = !!organization?.paystackAccountNumber;
+	// Payout is "activated" once the org has a Paystack subaccount configured.
+	// (A raw bank account number alone is not enough — the subaccount code is
+	// only set when the payout account is fully configured.)
+	const hasPayoutActivated = !!organization?.subaccountCode;
 
 	// Save single field
 	async function saveField(fieldName: string, value: any) {
@@ -170,7 +174,7 @@ export function EventDetailHeader({
 			event.type === "ticketed" ||
 			event.type === "hybrid" ||
 			event.type === "voting";
-		if (newStatus === "published" && isPaidEvent && !hasPaymentAccount) {
+		if (newStatus === "published" && isPaidEvent && !hasPayoutActivated) {
 			setShowPaymentPrompt(true);
 			return;
 		}
@@ -406,129 +410,129 @@ export function EventDetailHeader({
 							<div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
 								{/* Left: Action Buttons */}
 								<div className="flex flex-wrap items-center gap-2.5">
-								{/* Primary Add Actions */}
-								{canEdit && isTicketed && onAddTicket && (
-									<Button
-										size="sm"
-										onClick={onAddTicket}
-										className="gap-1.5 shadow-xs"
-									>
-										<Plus className="size-4" />
-										Add Ticket Tier
-									</Button>
-								)}
-								{canEdit && isVoting && onAddCategory && (
-									<Button
-										size="sm"
-										onClick={onAddCategory}
-										className="gap-1.5 shadow-xs"
-									>
-										<Plus className="size-4" />
-										Add Category
-									</Button>
-								)}
-
-								{/* Share Button */}
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={handleShare}
-									className="gap-1.5 bg-background/80 hover:bg-background"
-								>
-									<Share2 className="size-3.5" />
-									Share
-								</Button>
-
-								{/* Publication Status Selector Dropdown */}
-								{canEdit && (
-									<DropdownMenu>
-										<DropdownMenuTrigger asChild>
-											<Button
-												variant="outline"
-												size="sm"
-												className="gap-2 capitalize bg-background/80 hover:bg-background"
-												disabled={isStatusChanging}
-											>
-												{isStatusChanging ? (
-													<Loader2 className="size-3.5 animate-spin" />
-												) : (
-													<>
-														<span
-															className={cn(
-																"size-2 rounded-full",
-																event.status === "published"
-																	? "bg-green-500"
-																	: "bg-yellow-500",
-															)}
-														/>
-														{event.status === "published"
-															? "Published"
-															: "Draft"}
-														<ChevronDown className="size-3.5 text-muted-foreground" />
-													</>
-												)}
-											</Button>
-										</DropdownMenuTrigger>
-										<DropdownMenuContent align="end">
-											<DropdownMenuItem
-												onClick={() =>
-													handlePublicationStatusChange("draft")
-												}
-												className="gap-2 cursor-pointer"
-											>
-												<span className="size-2 rounded-full bg-yellow-500" />
-												Draft
-											</DropdownMenuItem>
-											<DropdownMenuItem
-												onClick={() =>
-													handlePublicationStatusChange("published")
-												}
-												className="gap-2 cursor-pointer"
-											>
-												<span className="size-2 rounded-full bg-green-500" />
-												Published
-											</DropdownMenuItem>
-										</DropdownMenuContent>
-									</DropdownMenu>
-								)}
-
-								{/* Public Link */}
-								{event.slug && (
-									<Button
-										asChild
-										variant="ghost"
-										size="sm"
-										className="gap-1.5 text-muted-foreground hover:text-foreground"
-									>
-										<Link
-											href={`/${event.organization?.slug || organization?.slug || "org"}/event/${event.slug}` as any}
-											target="_blank"
+									{/* Primary Add Actions */}
+									{canEdit && isTicketed && onAddTicket && (
+										<Button
+											size="sm"
+											onClick={onAddTicket}
+											className="gap-1.5 shadow-xs"
 										>
-											<ExternalLink className="size-3.5" />
-											Public Page
-										</Link>
-									</Button>
-								)}
-							</div>
+											<Plus className="size-4" />
+											Add Ticket Tier
+										</Button>
+									)}
+									{canEdit && isVoting && onAddCategory && (
+										<Button
+											size="sm"
+											onClick={onAddCategory}
+											className="gap-1.5 shadow-xs"
+										>
+											<Plus className="size-4" />
+											Add Category
+										</Button>
+									)}
 
-						{/* Right: Status Badges */}
-						<div className="flex flex-wrap items-center gap-2">
-							<StatusBadge
-								variant={statusBadgeVariants[activeStatusKey] || "default"}
-								text={activeStatusLabel}
-							/>
-							<StatusBadge variant={event.type} text={event.type} />
-							{!event.isPublic && (
-								<Badge variant="secondary" className="gap-1 text-xs font-medium">
-									<EyeOff className="size-3" />
-									Private
-								</Badge>
-							)}
-						</div>
+									{/* Share Button */}
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={handleShare}
+										className="gap-1.5 bg-background/80 hover:bg-background"
+									>
+										<Share2 className="size-3.5" />
+										Share
+									</Button>
+
+									{/* Publication Status Selector Dropdown */}
+									{canEdit && (
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													variant="outline"
+													size="sm"
+													className="gap-2 capitalize bg-background/80 hover:bg-background"
+													disabled={isStatusChanging}
+												>
+													{isStatusChanging ? (
+														<Loader2 className="size-3.5 animate-spin" />
+													) : (
+														<>
+															<span
+																className={cn(
+																	"size-2 rounded-full",
+																	event.status === "published"
+																		? "bg-green-500"
+																		: "bg-yellow-500",
+																)}
+															/>
+															{event.status === "published"
+																? "Published"
+																: "Draft"}
+															<ChevronDown className="size-3.5 text-muted-foreground" />
+														</>
+													)}
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end">
+												<DropdownMenuItem
+													onClick={() =>
+														handlePublicationStatusChange("draft")
+													}
+													className="gap-2 cursor-pointer"
+												>
+													<span className="size-2 rounded-full bg-yellow-500" />
+													Draft
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													onClick={() =>
+														handlePublicationStatusChange("published")
+													}
+													className="gap-2 cursor-pointer"
+												>
+													<span className="size-2 rounded-full bg-green-500" />
+													Published
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									)}
+
+									{/* Public Link */}
+									{event.slug && (
+										<Button
+											asChild
+											variant="ghost"
+											size="sm"
+											className="gap-1.5 text-muted-foreground hover:text-foreground"
+										>
+											<Link
+												href={`/${event.organization?.slug || organization?.slug || "org"}/event/${event.slug}` as any}
+												target="_blank"
+											>
+												<ExternalLink className="size-3.5" />
+												Public Page
+											</Link>
+										</Button>
+									)}
+								</div>
+
+								{/* Right: Status Badges */}
+								<div className="flex flex-wrap items-center gap-2">
+									<StatusBadge
+										variant={statusBadgeVariants[activeStatusKey] || "default"}
+										text={activeStatusLabel}
+									/>
+									<StatusBadge variant={event.type} text={event.type} />
+									{!event.isPublic && (
+										<Badge variant="secondary" className="gap-1 text-xs font-medium">
+											<EyeOff className="size-3" />
+											Private
+										</Badge>
+									)}
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
 
 				{/* Navigation Tabs Bar */}
 				{onTabChange && (

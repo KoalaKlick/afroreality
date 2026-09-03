@@ -6,6 +6,41 @@ import { serializeJsonSafe } from "../utils";
 import { requireEventRole, requireOrgRole } from "./auth-helpers";
 import { requireSession } from "@/lib/session";
 
+/**
+ * Event types that collect money (tickets / votes). Standard events are free
+ * listings and never require a payout account to publish.
+ */
+const PAID_EVENT_TYPES = ["ticketed", "hybrid", "voting"];
+
+/**
+ * Server-side enforcement of the "payout activated before publishing" rule.
+ * Mirrors afroreality-web-tss: an event that can collect money must belong to
+ * an organization that has configured a payout account (Paystack subaccount)
+ * before it may be published.
+ *
+ * This lives on the server so the rule cannot be bypassed from the client.
+ */
+async function assertCanPublish(eventId: string, newStatus?: string): Promise<void> {
+	if (newStatus !== "published") return;
+
+	const event = await prisma.event.findUnique({
+		where: { id: eventId },
+		select: {
+			type: true,
+			organization: { select: { subaccountCode: true } },
+		},
+	});
+
+	if (!event) throw new Error("Event not found");
+
+	const isPaidEvent = PAID_EVENT_TYPES.includes(event.type);
+	if (isPaidEvent && !event.organization?.subaccountCode) {
+		throw new Error(
+			"Please verify and add a payout account in your organization settings before publishing a paid event.",
+		);
+	}
+}
+
 export async function createNewEvent({ data }: { data: any }) {
 	const session = await requireSession();
 	let organizationId = data.organizationId;
@@ -57,28 +92,28 @@ export async function createNewEvent({ data }: { data: any }) {
 	// Filter valid sponsors/social links
 	const validSponsors = Array.isArray(data.sponsors)
 		? data.sponsors
-				.filter((s: any) => s && s.name && s.name.trim())
-				.map((s: any) => ({
-					name: s.name.trim(),
-					logo: s.logo || null,
-				}))
+			.filter((s: any) => s && s.name && s.name.trim())
+			.map((s: any) => ({
+				name: s.name.trim(),
+				logo: s.logo || null,
+			}))
 		: [];
 
 	const validSocialLinks = Array.isArray(data.socialLinks)
 		? data.socialLinks
-				.filter((s: any) => s && s.url && s.url.trim())
-				.map((s: any) => ({
-					url: s.url.trim(),
-				}))
+			.filter((s: any) => s && s.url && s.url.trim())
+			.map((s: any) => ({
+				url: s.url.trim(),
+			}))
 		: [];
 
 	const validGalleryLinks = Array.isArray(data.galleryLinks)
 		? data.galleryLinks
-				.filter((g: any) => g && g.name && g.url && g.url.trim())
-				.map((g: any) => ({
-					name: g.name.trim(),
-					url: g.url.trim(),
-				}))
+			.filter((g: any) => g && g.name && g.url && g.url.trim())
+			.map((g: any) => ({
+				name: g.name.trim(),
+				url: g.url.trim(),
+			}))
 		: [];
 
 	const event = await prisma.event.create({
@@ -121,12 +156,19 @@ export async function createNewEvent({ data }: { data: any }) {
 
 export async function updateExistingEvent({ data }: { data: any }) {
 	await requireEventRole(data.id, ["owner", "admin"]);
+
+	// If this update transitions the event to published, enforce the payout gate.
+	if (data.status === "published") {
+		await assertCanPublish(data.id, "published");
+	}
+
 	const { id, startDate, endDate, sponsors, socialLinks, galleryLinks, ...rest } = data;
 
 	const updated = await prisma.event.update({
 		where: { id },
 		data: {
 			...rest,
+			...(data.status === "published" ? { publishedAt: new Date() } : {}),
 			startDate: startDate ? new Date(startDate) : undefined,
 			endDate: endDate ? new Date(endDate) : undefined,
 			sponsors: sponsors ? { deleteMany: {}, create: sponsors } : undefined,
@@ -147,6 +189,12 @@ export async function changeEventStatus({
 	data: { id: string; status: any };
 }) {
 	await requireEventRole(data.id, ["owner", "admin"]);
+
+	// Publishing an event requires the organization payout account to be set up.
+	if (data.status === "published") {
+		await assertCanPublish(data.id, "published");
+	}
+
 	const updated = await prisma.event.update({
 		where: { id: data.id },
 		data: {
