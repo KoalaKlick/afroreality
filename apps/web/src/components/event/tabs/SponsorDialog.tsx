@@ -91,11 +91,11 @@ export function SponsorDialog({
 						/>
 						{logo ? (
 							<div className="relative size-20 rounded-xl overflow-hidden border">
-							<img
-								src={getSponsorImageUrl(logo) ?? ""}
-								alt="Logo"
-								className="size-full object-contain p-2"
-							/>
+								<img
+									src={getSponsorImageUrl(logo) ?? ""}
+									alt="Logo"
+									className="size-full object-contain p-2"
+								/>
 								<button
 									type="button"
 									onClick={() => setLogo("")}

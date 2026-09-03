@@ -99,11 +99,11 @@ export function EventOverviewTab({
 					description={
 						[
 							stats.ticketRevenue > 0 &&
-								`Tickets ${formatAmount(stats.ticketRevenue)}`,
+							`Tickets ${formatAmount(stats.ticketRevenue)}`,
 							stats.voteRevenue > 0 &&
-								`Votes ${formatAmount(stats.voteRevenue)}`,
+							`Votes ${formatAmount(stats.voteRevenue)}`,
 							stats.nominationRevenue > 0 &&
-								`Nominations ${formatAmount(stats.nominationRevenue)}`,
+							`Nominations ${formatAmount(stats.nominationRevenue)}`,
 						]
 							.filter(Boolean)
 							.join(" • ") || "Click to view breakdown"
@@ -185,11 +185,11 @@ export function EventOverviewTab({
 			{(eventType === "ticketed" ||
 				eventType === "hybrid" ||
 				ticketTrend.length > 0) && (
-				<div className="grid grid-cols-1 overflow-x-auto @3xl:grid-cols-[auto_500px] gap-4">
-					<TypeBarChart sales={ticketTypeSales} />
-					<TicketTrendChard data={ticketTrend} />
-				</div>
-			)}
+					<div className="grid grid-cols-1 overflow-x-auto @3xl:grid-cols-[auto_500px] gap-4">
+						<TypeBarChart sales={ticketTypeSales} />
+						<TicketTrendChard data={ticketTrend} />
+					</div>
+				)}
 
 			{/* Voting Charts */}
 			{isVotingType && votingCategories.length > 0 && (
