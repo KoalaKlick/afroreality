@@ -11,6 +11,7 @@ import {
 	ChevronDown,
 	ExternalLink,
 	EyeOff,
+	Landmark,
 	LayoutDashboard,
 	Loader2,
 	MapPin,
@@ -47,7 +48,15 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OrgPayoutSettings } from "@/components/organization/wallet";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { cleanStorageKey, getEventImageUrl } from "@/lib/image-url-utils";
 import { updateExistingEvent } from "@/lib/server-functions/event-mgmt";
@@ -106,6 +115,7 @@ export function EventDetailHeader({
 	const [isPending, startTransition] = useTransition();
 	const [isStatusChanging, startStatusTransition] = useTransition();
 	const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
+	const [isPayoutDrawerOpen, setIsPayoutDrawerOpen] = useState(false);
 
 	// Editable state
 	const [editingTitle, setEditingTitle] = useState(false);
@@ -497,7 +507,7 @@ export function EventDetailHeader({
 									)}
 
 									{/* Public Link */}
-									{event.slug && (
+									{event.slug && event.status === "published" && (
 										<Button
 											asChild
 											variant="ghost"
@@ -631,7 +641,7 @@ export function EventDetailHeader({
 						<AlertDialogAction
 							onClick={() => {
 								setShowPaymentPrompt(false);
-								void router.push("/organization/wallet");
+								setIsPayoutDrawerOpen(true);
 							}}
 						>
 							Set up Payout Account
@@ -639,6 +649,53 @@ export function EventDetailHeader({
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{/* Payout Settings Drawer (Slide-out Sheet) */}
+			<Sheet
+				open={isPayoutDrawerOpen}
+				onOpenChange={(open) => {
+					setIsPayoutDrawerOpen(open);
+					// Refresh once the drawer closes so the page picks up the
+					// newly configured payout account (subaccountCode).
+					if (!open) router.refresh();
+				}}
+			>
+				<SheetContent
+					side="right"
+					variant="brand"
+					className="w-full sm:max-w-xl overflow-y-auto p-6"
+				>
+					<SheetHeader className="pb-4 border-b border-border/60">
+						<div className="flex items-center gap-2.5">
+							<div className="size-9 rounded-lg bg-primary-100 dark:bg-primary-950/50 text-primary flex items-center justify-center shrink-0">
+								<Landmark className="size-5" />
+							</div>
+							<div>
+								<SheetTitle className="text-lg font-bold">
+									Payout Account Settings
+								</SheetTitle>
+								<SheetDescription className="text-xs">
+									Configure your Mobile Money or Bank Account to receive automatic revenue settlements.
+								</SheetDescription>
+							</div>
+						</div>
+					</SheetHeader>
+
+					<div className="pt-6">
+						<OrgPayoutSettings
+							key={organization?.id}
+							organization={{
+								id: organization?.id ?? "",
+								name: organization?.name ?? "",
+								paystackBankCode: organization?.paystackBankCode ?? null,
+								paystackAccountNumber: organization?.paystackAccountNumber ?? null,
+								paystackAccountName: organization?.paystackAccountName ?? null,
+								subaccountCode: organization?.subaccountCode ?? null,
+							}}
+						/>
+					</div>
+				</SheetContent>
+			</Sheet>
 		</>
 	);
 }

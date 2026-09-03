@@ -139,6 +139,9 @@ export function EventCreationClient({
 					venueCountry: data.venueCountry || undefined,
 					timezone: data.timezone || "Africa/Accra",
 					maxAttendees: data.maxAttendees ?? undefined,
+					sponsors: data.sponsors ?? undefined,
+					socialLinks: data.socialLinks ?? undefined,
+					galleryLinks: data.galleryLinks ?? undefined,
 				},
 			});
 

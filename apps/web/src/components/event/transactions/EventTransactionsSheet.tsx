@@ -14,32 +14,40 @@ import {
 	Ticket as TicketIcon,
 	Vote as VoteIcon,
 	Award,
+	Banknote,
 } from "lucide-react";
 import {
 	getEventVoteTransactions,
 	getEventTicketTransactions,
 	getEventNominationTransactions,
 } from "@/lib/server-functions/event-transactions";
+import { getEventPaymentRevenue } from "@/lib/server-functions/event-revenue";
+import type { EventRevenuePayment } from "@/lib/server-functions/event-revenue";
 import { VoteTransactionsTable } from "./VoteTransactionsTable";
 import { TicketTransactionsTable } from "./TicketTransactionsTable";
 import { NominationTransactionsTable } from "./NominationTransactionsTable";
+import { RevenueBreakdownTable } from "./RevenueBreakdownTable";
 
 interface EventTransactionsSheetProps {
 	eventId: string;
 	isVotingType: boolean;
+	isTicketedType: boolean;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	defaultType?: "votes" | "tickets" | "nominations";
+	defaultType?: "votes" | "tickets" | "nominations" | "revenue";
 }
 
 export function EventTransactionsSheet({
 	eventId,
 	isVotingType,
+	isTicketedType,
 	open,
 	onOpenChange,
 	defaultType = "tickets",
 }: EventTransactionsSheetProps) {
-	const [activeTab, setActiveTab] = useState<"votes" | "tickets" | "nominations">(defaultType);
+	const [activeTab, setActiveTab] = useState<
+		"votes" | "tickets" | "nominations" | "revenue"
+	>(defaultType);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -54,6 +62,20 @@ export function EventTransactionsSheet({
 	const [nominationData, setNominationData] = useState<{ items: any[]; total: number }>({
 		items: [],
 		total: 0,
+	});
+	const [revenueData, setRevenueData] = useState<{
+		items: EventRevenuePayment[];
+		total: number;
+		totals: {
+			ticketRevenue: number;
+			voteRevenue: number;
+			nominationRevenue: number;
+			totalRevenue: number;
+		};
+	}>({
+		items: [],
+		total: 0,
+		totals: { ticketRevenue: 0, voteRevenue: 0, nominationRevenue: 0, totalRevenue: 0 },
 	});
 
 	const [page, setPage] = useState(1);
@@ -86,6 +108,11 @@ export function EventTransactionsSheet({
 					data: { eventId, page, limit, search: searchQuery },
 				});
 				setNominationData(res);
+			} else if (activeTab === "revenue") {
+				const res = await getEventPaymentRevenue({
+					data: { eventId, page, limit, search: searchQuery },
+				});
+				setRevenueData(res);
 			}
 		} catch (e) {
 			console.error("[TRANSACTIONS-SHEET-ERROR]", e);
@@ -101,6 +128,7 @@ export function EventTransactionsSheet({
 	const totalVotesPages = Math.max(1, Math.ceil(voteData.total / limit));
 	const totalTicketsPages = Math.max(1, Math.ceil(ticketData.total / limit));
 	const totalNominationPages = Math.max(1, Math.ceil(nominationData.total / limit));
+	const totalRevenuePages = Math.max(1, Math.ceil(revenueData.total / limit));
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -116,6 +144,8 @@ export function EventTransactionsSheet({
 								<VoteIcon className="size-5" />
 							) : activeTab === "nominations" ? (
 								<Award className="size-5" />
+							) : activeTab === "revenue" ? (
+								<Banknote className="size-5" />
 							) : (
 								<TicketIcon className="size-5" />
 							)}
@@ -126,14 +156,18 @@ export function EventTransactionsSheet({
 									? "Vote Transactions Breakdown"
 									: activeTab === "nominations"
 										? "Nomination Transactions Breakdown"
-										: "Ticket Orders Breakdown"}
+										: activeTab === "revenue"
+											? "Revenue Breakdown"
+											: "Ticket Orders Breakdown"}
 							</SheetTitle>
 							<SheetDescription className="text-xs text-muted-foreground mt-0.5">
 								{activeTab === "votes"
 									? "Detailed audit log of votes cast, amounts paid, voter contacts, and nominees."
 									: activeTab === "nominations"
 										? "Detailed record of public nominee registrations and paid nomination fees."
-										: "Detailed breakdown of ticket tier purchases, buyer info, and order references."}
+										: activeTab === "revenue"
+											? "All completed payments received, broken down by ticket sales, votes, and nominations."
+											: "Detailed breakdown of ticket tier purchases, buyer info, and order references."}
 							</SheetDescription>
 						</div>
 					</div>
@@ -149,10 +183,16 @@ export function EventTransactionsSheet({
 							className="w-full"
 						>
 							<TabsList variant="brand" className="h-9 w-full sm:w-auto">
-								<TabsTrigger variant="brand" value="tickets" className="text-xs gap-1.5 flex-1 sm:flex-initial">
-									<TicketIcon className="size-3.5" />
-									<span>Tickets ({ticketData.total})</span>
+								<TabsTrigger variant="brand" value="revenue" className="text-xs gap-1.5 flex-1 sm:flex-initial">
+									<Banknote className="size-3.5" />
+									<span>Revenue</span>
 								</TabsTrigger>
+								{isTicketedType && (
+									<TabsTrigger variant="brand" value="tickets" className="text-xs gap-1.5 flex-1 sm:flex-initial">
+										<TicketIcon className="size-3.5" />
+										<span>Tickets ({ticketData.total})</span>
+									</TabsTrigger>
+								)}
 								{isVotingType && (
 									<>
 										<TabsTrigger variant="brand" value="votes" className="text-xs gap-1.5 flex-1 sm:flex-initial">
@@ -172,6 +212,22 @@ export function EventTransactionsSheet({
 
 				{/* Body Content */}
 				<div className="flex-1 overflow-y-auto p-6">
+					{activeTab === "revenue" && (
+						<RevenueBreakdownTable
+							data={revenueData.items}
+							total={revenueData.total}
+							page={page}
+							totalPages={totalRevenuePages}
+							isLoading={isLoading}
+							searchQuery={searchQuery}
+							onSearchChange={(q) => {
+								setSearchQuery(q);
+								setPage(1);
+							}}
+							onPageChange={(p) => setPage(p)}
+						/>
+					)}
+
 					{activeTab === "votes" && (
 						<VoteTransactionsTable
 							data={voteData.items}

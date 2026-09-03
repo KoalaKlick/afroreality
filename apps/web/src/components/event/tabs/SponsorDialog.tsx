@@ -38,11 +38,15 @@ export function SponsorDialog({
 	const [logo, setLogo] = useState(sponsor?.logo ?? "");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	// Sync form state when sponsor prop changes (for editing existing sponsors)
+	// Sync form state whenever the dialog is (re)opened. This ensures a
+	// previously added/edited sponsor doesn't stay pre-filled when opening
+	// the dialog for a new sponsor.
 	useEffect(() => {
-		setName(sponsor?.name ?? "");
-		setLogo(sponsor?.logo ?? "");
-	}, [sponsor]);
+		if (open) {
+			setName(sponsor?.name ?? "");
+			setLogo(sponsor?.logo ?? "");
+		}
+	}, [open, sponsor]);
 
 	const { isUploading, upload } = useImageUpload({
 		folder: "sponsors",

@@ -55,7 +55,7 @@ export function EventOverviewTab({
 	const [selectedCategory, setSelectedCategory] = useState<VotingChartCategory | null>(null);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [breakdownOpen, setBreakdownOpen] = useState(false);
-	const [breakdownType, setBreakdownType] = useState<"votes" | "tickets" | "nominations">("tickets");
+	const [breakdownType, setBreakdownType] = useState<"votes" | "tickets" | "nominations" | "revenue">("tickets");
 
 	const stats = {
 		revenue: eventStats?.revenue ?? 0,
@@ -76,13 +76,14 @@ export function EventOverviewTab({
 	const eventType = event.type;
 	const votingMode = event.votingMode;
 	const isVotingType = eventType === "voting" || eventType === "hybrid";
+	const isTicketedType = eventType === "ticketed" || eventType === "hybrid";
 
 	function handleCategoryClick(category: VotingChartCategory) {
 		setSelectedCategory(category);
 		setModalOpen(true);
 	}
 
-	function handleViewBreakdown(type: "votes" | "tickets" | "nominations") {
+	function handleViewBreakdown(type: "votes" | "tickets" | "nominations" | "revenue") {
 		setBreakdownType(type);
 		setBreakdownOpen(true);
 	}
@@ -107,7 +108,7 @@ export function EventOverviewTab({
 							.filter(Boolean)
 							.join(" • ") || "Click to view breakdown"
 					}
-					onClick={() => handleViewBreakdown(eventType === "voting" ? "votes" : "tickets")}
+					onClick={() => handleViewBreakdown("revenue")}
 					className="cursor-pointer hover:border-primary/40 hover:shadow-xs transition-all"
 				/>
 
@@ -218,6 +219,7 @@ export function EventOverviewTab({
 			<EventTransactionsSheet
 				eventId={event.id}
 				isVotingType={isVotingType}
+				isTicketedType={isTicketedType}
 				open={breakdownOpen}
 				onOpenChange={setBreakdownOpen}
 				defaultType={breakdownType}
