@@ -10,11 +10,15 @@ import {
 	MapPin,
 	Globe,
 	Calendar,
+	Check,
+	Trash2,
+	Navigation,
 } from "lucide-react";
 import { createEventStep2Schema } from "@/lib/validations/event";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SelectionCard } from "./SelectionCard";
+import { LocationPickerModal } from "@/components/shared/map";
 
 // SVG Illustrations - vibrant and detailed
 function InPersonIllustration({ className }: { className?: string }) {
@@ -62,6 +66,8 @@ interface EventStep2Props {
 		venueAddress?: string;
 		venueCity?: string;
 		venueCountry?: string;
+		latitude?: number | null;
+		longitude?: number | null;
 	};
 	readonly onSuccess: (data: {
 		startDate?: string;
@@ -73,6 +79,8 @@ interface EventStep2Props {
 		venueAddress?: string;
 		venueCity?: string;
 		venueCountry?: string;
+		latitude?: number | null;
+		longitude?: number | null;
 	}) => void;
 	readonly onBack: () => void;
 	readonly onSkip: () => void;
@@ -111,6 +119,13 @@ export function EventStep2DateLocation({
 	const [venueCountry, setVenueCountry] = useState(
 		initialData?.venueCountry ?? "Ghana",
 	);
+	const [latitude, setLatitude] = useState<number | null>(
+		initialData?.latitude ?? null,
+	);
+	const [longitude, setLongitude] = useState<number | null>(
+		initialData?.longitude ?? null,
+	);
+	const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string[]>>({});
 
 	function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -127,6 +142,8 @@ export function EventStep2DateLocation({
 			venueAddress: venueAddress || undefined,
 			venueCity: venueCity || undefined,
 			venueCountry,
+			latitude,
+			longitude,
 		};
 
 		const parsed = createEventStep2Schema.safeParse(payload);
@@ -141,6 +158,8 @@ export function EventStep2DateLocation({
 				venueAddress: parsed.data.venueAddress,
 				venueCity: parsed.data.venueCity,
 				venueCountry: parsed.data.venueCountry,
+				latitude: parsed.data.latitude ?? null,
+				longitude: parsed.data.longitude ?? null,
 			});
 		} else {
 			const formatted = parsed.error.flatten().fieldErrors;
@@ -345,6 +364,70 @@ export function EventStep2DateLocation({
 								)}
 							</div>
 						</div>
+
+						{/* Map Location Picker Trigger */}
+						<div className="pt-2 border-t border-border">
+							<Label className="text-xs font-semibold text-foreground flex items-center justify-between mb-2">
+								<span className="flex items-center gap-1.5">
+									<MapPin className="size-3.5 text-primary" />
+									Map Pin &amp; Directions
+								</span>
+								<span className="text-[11px] text-muted-foreground font-normal">Optional</span>
+							</Label>
+
+							{latitude !== null && longitude !== null ? (
+								<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl">
+									<div className="flex items-center gap-2.5 min-w-0">
+										<div className="size-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+											<Check className="size-4" />
+										</div>
+										<div className="min-w-0">
+											<p className="text-xs font-semibold text-foreground">
+												Location pinned on map
+											</p>
+											<p className="text-[11px] text-muted-foreground">
+												Attendees can navigate to this venue directly via Google Maps.
+											</p>
+										</div>
+									</div>
+
+									<div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={() => setIsMapModalOpen(true)}
+											className="h-8 px-3 text-xs"
+										>
+											Change Pin
+										</Button>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											onClick={() => {
+												setLatitude(null);
+												setLongitude(null);
+											}}
+											className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
+											title="Remove Pin"
+										>
+											<Trash2 className="size-3.5" />
+										</Button>
+									</div>
+								</div>
+							) : (
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setIsMapModalOpen(true)}
+									className="w-full h-11 border-dashed border-2 hover:border-primary/60 hover:bg-primary/5 text-xs font-semibold gap-2 rounded-xl transition-all"
+								>
+									<MapPin className="size-4 text-primary" />
+									<span>Pin Exact Venue Location on Map</span>
+								</Button>
+							)}
+						</div>
 					</CardContent>
 				</Card>
 			)}
@@ -366,6 +449,30 @@ export function EventStep2DateLocation({
 					</Button>
 				</div>
 			</div>
+
+			{/* Location Picker Modal */}
+			<LocationPickerModal
+				isOpen={isMapModalOpen}
+				onClose={() => setIsMapModalOpen(false)}
+				initialLatitude={latitude}
+				initialLongitude={longitude}
+				initialAddress={venueAddress}
+				initialCity={venueCity}
+				initialCountry={venueCountry}
+				onConfirm={(location) => {
+					setLatitude(location.latitude);
+					setLongitude(location.longitude);
+					if (location.city && !venueCity) {
+						setVenueCity(location.city);
+					}
+					if (location.address && !venueAddress) {
+						setVenueAddress(location.address);
+					}
+					if (location.country && (!venueCountry || venueCountry === "Ghana")) {
+						setVenueCountry(location.country);
+					}
+				}}
+			/>
 		</form>
 	);
 }

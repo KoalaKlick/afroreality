@@ -29,6 +29,8 @@ interface EventFormData {
 	venueAddress?: string;
 	venueCity?: string;
 	venueCountry?: string;
+	latitude?: number | null;
+	longitude?: number | null;
 	flierImage?: string;
 	bannerImage?: string;
 	maxAttendees?: number | null;
@@ -74,6 +76,8 @@ export function EventCreationClient({
 		venueAddress?: string;
 		venueCity?: string;
 		venueCountry?: string;
+		latitude?: number | null;
+		longitude?: number | null;
 	}) {
 		setFormData((prev) => ({ ...prev, ...data }));
 		setCurrentStep(2);
@@ -83,6 +87,7 @@ export function EventCreationClient({
 		setCurrentStep(2);
 	}
 
+	// Step 3 success - save media & settings, move to step 4
 	function handleStep3Success(data: {
 		flierImage?: string;
 		bannerImage?: string;
@@ -94,28 +99,25 @@ export function EventCreationClient({
 	}
 
 	function handleStep3Skip() {
-		setFormData((prev) => ({ ...prev, isPublic: true }));
 		setCurrentStep(3);
 	}
 
-	// Step 4 success - create event
-	function handleStep4Success(data: {
-		sponsors: { name: string; logo?: string | null }[];
-		socialLinks: { url: string }[];
-		galleryLinks: { name: string; url: string }[];
+	// Step 4 success - save extras, submit form
+	async function handleStep4Success(data: {
+		sponsors?: { name: string; logo?: string | null }[];
+		socialLinks?: { url: string }[];
+		galleryLinks?: { name: string; url: string }[];
 	}) {
-		const { sponsors, ...rest } = data;
-		const normalizedSponsors = (sponsors ?? []).map((s) => ({
-			...s,
-			logo: s.logo ?? null,
-		}));
-		const finalData = { ...formData, ...rest, sponsors: normalizedSponsors };
-		setFormData(finalData);
-		createEvent(finalData as EventFormData);
+		const fullData = { ...formData, ...data };
+		await handleSubmit(fullData);
 	}
 
-	// Create the event
-	async function createEvent(data: EventFormData) {
+	async function handleSubmit(data: Partial<EventFormData>) {
+		if (!data.title || !data.slug || !data.type) {
+			setError("Missing required fields. Please review all steps.");
+			return;
+		}
+
 		setIsSubmitting(true);
 		setError(null);
 		try {
@@ -137,6 +139,8 @@ export function EventCreationClient({
 					venueAddress: data.venueAddress || undefined,
 					venueCity: data.venueCity || undefined,
 					venueCountry: data.venueCountry || undefined,
+					latitude: data.latitude !== undefined && data.latitude !== null ? Number(data.latitude) : undefined,
+					longitude: data.longitude !== undefined && data.longitude !== null ? Number(data.longitude) : undefined,
 					timezone: data.timezone || "Africa/Accra",
 					maxAttendees: data.maxAttendees ?? undefined,
 					sponsors: data.sponsors ?? undefined,

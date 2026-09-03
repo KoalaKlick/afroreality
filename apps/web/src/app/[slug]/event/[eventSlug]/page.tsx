@@ -247,6 +247,13 @@ export default async function PublicEventPage({
 					galleryLinks={galleryLinks}
 					galleryImages={(event as any).galleryImages || []}
 					sponsors={sponsors}
+					latitude={event.latitude}
+					longitude={event.longitude}
+					venueName={event.venueName}
+					venueAddress={event.venueAddress}
+					venueCity={event.venueCity}
+					venueCountry={event.venueCountry}
+					isVirtual={event.isVirtual}
 				/>
 			</div>
 

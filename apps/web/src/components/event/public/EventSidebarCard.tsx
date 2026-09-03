@@ -17,6 +17,7 @@ import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
+import { EventLocationDisplayMap } from "@/components/shared/map";
 
 interface EventSidebarCardProps {
 	readonly event: {
@@ -31,8 +32,11 @@ interface EventSidebarCardProps {
 		startDate?: string | Date | null;
 		endDate?: string | Date | null;
 		venueName?: string | null;
+		venueAddress?: string | null;
 		venueCity?: string | null;
 		venueCountry?: string | null;
+		latitude?: number | null;
+		longitude?: number | null;
 		isVirtual?: boolean;
 		virtualLink?: string | null;
 		type?: string;
@@ -186,6 +190,26 @@ export function EventSidebarCard({
 							)}
 						</div>
 					</div>
+
+					{/* Location Map */}
+					{!event.isVirtual &&
+						event.latitude !== null &&
+						event.latitude !== undefined &&
+						event.longitude !== null &&
+						event.longitude !== undefined && (
+							<div className="space-y-2 pt-3 border-t border-dashed">
+								<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
+									<MapPin className="size-3.5 text-primary" />
+									<span>Venue Map.</span>
+								</h3>
+								<EventLocationDisplayMap
+									latitude={event.latitude}
+									longitude={event.longitude}
+									venueName={event.venueName}
+									heightClass="aspect-video"
+								/>
+							</div>
+						)}
 
 					{/* Event Social Links */}
 					{socialLinks.length > 0 && (

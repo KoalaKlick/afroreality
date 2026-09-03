@@ -14,6 +14,7 @@ import {
 	Share2,
 	Trash2,
 	Video,
+	Check,
 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ import {
 } from "@/lib/server-functions/event-mgmt";
 import { cn, formatDate, getErrorMessage } from "@/lib/utils";
 import { getGalleryProvider, getSocialPlatform } from "@/lib/utils/event-icons";
+import { LocationPickerModal } from "@/components/shared/map";
 
 import { GalleryLinkDialog } from "./GalleryLinkDialog";
 import { SocialLinkDialog } from "./SocialLinkDialog";
@@ -66,6 +68,7 @@ export function EventSettingsTab({
 	const [galleryModalOpen, setGalleryModalOpen] = useState(false);
 	const [selectedGallery, setSelectedGallery] =
 		useState<EventGalleryLink | null>(null);
+	const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
 	const [formData, setFormData] = useState({
 		description: event.description ?? "",
@@ -82,6 +85,8 @@ export function EventSettingsTab({
 		venueAddress: event.venueAddress ?? "",
 		venueCity: event.venueCity ?? "",
 		venueCountry: event.venueCountry ?? "Ghana",
+		latitude: event.latitude !== undefined && event.latitude !== null ? Number(event.latitude) : null,
+		longitude: event.longitude !== undefined && event.longitude !== null ? Number(event.longitude) : null,
 		isPublic: event.isPublic ?? true,
 		hasUssd: event.hasUssd ?? false,
 		ussdCode: event.ussdCode ?? null,
@@ -404,6 +409,69 @@ export function EventSettingsTab({
 											}
 										/>
 									</div>
+
+									{/* Map Location Picker Trigger */}
+									<div className="sm:col-span-2 pt-2 border-t border-border">
+										<Label className="text-xs font-semibold text-foreground flex items-center justify-between mb-2">
+											<span className="flex items-center gap-1.5">
+												<MapPin className="size-3.5 text-primary" />
+												Map Pin &amp; Directions
+											</span>
+											<span className="text-[11px] text-muted-foreground font-normal">Optional</span>
+										</Label>
+
+										{formData.latitude !== null && formData.longitude !== null ? (
+											<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl">
+												<div className="flex items-center gap-2.5 min-w-0">
+													<div className="size-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+														<Check className="size-4" />
+													</div>
+													<div className="min-w-0">
+														<p className="text-xs font-semibold text-foreground">
+															Location pinned on map
+														</p>
+														<p className="text-[11px] text-muted-foreground">
+															Attendees can navigate to this venue directly via Google Maps.
+														</p>
+													</div>
+												</div>
+
+												<div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														onClick={() => setIsMapModalOpen(true)}
+														className="h-8 px-3 text-xs"
+													>
+														Change Pin
+													</Button>
+													<Button
+														type="button"
+														variant="ghost"
+														size="sm"
+														onClick={() => {
+															setFormData((p) => ({ ...p, latitude: null, longitude: null }));
+														}}
+														className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
+														title="Remove Pin"
+													>
+														<Trash2 className="size-3.5" />
+													</Button>
+												</div>
+											</div>
+										) : (
+											<Button
+												type="button"
+												variant="outline"
+												onClick={() => setIsMapModalOpen(true)}
+												className="w-full h-11 border-dashed border-2 hover:border-primary/60 hover:bg-primary/5 text-xs font-semibold gap-2 rounded-xl transition-all"
+											>
+												<MapPin className="size-4 text-primary" />
+												<span>Pin Exact Venue Location on Map</span>
+											</Button>
+										)}
+									</div>
 								</div>
 							)}
 
@@ -420,6 +488,8 @@ export function EventSettingsTab({
 											venueCity: event.venueCity ?? "",
 											venueCountry: event.venueCountry ?? "Ghana",
 											venueAddress: event.venueAddress ?? "",
+											latitude: event.latitude !== undefined && event.latitude !== null ? Number(event.latitude) : null,
+											longitude: event.longitude !== undefined && event.longitude !== null ? Number(event.longitude) : null,
 										}));
 										setEditingSection(null);
 									}}
@@ -447,6 +517,12 @@ export function EventSettingsTab({
 											venueAddress: !formData.isVirtual
 												? formData.venueAddress || undefined
 												: undefined,
+											latitude: !formData.isVirtual
+												? formData.latitude ?? null
+												: null,
+											longitude: !formData.isVirtual
+												? formData.longitude ?? null
+												: null,
 										})
 									}
 									disabled={isPending}
@@ -472,8 +548,13 @@ export function EventSettingsTab({
 								<>
 									<MapPin className="size-5 text-primary shrink-0" />
 									<div>
-										<p className="font-semibold">
-											{event.venueName || "Venue TBD"}
+										<p className="font-semibold flex items-center gap-2">
+											<span>{event.venueName || "Venue TBD"}</span>
+											{event.latitude !== null && event.latitude !== undefined && (
+												<span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-md">
+													Map Pinned
+												</span>
+											)}
 										</p>
 										<p className="text-xs text-muted-foreground">
 											{[
@@ -489,6 +570,26 @@ export function EventSettingsTab({
 							)}
 						</div>
 					)}
+
+					<LocationPickerModal
+						isOpen={isMapModalOpen}
+						onClose={() => setIsMapModalOpen(false)}
+						initialLatitude={formData.latitude}
+						initialLongitude={formData.longitude}
+						initialAddress={formData.venueAddress}
+						initialCity={formData.venueCity}
+						initialCountry={formData.venueCountry}
+						onConfirm={(loc) => {
+							setFormData((p) => ({
+								...p,
+								latitude: loc.latitude,
+								longitude: loc.longitude,
+								venueAddress: loc.address || p.venueAddress,
+								venueCity: loc.city || p.venueCity,
+								venueCountry: loc.country || p.venueCountry,
+							}));
+						}}
+					/>
 				</Card>
 
 				{/* Privacy & Visibility */}

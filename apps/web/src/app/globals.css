@@ -138,6 +138,7 @@ html {
 
 :root {
   --radius: 0.625rem;
+  --left-bg: #f8f5f1;
   --background: oklch(100% 0.00011 271.152);
   --foreground: oklch(0.13 0.028 261.692);
   --card: oklch(1 0 0);
@@ -181,6 +182,7 @@ html {
 }
 
 .dark {
+  --left-bg: #09090b;
   --background: oklch(0.13 0.028 261.692);
   --foreground: oklch(0.985 0.002 247.839);
   --card: oklch(0.21 0.034 264.665);

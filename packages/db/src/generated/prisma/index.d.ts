@@ -6065,10 +6065,14 @@ export namespace Prisma {
   }
 
   export type EventAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
     maxAttendees: number | null
   }
 
   export type EventSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
     maxAttendees: number | null
   }
 
@@ -6091,6 +6095,8 @@ export namespace Prisma {
     venueAddress: string | null
     venueCity: string | null
     venueCountry: string | null
+    latitude: number | null
+    longitude: number | null
     isVirtual: boolean | null
     virtualLink: string | null
     maxAttendees: number | null
@@ -6121,6 +6127,8 @@ export namespace Prisma {
     venueAddress: string | null
     venueCity: string | null
     venueCountry: string | null
+    latitude: number | null
+    longitude: number | null
     isVirtual: boolean | null
     virtualLink: string | null
     maxAttendees: number | null
@@ -6151,6 +6159,8 @@ export namespace Prisma {
     venueAddress: number
     venueCity: number
     venueCountry: number
+    latitude: number
+    longitude: number
     isVirtual: number
     virtualLink: number
     maxAttendees: number
@@ -6166,10 +6176,14 @@ export namespace Prisma {
 
 
   export type EventAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
     maxAttendees?: true
   }
 
   export type EventSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
     maxAttendees?: true
   }
 
@@ -6192,6 +6206,8 @@ export namespace Prisma {
     venueAddress?: true
     venueCity?: true
     venueCountry?: true
+    latitude?: true
+    longitude?: true
     isVirtual?: true
     virtualLink?: true
     maxAttendees?: true
@@ -6222,6 +6238,8 @@ export namespace Prisma {
     venueAddress?: true
     venueCity?: true
     venueCountry?: true
+    latitude?: true
+    longitude?: true
     isVirtual?: true
     virtualLink?: true
     maxAttendees?: true
@@ -6252,6 +6270,8 @@ export namespace Prisma {
     venueAddress?: true
     venueCity?: true
     venueCountry?: true
+    latitude?: true
+    longitude?: true
     isVirtual?: true
     virtualLink?: true
     maxAttendees?: true
@@ -6370,6 +6390,8 @@ export namespace Prisma {
     venueAddress: string | null
     venueCity: string | null
     venueCountry: string
+    latitude: number | null
+    longitude: number | null
     isVirtual: boolean
     virtualLink: string | null
     maxAttendees: number | null
@@ -6420,6 +6442,8 @@ export namespace Prisma {
     venueAddress?: boolean
     venueCity?: boolean
     venueCountry?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isVirtual?: boolean
     virtualLink?: boolean
     maxAttendees?: boolean
@@ -6465,6 +6489,8 @@ export namespace Prisma {
     venueAddress?: boolean
     venueCity?: boolean
     venueCountry?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isVirtual?: boolean
     virtualLink?: boolean
     maxAttendees?: boolean
@@ -6498,6 +6524,8 @@ export namespace Prisma {
     venueAddress?: boolean
     venueCity?: boolean
     venueCountry?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isVirtual?: boolean
     virtualLink?: boolean
     maxAttendees?: boolean
@@ -6531,6 +6559,8 @@ export namespace Prisma {
     venueAddress?: boolean
     venueCity?: boolean
     venueCountry?: boolean
+    latitude?: boolean
+    longitude?: boolean
     isVirtual?: boolean
     virtualLink?: boolean
     maxAttendees?: boolean
@@ -6543,7 +6573,7 @@ export namespace Prisma {
     galleryImages?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode" | "galleryImages", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "latitude" | "longitude" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode" | "galleryImages", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     galleryLinks?: boolean | Event$galleryLinksArgs<ExtArgs>
     members?: boolean | Event$membersArgs<ExtArgs>
@@ -6605,6 +6635,8 @@ export namespace Prisma {
       venueAddress: string | null
       venueCity: string | null
       venueCountry: string
+      latitude: number | null
+      longitude: number | null
       isVirtual: boolean
       virtualLink: string | null
       maxAttendees: number | null
@@ -7069,6 +7101,8 @@ export namespace Prisma {
     readonly venueAddress: FieldRef<"Event", 'String'>
     readonly venueCity: FieldRef<"Event", 'String'>
     readonly venueCountry: FieldRef<"Event", 'String'>
+    readonly latitude: FieldRef<"Event", 'Float'>
+    readonly longitude: FieldRef<"Event", 'Float'>
     readonly isVirtual: FieldRef<"Event", 'Boolean'>
     readonly virtualLink: FieldRef<"Event", 'String'>
     readonly maxAttendees: FieldRef<"Event", 'Int'>
@@ -45776,6 +45810,8 @@ export namespace Prisma {
     venueAddress: 'venueAddress',
     venueCity: 'venueCity',
     venueCountry: 'venueCountry',
+    latitude: 'latitude',
+    longitude: 'longitude',
     isVirtual: 'isVirtual',
     virtualLink: 'virtualLink',
     maxAttendees: 'maxAttendees',
@@ -46489,6 +46525,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -46780,20 +46830,6 @@ export namespace Prisma {
    */
   export type ListEnumUssdSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UssdSessionStatus[]'>
     
-
-
-  /**
-   * Reference to a field of type 'Float'
-   */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float[]'
-   */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
-    
   /**
    * Deep Input Types
    */
@@ -46909,6 +46945,8 @@ export namespace Prisma {
     venueAddress?: StringNullableFilter<"Event"> | string | null
     venueCity?: StringNullableFilter<"Event"> | string | null
     venueCountry?: StringFilter<"Event"> | string
+    latitude?: FloatNullableFilter<"Event"> | number | null
+    longitude?: FloatNullableFilter<"Event"> | number | null
     isVirtual?: BoolFilter<"Event"> | boolean
     virtualLink?: StringNullableFilter<"Event"> | string | null
     maxAttendees?: IntNullableFilter<"Event"> | number | null
@@ -46953,6 +46991,8 @@ export namespace Prisma {
     venueAddress?: SortOrderInput | SortOrder
     venueCity?: SortOrderInput | SortOrder
     venueCountry?: SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
     isVirtual?: SortOrder
     virtualLink?: SortOrderInput | SortOrder
     maxAttendees?: SortOrderInput | SortOrder
@@ -47002,6 +47042,8 @@ export namespace Prisma {
     venueAddress?: StringNullableFilter<"Event"> | string | null
     venueCity?: StringNullableFilter<"Event"> | string | null
     venueCountry?: StringFilter<"Event"> | string
+    latitude?: FloatNullableFilter<"Event"> | number | null
+    longitude?: FloatNullableFilter<"Event"> | number | null
     isVirtual?: BoolFilter<"Event"> | boolean
     virtualLink?: StringNullableFilter<"Event"> | string | null
     maxAttendees?: IntNullableFilter<"Event"> | number | null
@@ -47045,6 +47087,8 @@ export namespace Prisma {
     venueAddress?: SortOrderInput | SortOrder
     venueCity?: SortOrderInput | SortOrder
     venueCountry?: SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
     isVirtual?: SortOrder
     virtualLink?: SortOrderInput | SortOrder
     maxAttendees?: SortOrderInput | SortOrder
@@ -47084,6 +47128,8 @@ export namespace Prisma {
     venueAddress?: StringNullableWithAggregatesFilter<"Event"> | string | null
     venueCity?: StringNullableWithAggregatesFilter<"Event"> | string | null
     venueCountry?: StringWithAggregatesFilter<"Event"> | string
+    latitude?: FloatNullableWithAggregatesFilter<"Event"> | number | null
+    longitude?: FloatNullableWithAggregatesFilter<"Event"> | number | null
     isVirtual?: BoolWithAggregatesFilter<"Event"> | boolean
     virtualLink?: StringNullableWithAggregatesFilter<"Event"> | string | null
     maxAttendees?: IntNullableWithAggregatesFilter<"Event"> | number | null
@@ -50277,6 +50323,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -50321,6 +50369,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -50361,6 +50411,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -50405,6 +50457,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -50447,6 +50501,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -50476,6 +50532,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -50507,6 +50565,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -54275,6 +54335,17 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type IntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -54433,6 +54504,8 @@ export namespace Prisma {
     venueAddress?: SortOrder
     venueCity?: SortOrder
     venueCountry?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     isVirtual?: SortOrder
     virtualLink?: SortOrder
     maxAttendees?: SortOrder
@@ -54446,6 +54519,8 @@ export namespace Prisma {
   }
 
   export type EventAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
     maxAttendees?: SortOrder
   }
 
@@ -54468,6 +54543,8 @@ export namespace Prisma {
     venueAddress?: SortOrder
     venueCity?: SortOrder
     venueCountry?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     isVirtual?: SortOrder
     virtualLink?: SortOrder
     maxAttendees?: SortOrder
@@ -54498,6 +54575,8 @@ export namespace Prisma {
     venueAddress?: SortOrder
     venueCity?: SortOrder
     venueCountry?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
     isVirtual?: SortOrder
     virtualLink?: SortOrder
     maxAttendees?: SortOrder
@@ -54510,6 +54589,8 @@ export namespace Prisma {
   }
 
   export type EventSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
     maxAttendees?: SortOrder
   }
 
@@ -54553,6 +54634,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -57098,6 +57195,14 @@ export namespace Prisma {
 
   export type BoolFieldUpdateOperationsInput = {
     set?: boolean
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -60080,6 +60185,17 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedEnumEventTypeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.EventType | EnumEventTypeFieldRefInput<$PrismaModel>
     in?: $Enums.EventType[] | ListEnumEventTypeFieldRefInput<$PrismaModel>
@@ -60122,6 +60238,22 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -60136,17 +60268,6 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedIntNullableFilter<$PrismaModel>
     _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumEventMemberStatusFilter<$PrismaModel = never> = {
@@ -62009,6 +62130,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62052,6 +62175,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62107,6 +62232,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62150,6 +62277,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62189,6 +62318,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62232,6 +62363,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62287,6 +62420,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62330,6 +62465,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62369,6 +62506,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62412,6 +62551,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62467,6 +62608,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62510,6 +62653,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62549,6 +62694,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62592,6 +62739,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62687,6 +62836,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62730,6 +62881,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62785,6 +62938,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62828,6 +62983,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -62883,6 +63040,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -62926,6 +63085,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -63256,6 +63417,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -63298,6 +63461,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -63637,6 +63802,8 @@ export namespace Prisma {
     venueAddress?: StringNullableFilter<"Event"> | string | null
     venueCity?: StringNullableFilter<"Event"> | string | null
     venueCountry?: StringFilter<"Event"> | string
+    latitude?: FloatNullableFilter<"Event"> | number | null
+    longitude?: FloatNullableFilter<"Event"> | number | null
     isVirtual?: BoolFilter<"Event"> | boolean
     virtualLink?: StringNullableFilter<"Event"> | string | null
     maxAttendees?: IntNullableFilter<"Event"> | number | null
@@ -67283,6 +67450,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -67326,6 +67495,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -67423,6 +67594,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -67466,6 +67639,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -67521,6 +67696,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -67564,6 +67741,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -67783,6 +67962,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -67826,6 +68007,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -68015,6 +68198,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -68058,6 +68243,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -68201,6 +68388,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -68244,6 +68433,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -68419,6 +68610,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -68461,6 +68654,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -69531,6 +69726,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -69574,6 +69771,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -69699,6 +69898,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -69742,6 +69943,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -69888,6 +70091,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -69931,6 +70136,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -70134,6 +70341,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -70177,6 +70386,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -70348,6 +70559,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -70391,6 +70604,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -70705,6 +70920,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -70748,6 +70965,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -71827,6 +72046,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -71948,6 +72169,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -71990,6 +72213,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -72031,6 +72256,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -73119,6 +73346,8 @@ export namespace Prisma {
     venueAddress?: string | null
     venueCity?: string | null
     venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
     isVirtual?: boolean
     virtualLink?: string | null
     maxAttendees?: number | null
@@ -73381,6 +73610,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -73423,6 +73654,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
@@ -73464,6 +73697,8 @@ export namespace Prisma {
     venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
     venueCity?: NullableStringFieldUpdateOperationsInput | string | null
     venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     isVirtual?: BoolFieldUpdateOperationsInput | boolean
     virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
     maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null

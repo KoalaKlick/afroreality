@@ -42,6 +42,8 @@ export async function createNewEvent({ data }: { data: CreateEventInput & { orga
       venueAddress: data.venueAddress || null,
       venueCity: data.venueCity || null,
       venueCountry: data.venueCountry || 'Ghana',
+      latitude: data.latitude !== undefined && data.latitude !== null ? Number(data.latitude) : null,
+      longitude: data.longitude !== undefined && data.longitude !== null ? Number(data.longitude) : null,
       isVirtual: data.isVirtual ?? false,
       virtualLink: data.virtualLink || null,
       maxAttendees: data.maxAttendees ?? null,

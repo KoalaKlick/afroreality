@@ -17,6 +17,8 @@ model Event {
   venueAddress         String?                  @map("venue_address")
   venueCity            String?                  @map("venue_city")
   venueCountry         String                   @default("Ghana") @map("venue_country")
+  latitude             Float?                   @map("latitude")
+  longitude            Float?                   @map("longitude")
   isVirtual            Boolean                  @default(false) @map("is_virtual")
   virtualLink          String?                  @map("virtual_link")
   maxAttendees         Int?                     @map("max_attendees")

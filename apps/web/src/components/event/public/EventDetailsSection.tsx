@@ -5,7 +5,8 @@ import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { EventGallery } from "@/components/shared/EventGallery";
-import { ImageIcon, ChevronRight, Trophy } from "lucide-react";
+import { EventLocationDisplayMap } from "@/components/shared/map";
+import { ImageIcon, ChevronRight, Trophy, MapPin } from "lucide-react";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 interface EventDetailsSectionProps {
@@ -14,6 +15,13 @@ interface EventDetailsSectionProps {
 	readonly galleryLinks?: any[];
 	readonly galleryImages?: string[];
 	readonly sponsors?: any[];
+	readonly latitude?: number | null;
+	readonly longitude?: number | null;
+	readonly venueName?: string | null;
+	readonly venueAddress?: string | null;
+	readonly venueCity?: string | null;
+	readonly venueCountry?: string | null;
+	readonly isVirtual?: boolean;
 }
 
 export function EventDetailsSection({
@@ -22,7 +30,21 @@ export function EventDetailsSection({
 	galleryLinks = [],
 	galleryImages = [],
 	sponsors = [],
+	latitude,
+	longitude,
+	venueName,
+	venueAddress,
+	venueCity,
+	venueCountry,
+	isVirtual = false,
 }: EventDetailsSectionProps) {
+	const hasCoordinates =
+		!isVirtual &&
+		latitude !== null &&
+		latitude !== undefined &&
+		longitude !== null &&
+		longitude !== undefined;
+
 	return (
 		<Section
 			maxWidth="7xl"
@@ -46,6 +68,20 @@ export function EventDetailsSection({
 								)}
 							</div>
 						</div>
+
+						{hasCoordinates && (
+							<div className="space-y-4 pt-4 border-t border-border">
+								<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
+									<MapPin className="size-5 text-primary" />
+									<span>Event Venue &amp; Map.</span>
+								</h3>
+								<EventLocationDisplayMap
+									latitude={latitude}
+									longitude={longitude}
+									venueName={venueName}
+								/>
+							</div>
+						)}
 					</div>
 
 					{/* Right: Galleries */}

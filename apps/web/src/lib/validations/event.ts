@@ -119,6 +119,8 @@ export const createEventStep2Schema = z.object({
 	venueAddress: venueAddressSchema,
 	venueCity: venueCitySchema,
 	venueCountry: venueCountrySchema,
+	latitude: z.number().nullable().optional(),
+	longitude: z.number().nullable().optional(),
 });
 
 export const createEventStep3Schema = z.object({
@@ -187,6 +189,8 @@ export const createEventSchema = z.object({
 	venueAddress: venueAddressSchema,
 	venueCity: venueCitySchema,
 	venueCountry: venueCountrySchema,
+	latitude: z.number().nullable().optional(),
+	longitude: z.number().nullable().optional(),
 	flierImage: storagePathSchema,
 	bannerImage: storagePathSchema,
 	maxAttendees: z.coerce
@@ -223,6 +227,8 @@ export const updateEventSchema = z.object({
 	venueAddress: venueAddressSchema,
 	venueCity: venueCitySchema,
 	venueCountry: venueCountrySchema,
+	latitude: z.number().nullable().optional(),
+	longitude: z.number().nullable().optional(),
 	flierImage: storagePathSchema,
 	bannerImage: storagePathSchema,
 	maxAttendees: z.coerce

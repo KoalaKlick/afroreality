@@ -153,6 +153,8 @@ exports.Prisma.EventScalarFieldEnum = {
   venueAddress: 'venueAddress',
   venueCity: 'venueCity',
   venueCountry: 'venueCountry',
+  latitude: 'latitude',
+  longitude: 'longitude',
   isVirtual: 'isVirtual',
   virtualLink: 'virtualLink',
   maxAttendees: 'maxAttendees',
