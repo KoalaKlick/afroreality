@@ -5,35 +5,37 @@ import Image from "next/image";
 import { Heart } from "lucide-react";
 import { PROJ_NAME } from "@/lib/constants/branding";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
-
-const FOOTER_LINKS = {
-	product: [
-		{ label: "Features", href: "/#features" },
-		{ label: "Pricing", href: "/#pricing" },
-		{ label: "African Events", href: "/events" },
-		{ label: "Live USSD Voting", href: "/#features" },
-	],
-	company: [
-		{ label: "About Us", href: "#" },
-		{ label: "Our Story", href: "#" },
-		{ label: "Careers", href: "#" },
-		{ label: "Contact Support", href: "#" },
-	],
-	resources: [
-		{ label: "Documentation", href: "#" },
-		{ label: "Organizer Guide", href: "#" },
-		{ label: "USSD Setup (*928#)", href: "#" },
-		{ label: "System Status", href: "#" },
-	],
-	legal: [
-		{ label: "Privacy Policy", href: "#" },
-		{ label: "Terms of Service", href: "#" },
-		{ label: "Merchant Agreement", href: "#" },
-	],
-};
+import { getUssdRootDialCode } from "@/lib/utils/ussd";
 
 export function LandingFooter() {
 	const currentYear = new Date().getFullYear();
+	const ussdCode = getUssdRootDialCode();
+
+	const footerLinks = {
+		product: [
+			{ label: "Features", href: "/#features" },
+			{ label: "Pricing", href: "/#pricing" },
+			{ label: "African Events", href: "/events" },
+			{ label: "Live USSD Voting", href: "/#features" },
+		],
+		company: [
+			{ label: "About Us", href: "#" },
+			{ label: "Our Story", href: "#" },
+			{ label: "Careers", href: "#" },
+			{ label: "Contact Support", href: "#" },
+		],
+		resources: [
+			{ label: "Documentation", href: "#" },
+			{ label: "Organizer Guide", href: "#" },
+			{ label: `USSD Dial Code (${ussdCode})`, href: "#" },
+			{ label: "System Status", href: "#" },
+		],
+		legal: [
+			{ label: "Privacy Policy", href: "#" },
+			{ label: "Terms of Service", href: "#" },
+			{ label: "Merchant Agreement", href: "#" },
+		],
+	};
 
 	return (
 		<footer className="border-t border-border mt-24 bg-card/40">
@@ -57,7 +59,7 @@ export function LandingFooter() {
 							</Link>
 
 							<p className="text-foreground text-sm leading-relaxed max-w-sm">
-								Powering seamless ticketing, live audience voting, and offline USSD (*928#) for festivals, awards, and gatherings across Africa and the diaspora.
+								Powering seamless ticketing, live audience voting, and offline USSD ({ussdCode}) for festivals, awards, and gatherings across Africa and the diaspora.
 							</p>
 						</div>
 
@@ -69,7 +71,7 @@ export function LandingFooter() {
 									Product
 								</h4>
 								<ul className="space-y-3">
-									{FOOTER_LINKS.product.map((link) => (
+									{footerLinks.product.map((link) => (
 										<li key={link.label}>
 											<Link
 												href={link.href}
@@ -88,7 +90,7 @@ export function LandingFooter() {
 									Company
 								</h4>
 								<ul className="space-y-3">
-									{FOOTER_LINKS.company.map((link) => (
+									{footerLinks.company.map((link) => (
 										<li key={link.label}>
 											<Link
 												href={link.href}
@@ -107,7 +109,7 @@ export function LandingFooter() {
 									Resources
 								</h4>
 								<ul className="space-y-3">
-									{FOOTER_LINKS.resources.map((link) => (
+									{footerLinks.resources.map((link) => (
 										<li key={link.label}>
 											<Link
 												href={link.href}
@@ -126,7 +128,7 @@ export function LandingFooter() {
 									Legal
 								</h4>
 								<ul className="space-y-3">
-									{FOOTER_LINKS.legal.map((link) => (
+									{footerLinks.legal.map((link) => (
 										<li key={link.label}>
 											<Link
 												href={link.href}

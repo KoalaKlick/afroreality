@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Vote, Ticket } from "lucide-react";
 import { getEventImageUrl } from "@/lib/image-url-utils";
+import { getUssdRootDialCode } from "@/lib/utils/ussd";
 
 export interface TawnyEventData {
 	id: string;
@@ -67,7 +68,7 @@ export function EventCard({ event, isPast = false }: EventCardProps) {
 	const posterUrl = getEventImageUrl(rawPoster);
 
 	const eventCode = event.hasUssd
-		? "*928#"
+		? getUssdRootDialCode()
 		: event.id.slice(0, 6).toUpperCase();
 
 	const category = event.category || (isVoting ? "Live Voting" : "African Festival");

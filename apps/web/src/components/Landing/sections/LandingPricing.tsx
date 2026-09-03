@@ -6,15 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Infinity as InfinityIcon, ArrowRight } from "lucide-react";
 import { Section } from "../Section";
 
-const FEATURES = [
-	"Free general & brand awareness events",
-	"100% custom brand colors & logo",
-	"Instant digital QR tickets",
-	"Web & USSD (*928#) live voting",
-	"MTN MoMo, Telecel, AT & M-Pesa",
-	"Visa, Mastercard & bank cards",
-	"Gate crew fast scanner roles",
-	"Direct organizer wallet payouts",
+const PRICING_PROMISES = [
+	"Zero setup fees or monthly subscriptions",
+	"Free events remain 100% free with unlimited attendees",
+	"Automated wallet settlement on every transaction",
+	"Direct payouts to Mobile Money & local bank accounts",
+	"Transparent breakdown with zero hidden maintenance charges",
+	"No lock-in contracts — withdraw your funds anytime",
 ];
 
 export function LandingPricing() {
@@ -61,21 +59,21 @@ export function LandingPricing() {
 								</div>
 							</div>
 
-							{/* Right: Features List */}
+							{/* Right: Pricing Promises */}
 							<div className="flex-1 space-y-4">
 								<h3 className="font-bold text-base text-foreground">
-									Everything included:
+									Our pricing commitments:
 								</h3>
-								<ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-									{FEATURES.map((feature) => (
+								<ul className="space-y-3">
+									{PRICING_PROMISES.map((promise) => (
 										<li
-											key={feature}
+											key={promise}
 											className="flex items-center gap-2.5 text-xs sm:text-sm text-foreground/90 font-medium"
 										>
 											<div className="size-4 rounded-md bg-primary/15 text-primary flex items-center justify-center shrink-0">
 												<Check className="size-2.5" />
 											</div>
-											<span>{feature}</span>
+											<span>{promise}</span>
 										</li>
 									))}
 								</ul>

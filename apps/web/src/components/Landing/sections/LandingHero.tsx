@@ -45,15 +45,15 @@ export function LandingHero() {
 				<div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-2 text-xs text-muted-foreground font-medium">
 					<span className="flex items-center gap-1.5">
 						<span className="size-1.5 rounded-full bg-primary" />
-						Free General Events
+						Instant MoMo &amp; Bank Payouts
 					</span>
 					<span className="flex items-center gap-1.5">
 						<span className="size-1.5 rounded-full bg-primary" />
-						100% Your Branding
+						Pure Pay As You Go
 					</span>
 					<span className="flex items-center gap-1.5">
 						<span className="size-1.5 rounded-full bg-primary" />
-						Online &amp; USSD Voting
+						Zero Monthly Fees
 					</span>
 				</div>
 			</div>

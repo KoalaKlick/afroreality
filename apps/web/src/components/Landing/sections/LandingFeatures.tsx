@@ -13,67 +13,70 @@ import {
 	Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const FEATURES = [
-	{
-		title: "Your Brand, Front & Center",
-		description:
-			"Your colors, your logo, your identity. Make every event page look completely yours.",
-		icon: Palette,
-		iconBg: "bg-primary/10 text-primary",
-	},
-	{
-		title: "Free Events & Brand Reach",
-		description:
-			"Host free community events, product launches, and club nights to build authentic audience trust.",
-		icon: Megaphone,
-		iconBg: "bg-primary/10 text-primary",
-	},
-	{
-		title: "Instant QR Ticketing",
-		description:
-			"Sell tickets in seconds with automated QR codes, VIP tiers, and multi-currency support.",
-		icon: Ticket,
-		iconBg: "bg-primary/10 text-primary",
-	},
-	{
-		title: "MoMo & Card Settlements",
-		description:
-			"Direct payouts via MTN MoMo, Telecel, AT Money, M-Pesa, and cards with instant settlements.",
-		icon: CreditCard,
-		iconBg: "bg-primary/10 text-primary",
-	},
-	{
-		title: "Online & USSD Voting (*928#)",
-		description:
-			"Run trusted awards and pageants. Audience votes online or dials *928# offline with zero friction.",
-		icon: Vote,
-		iconBg: "bg-primary/10 text-primary",
-	},
-	{
-		title: "Gate Crew & Anti-Fraud",
-		description:
-			"Equip your door crew with high-speed scanner roles to eliminate ticket fraud on entry.",
-		icon: Users,
-		iconBg: "bg-primary/10 text-primary",
-	},
-	{
-		title: "Live Analytics",
-		description:
-			"Track sales velocity, voter leaderboards, and attendee traffic in real time.",
-		icon: BarChart3,
-		iconBg: "bg-primary/10 text-primary",
-	},
-	{
-		title: "Stadium-Grade Scale",
-		description:
-			"Battle-tested infrastructure with 99.9% uptime for massive African crowds.",
-		icon: ShieldCheck,
-		iconBg: "bg-primary/10 text-primary",
-	},
-];
+import { getUssdRootDialCode } from "@/lib/utils/ussd";
 
 export function LandingFeatures() {
+	const ussdCode = getUssdRootDialCode();
+
+	const features = [
+		{
+			title: "Your Brand, Front & Center",
+			description:
+				"Your colors, your logo, your identity. Make every event page look completely yours.",
+			icon: Palette,
+			iconBg: "bg-primary/10 text-primary",
+		},
+		{
+			title: "Free Events & Brand Reach",
+			description:
+				"Host free community events, product launches, and club nights to build authentic audience trust.",
+			icon: Megaphone,
+			iconBg: "bg-primary/10 text-primary",
+		},
+		{
+			title: "Instant QR Ticketing",
+			description:
+				"Sell tickets in seconds with automated QR codes, VIP tiers, and multi-currency support.",
+			icon: Ticket,
+			iconBg: "bg-primary/10 text-primary",
+		},
+		{
+			title: "MoMo & Card Settlements",
+			description:
+				"Direct payouts via MTN MoMo, Telecel, AT Money, M-Pesa, and cards with instant settlements.",
+			icon: CreditCard,
+			iconBg: "bg-primary/10 text-primary",
+		},
+		{
+			title: `Online & USSD Voting (${ussdCode})`,
+			description:
+				`Run trusted awards and pageants. Audience votes online or dials ${ussdCode} offline with zero friction.`,
+			icon: Vote,
+			iconBg: "bg-primary/10 text-primary",
+		},
+		{
+			title: "Gate Crew & Anti-Fraud",
+			description:
+				"Equip your door crew with high-speed scanner roles to eliminate ticket fraud on entry.",
+			icon: Users,
+			iconBg: "bg-primary/10 text-primary",
+		},
+		{
+			title: "Live Analytics",
+			description:
+				"Track sales velocity, voter leaderboards, and attendee traffic in real time.",
+			icon: BarChart3,
+			iconBg: "bg-primary/10 text-primary",
+		},
+		{
+			title: "Stadium-Grade Scale",
+			description:
+				"Battle-tested infrastructure with 99.9% uptime for massive African crowds.",
+			icon: ShieldCheck,
+			iconBg: "bg-primary/10 text-primary",
+		},
+	];
+
 	return (
 		<Section id="features" class="mt-20 md:mt-24" content-class="space-y-10">
 			{/* Section Header */}
@@ -92,7 +95,7 @@ export function LandingFeatures() {
 
 			{/* Features Grid (Preline Clean Style) */}
 			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-				{FEATURES.map((feature) => {
+				{features.map((feature) => {
 					const Icon = feature.icon;
 					return (
 						<Card

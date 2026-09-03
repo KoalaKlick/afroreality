@@ -1,6 +1,7 @@
 "use client";
 
 import { Section } from "../Section";
+import { getUssdRootDialCode } from "@/lib/utils/ussd";
 
 interface LandingStatsProps {
 	readonly stats?: {
@@ -12,6 +13,7 @@ interface LandingStatsProps {
 }
 
 export function LandingStats({ stats }: LandingStatsProps) {
+	const ussdCode = getUssdRootDialCode();
 	const totalEvents = stats?.totalEvents ?? 120;
 	const totalTicketsSold = stats?.totalTicketsSold ?? 55600;
 	const totalVotes = stats?.totalVotes ?? 24500;
@@ -55,7 +57,7 @@ export function LandingStats({ stats }: LandingStatsProps) {
 						Live Audience Votes
 					</div>
 					<p className="text-[11px] text-muted-foreground">
-						Online &amp; offline via *928#
+						Online &amp; offline via {ussdCode}
 					</p>
 				</div>
 			</div>

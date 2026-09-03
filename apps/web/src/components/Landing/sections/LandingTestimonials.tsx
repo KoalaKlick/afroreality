@@ -5,36 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Quote } from "lucide-react";
 import { Section } from "../Section";
 import { PROJ_NAME } from "@/lib/constants/branding";
-
-const TESTIMONIALS = [
-	{
-		quote:
-			"The live voting feature was a total game-changer for our annual awards show in Accra. Both web and USSD voting tallied accurately in real time with zero latency.",
-		author: "Sarah Mensah",
-		role: "Executive Producer",
-		company: "Ghana Music Awards",
-		avatar: "/landing/h.webp",
-		location: "Accra, Ghana",
-	},
-	{
-		quote:
-			"We sold out our pan-African tech summit with attendees flying in from 14 countries. Instant Mobile Money payouts made our cashflow completely stress-free.",
-		author: "Kwame Asante",
-		role: "Founder",
-		company: "Tech Across Africa",
-		avatar: "/landing/j.webp",
-		location: "Nairobi & Lagos",
-	},
-	{
-		quote:
-			"Offline USSD voting (*928#) allowed us to reach grassroots audiences without requiring internet access. It is the most inclusive ticketing platform in Africa.",
-		author: "Ama Serwaa",
-		role: "Festival Director",
-		company: "Heritage West Africa",
-		avatar: "/landing/a.webp",
-		location: "Kumasi, Ghana",
-	},
-];
+import { getUssdRootDialCode } from "@/lib/utils/ussd";
 
 function getInitials(name: string): string {
 	return name
@@ -46,6 +17,38 @@ function getInitials(name: string): string {
 }
 
 export function LandingTestimonials() {
+	const ussdCode = getUssdRootDialCode();
+
+	const testimonials = [
+		{
+			quote:
+				"The live voting feature was a total game-changer for our annual awards show in Accra. Both web and USSD voting tallied accurately in real time with zero latency.",
+			author: "Sarah Mensah",
+			role: "Executive Producer",
+			company: "Ghana Music Awards",
+			avatar: "/landing/h.webp",
+			location: "Accra, Ghana",
+		},
+		{
+			quote:
+				"We sold out our pan-African tech summit with attendees flying in from 14 countries. Instant Mobile Money payouts made our cashflow completely stress-free.",
+			author: "Kwame Asante",
+			role: "Founder",
+			company: "Tech Across Africa",
+			avatar: "/landing/j.webp",
+			location: "Nairobi & Lagos",
+		},
+		{
+			quote:
+				`Offline USSD voting (${ussdCode}) allowed us to reach grassroots audiences without requiring internet access. It is the most inclusive ticketing platform in Africa.`,
+			author: "Ama Serwaa",
+			role: "Festival Director",
+			company: "Heritage West Africa",
+			avatar: "/landing/a.webp",
+			location: "Kumasi, Ghana",
+		},
+	];
+
 	return (
 		<Section class="mt-20 md:mt-24" id="testimonials" content-class="space-y-10">
 			{/* Section Header */}
@@ -63,7 +66,7 @@ export function LandingTestimonials() {
 
 			{/* Testimonials Grid (Preline Clean Style) */}
 			<div className="grid md:grid-cols-3 gap-5">
-				{TESTIMONIALS.map((item) => (
+				{testimonials.map((item) => (
 					<Card
 						key={item.author}
 						className="border border-border h-full bg-card rounded-xl shadow-none hover:border-primary/50 transition-colors"
