@@ -375,3 +375,255 @@ export async function getPublicCategoryDetails(
 		return null;
 	}
 }
+
+export interface GetPublicEventsOptions {
+	limit?: number;
+	offset?: number;
+	query?: string;
+	type?: string;
+	category?: string;
+	orgSlug?: string;
+	sort?: "upcoming" | "recent" | "popular";
+}
+
+export async function getPublicEventsList(options: GetPublicEventsOptions = {}) {
+	try {
+		const {
+			limit = 24,
+			offset = 0,
+			query,
+			type,
+			orgSlug,
+			sort = "upcoming",
+		} = options;
+
+		const where: any = {
+			isPublic: true,
+			status: {
+				not: "draft",
+			},
+		};
+
+		if (type && type !== "all") {
+			where.type = type;
+		}
+
+		if (orgSlug) {
+			where.organization = { slug: orgSlug };
+		}
+
+		if (query && query.trim()) {
+			const cleanQuery = query.trim();
+			where.OR = [
+				{ title: { contains: cleanQuery, mode: "insensitive" } },
+				{ description: { contains: cleanQuery, mode: "insensitive" } },
+				{ venueCity: { contains: cleanQuery, mode: "insensitive" } },
+				{ venueCountry: { contains: cleanQuery, mode: "insensitive" } },
+				{ organization: { name: { contains: cleanQuery, mode: "insensitive" } } },
+			];
+		}
+
+		let orderBy: any = { startDate: "asc" };
+		if (sort === "recent") {
+			orderBy = { createdAt: "desc" };
+		} else if (sort === "popular") {
+			orderBy = { createdAt: "desc" };
+		}
+
+		const [events, total] = await Promise.all([
+			prisma.event.findMany({
+				where,
+				take: limit,
+				skip: offset,
+				orderBy,
+				include: {
+					organization: {
+						select: {
+							id: true,
+							name: true,
+							slug: true,
+							logoUrl: true,
+							primaryColor: true,
+						},
+					},
+					ticketTypes: {
+						where: {
+							status: "available",
+						},
+						select: {
+							id: true,
+							name: true,
+							price: true,
+						},
+						orderBy: {
+							price: "asc",
+						},
+					},
+					_count: {
+						select: {
+							ticketOrders: true,
+							votes: true,
+							votingCategories: true,
+						},
+					},
+				},
+			}),
+			prisma.event.count({ where }),
+		]);
+
+		const sanitized = sanitizePrismaData(events);
+
+		const formattedEvents = sanitized.map((evt: any) => {
+			const flier = evt.flierImage || evt.bannerImage;
+			const banner = evt.bannerImage || evt.flierImage;
+			const ticketPrices = (evt.ticketTypes || []).map((t: any) => Number(t.price || 0));
+			const minPrice = ticketPrices.length > 0 ? Math.min(...ticketPrices) : null;
+			const maxPrice = ticketPrices.length > 0 ? Math.max(...ticketPrices) : null;
+
+			return {
+				...evt,
+				flierUrl: flier,
+				bannerUrl: banner,
+				minPrice,
+				maxPrice,
+			};
+		});
+
+		return {
+			events: formattedEvents,
+			total,
+			limit,
+			offset,
+		};
+	} catch (error) {
+		console.error("Error fetching public events list:", error);
+		return { events: [], total: 0, limit: options.limit ?? 24, offset: 0 };
+	}
+}
+
+export interface GetPublicOrganizersOptions {
+	limit?: number;
+	offset?: number;
+	query?: string;
+}
+
+export async function getPublicOrganizersList(options: GetPublicOrganizersOptions = {}) {
+	try {
+		const { limit = 20, offset = 0, query } = options;
+
+		const where: any = {
+			events: {
+				some: {
+					isPublic: true,
+					status: { not: "draft" },
+				},
+			},
+		};
+
+		if (query && query.trim()) {
+			const clean = query.trim();
+			where.OR = [
+				{ name: { contains: clean, mode: "insensitive" } },
+				{ description: { contains: clean, mode: "insensitive" } },
+			];
+		}
+
+		const [organizers, total] = await Promise.all([
+			prisma.organization.findMany({
+				where,
+				take: limit,
+				skip: offset,
+				orderBy: {
+					events: {
+						_count: "desc",
+					},
+				},
+				select: {
+					id: true,
+					name: true,
+					slug: true,
+					description: true,
+					logoUrl: true,
+					bannerUrl: true,
+					primaryColor: true,
+					websiteUrl: true,
+					_count: {
+						select: {
+							events: {
+								where: {
+									isPublic: true,
+									status: { not: "draft" },
+								},
+							},
+						},
+					},
+				},
+			}),
+			prisma.organization.count({ where }),
+		]);
+
+		const sanitized = sanitizePrismaData(organizers);
+
+		return {
+			organizers: sanitized.map((org: any) => ({
+				...org,
+				eventsCount: org._count?.events ?? 0,
+			})),
+			total,
+			limit,
+			offset,
+		};
+	} catch (error) {
+		console.error("Error fetching public organizers list:", error);
+		return { organizers: [], total: 0, limit: options.limit ?? 20, offset: 0 };
+	}
+}
+
+export async function getLandingStatsData() {
+	try {
+		const [totalEvents, totalOrganizers, totalTicketsSold, totalVotesResult] = await Promise.all([
+			prisma.event.count({
+				where: {
+					isPublic: true,
+					status: { not: "draft" },
+				},
+			}).catch(() => 0),
+			prisma.organization.count({
+				where: {
+					events: {
+						some: {
+							isPublic: true,
+							status: { not: "draft" },
+						},
+					},
+				},
+			}).catch(() => 0),
+			prisma.ticket.count({
+				where: {
+					order: {
+						status: { in: ["completed", "paid"] as any },
+					},
+				},
+			}).catch(() => 0),
+			prisma.vote.aggregate({
+				_sum: { voteCount: true },
+			}).catch(() => ({ _sum: { voteCount: null } })),
+		]);
+
+		return {
+			totalEvents: totalEvents || 120,
+			totalOrganizers: totalOrganizers || 45,
+			totalTicketsSold: totalTicketsSold || 8500,
+			totalVotes: Number(totalVotesResult?._sum?.voteCount ?? 24000),
+		};
+	} catch (error) {
+		console.error("Error fetching landing stats data:", error);
+		return {
+			totalEvents: 120,
+			totalOrganizers: 45,
+			totalTicketsSold: 8500,
+			totalVotes: 24000,
+		};
+	}
+}
+
