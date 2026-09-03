@@ -18,42 +18,42 @@ const FEATURES = [
 		description:
 			"Create, manage, and sell tickets with automated QR codes, multi-currency support, and flexible VIP tiers.",
 		icon: Ticket,
-		iconBg: "bg-[#e88722]/10 text-[#e88722]",
+		iconBg: "bg-primary/10 text-primary",
 	},
 	{
 		title: "Native Mobile Money & Cards",
 		description:
 			"Seamless integration with MTN MoMo, Telecel Cash, AT Money, M-Pesa, and cards via Paystack with instant settlements.",
 		icon: CreditCard,
-		iconBg: "bg-[#ca0808]/10 text-[#ca0808]",
+		iconBg: "bg-primary/10 text-primary",
 	},
 	{
 		title: "Web & USSD Voting (*928#)",
 		description:
 			"Run national awards, pageants, and talent contests. Anyone across Africa can dial *928# offline or vote online in real-time.",
 		icon: Vote,
-		iconBg: "bg-[#e88722]/10 text-[#e88722]",
+		iconBg: "bg-primary/10 text-primary",
 	},
 	{
 		title: "Team & Gate Crew Roles",
 		description:
 			"Assign scanner, manager, and cashier permissions to your event team to streamline gate check-ins and eliminate gate fraud.",
 		icon: Users,
-		iconBg: "bg-[#ca0808]/10 text-[#ca0808]",
+		iconBg: "bg-primary/10 text-primary",
 	},
 	{
 		title: "Real-Time African Analytics",
 		description:
 			"Gain deep insights into attendee demographics, ticket sales velocity, and voter rankings across cities and countries.",
 		icon: BarChart3,
-		iconBg: "bg-[#e88722]/10 text-[#e88722]",
+		iconBg: "bg-primary/10 text-primary",
 	},
 	{
 		title: "High-Traffic Scalability",
 		description:
 			"Enterprise infrastructure tested for 50,000+ attendee stadium festivals, high-speed gate scanning, and 99.9% uptime.",
 		icon: ShieldCheck,
-		iconBg: "bg-[#ca0808]/10 text-[#ca0808]",
+		iconBg: "bg-primary/10 text-primary",
 	},
 ];
 
@@ -64,7 +64,7 @@ export function LandingFeatures() {
 			<div className="mx-auto text-center space-y-3 max-w-2xl">
 				<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground font-millik">
 					Everything You Need to{" "}
-					<span className="text-[#e88722]">
+					<span className="text-primary">
 						Succeed in Africa
 					</span>
 				</h2>
@@ -81,7 +81,7 @@ export function LandingFeatures() {
 					return (
 						<Card
 							key={feature.title}
-							className="rounded-xl border border-border bg-card transition-colors hover:border-[#e88722]/50 shadow-none"
+							className="rounded-xl border border-border bg-card transition-colors hover:border-primary/50 shadow-none"
 						>
 							<CardContent className="p-6 space-y-3">
 								{/* Icon */}

@@ -92,9 +92,9 @@ export function EventCard({ event, isPast = false }: EventCardProps) {
 				) : (
 					<div className="absolute inset-0 bg-muted/60 flex items-center justify-center">
 						{isVoting ? (
-							<Vote className="size-12 text-[#e88722]/50" />
+							<Vote className="size-12 text-primary/50" />
 						) : (
-							<Ticket className="size-12 text-[#ca0808]/50" />
+							<Ticket className="size-12 text-primary/50" />
 						)}
 					</div>
 				)}
@@ -106,15 +106,15 @@ export function EventCard({ event, isPast = false }: EventCardProps) {
 					<span className="text-[10px] font-bold uppercase text-muted-foreground">
 						{getMonth(event.startDate)}
 					</span>
-					<span className="text-xl font-bold text-[#e88722] leading-none mt-0.5">
+					<span className="text-xl font-bold text-primary leading-none mt-0.5">
 						{getDay(event.startDate)}
 					</span>
 				</div>
 
 				{/* Top-right USSD badge */}
 				{!isPast && (
-					<div className="absolute top-2.5 right-2.5 bg-background/95 backdrop-blur-md rounded-md px-2 py-1 border border-[#e88722]/30 shadow-none z-10">
-						<span className="text-xs font-bold text-[#ca0808] tracking-wide">
+					<div className="absolute top-2.5 right-2.5 bg-background/95 backdrop-blur-md rounded-md px-2 py-1 border border-primary/30 shadow-none z-10">
+						<span className="text-xs font-bold text-primary tracking-wide">
 							{eventCode}
 						</span>
 					</div>
@@ -142,15 +142,15 @@ export function EventCard({ event, isPast = false }: EventCardProps) {
 			{/* Bottom Metadata */}
 			<div className="flex flex-col gap-1 px-0.5">
 				<div className="flex items-center">
-					<Badge className="bg-[#e88722]/15 text-[#d66512] hover:bg-[#e88722]/25 border-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-none">
+					<Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide shadow-none">
 						{category}
 					</Badge>
 				</div>
-				<h3 className="font-bold text-base text-foreground line-clamp-1 group-hover:text-[#e88722] transition-colors">
+				<h3 className="font-bold text-base text-foreground line-clamp-1 group-hover:text-primary transition-colors">
 					{event.title}
 				</h3>
 				<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-					<MapPin className="size-3.5 shrink-0 text-[#ca0808]" />
+					<MapPin className="size-3.5 shrink-0 text-primary" />
 					<span className="truncate">{venue}</span>
 				</div>
 			</div>

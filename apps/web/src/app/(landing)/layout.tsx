@@ -23,7 +23,6 @@ export default function LandingGroupLayout({
 			<UssdFloatingWidget
 				eventTitle={`${PROJ_NAME} African Ticketing & Voting`}
 				ussdCode="root"
-				primaryColor="#e88722"
 			/>
 		</div>
 	);

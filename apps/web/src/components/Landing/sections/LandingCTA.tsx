@@ -9,7 +9,7 @@ import { Section } from "../Section";
 export function LandingCTA() {
 	return (
 		<Section class="overflow-hidden mt-16 md:mt-20" content-class="relative">
-			<div className="bg-[#ca0808] text-white rounded-2xl flex flex-col md:flex-row justify-between overflow-hidden border border-border/20 shadow-none">
+			<div className="bg-primary text-primary-foreground rounded-2xl flex flex-col md:flex-row justify-between items-center overflow-hidden border border-border/20 shadow-none">
 				{/* Left Copy & CTA */}
 				<div className="max-w-xl flex-1 px-6 sm:px-10 py-8 md:py-12 space-y-4 z-30">
 					<h2 className="text-white text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight font-millik">
@@ -35,7 +35,7 @@ export function LandingCTA() {
 					</div>
 				</div>
 
-				{/* Right Stacked / Layered Showcase Visuals (Reverted as requested) */}
+				{/* Right Stacked Showcase Visuals (Preline Clean Style: rounded-t-xl, 1px border, zero shadows) */}
 				<div className="flex-1 relative min-h-72 sm:min-h-80 overflow-hidden w-full">
 					{/* Primary Top Layer */}
 					<div className="absolute bottom-0 right-0 sm:right-6 w-52 sm:w-64 h-[90%] z-20 rounded-t-xl overflow-hidden border-t-2 border-l-2 border-white/30">

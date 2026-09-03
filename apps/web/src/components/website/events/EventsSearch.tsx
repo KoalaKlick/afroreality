@@ -59,9 +59,9 @@ export function EventsSearch({
 		<div className="space-y-3">
 			{/* Search Input with Integrated Filters Trigger (Preline Clean Style) */}
 			<div className="relative w-full sm:w-[520px]">
-				<div className="flex items-center h-10 sm:h-11 w-full bg-background border border-border focus-within:border-[#e88722] rounded-lg shadow-none overflow-hidden transition-colors">
+				<div className="flex items-center h-10 sm:h-11 w-full bg-background border border-border focus-within:border-primary rounded-lg shadow-none overflow-hidden transition-colors">
 					<div className="pl-3.5 pr-2 text-muted-foreground shrink-0">
-						<Search className="size-4 text-[#e88722]" />
+						<Search className="size-4 text-primary" />
 					</div>
 					<input
 						type="search"
@@ -92,10 +92,10 @@ export function EventsSearch({
 						<DropdownMenuTrigger as-child>
 							<button
 								type="button"
-								className="h-full px-3.5 gap-1.5 text-xs font-semibold tracking-wide bg-muted/40 text-foreground border-l border-border flex items-center shrink-0 transition-colors hover:text-[#e88722]"
+								className="h-full px-3.5 gap-1.5 text-xs font-semibold tracking-wide bg-muted/40 text-foreground border-l border-border flex items-center shrink-0 transition-colors hover:text-primary"
 							>
 								<span>FILTERS</span>
-								<SlidersHorizontal className="size-3 text-[#ca0808]" />
+								<SlidersHorizontal className="size-3 text-primary" />
 							</button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-52 shadow-none border border-border">
@@ -132,8 +132,8 @@ export function EventsSearch({
 									className={cn(
 										"rounded-lg text-xs font-semibold tracking-wide border-border h-8 px-3 shrink-0 transition-colors shadow-none",
 										activeFilter === pill.toLowerCase()
-											? "bg-[#e88722] text-white border-[#e88722] hover:bg-[#d66512]"
-											: "bg-background text-foreground hover:bg-muted hover:border-[#e88722]/50",
+											? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
+											: "bg-background text-foreground hover:bg-muted hover:border-primary/50",
 									)}
 								>
 									{pill}
@@ -150,8 +150,8 @@ export function EventsSearch({
 									className={cn(
 										"rounded-lg text-xs font-semibold tracking-wide border-border h-8 px-3 shrink-0 transition-colors shadow-none",
 										activeFilter === pill.toLowerCase()
-											? "bg-[#e88722] text-white border-[#e88722] hover:bg-[#d66512]"
-											: "bg-background text-foreground hover:bg-muted hover:border-[#e88722]/50",
+											? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
+											: "bg-background text-foreground hover:bg-muted hover:border-primary/50",
 									)}
 								>
 									{pill}
@@ -167,10 +167,10 @@ export function EventsSearch({
 						<DropdownMenuTrigger as-child>
 							<Button
 								variant="outline"
-								className="rounded-lg gap-1.5 text-xs font-semibold tracking-wide border-border bg-background h-8 px-3 hover:border-[#e88722]/60 hover:text-[#e88722] shadow-none"
+								className="rounded-lg gap-1.5 text-xs font-semibold tracking-wide border-border bg-background h-8 px-3 hover:border-primary/60 hover:text-primary shadow-none"
 							>
 								<span>SORT BY</span>
-								<ListFilter className="size-3.5 text-[#e88722]" />
+								<ListFilter className="size-3.5 text-primary" />
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-56 shadow-none border border-border">

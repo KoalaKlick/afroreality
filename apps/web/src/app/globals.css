@@ -73,18 +73,18 @@ html {
   --color-brand-secondary: var(--color-secondary);
   --color-brand-tertiary: var(--color-tertiary);
 
-  /* Primary - Brand Green (from logo.svg) */
-  --color-primary-50: #f3f7f5;
-  --color-primary-100: #eaf1ee;
-  --color-primary-200: #d1e6dd;
-  --color-primary-300: #b0d3c5;
-  --color-primary-400: #89bea8;
-  --color-primary-500: #61a88a;
-  --color-primary-600: #53967a;
-  --color-primary-700: #3e705b;
-  --color-primary-800: #2f5545;
-  --color-primary-900: #213b30;
-  --color-primary-950: #11271e;
+  /* Primary - Brand Red / Crimson (from logo.svg - swapped with tertiary) */
+  --color-primary-50: #f9f1f1;
+  --color-primary-100: #f4e7e7;
+  --color-primary-200: #fcbaba;
+  --color-primary-300: #fa8989;
+  --color-primary-400: #f84e4e;
+  --color-primary-500: #f61414;
+  --color-primary-600: #ca0808;
+  --color-primary-700: #a70707;
+  --color-primary-800: #800505;
+  --color-primary-900: #580303;
+  --color-primary-950: #370101;
 
   /* Secondary - Brand Orange (from logo.svg) */
   --color-secondary-50: #f8f5f1;
@@ -99,18 +99,18 @@ html {
   --color-secondary-900: #532f09;
   --color-secondary-950: #341d04;
 
-  /* Tertiary - Brand Red (from logo.svg) */
-  --color-tertiary-50: #f9f1f1;
-  --color-tertiary-100: #f4e7e7;
-  --color-tertiary-200: #fcbaba;
-  --color-tertiary-300: #fa8989;
-  --color-tertiary-400: #f84e4e;
-  --color-tertiary-500: #f61414;
-  --color-tertiary-600: #ca0808;
-  --color-tertiary-700: #a70707;
-  --color-tertiary-800: #800505;
-  --color-tertiary-900: #580303;
-  --color-tertiary-950: #370101;
+  /* Tertiary - Brand Green (from logo.svg - swapped with primary) */
+  --color-tertiary-50: #f3f7f5;
+  --color-tertiary-100: #eaf1ee;
+  --color-tertiary-200: #d1e6dd;
+  --color-tertiary-300: #b0d3c5;
+  --color-tertiary-400: #89bea8;
+  --color-tertiary-500: #61a88a;
+  --color-tertiary-600: #53967a;
+  --color-tertiary-700: #3e705b;
+  --color-tertiary-800: #2f5545;
+  --color-tertiary-900: #213b30;
+  --color-tertiary-950: #11271e;
 
   /* Sepia - Warm vintage tone */
   --color-sepia-50: #fdfcf8;
@@ -144,8 +144,8 @@ html {
   --card-foreground: oklch(0.13 0.028 261.692);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.028 261.692);
-  --primary: oklch(0.13 0.028 261.692);
-  --primary-foreground: oklch(0.985 0.002 247.839);
+  --primary: var(--color-primary-600);
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.967 0.003 264.542);
   --secondary-foreground: oklch(0.21 0.034 264.665);
   --muted: oklch(0.967 0.003 264.542);
@@ -174,9 +174,9 @@ html {
   --font-geist-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-geist-mono: monospace;
 
-  --color-brand-primary: #53967a;
+  --color-brand-primary: #ca0808;
   --color-brand-secondary: #e88722;
-  --color-brand-tertiary: #ca0808;
+  --color-brand-tertiary: #53967a;
   --sepia-bg: var(--color-sepia-50);
 }
 

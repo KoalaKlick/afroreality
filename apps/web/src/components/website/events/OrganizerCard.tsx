@@ -37,7 +37,7 @@ export function OrganizerCard({ organizer }: OrganizerCardProps) {
 	return (
 		<Link
 			href={`/${organizer.slug}`}
-			className="group flex flex-col sm:flex-row sm:items-stretch gap-3 sm:gap-5 p-4 sm:p-5 rounded-xl border border-border bg-card hover:border-[#e88722]/50 transition-colors shadow-none"
+			className="group flex flex-col sm:flex-row sm:items-stretch gap-3 sm:gap-5 p-4 sm:p-5 rounded-xl border border-border bg-card hover:border-primary/50 transition-colors shadow-none"
 		>
 			{/* Left Image / Initials (Preline clean rounded-lg) */}
 			<div className="w-full sm:w-[180px] sm:shrink-0 aspect-[16/10] sm:aspect-[4/5] overflow-hidden bg-muted rounded-lg relative border border-border shadow-none">
@@ -50,7 +50,7 @@ export function OrganizerCard({ organizer }: OrganizerCardProps) {
 						sizes="(max-width: 640px) 100vw, 180px"
 					/>
 				) : (
-					<div className="size-full flex items-center justify-center bg-muted text-[#e88722] font-bold text-3xl font-millik">
+					<div className="size-full flex items-center justify-center bg-muted text-primary font-bold text-3xl font-millik">
 						{getInitials(organizer.name)}
 					</div>
 				)}
@@ -60,7 +60,7 @@ export function OrganizerCard({ organizer }: OrganizerCardProps) {
 			<div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
 				{/* Name & Verified Badge */}
 				<div className="flex items-center gap-1.5">
-					<h3 className="font-bold text-lg sm:text-xl text-foreground truncate group-hover:text-[#e88722] transition-colors">
+					<h3 className="font-bold text-lg sm:text-xl text-foreground truncate group-hover:text-primary transition-colors">
 						{organizer.name}
 					</h3>
 					<svg
@@ -103,7 +103,7 @@ export function OrganizerCard({ organizer }: OrganizerCardProps) {
 					{categories.slice(0, 4).map((cat) => (
 						<Badge
 							key={cat}
-							className="bg-[#e88722]/10 text-[#d66512] dark:text-[#f8dcbe] border-0 hover:bg-[#e88722]/20 text-[11px] font-semibold px-2 py-0.5 rounded-md shadow-none"
+							className="bg-primary/10 text-primary border-0 hover:bg-primary/20 text-[11px] font-semibold px-2 py-0.5 rounded-md shadow-none"
 						>
 							{cat}
 						</Badge>

@@ -55,7 +55,6 @@ export default async function HomePage() {
 			<UssdFloatingWidget
 				eventTitle={`${PROJ_NAME} African Ticketing & Voting`}
 				ussdCode="root"
-				primaryColor="#e88722"
 			/>
 		</div>
 	);

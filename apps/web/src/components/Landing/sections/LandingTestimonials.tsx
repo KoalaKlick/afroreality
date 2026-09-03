@@ -52,7 +52,7 @@ export function LandingTestimonials() {
 			<div className="mx-auto text-center space-y-3 max-w-2xl">
 				<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground font-millik">
 					Loved by African{" "}
-					<span className="text-[#e88722]">Event Producers</span>
+					<span className="text-primary">Event Producers</span>
 				</h2>
 
 				<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
@@ -66,11 +66,11 @@ export function LandingTestimonials() {
 				{TESTIMONIALS.map((item) => (
 					<Card
 						key={item.author}
-						className="border border-border h-full bg-card rounded-xl shadow-none hover:border-[#e88722]/50 transition-colors"
+						className="border border-border h-full bg-card rounded-xl shadow-none hover:border-primary/50 transition-colors"
 					>
 						<CardContent className="p-6 h-full flex flex-col justify-between space-y-5">
 							{/* Quote Icon */}
-							<Quote className="size-6 text-[#e88722] rotate-180" />
+							<Quote className="size-6 text-primary rotate-180" />
 
 							{/* Quote Text */}
 							<p className="text-foreground text-xs sm:text-sm leading-relaxed flex-1 italic">
@@ -81,7 +81,7 @@ export function LandingTestimonials() {
 							<div className="flex gap-3 items-center pt-1 border-t border-border">
 								<Avatar className="size-9 border border-border">
 									<AvatarImage src={item.avatar} alt={item.author} />
-									<AvatarFallback className="bg-[#e88722] text-white font-bold text-xs">
+									<AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
 										{getInitials(item.author)}
 									</AvatarFallback>
 								</Avatar>
@@ -93,7 +93,7 @@ export function LandingTestimonials() {
 									<p className="text-[11px] text-muted-foreground">
 										{item.role}, {item.company}
 									</p>
-									<span className="text-[10px] text-[#e88722] font-semibold block">
+									<span className="text-[10px] text-primary font-semibold block">
 										{item.location}
 									</span>
 								</div>

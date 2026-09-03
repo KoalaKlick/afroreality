@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import QRCode from "react-qr-code";
-import { X, Smartphone } from "lucide-react";
+import { X } from "lucide-react";
 import { getUssdDialCode, getUssdTelUri } from "@/lib/utils/ussd";
 import { UssdInfoDialog } from "./UssdInfoDialog";
 import { PROJ_NAME } from "@/lib/constants/branding";
@@ -18,7 +18,7 @@ interface UssdFloatingWidgetProps {
 export function UssdFloatingWidget({
 	eventTitle = PROJ_NAME,
 	ussdCode = "root",
-	primaryColor = "#e88722",
+	primaryColor = "var(--color-primary-600, #ca0808)",
 	className,
 }: UssdFloatingWidgetProps) {
 	const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +40,7 @@ export function UssdFloatingWidget({
 			>
 				<div
 					onClick={() => setIsOpen(true)}
-					className="group relative bg-background/95 hover:bg-background backdrop-blur-md border border-border hover:border-[#e88722]/60 rounded-lg p-1.5 flex flex-col items-center gap-1 cursor-pointer transition-colors shadow-none"
+					className="group relative bg-background/95 hover:bg-background backdrop-blur-md border border-border hover:border-primary/60 rounded-lg p-1.5 flex flex-col items-center gap-1 cursor-pointer transition-colors shadow-none"
 					title="Click to view offline USSD dialing details"
 					role="button"
 					tabIndex={0}
@@ -70,7 +70,7 @@ export function UssdFloatingWidget({
 					</div>
 
 					{/* Shortcode */}
-					<span className="font-mono font-bold text-[10px] sm:text-[11px] text-[#e88722] tracking-tight select-all">
+					<span className="font-mono font-bold text-[10px] sm:text-[11px] text-primary tracking-tight select-all">
 						{dialCode}
 					</span>
 				</div>

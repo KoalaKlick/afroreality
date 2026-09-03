@@ -84,7 +84,7 @@ export function LandingNavbar() {
 								className={cn(
 									"text-sm font-medium transition-colors",
 									activeSection === link.href
-										? "text-[#e88722] font-semibold"
+										? "text-primary font-semibold"
 										: "text-muted-foreground hover:text-foreground",
 								)}
 							>
@@ -96,13 +96,13 @@ export function LandingNavbar() {
 					{/* Auth Buttons */}
 					<div className="flex items-center gap-2.5">
 						<Link href="/login" className="hidden sm:inline-flex">
-							<Button variant="outline" size="sm" className="h-9 px-3.5 rounded-lg text-xs font-semibold border-border hover:border-[#e88722]/50 hover:text-[#e88722] shadow-none">
+							<Button variant="outline" size="sm" className="h-9 px-3.5 rounded-lg text-xs font-semibold border-border hover:border-primary/50 hover:text-primary shadow-none">
 								Sign in
 							</Button>
 						</Link>
 
 						<Link href="/register">
-							<Button size="sm" className="h-9 px-4 rounded-lg bg-[#e88722] hover:bg-[#d66512] text-white text-xs font-semibold shadow-none">
+							<Button size="sm" className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold shadow-none">
 								Get Started
 							</Button>
 						</Link>
@@ -120,9 +120,9 @@ export function LandingNavbar() {
 					</div>
 				</div>
 
-				{/* Solid scroll indicator bar */}
+				{/* Primary color scroll indicator bar */}
 				<div
-					className="fixed bottom-0 left-0 right-0 z-50 h-0.5 bg-[#e88722] transition-all opacity-80"
+					className="fixed bottom-0 left-0 right-0 z-50 h-0.5 bg-primary transition-all opacity-80"
 					style={{ width: `${scrollPercentage}%` }}
 				/>
 			</nav>
@@ -136,7 +136,7 @@ export function LandingNavbar() {
 								key={link.label}
 								href={link.href}
 								onClick={() => setMobileMenuOpen(false)}
-								className="text-sm font-medium py-1.5 text-muted-foreground hover:text-[#e88722] transition-colors"
+								className="text-sm font-medium py-1.5 text-muted-foreground hover:text-primary transition-colors"
 							>
 								{link.label}
 							</Link>
@@ -149,7 +149,7 @@ export function LandingNavbar() {
 							</Button>
 						</Link>
 						<Link href="/register" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-							<Button className="w-full h-9 rounded-lg bg-[#e88722] hover:bg-[#d66512] text-white text-xs font-semibold shadow-none">
+							<Button className="w-full h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold shadow-none">
 								Get Started
 							</Button>
 						</Link>

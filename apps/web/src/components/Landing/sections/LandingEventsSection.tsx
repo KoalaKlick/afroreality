@@ -102,7 +102,7 @@ export function LandingEventsSection({
 				<div className="max-w-md space-y-2">
 					<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground font-millik">
 						Discover Amazing{" "}
-						<span className="text-[#e88722]">African Events</span>
+						<span className="text-primary">African Events</span>
 					</h2>
 					<p className="text-muted-foreground text-sm sm:text-base">
 						Explore concerts, cultural galas, awards, and conferences happening across the continent and diaspora.
@@ -111,14 +111,14 @@ export function LandingEventsSection({
 
 				<div className="flex items-center gap-3 mt-4 md:mt-0">
 					<Link href="/register" className="hidden md:inline-flex">
-						<Button className="h-9 px-4 rounded-lg text-xs font-semibold bg-[#e88722] hover:bg-[#d66512] text-white shadow-none">
+						<Button className="h-9 px-4 rounded-lg text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-none">
 							Create Event
 							<Plus className="size-3.5 ml-1.5" />
 						</Button>
 					</Link>
 
 					<Link href="/events">
-						<Button variant="outline" className="h-9 px-4 rounded-lg text-xs font-semibold border-border hover:border-[#e88722]/60 hover:text-[#e88722] shadow-none">
+						<Button variant="outline" className="h-9 px-4 rounded-lg text-xs font-semibold border-border hover:border-primary/60 hover:text-primary shadow-none">
 							View All Events
 							<ArrowRight className="size-3.5 ml-1.5" />
 						</Button>
@@ -135,7 +135,7 @@ export function LandingEventsSection({
 						Be the first to host an event across Africa on our platform!
 					</p>
 					<Link href="/register">
-						<Button className="h-9 px-4 rounded-lg text-xs font-semibold bg-[#e88722] hover:bg-[#d66512] text-white shadow-none">
+						<Button className="h-9 px-4 rounded-lg text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-none">
 							Create Your Event
 							<Plus className="size-3.5 ml-1.5" />
 						</Button>

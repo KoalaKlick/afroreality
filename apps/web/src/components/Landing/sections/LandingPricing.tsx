@@ -21,7 +21,7 @@ export function LandingPricing() {
 	return (
 		<Section
 			id="pricing"
-			class="mt-20 md:mt-24 py-12 sm:py-16 bg-[#e88722] text-white rounded-2xl shadow-none"
+			class="mt-20 md:mt-24 py-12 sm:py-16 bg-primary text-primary-foreground shadow-none"
 			content-class="space-y-8 md:space-y-12"
 		>
 			{/* Section Header */}
@@ -43,8 +43,8 @@ export function LandingPricing() {
 						<div className="flex flex-col md:flex-row gap-8 items-start">
 							{/* Left: Rate Info */}
 							<div className="basis-2/5 space-y-3">
-								<Badge className="inline-flex items-center gap-1.5 bg-[#e88722]/10 text-[#e88722] text-xs font-semibold px-3 py-1 rounded-md border border-[#e88722]/30 shadow-none">
-									<InfinityIcon className="size-3.5 text-[#e88722]" />
+								<Badge className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-md border border-primary/30 shadow-none">
+									<InfinityIcon className="size-3.5 text-primary" />
 									Pay As You Earn
 								</Badge>
 
@@ -53,7 +53,7 @@ export function LandingPricing() {
 										<span className="text-5xl sm:text-6xl font-black tracking-tight text-foreground font-millik">
 											5
 										</span>
-										<span className="text-3xl sm:text-4xl font-black text-[#e88722]">
+										<span className="text-3xl sm:text-4xl font-black text-primary">
 											%
 										</span>
 									</div>
@@ -62,7 +62,7 @@ export function LandingPricing() {
 									</p>
 									<p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
 										You keep{" "}
-										<span className="text-base text-[#e88722] font-bold">
+										<span className="text-base text-primary font-bold">
 											95%
 										</span>{" "}
 										of every ticket sale and vote. We only earn when you succeed.
@@ -81,7 +81,7 @@ export function LandingPricing() {
 											key={feature}
 											className="flex items-center gap-2.5 text-xs sm:text-sm text-foreground/90 font-medium"
 										>
-											<div className="size-4 rounded-md bg-[#e88722]/15 text-[#e88722] flex items-center justify-center shrink-0">
+											<div className="size-4 rounded-md bg-primary/15 text-primary flex items-center justify-center shrink-0">
 												<Check className="size-2.5" />
 											</div>
 											<span>{feature}</span>

@@ -88,7 +88,7 @@ export function EventsPageClient({
 									className={cn(
 										"px-5 py-1.5 text-xs sm:text-sm rounded-md transition-all cursor-pointer font-semibold shadow-none",
 										activeTab === "events"
-											? "bg-[#e88722] text-white"
+											? "bg-primary text-primary-foreground"
 											: "text-muted-foreground hover:text-foreground",
 									)}
 								>
@@ -100,7 +100,7 @@ export function EventsPageClient({
 									className={cn(
 										"px-5 py-1.5 text-xs sm:text-sm rounded-md transition-all cursor-pointer font-semibold shadow-none",
 										activeTab === "organizers"
-											? "bg-[#e88722] text-white"
+											? "bg-primary text-primary-foreground"
 											: "text-muted-foreground hover:text-foreground",
 									)}
 								>
@@ -115,14 +115,14 @@ export function EventsPageClient({
 								{activeTab === "events" ? (
 									<>
 										Discover Amazing{" "}
-										<span className="text-[#e88722]">
+										<span className="text-primary">
 											African Events
 										</span>
 									</>
 								) : (
 									<>
 										Trusted{" "}
-										<span className="text-[#e88722]">
+										<span className="text-primary">
 											Event Organizers
 										</span>
 									</>

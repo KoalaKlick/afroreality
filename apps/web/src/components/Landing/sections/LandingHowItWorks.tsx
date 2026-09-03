@@ -40,11 +40,11 @@ export function LandingHowItWorks() {
 				<div className="space-y-3">
 					<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight font-millik">
 						Launch Your Event in{" "}
-						<span className="text-[#ca0808] block">3 Simple Steps</span>
+						<span className="text-primary block">3 Simple Steps</span>
 					</h2>
 
 					<Link href="/register" className="inline-block pt-1">
-						<Button className="h-10 px-5 rounded-lg font-semibold bg-[#e88722] hover:bg-[#d66512] text-white shadow-none text-sm">
+						<Button className="h-10 px-5 rounded-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-none text-sm">
 							Get Started
 							<ArrowRight className="size-4 ml-1.5" />
 						</Button>
@@ -55,9 +55,9 @@ export function LandingHowItWorks() {
 					{STEPS.map((step) => (
 						<Card
 							key={step.step}
-							className="p-5 border border-border rounded-xl shadow-none transition-colors hover:border-[#e88722]/50 space-y-1"
+							className="p-5 border border-border rounded-xl shadow-none transition-colors hover:border-primary/50 space-y-1"
 						>
-							<span className="text-sm font-bold text-[#e88722] block">
+							<span className="text-sm font-bold text-primary block">
 								Step {step.step}
 							</span>
 							<h3 className="text-base font-bold text-foreground">

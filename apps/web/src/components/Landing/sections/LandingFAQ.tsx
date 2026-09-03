@@ -52,7 +52,7 @@ export function LandingFAQ() {
 			<div className="lg:max-w-md space-y-3">
 				<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight font-millik">
 					Frequently Asked{" "}
-					<span className="text-[#e88722] block sm:inline">
+					<span className="text-primary block sm:inline">
 						Questions
 					</span>
 				</h2>
@@ -69,9 +69,9 @@ export function LandingFAQ() {
 						<AccordionItem
 							key={faq.question}
 							value={`item-${index}`}
-							className="border border-border rounded-lg bg-card px-5 hover:border-[#e88722]/50 transition-colors shadow-none"
+							className="border border-border rounded-lg bg-card px-5 hover:border-primary/50 transition-colors shadow-none"
 						>
-							<AccordionTrigger className="text-left font-semibold text-sm sm:text-base hover:no-underline py-4 text-foreground hover:text-[#e88722] transition-colors">
+							<AccordionTrigger className="text-left font-semibold text-sm sm:text-base hover:no-underline py-4 text-foreground hover:text-primary transition-colors">
 								<span>{faq.question}</span>
 							</AccordionTrigger>
 							<AccordionContent className="pb-4 text-xs sm:text-sm text-muted-foreground leading-relaxed">
