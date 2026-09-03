@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import {
 	getPublicEventsList,
 	getPublicOrganizersList,
-	getLandingStatsData,
 } from "@/lib/dal/public";
 import { EventsPageClient } from "@/components/events/EventsPageClient";
 import { PROJ_NAME } from "@/lib/constants/branding";
-import type { LandingEventItem } from "@/components/Landing/sections/LandingEventsSection";
+import type { TawnyEventData } from "@/components/website/events/EventCard";
+import type { TawnyOrganizerData } from "@/components/website/events/OrganizerCard";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
 	return {
-		title: `Discover Events & Organizers | ${PROJ_NAME}`,
+		title: `Discover Events & Organizers - ${PROJ_NAME}`,
 		description:
-			"Explore live African events, concerts, award nominations, and ticketing on our platform.",
+			"Find amazing events with ticket sales and voting happening right now. Discover top organizers on our platform.",
 	};
 }
 
@@ -30,7 +30,7 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 	const q = resolvedParams.q || "";
 	const type = resolvedParams.type || "all";
 
-	const [eventsResult, organizersResult, stats] = await Promise.all([
+	const [eventsResult, organizersResult] = await Promise.all([
 		getPublicEventsList({
 			limit: 50,
 			query: q,
@@ -40,15 +40,13 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
 			limit: 30,
 			query: q,
 		}),
-		getLandingStatsData(),
 	]);
 
 	return (
-		<div className="pt-16 min-h-screen">
+		<div className="min-h-screen">
 			<EventsPageClient
-				initialEvents={eventsResult.events as LandingEventItem[]}
-				initialOrganizers={organizersResult.organizers}
-				stats={stats}
+				initialEvents={eventsResult.events as TawnyEventData[]}
+				initialOrganizers={organizersResult.organizers as TawnyOrganizerData[]}
 				defaultQuery={q}
 				defaultType={type}
 			/>

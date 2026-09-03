@@ -1,157 +1,110 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Check, Sparkles, ArrowRight, ShieldCheck, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Check, Infinity as InfinityIcon, ArrowRight } from "lucide-react";
+import { Section } from "../Section";
 
-const PRICING_PLANS = [
-	{
-		name: "Free Events",
-		description: "Ideal for community workshops, meetups, webinars, and free entry gatherings.",
-		fee: "0%",
-		subtext: "Free forever, no credit card required",
-		features: [
-			"Unlimited attendee registrations",
-			"Digital QR Code passes via email",
-			"Mobile camera scanner gate app",
-			"Public event page & attendee export",
-			"Standard email support",
-		],
-		buttonText: "Create Free Event",
-		href: "/register",
-		highlighted: false,
-	},
-	{
-		name: "Ticketed Events",
-		description: "For concerts, festivals, parties, conferences, and revenue-generating experiences.",
-		fee: "3.5%",
-		subtext: "+ GHS 0.50 per paid ticket sold",
-		features: [
-			"All Free tier features included",
-			"MTN MoMo, Telecel, AT & Card payments",
-			"Multiple ticket tiers (VIP, Tables, Early Bird)",
-			"Discount promo codes & group deals",
-			"Automated bank & MoMo balance payouts",
-			"Real-time analytics & transaction audit",
-		],
-		buttonText: "Start Selling Tickets",
-		href: "/register",
-		highlighted: true,
-	},
-	{
-		name: "Awards & Voting",
-		description: "For beauty pageants, music honors, campus competitions, and community polls.",
-		fee: "Custom / 5%",
-		subtext: "Per paid vote or nomination fee",
-		features: [
-			"Unlimited voting categories & nominees",
-			"USSD Dial support (*928#) for offline fans",
-			"Real-time fraud detection & vote audits",
-			"Public nominations portal with entry fees",
-			"Custom voting window schedules",
-			"Dedicated account manager & live support",
-		],
-		buttonText: "Launch Voting Event",
-		href: "/register",
-		highlighted: false,
-	},
+const FEATURES = [
+	"Unlimited African events",
+	"Unlimited digital QR passes",
+	"Web & USSD (*928#) live voting",
+	"MTN, Telecel, AT Mobile Money",
+	"Visa, Mastercard & bank transfers",
+	"Real-time event & voting analytics",
+	"Gate crew & scanner permissions",
+	"Instant organizer wallet payouts",
 ];
 
 export function LandingPricing() {
 	return (
-		<section id="pricing" className="py-20 md:py-28 bg-muted/20 border-y border-border/50 relative">
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				{/* Header */}
-				<div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
-						<Zap className="size-3.5" />
-						<span>Simple &amp; Transparent</span>
-					</div>
-					<h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground">
-						No Upfront Fees. Pay As You Grow.
-					</h2>
-					<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-						We only earn when you succeed. No monthly subscriptions, no setup charges,
-						and no surprise fees.
-					</p>
-				</div>
+		<Section
+			id="pricing"
+			class="mt-20 md:mt-24 py-12 sm:py-16 bg-[#e88722] text-white rounded-2xl shadow-none"
+			content-class="space-y-8 md:space-y-12"
+		>
+			{/* Section Header */}
+			<div className="mx-auto text-center space-y-3 max-w-2xl">
+				<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white font-millik">
+					Free to Start,{" "}
+					<span className="text-white/95">Pay As You Grow</span>
+				</h2>
 
-				{/* Pricing Cards Grid */}
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-					{PRICING_PLANS.map((plan, idx) => (
-						<motion.div
-							key={plan.name}
-							initial={{ opacity: 0, y: 20 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true }}
-							transition={{ duration: 0.45, delay: idx * 0.08 }}
-							className={`relative rounded-3xl border p-8 flex flex-col justify-between transition-all duration-300 ${
-								plan.highlighted
-									? "bg-card border-emerald-500 shadow-xl shadow-emerald-500/10 scale-100 lg:-translate-y-2 ring-1 ring-emerald-500"
-									: "bg-card/70 border-border/60 shadow-xs hover:shadow-lg"
-							}`}
-						>
-							{plan.highlighted && (
-								<div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-emerald-600 text-white font-extrabold text-[11px] uppercase tracking-wider shadow-sm">
-									Most Popular
-								</div>
-							)}
+				<p className="text-white/90 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+					Zero monthly subscription fees. No upfront charges. Only pay when you make sales across Africa.
+				</p>
+			</div>
 
-							<div>
-								{/* Plan Header */}
-								<div className="space-y-2">
-									<h3 className="text-xl font-bold tracking-tight text-foreground">
-										{plan.name}
-									</h3>
-									<p className="text-xs text-muted-foreground leading-relaxed min-h-[36px]">
-										{plan.description}
-									</p>
-								</div>
+			{/* Main Pricing Card (Preline Clean Style: rounded-xl, 1px border, NO shadows) */}
+			<div className="max-w-4xl mx-auto">
+				<div className="relative bg-card text-card-foreground border border-border rounded-xl overflow-hidden shadow-none p-6 sm:p-10">
+					<div className="space-y-8">
+						<div className="flex flex-col md:flex-row gap-8 items-start">
+							{/* Left: Rate Info */}
+							<div className="basis-2/5 space-y-3">
+								<Badge className="inline-flex items-center gap-1.5 bg-[#e88722]/10 text-[#e88722] text-xs font-semibold px-3 py-1 rounded-md border border-[#e88722]/30 shadow-none">
+									<InfinityIcon className="size-3.5 text-[#e88722]" />
+									Pay As You Earn
+								</Badge>
 
-								{/* Price Rate */}
-								<div className="my-6 pb-6 border-b border-border/50">
-									<div className="flex items-baseline gap-1">
-										<span className="text-4xl font-black tracking-tight text-foreground">
-											{plan.fee}
+								<div className="space-y-1.5">
+									<div className="flex items-baseline gap-2">
+										<span className="text-5xl sm:text-6xl font-black tracking-tight text-foreground font-millik">
+											5
+										</span>
+										<span className="text-3xl sm:text-4xl font-black text-[#e88722]">
+											%
 										</span>
 									</div>
-									<p className="text-xs text-muted-foreground mt-1 font-medium">
-										{plan.subtext}
+									<p className="text-base font-bold text-foreground">
+										per successful transaction
+									</p>
+									<p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+										You keep{" "}
+										<span className="text-base text-[#e88722] font-bold">
+											95%
+										</span>{" "}
+										of every ticket sale and vote. We only earn when you succeed.
 									</p>
 								</div>
+							</div>
 
-								{/* Features List */}
-								<ul className="space-y-3 text-xs sm:text-sm text-muted-foreground">
-									{plan.features.map((feat) => (
-										<li key={feat} className="flex items-start gap-2.5">
-											<Check className="size-4 shrink-0 text-emerald-500 mt-0.5" />
-											<span className="leading-snug">{feat}</span>
+							{/* Right: Features List */}
+							<div className="flex-1 space-y-4">
+								<h3 className="font-bold text-base text-foreground">
+									Everything included:
+								</h3>
+								<ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									{FEATURES.map((feature) => (
+										<li
+											key={feature}
+											className="flex items-center gap-2.5 text-xs sm:text-sm text-foreground/90 font-medium"
+										>
+											<div className="size-4 rounded-md bg-[#e88722]/15 text-[#e88722] flex items-center justify-center shrink-0">
+												<Check className="size-2.5" />
+											</div>
+											<span>{feature}</span>
 										</li>
 									))}
 								</ul>
 							</div>
+						</div>
 
-							{/* Button CTA */}
-							<div className="mt-8 pt-6 border-t border-border/40">
-								<Link href={plan.href} className="w-full block">
-									<Button
-										className={`w-full rounded-full py-5 font-bold text-sm tracking-wide gap-2 transition-all ${
-											plan.highlighted
-												? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg"
-												: "variant-outline"
-										}`}
-										variant={plan.highlighted ? "default" : "outline"}
-									>
-										<span>{plan.buttonText}</span>
-										<ArrowRight className="size-4" />
-									</Button>
-								</Link>
-							</div>
-						</motion.div>
-					))}
+						{/* Action Button */}
+						<div className="pt-5 border-t border-border">
+							<Link href="/register" className="inline-block w-full sm:w-auto">
+								<Button
+									className="w-full sm:w-auto h-11 px-6 text-sm font-semibold bg-neutral-950 hover:bg-black text-white rounded-lg shadow-none"
+								>
+									Get Started Free
+									<ArrowRight className="size-4 ml-2" />
+								</Button>
+							</Link>
+						</div>
+					</div>
 				</div>
 			</div>
-		</section>
+		</Section>
 	);
 }

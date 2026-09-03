@@ -1,103 +1,107 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Star, Quote } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Quote } from "lucide-react";
+import { Section } from "../Section";
+import { PROJ_NAME } from "@/lib/constants/branding";
 
 const TESTIMONIALS = [
 	{
 		quote:
-			"Handling over 12,000 festival passes and gate check-ins was completely seamless. The offline-ready QR scanner eliminated long gate queues entirely, and payouts settled straight to our bank account.",
-		author: "Kwame Asante",
+			"The live voting feature was a total game-changer for our annual awards show in Accra. Both web and USSD voting tallied accurately in real time with zero latency.",
+		author: "Sarah Mensah",
 		role: "Executive Producer",
-		organization: "AfroNation Experience",
-		avatar: "/landing/j.webp",
-		rating: 5,
-	},
-	{
-		quote:
-			"The USSD offline voting feature was an absolute game changer for our awards gala. Fans across Ghana and West Africa could dial *928# and cast votes via MoMo in under 30 seconds.",
-		author: "Nana Yaa Boakye",
-		role: "Founder & Director",
-		organization: "Creative Arts Honors Africa",
+		company: "Ghana Music Awards",
 		avatar: "/landing/h.webp",
-		rating: 5,
+		location: "Accra, Ghana",
 	},
 	{
 		quote:
-			"From multi-tier ticket sales to public speaker listings, the platform gave our conference an executive, state-of-the-art polish. Attendee conversions jumped by 40% compared to our previous tool.",
-		author: "David Osei-Mensah",
-		role: "Head of Operations",
-		organization: "Tech in Africa Summit",
+			"We sold out our pan-African tech summit with attendees flying in from 14 countries. Instant Mobile Money payouts made our cashflow completely stress-free.",
+		author: "Kwame Asante",
+		role: "Founder",
+		company: "Tech Across Africa",
+		avatar: "/landing/j.webp",
+		location: "Nairobi & Lagos",
+	},
+	{
+		quote:
+			"Offline USSD voting (*928#) allowed us to reach grassroots audiences without requiring internet access. It is the most inclusive ticketing platform in Africa.",
+		author: "Ama Serwaa",
+		role: "Festival Director",
+		company: "Heritage West Africa",
 		avatar: "/landing/a.webp",
-		rating: 5,
+		location: "Kumasi, Ghana",
 	},
 ];
 
+function getInitials(name: string): string {
+	return name
+		.split(" ")
+		.map((n) => n[0])
+		.join("")
+		.toUpperCase()
+		.slice(0, 2);
+}
+
 export function LandingTestimonials() {
 	return (
-		<section className="py-20 md:py-28 relative overflow-hidden">
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				{/* Section Header */}
-				<div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-					<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
-						<Star className="size-3.5 fill-current" />
-						<span>Loved by Creators</span>
-					</div>
-					<h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground">
-						Trusted by Top Event Producers
-					</h2>
-					<p className="text-muted-foreground text-sm sm:text-base">
-						See how leading organizers and cultural brands rely on us to deliver unforgettable experiences.
-					</p>
-				</div>
+		<Section class="mt-20 md:mt-24" id="testimonials" content-class="space-y-10">
+			{/* Section Header */}
+			<div className="mx-auto text-center space-y-3 max-w-2xl">
+				<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground font-millik">
+					Loved by African{" "}
+					<span className="text-[#e88722]">Event Producers</span>
+				</h2>
 
-				{/* Cards Grid */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-					{TESTIMONIALS.map((item, idx) => (
-						<motion.div
-							key={item.author}
-							initial={{ opacity: 0, y: 20 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true }}
-							transition={{ duration: 0.45, delay: idx * 0.08 }}
-							className="relative rounded-3xl border border-border/60 bg-card p-8 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-						>
-							<div className="space-y-4">
-								{/* Rating Stars */}
-								<div className="flex items-center gap-1 text-amber-500">
-									{Array.from({ length: item.rating }).map((_, i) => (
-										<Star key={i} className="size-4 fill-amber-400 text-amber-400" />
-									))}
-								</div>
+				<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+					See how top event organizers and award committees across Africa scale their productions with{" "}
+					<span className="capitalize font-semibold text-foreground">{PROJ_NAME}</span>.
+				</p>
+			</div>
 
-								{/* Quote */}
-								<p className="text-sm sm:text-base text-foreground/90 leading-relaxed italic">
-									&ldquo;{item.quote}&rdquo;
-								</p>
-							</div>
+			{/* Testimonials Grid (Preline Clean Style) */}
+			<div className="grid md:grid-cols-3 gap-5">
+				{TESTIMONIALS.map((item) => (
+					<Card
+						key={item.author}
+						className="border border-border h-full bg-card rounded-xl shadow-none hover:border-[#e88722]/50 transition-colors"
+					>
+						<CardContent className="p-6 h-full flex flex-col justify-between space-y-5">
+							{/* Quote Icon */}
+							<Quote className="size-6 text-[#e88722] rotate-180" />
 
-							{/* Author Footer */}
-							<div className="pt-6 mt-6 border-t border-border/40 flex items-center gap-3.5">
-								<div className="size-11 rounded-full overflow-hidden bg-muted relative">
-									<img
-										src={item.avatar}
-										alt={item.author}
-										className="object-cover w-full h-full"
-									/>
-								</div>
+							{/* Quote Text */}
+							<p className="text-foreground text-xs sm:text-sm leading-relaxed flex-1 italic">
+								&ldquo;{item.quote}&rdquo;
+							</p>
+
+							{/* Author Profile */}
+							<div className="flex gap-3 items-center pt-1 border-t border-border">
+								<Avatar className="size-9 border border-border">
+									<AvatarImage src={item.avatar} alt={item.author} />
+									<AvatarFallback className="bg-[#e88722] text-white font-bold text-xs">
+										{getInitials(item.author)}
+									</AvatarFallback>
+								</Avatar>
+
 								<div>
-									<h4 className="text-sm font-bold text-foreground">
+									<h4 className="font-bold text-xs sm:text-sm text-foreground">
 										{item.author}
 									</h4>
-									<p className="text-xs text-muted-foreground">
-										{item.role}, <span className="text-foreground/80 font-medium">{item.organization}</span>
+									<p className="text-[11px] text-muted-foreground">
+										{item.role}, {item.company}
 									</p>
+									<span className="text-[10px] text-[#e88722] font-semibold block">
+										{item.location}
+									</span>
 								</div>
 							</div>
-						</motion.div>
-					))}
-				</div>
+						</CardContent>
+					</Card>
+				))}
 			</div>
-		</section>
+		</Section>
 	);
 }

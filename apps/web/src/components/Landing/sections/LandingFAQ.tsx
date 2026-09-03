@@ -1,116 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { ChevronDown, HelpCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Section } from "../Section";
+import { PROJ_NAME } from "@/lib/constants/branding";
 
 const FAQS = [
 	{
-		question: "What payment methods can my attendees use?",
-		answer:
-			"We integrate natively with Paystack to support MTN Mobile Money, Telecel Cash, AT Money, and all Visa & Mastercard debit/credit cards. Attendees can also dial our USSD shortcode (*928#) to pay directly through their mobile carrier on feature phones.",
+		question: `How much does ${PROJ_NAME} cost for African organizers?`,
+		answer: `${PROJ_NAME} is completely free to start! There are no monthly subscription fees or upfront software costs. We charge a simple 5% fee on successful paid ticket and voting transactions—you keep 95% of every transaction. Free events and RSVP registrations are 100% free with zero fees.`,
 	},
 	{
-		question: "How does USSD offline ticketing and voting work?",
+		question: "Which African payment methods and currencies are supported?",
 		answer:
-			"When you enable USSD for your event, we assign a dedicated shortcode. Anyone without a smartphone or internet connection can dial *928#, select your event or nominee, and complete payment via Mobile Money prompt. Digital pass SMS notifications are delivered immediately.",
+			"We support direct Mobile Money collections including MTN MoMo, Telecel Cash, AT Money, and M-Pesa. In addition, we accept international debit and credit cards (Visa, Mastercard) processed securely via Paystack, supporting GHS (Ghanaian Cedis), NGN (Nigerian Naira), KES (Kenyan Shillings), USD, and more.",
 	},
 	{
-		question: "How fast do organizers receive payouts?",
+		question: "How does offline USSD voting (*928#) work?",
 		answer:
-			"Ticket and vote revenues are credited to your organizer wallet balance in real time. You can request payouts directly to your local bank account or Mobile Money number at any time, with funds settling within minutes to 24 hours depending on the destination bank.",
+			"Our proprietary USSD integration connects directly to African telecom networks. Anyone with any mobile phone (smartphone or basic feature phone) can dial *928#, enter the event code, select their nominee, and approve payment instantly from their Mobile Money wallet. Votes are counted in real-time alongside web votes.",
 	},
 	{
-		question: "Can I create multiple ticket tiers with capacity limits?",
+		question: "Can I customize our African festival page and ticket categories?",
 		answer:
-			"Yes. You can create VIP, Early Bird, Regular, Backstage, and Group Table tickets. You can configure individual price points, total ticket allocations, active sale windows, and limit max tickets per order to prevent scalping.",
+			"Absolutely! You can upload full-resolution artwork, fliers, and schedules. Create unlimited ticket tiers (Regular, VIP, VVIP, Backstage, Early Bird, Group Passes), limit capacity, and share direct checkout links to social media and WhatsApp.",
 	},
 	{
-		question: "How does the gate check-in scanner work?",
+		question: "How fast are organizer payouts processed?",
 		answer:
-			"Every ticket comes with an encrypted tamper-proof QR code. Your gate staff can log in on any smartphone camera to scan tickets in under 500 milliseconds. The scanner detects duplicate scans instantly and supports local caching during spotty network conditions.",
+			"Organizers can request settlements directly into their local bank account or Mobile Money wallet. Payouts are fast and transparent, helping you cover event logistics, venue deposits, and artist bookings without delay.",
 	},
 	{
-		question: "Can I accept public nominations before voting commences?",
+		question: "Can our gate security crew scan tickets offline at the venue?",
 		answer:
-			"Absolutely. You can open a Public Nomination portal where aspiring nominees or their fans can submit photos, portfolios, and social links. You can charge an optional nomination fee and approve or reject entries before opening public voting.",
+			"Yes! You can assign dedicated scanner team members right from your dashboard. They can scan QR codes using their phone cameras, preventing duplicate tickets and counterfeit passes even under crowded or weak internet venue conditions.",
 	},
 ];
 
 export function LandingFAQ() {
-	const [openIdx, setOpenIdx] = useState<number | null>(0);
-
-	const toggle = (idx: number) => {
-		setOpenIdx(openIdx === idx ? null : idx);
-	};
-
 	return (
-		<section id="faq" className="py-20 md:py-28 relative">
-			<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-				{/* Section Header */}
-				<div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-					<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
-						<HelpCircle className="size-3.5" />
-						<span>Got Questions?</span>
-					</div>
-					<h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground">
-						Frequently Asked Questions
-					</h2>
-					<p className="text-muted-foreground text-sm sm:text-base">
-						Everything you need to know about our ticketing, live voting, USSD, and payouts.
-					</p>
-				</div>
+		<Section
+			id="faq"
+			class="py-16 sm:py-20"
+			content-class="space-y-8 lg:flex lg:space-y-0 gap-10 items-start"
+		>
+			{/* Left Header */}
+			<div className="lg:max-w-md space-y-3">
+				<h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight font-millik">
+					Frequently Asked{" "}
+					<span className="text-[#e88722] block sm:inline">
+						Questions
+					</span>
+				</h2>
 
-				{/* Accordion Items */}
-				<div className="space-y-4">
-					{FAQS.map((faq, idx) => {
-						const isOpen = openIdx === idx;
-						return (
-							<div
-								key={faq.question}
-								className={cn(
-									"rounded-2xl border transition-all duration-200 overflow-hidden",
-									isOpen
-										? "bg-card border-emerald-500/50 shadow-xs ring-1 ring-emerald-500/20"
-										: "bg-card/60 border-border/60 hover:border-border",
-								)}
-							>
-								<button
-									type="button"
-									onClick={() => toggle(idx)}
-									className="w-full flex items-center justify-between p-5 sm:p-6 text-left transition-colors"
-								>
-									<span className="font-bold text-base sm:text-lg text-foreground pr-4">
-										{faq.question}
-									</span>
-									<ChevronDown
-										className={cn(
-											"size-5 shrink-0 text-muted-foreground transition-transform duration-300",
-											isOpen && "rotate-180 text-emerald-600",
-										)}
-									/>
-								</button>
-
-								<AnimatePresence initial={false}>
-									{isOpen && (
-										<motion.div
-											initial={{ height: 0, opacity: 0 }}
-											animate={{ height: "auto", opacity: 1 }}
-											exit={{ height: 0, opacity: 0 }}
-											transition={{ duration: 0.25, ease: "easeInOut" }}
-										>
-											<div className="px-5 pb-6 sm:px-6 sm:pb-6 text-sm sm:text-base text-muted-foreground leading-relaxed border-t border-border/30 pt-4">
-												{faq.answer}
-											</div>
-										</motion.div>
-									)}
-								</AnimatePresence>
-							</div>
-						);
-					})}
-				</div>
+				<p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+					Have questions about hosting your event or awards show in Africa? Here are answers to the most common queries.
+				</p>
 			</div>
-		</section>
+
+			{/* Right Accordion List (Preline Clean Style) */}
+			<div className="flex-1 w-full">
+				<Accordion type="single" collapsible className="w-full space-y-2.5">
+					{FAQS.map((faq, index) => (
+						<AccordionItem
+							key={faq.question}
+							value={`item-${index}`}
+							className="border border-border rounded-lg bg-card px-5 hover:border-[#e88722]/50 transition-colors shadow-none"
+						>
+							<AccordionTrigger className="text-left font-semibold text-sm sm:text-base hover:no-underline py-4 text-foreground hover:text-[#e88722] transition-colors">
+								<span>{faq.question}</span>
+							</AccordionTrigger>
+							<AccordionContent className="pb-4 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+								{faq.answer}
+							</AccordionContent>
+						</AccordionItem>
+					))}
+				</Accordion>
+			</div>
+		</Section>
 	);
 }

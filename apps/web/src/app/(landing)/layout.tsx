@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { LandingNavbar } from "@/components/Landing/LandingNavbar";
-import { LandingFooter } from "@/components/Landing/LandingFooter";
+import { UssdFloatingWidget } from "@/components/event/public/UssdFloatingWidget";
 import { PROJ_NAME } from "@/lib/constants/branding";
 
 export const metadata: Metadata = {
-	title: `Events & Experience Discovery | ${PROJ_NAME}`,
+	title: `Discover Events & Organizers | ${PROJ_NAME}`,
 	description:
-		"Discover upcoming Pan-African festivals, conferences, concerts, awards ceremonies, and live voting competitions.",
+		"Find amazing events with ticket sales and voting happening right now. Discover top organizers on our platform.",
 };
 
 export default function LandingGroupLayout({
@@ -15,10 +15,16 @@ export default function LandingGroupLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<div className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-emerald-500/20 selection:text-emerald-700">
+		<div className="min-h-screen bg-background text-foreground antialiased select-auto w-full overflow-x-hidden">
 			<LandingNavbar />
-			<main className="flex-1">{children}</main>
-			<LandingFooter />
+			<div className="pt-16">{children}</div>
+
+			{/* Floating Root USSD QR Code Widget */}
+			<UssdFloatingWidget
+				eventTitle={`${PROJ_NAME} African Ticketing & Voting`}
+				ussdCode="root"
+				primaryColor="#e88722"
+			/>
 		</div>
 	);
 }

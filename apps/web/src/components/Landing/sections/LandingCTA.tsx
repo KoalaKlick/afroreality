@@ -1,85 +1,76 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
-import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { Section } from "../Section";
 
 export function LandingCTA() {
 	return (
-		<section className="py-20 md:py-28 relative overflow-hidden">
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-950 via-neutral-900 to-black border border-emerald-500/20 p-8 sm:p-14 lg:p-20 text-center shadow-2xl">
-					{/* Glowing decorative ambient orbs */}
-					<div className="absolute -top-32 -left-32 w-80 h-80 bg-emerald-500/20 rounded-full blur-[100px] pointer-events-none" />
-					<div className="absolute -bottom-32 -right-32 w-80 h-80 bg-emerald-600/20 rounded-full blur-[100px] pointer-events-none" />
+		<Section class="overflow-hidden mt-16 md:mt-20" content-class="relative">
+			<div className="bg-[#ca0808] text-white rounded-2xl flex flex-col md:flex-row justify-between overflow-hidden border border-border/20 shadow-none">
+				{/* Left Copy & CTA */}
+				<div className="max-w-xl flex-1 px-6 sm:px-10 py-8 md:py-12 space-y-4 z-30">
+					<h2 className="text-white text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight font-millik">
+						Ready to Create Your Next{" "}
+						<span className="text-white/95 block font-black">
+							Unforgettable African Event?
+						</span>
+					</h2>
 
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
-						transition={{ duration: 0.6 }}
-						className="relative z-10 max-w-3xl mx-auto space-y-6"
-					>
-						{/* Pill */}
-						<div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs sm:text-sm font-semibold tracking-tight">
-							<Sparkles className="size-4 text-emerald-400" />
-							<span>Start Selling in Under 5 Minutes</span>
-						</div>
+					<p className="text-white/85 text-xs sm:text-sm leading-relaxed">
+						Join hundreds of visionary creators, festival directors, and award committees across Ghana, Nigeria, Kenya, and the diaspora.
+					</p>
 
-						{/* Headline */}
-						<h2 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-tight">
-							Ready to Launch Your Next Event?
-						</h2>
+					<div className="pt-2">
+						<Link href="/register">
+							<Button
+								className="h-11 px-6 rounded-lg text-sm font-semibold bg-neutral-950 hover:bg-black text-white shadow-none"
+							>
+								<span>Create Your First Event</span>
+								<ArrowRight className="size-4 ml-2" />
+							</Button>
+						</Link>
+					</div>
+				</div>
 
-						{/* Description */}
-						<p className="text-neutral-300 text-sm sm:text-base leading-relaxed max-w-xl mx-auto">
-							Join top festival organizers, awards shows, and community creators who
-							trust our infrastructure for digital ticketing, voting, and instant
-							Mobile Money settlements.
-						</p>
+				{/* Right Stacked / Layered Showcase Visuals (Reverted as requested) */}
+				<div className="flex-1 relative min-h-72 sm:min-h-80 overflow-hidden w-full">
+					{/* Primary Top Layer */}
+					<div className="absolute bottom-0 right-0 sm:right-6 w-52 sm:w-64 h-[90%] z-20 rounded-t-xl overflow-hidden border-t-2 border-l-2 border-white/30">
+						<Image
+							src="/landing/a.webp"
+							alt="African festival celebration"
+							fill
+							className="object-cover"
+							sizes="250px"
+						/>
+					</div>
 
-						{/* Actions */}
-						<div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-							<Link href="/register">
-								<Button
-									size="lg"
-									className="rounded-full px-8 h-12 bg-emerald-500 hover:bg-emerald-600 text-neutral-950 font-bold text-sm tracking-wide gap-2 shadow-lg hover:shadow-emerald-500/25 transition-all"
-								>
-									<span>Create Event for Free</span>
-									<ArrowRight className="size-4" />
-								</Button>
-							</Link>
+					{/* Middle Layer */}
+					<div className="absolute bottom-0 right-24 sm:right-36 w-48 sm:w-56 h-[80%] z-10 rounded-t-xl overflow-hidden opacity-90 border-t border-l border-white/20">
+						<Image
+							src="/landing/h.webp"
+							alt="Live African crowd"
+							fill
+							className="object-cover"
+							sizes="240px"
+						/>
+					</div>
 
-							<Link href="/events">
-								<Button
-									variant="outline"
-									size="lg"
-									className="rounded-full px-8 h-12 border-neutral-700 bg-neutral-900/50 hover:bg-neutral-800 text-white font-bold text-sm tracking-wide transition-all"
-								>
-									Explore Events
-								</Button>
-							</Link>
-						</div>
-
-						{/* Guarantees */}
-						<div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-neutral-400 font-medium">
-							<div className="flex items-center gap-1.5">
-								<CheckCircle2 className="size-4 text-emerald-400" />
-								<span>Zero Setup Costs</span>
-							</div>
-							<div className="flex items-center gap-1.5">
-								<CheckCircle2 className="size-4 text-emerald-400" />
-								<span>Instant MoMo &amp; Card Settlements</span>
-							</div>
-							<div className="flex items-center gap-1.5">
-								<CheckCircle2 className="size-4 text-emerald-400" />
-								<span>24/7 Dedicated Support</span>
-							</div>
-						</div>
-					</motion.div>
+					{/* Backdrop Layer */}
+					<div className="absolute bottom-0 right-44 sm:right-60 w-44 sm:w-52 h-[70%] z-0 rounded-t-xl overflow-hidden opacity-70 border-t border-white/10">
+						<Image
+							src="/landing/b.webp"
+							alt="Concert stage lighting"
+							fill
+							className="object-cover"
+							sizes="220px"
+						/>
+					</div>
 				</div>
 			</div>
-		</section>
+		</Section>
 	);
 }
