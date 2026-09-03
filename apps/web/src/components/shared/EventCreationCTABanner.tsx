@@ -53,7 +53,7 @@ export function EventCreationCTABanner({
 								</Button>
 
 								<Button asChild size="lg" variant="outline" className="group gap-2">
-									<Link href={orgSlug ? `/${orgSlug}` : "/events"}>
+									<Link href={orgSlug ? `/events` : "/events"}>
 										<CalendarDays className="size-4" />
 										<span>See All Events</span>
 									</Link>

@@ -20,7 +20,7 @@ export function LandingHero() {
 
 				<p className="max-w-2xl mx-auto text-muted-foreground text-sm sm:text-base leading-relaxed">
 					Run events, sell tickets, collect live audience votes, and receive instant payouts across Africa.
-					Works online, offline via USSD (*928#), and through native Mobile Money &amp; cards.
+					Works online, offline via USSD , and through native Mobile Money &amp; cards.
 				</p>
 
 				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">

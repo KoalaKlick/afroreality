@@ -2,11 +2,11 @@ import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface EventInfoPillProps {
-	icon: LucideIcon;
-	label: string;
-	value: React.ReactNode;
-	className?: string;
-	valueClassName?: string;
+	readonly icon: LucideIcon;
+	readonly label: string;
+	readonly value: React.ReactNode;
+	readonly className?: string;
+	readonly valueClassName?: string;
 }
 
 export function EventInfoPill({
@@ -19,16 +19,16 @@ export function EventInfoPill({
 	return (
 		<div
 			className={cn(
-				"flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-md px-4 py-2 text-white",
+				"inline-flex items-center gap-2.5 bg-muted/60 dark:bg-card border border-border rounded-lg px-3.5 py-2 text-foreground transition-colors shadow-none",
 				className,
 			)}
 		>
-			<Icon className="size-3.5 text-brand-secondary shrink-0" />
-			<div className="flex items-center gap-2 justify-center">
-				<span className="text-xs uppercase font-bold text-secondary leading-none">
-					{label}
+			<Icon className="size-4 text-primary shrink-0" />
+			<div className="flex items-center gap-2">
+				<span className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider leading-none">
+					{label}:
 				</span>
-				<span className={cn("text-xs font-bold leading-none", valueClassName)}>
+				<span className={cn("text-xs sm:text-sm font-semibold text-foreground leading-none", valueClassName)}>
 					{value}
 				</span>
 			</div>
