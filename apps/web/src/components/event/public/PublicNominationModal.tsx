@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, useCallback, useRef } from "react";
-import Image from "next/image";
 import {
 	Sheet,
 	SheetContent,
@@ -19,17 +18,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
 	Loader2,
 	PlusCircle,
 	CheckCircle2,
 	XCircle,
-	Upload,
-	ImageIcon,
+	X,
 	CreditCard,
 	Sparkles,
 } from "lucide-react";
+import AddFilesIcon from "@/assets/add-files.svg";
 import { toast } from "sonner";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { initiatePublicNomination } from "@/lib/server-functions/public-checkout";
@@ -79,7 +78,7 @@ export function PublicNominationModal({
 	const imageInputRef = useRef<HTMLInputElement>(null);
 
 	const { isUploading, upload } = useImageUpload({
-		folder: "nominations",
+		folder: "nominees",
 		convertOptions: {
 			quality: 0.85,
 			maxWidth: 800,
@@ -118,11 +117,33 @@ export function PublicNominationModal({
 		setPreviewUrl(url);
 	};
 
+	const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+
+	const isCandidateNameValid = candidateName.trim().length >= 2;
+	const isCandidateEmailValid = !candidateEmail.trim() || isValidEmail(candidateEmail);
+	const isNominatorEmailValid = isPaid
+		? isValidEmail(nominatorEmail)
+		: !nominatorEmail.trim() || isValidEmail(nominatorEmail);
+
+	const isFormValid = isCandidateNameValid && isCandidateEmailValid && isNominatorEmailValid;
+
 	// ── Step 1: Submit Form to Review / Confirm Dialog ──
 	const handleFormSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!candidateName.trim()) {
-			toast.error("Please provide the candidate's name.");
+		if (!isCandidateNameValid) {
+			toast.error("Please provide the candidate's name (at least 2 characters).");
+			return;
+		}
+		if (candidateEmail.trim() && !isValidEmail(candidateEmail)) {
+			toast.error("Please enter a valid candidate email address.");
+			return;
+		}
+		if (isPaid && !isValidEmail(nominatorEmail)) {
+			toast.error("A valid email address is required for paid nomination receipts.");
+			return;
+		}
+		if (nominatorEmail.trim() && !isValidEmail(nominatorEmail)) {
+			toast.error("Please enter a valid email address.");
 			return;
 		}
 
@@ -148,13 +169,18 @@ export function PublicNominationModal({
 		setPayStep("processing");
 
 		try {
+			const cleanBio =
+				candidateBio && candidateBio.replace(/<[^>]*>/g, "").trim()
+					? candidateBio.trim()
+					: undefined;
+
 			const res = await initiatePublicNomination({
 				data: {
 					eventId,
 					categoryId: category.id,
 					nomineeName: candidateName.trim(),
 					nomineeEmail: candidateEmail.trim() || undefined,
-					nomineeBio: candidateBio.trim() || undefined,
+					nomineeBio: cleanBio,
 					nomineeImageUrl: finalUploadedUrl || undefined,
 					nominatorName: nominatorName.trim() || undefined,
 					nominatorEmail: nominatorEmail.trim() || undefined,
@@ -223,69 +249,60 @@ export function PublicNominationModal({
 
 					<form onSubmit={handleFormSubmit} className="flex-1 space-y-4 px-6 sm:px-0 py-2">
 						{/* Nominee Photo (Optional) */}
-						<div className="space-y-1.5">
-							<Label className="text-xs">Candidate Photo (Optional)</Label>
-							<div className="flex items-start gap-4">
-								<div className="size-20 rounded-xl border bg-muted overflow-hidden relative shrink-0">
-									{previewUrl ? (
-										<Image
-											src={previewUrl}
-											alt="Preview"
-											fill
-											className="object-cover"
-											unoptimized
-										/>
-									) : (
-										<div className="w-full h-full flex items-center justify-center">
-											<ImageIcon className="size-6 text-muted-foreground/50" />
-										</div>
-									)}
-								</div>
-								<div className="flex-1 space-y-2">
-									<input
-										ref={imageInputRef}
-										type="file"
-										accept="image/jpeg,image/png,image/webp"
-										className="hidden"
-										onChange={(e) => {
-											const file = e.target.files?.[0];
-											if (file) handleImageChange(file);
-											e.target.value = "";
-										}}
+						<div className="space-y-2">
+							<Label className="text-xs font-semibold">Candidate Photo (Optional)</Label>
+							<input
+								ref={imageInputRef}
+								type="file"
+								accept="image/jpeg,image/png,image/webp"
+								className="hidden"
+								onChange={(e) => {
+									const file = e.target.files?.[0];
+									if (file) handleImageChange(file);
+									e.target.value = "";
+								}}
+							/>
+							{previewUrl ? (
+								<div className="relative size-28 rounded-xl overflow-hidden border bg-muted">
+									<img
+										src={previewUrl}
+										alt="Candidate Preview"
+										className="size-full object-cover"
 									/>
-									<div className="flex items-center gap-2">
-										<Button
-											type="button"
-											variant="outline"
-											size="sm"
-											className="text-xs h-8"
-											onClick={() => imageInputRef.current?.click()}
-											disabled={isUploading}
-										>
-											<Upload className="size-3.5 mr-1.5" />
-											{previewUrl ? "Change Photo" : "Upload Photo"}
-										</Button>
-										{previewUrl && (
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												className="text-xs h-8 text-muted-foreground"
-												onClick={() => {
-													setPendingFile(null);
-													setPreviewUrl(null);
-													setFinalUploadedUrl(null);
-												}}
-											>
-												Remove
-											</Button>
-										)}
-									</div>
-									<p className="text-[11px] text-muted-foreground">
-										JPG, PNG or WebP up to 2MB.
-									</p>
+									<button
+										type="button"
+										onClick={() => {
+											setPendingFile(null);
+											setPreviewUrl(null);
+											setFinalUploadedUrl(null);
+											if (imageInputRef.current) imageInputRef.current.value = "";
+										}}
+										className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+										title="Remove photo"
+									>
+										<X className="size-3.5" />
+									</button>
 								</div>
-							</div>
+							) : (
+								<button
+									type="button"
+									onClick={() => imageInputRef.current?.click()}
+									disabled={isUploading}
+									className="size-28 rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/60 flex flex-col items-center justify-center gap-1.5 text-muted-foreground transition-colors cursor-pointer"
+								>
+									{isUploading ? (
+										<Loader2 className="size-6 animate-spin" />
+									) : (
+										<>
+											<AddFilesIcon className="size-8 text-primary/80 mb-0.5" />
+											<span className="text-[10px] font-medium">Upload Photo</span>
+										</>
+									)}
+								</button>
+							)}
+							<p className="text-[11px] text-muted-foreground">
+								JPG, PNG or WebP up to 5MB.
+							</p>
 						</div>
 
 						{/* Candidate Name */}
@@ -320,17 +337,17 @@ export function PublicNominationModal({
 							/>
 						</div>
 
-						{/* Candidate Bio */}
+						{/* Candidate Bio / Description */}
 						<div className="space-y-1.5">
 							<Label htmlFor="candidate-bio" className="text-xs">
 								Why should they win? (Bio / Description)
 							</Label>
-							<Textarea
-								id="candidate-bio"
-								placeholder="Highlight accomplishments, contributions, or why this candidate stands out..."
+							<RichTextEditor
 								value={candidateBio}
-								onChange={(e) => setCandidateBio(e.target.value)}
-								className="text-xs min-h-20 resize-none"
+								onChange={(val) => setCandidateBio(val)}
+								placeholder="Highlight accomplishments, contributions, or why this candidate stands out..."
+								minimal
+								minHeight="min-h-[100px]"
 								disabled={isPending || isUploading}
 							/>
 						</div>
@@ -392,7 +409,7 @@ export function PublicNominationModal({
 							<Button
 								type="submit"
 								size="sm"
-								disabled={isPending || isUploading || !candidateName.trim()}
+								disabled={isPending || isUploading || !isFormValid}
 								className="gap-1.5"
 							>
 								{(isPending || isUploading) && (
@@ -441,7 +458,7 @@ export function PublicNominationModal({
 									size="lg"
 									className="w-full h-11 text-xs font-bold gap-2"
 									onClick={handleConfirmSubmission}
-									disabled={loading}
+									disabled={loading || !isFormValid}
 								>
 									{loading ? (
 										<>

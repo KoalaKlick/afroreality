@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
-import { requireSession } from "@/lib/session";
+import { getSession } from "@/lib/session";
 import { uploadToR2, deleteFromR2ByUrl } from "@/lib/storage";
 import { ALLOWED_STORAGE_FOLDERS } from "@/lib/constants/storage";
 
 export async function POST(req: Request) {
 	try {
-		await requireSession();
-
 		const formData = await req.formData();
 		const file = formData.get("file") as File | null;
-		const folder = (formData.get("folder") as string) || "avatars";
+		let folder = (formData.get("folder") as string) || "avatars";
 		const resourceId = (formData.get("resourceId") as string) || undefined;
 		const oldUrl = (formData.get("oldUrl") as string) || undefined;
+
+		// Normalize common folder aliases
+		if (folder === "nominee" || folder === "nominations") {
+			folder = "nominees";
+		}
 
 		if (!file) {
 			return NextResponse.json(
@@ -26,6 +29,18 @@ export async function POST(req: Request) {
 				{ success: false, error: `Invalid folder: ${folder}` },
 				{ status: 400 },
 			);
+		}
+
+		// Require session for internal/protected uploads; allow public nominee uploads
+		const isPublicUpload = folder === "nominees";
+		if (!isPublicUpload) {
+			const session = await getSession();
+			if (!session) {
+				return NextResponse.json(
+					{ success: false, error: "Unauthorized" },
+					{ status: 401 },
+				);
+			}
 		}
 
 		if (oldUrl) {

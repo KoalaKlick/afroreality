@@ -1,6 +1,6 @@
 "use client";
 // src/components/event/voting-manager/CategoryList.tsx
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,7 +24,8 @@ import { NoNomineeIllustration } from "@/components/common/NoNomineeIllustration
 import { AnimatedDeleteDialog } from "@/components/common/AnimatedDeleteDialog";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { Card } from "@/components/ui/card";
-import { getErrorMessage, formatAmount } from "@/lib/utils";
+import { getErrorMessage, formatAmount, cn } from "@/lib/utils";
+import { NomineeCard } from "../nomination/NomineeCard";
 
 const statusBadgeStyles: Record<string, string> = {
 	pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
@@ -64,6 +65,32 @@ export function CategoryList({
 	const [isNominationSheetOpen, setIsNominationSheetOpen] = useState(false);
 	const [activeCategoryForNominations, setActiveCategoryForNominations] =
 		useState<CategoryItem | null>(null);
+
+	// Extract all public nominations across all categories (excluding admin-created nominees)
+	const allPublicNominations = useMemo(() => {
+		const list: NominationOption[] = [];
+		for (const cat of categories) {
+			for (const opt of cat.votingOptions) {
+				if (opt.isPublicNomination) {
+					list.push({
+						...opt,
+						categoryId: cat.id,
+						categoryName: cat.name,
+					} as unknown as NominationOption);
+				}
+			}
+		}
+		return list;
+	}, [categories]);
+
+	const totalEventPendingCount = allPublicNominations.filter(
+		(o) => o.status === "pending"
+	).length;
+
+	function handleOpenAllNominations() {
+		setActiveCategoryForNominations(null);
+		setIsNominationSheetOpen(true);
+	}
 
 	function handleEditCategory(cat: CategoryItem) {
 		setEditingCat(cat);
@@ -113,6 +140,19 @@ export function CategoryList({
 
 	function handleDeleteCategory() {
 		if (!catToDelete) return;
+		const totalVotes =
+			catToDelete.votingOptions?.reduce(
+				(sum, o) => sum + Number(o.votesCount || 0),
+				0,
+			) || 0;
+		if (totalVotes > 0) {
+			toast.error(
+				`Cannot delete "${catToDelete.name}" because it has ${totalVotes.toLocaleString()} recorded vote${totalVotes > 1 ? "s" : ""}. Categories with votes cannot be deleted.`,
+			);
+			setCatToDelete(null);
+			return;
+		}
+
 		startTransition(async () => {
 			try {
 				await deleteVotingCategory({ data: { id: catToDelete.id } });
@@ -125,11 +165,24 @@ export function CategoryList({
 		});
 	}
 
-	function handleDeleteOption() {
-		if (!optionToDelete) return;
+	function handleDeleteOption(optionId?: string, code?: string) {
+		const targetId = optionId || optionToDelete?.id;
+		if (!targetId) return;
+
+		const targetOpt = categories
+			.flatMap((c) => c.votingOptions)
+			.find((o) => o.id === targetId);
+		if (targetOpt && Number(targetOpt.votesCount || 0) > 0) {
+			toast.error(
+				`Cannot delete "${targetOpt.optionText}" because they already have ${Number(targetOpt.votesCount).toLocaleString()} recorded vote${Number(targetOpt.votesCount) > 1 ? "s" : ""}.`,
+			);
+			setOptionToDelete(null);
+			return;
+		}
+
 		startTransition(async () => {
 			try {
-				await deleteVotingOption({ data: { id: optionToDelete.id } });
+				await deleteVotingOption({ data: { id: targetId, deletionCode: code } });
 				toast.success("Nominee deleted");
 				setOptionToDelete(null);
 				if (onRefresh) onRefresh();
@@ -152,17 +205,35 @@ export function CategoryList({
 					</p>
 				</div>
 				{canEdit && (
-					<Button
-						onClick={() => {
-							setEditingCat(null);
-							onSheetOpenChange?.(true);
-						}}
-						size="sm"
-						className="gap-1.5 font-semibold text-xs"
-					>
-						<Plus className="size-3.5" />
-						Add Category
-					</Button>
+					<div className="flex items-center gap-2">
+						{allPublicNominations.length > 0 && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="gap-1.5 font-semibold text-xs relative"
+								onClick={handleOpenAllNominations}
+							>
+								<Inbox className="size-3.5 text-primary" />
+								<span>Nomination Requests</span>
+								{totalEventPendingCount > 0 && (
+									<Badge className="bg-yellow-500 hover:bg-yellow-600 text-white text-[10px] h-4 px-1.5 font-mono">
+										{totalEventPendingCount}
+									</Badge>
+								)}
+							</Button>
+						)}
+						<Button
+							onClick={() => {
+								setEditingCat(null);
+								onSheetOpenChange?.(true);
+							}}
+							size="sm"
+							className="gap-1.5 font-semibold text-xs"
+						>
+							<Plus className="size-3.5" />
+							Add Category
+						</Button>
+					</div>
 				)}
 			</div>
 
@@ -235,12 +306,12 @@ export function CategoryList({
 											>
 												<Inbox className="size-3.5" />
 												Requests
-												{cat.votingOptions.filter((o) => o.status === "pending").length > 0 && (
+												{cat.votingOptions.filter((o) => o.isPublicNomination && o.status === "pending").length > 0 && (
 													<Badge
 														variant="secondary"
-														className="bg-yellow-500 text-white text-[10px] h-4 px-1"
+														className="bg-yellow-500 text-white text-[10px] h-4 px-1 font-mono"
 													>
-														{cat.votingOptions.filter((o) => o.status === "pending").length}
+														{cat.votingOptions.filter((o) => o.isPublicNomination && o.status === "pending").length}
 													</Badge>
 												)}
 											</Button>
@@ -260,14 +331,39 @@ export function CategoryList({
 										>
 											<Pencil className="size-3.5" />
 										</Button>
-										<Button
-											size="icon"
-											variant="ghost"
-											onClick={() => setCatToDelete(cat)}
-											className="size-8 text-destructive hover:bg-destructive/10"
-										>
-											<Trash2 className="size-4" />
-										</Button>
+										{(() => {
+											const catTotalVotes = cat.votingOptions.reduce(
+												(sum, o) => sum + Number(o.votesCount || 0),
+												0,
+											);
+											return (
+												<Button
+													size="icon"
+													variant="ghost"
+													onClick={() => {
+														if (catTotalVotes > 0) {
+															toast.error(
+																`Cannot delete category "${cat.name}" because it already has ${catTotalVotes.toLocaleString()} recorded vote${catTotalVotes > 1 ? "s" : ""}. Categories with votes cannot be removed to preserve contest integrity.`,
+															);
+															return;
+														}
+														setCatToDelete(cat);
+													}}
+													className={cn(
+														"size-8 text-destructive hover:bg-destructive/10",
+														catTotalVotes > 0 &&
+															"opacity-40 cursor-not-allowed hover:bg-transparent text-muted-foreground",
+													)}
+													title={
+														catTotalVotes > 0
+															? `Cannot delete category with ${catTotalVotes.toLocaleString()} recorded vote${catTotalVotes > 1 ? "s" : ""}`
+															: "Delete Category"
+													}
+												>
+													<Trash2 className="size-4" />
+												</Button>
+											);
+										})()}
 									</div>
 								)}
 							</div>
@@ -278,7 +374,7 @@ export function CategoryList({
 									(o) => o.status === "approved" || (!o.status && !(o as any).isPublicNomination)
 								);
 								const pendingCount = cat.votingOptions.filter(
-									(o) => o.status === "pending"
+									(o) => o.isPublicNomination && o.status === "pending"
 								).length;
 
 								return (
@@ -320,62 +416,34 @@ export function CategoryList({
 												)}
 											</div>
 										) : (
-											<div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-												{approvedNominees.map((opt) => (
-													<div
-														key={opt.id}
-														className="p-3 rounded-lg border bg-background flex items-center gap-3 relative group hover:border-primary/40 transition-colors shadow-2xs"
-													>
-														{opt.imageUrl ? (
-															<img
-																src={getEventImageUrl(opt.imageUrl) ?? ""}
-																alt={opt.optionText}
-																className="size-12 rounded-lg object-cover shrink-0"
-															/>
-														) : (
-															<div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
-																<User className="size-5 text-muted-foreground" />
-															</div>
-														)}
-
-														<div className="flex-1 min-w-0">
-															<div className="flex items-center gap-1.5">
-																<p className="font-semibold text-sm truncate">
-																	{opt.optionText}
-																</p>
-															</div>
-															{opt.nomineeCode && (
-																<p className="text-[10px] font-mono text-muted-foreground uppercase">
-																	Code: {opt.nomineeCode}
-																</p>
-															)}
-															<p className="text-xs font-bold text-primary mt-0.5">
-																{Number(opt.votesCount || 0).toLocaleString()} votes
-															</p>
-														</div>
-
-														{canEdit && (
-															<div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-																<button
-																	type="button"
-																	onClick={() => handleEditOption(cat, opt)}
-																	className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-colors"
-																	title="Edit nominee"
-																>
-																	<Pencil className="size-3.5" />
-																</button>
-																<button
-																	type="button"
-																	onClick={() => setOptionToDelete(opt)}
-																	className="p-1 hover:bg-destructive/10 rounded text-destructive transition-colors"
-																	title="Delete nominee"
-																>
-																	<Trash2 className="size-3.5" />
-																</button>
-															</div>
-														)}
-													</div>
-												))}
+											<div className="@container">
+												<div className="grid grid-cols-1 @xs:grid-cols-2 @md:grid-cols-3 @2xl:grid-cols-4 @4xl:grid-cols-5 @6xl:grid-cols-6 gap-3.5">
+													{approvedNominees.map((opt) => (
+														<NomineeCard
+															key={opt.id}
+															option={opt as any}
+															displayImage={opt.imageUrl ?? null}
+															canEdit={canEdit}
+															isPending={isDeleting}
+															requiresDeletionCode={Boolean(opt.deletionCode)}
+															onEdit={() => handleEditOption(cat, opt)}
+															onDelete={(code) => {
+																const votesCount = Number(opt.votesCount || 0);
+																if (votesCount > 0) {
+																	toast.error(
+																		`Cannot delete "${opt.optionText}" because they already have ${votesCount.toLocaleString()} recorded vote${votesCount > 1 ? "s" : ""}. Nominees with votes cannot be removed.`,
+																	);
+																	return;
+																}
+																if (opt.deletionCode) {
+																	handleDeleteOption(opt.id, code);
+																} else {
+																	setOptionToDelete(opt);
+																}
+															}}
+														/>
+													))}
+												</div>
 											</div>
 										)}
 									</div>
@@ -434,18 +502,26 @@ export function CategoryList({
 			/>
 
 			{/* Nomination Requests Sheet */}
-			{activeCategoryForNominations && (
-				<NominationRequestsSheet
-					open={isNominationSheetOpen}
-					onOpenChange={setIsNominationSheetOpen}
-					pendingOptions={activeCategoryForNominations.votingOptions.filter(
-						(o) => o.status === "pending" || o.status === "approved" || o.status === "rejected"
-					) as unknown as NominationOption[]}
-					onRefresh={() => {
-						onRefresh?.();
-					}}
-				/>
-			)}
+			<NominationRequestsSheet
+				open={isNominationSheetOpen}
+				onOpenChange={setIsNominationSheetOpen}
+				options={
+					activeCategoryForNominations
+						? (activeCategoryForNominations.votingOptions
+								.filter((o) => o.isPublicNomination)
+								.map((o) => ({
+									...o,
+									categoryId: activeCategoryForNominations.id,
+									categoryName: activeCategoryForNominations.name,
+								})) as unknown as NominationOption[])
+						: allPublicNominations
+				}
+				categoryName={activeCategoryForNominations?.name}
+				categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+				onRefresh={() => {
+					onRefresh?.();
+				}}
+			/>
 		</div>
 	);
 }

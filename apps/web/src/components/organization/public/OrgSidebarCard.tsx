@@ -17,6 +17,7 @@ import { getSocialPlatform } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
+import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 
 interface OrgSidebarCardProps {
 	readonly organization: {
@@ -93,39 +94,11 @@ export function OrgSidebarCard({
 						className="w-full h-full object-cover"
 					/>
 				) : (
-					<svg
-						viewBox="0 0 1440 260"
-						preserveAspectRatio="none"
-						className="w-full h-full"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<rect
-							width="1440"
-							height="260"
-							fill={primaryColor || "#ca0808"}
-							fillOpacity="0.08"
-						/>
-						<polygon
-							points="0,0 520,0 200,260 0,260"
-							fill={secondaryColor || "#e88722"}
-							fillOpacity="0.85"
-						/>
-						<polygon
-							points="100,0 380,0 260,260 0,180"
-							fill={primaryColor || "#ca0808"}
-							fillOpacity="0.95"
-						/>
-						<polygon
-							points="0,0 180,0 0,180"
-							fill={tertiaryColor || "#53967a"}
-							fillOpacity="0.90"
-						/>
-						<polygon
-							points="320,0 640,0 380,260 260,260"
-							fill={secondaryColor || "#e88722"}
-							fillOpacity="0.35"
-						/>
-					</svg>
+					<OrgGeometricBanner
+						primaryColor={primaryColor}
+						secondaryColor={secondaryColor}
+						tertiaryColor={tertiaryColor}
+					/>
 				)}
 			</div>
 

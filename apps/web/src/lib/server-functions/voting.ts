@@ -104,6 +104,12 @@ export async function updateVotingCategory({ data }: { data: any }): Promise<any
 
 export async function deleteVotingCategory({ data }: { data: { id: string } }): Promise<any> {
   await requireSession();
+  const votesCount = await prisma.vote.count({ where: { categoryId: data.id } });
+  if (votesCount > 0) {
+    throw new Error(
+      `Cannot delete this category because it has already received ${votesCount.toLocaleString()} vote${votesCount > 1 ? "s" : ""}. Categories with recorded votes cannot be deleted to maintain contest integrity.`
+    );
+  }
   await prisma.votingCategory.delete({ where: { id: data.id } });
   return { success: true };
 }

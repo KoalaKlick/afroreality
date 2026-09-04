@@ -84,6 +84,7 @@ export interface SendNominationConfirmationEmailInput {
 	nomineeName: string;
 	categoryName: string;
 	eventName: string;
+	status?: string | null;
 	deletionCode?: string | null;
 	organizationName?: string;
 	bannerUrl?: string | null;
@@ -100,13 +101,14 @@ export async function sendNominationConfirmationEmail(
 			nomineeName,
 			categoryName,
 			eventName,
+			status,
 			deletionCode,
 			organizationName = "Fextiva",
 			bannerUrl,
 			eventUrl,
 		} = params;
 
-		const isLive = Boolean(deletionCode);
+		const isLive = status ? status === "approved" : Boolean(deletionCode);
 		const previewText = isLive
 			? `Nomination confirmed for ${nomineeName} at ${eventName}`
 			: `Nomination received for ${nomineeName} at ${eventName}`;

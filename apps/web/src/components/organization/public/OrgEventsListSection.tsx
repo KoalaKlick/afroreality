@@ -1,18 +1,13 @@
 "use client";
 
-import { OrgPublicEventCard } from "./OrgPublicEventCard";
+import Link from "next/link";
+import { EventCard, type TawnyEventData } from "@/components/website/events/EventCard";
 import { Section } from "@/components/Landing/shared/Section";
 import { NoEventsIllustration } from "@/components/common/NoEventsIllustration";
-import type { Event } from "@repo/db";
 
 interface OrgEventsListSectionProps {
 	readonly title?: string;
-	readonly events: (Event & {
-		organization?: {
-			slug: string;
-			name: string;
-		};
-	})[];
+	readonly events: TawnyEventData[];
 	readonly organizationSlug: string;
 }
 
@@ -59,14 +54,16 @@ export function OrgEventsListSection({
 					{title}
 				</h2>
 
-				{/* Responsive grid for the cards */}
-				<div className="grid grid-cols-1 @2xl:grid-cols-2 @4xl:grid-cols-3 @5xl:grid-cols-3 gap-6 lg:gap-8">
+				{/* Responsive grid using the same EventCard as events/landing pages */}
+				<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-5 lg:gap-6">
 					{events.map((event) => (
-						<OrgPublicEventCard
+						<Link
 							key={event.id}
-							event={event}
-							organizationSlug={organizationSlug}
-						/>
+							href={`/${organizationSlug}/event/${event.slug}`}
+							className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+						>
+							<EventCard event={event} />
+						</Link>
 					))}
 				</div>
 			</div>

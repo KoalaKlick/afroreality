@@ -16,6 +16,7 @@ import { getOrgImageUrl } from "@/lib/image-url-utils";
 import { getSocialPlatform } from "@/lib/utils/event-icons";
 import { shareEvent } from "@/lib/utils/share-utils";
 import { requestToJoinOrganization } from "@/lib/server-functions/organization-join";
+import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 
 interface OrgProfileHeroProps {
 	readonly organization: {
@@ -126,49 +127,11 @@ export function OrgProfileHero({
 						className="w-full h-full object-cover"
 					/>
 				) : (
-					/* Diagonal Geometric SVG Box on left with organization colors */
-					<svg
-						viewBox="0 0 1440 260"
-						preserveAspectRatio="none"
-						className="w-full h-full"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						{/* Soft light tinted backdrop with primary tint */}
-						<rect
-							width="1440"
-							height="260"
-							fill={primaryColor || "#ca0808"}
-							fillOpacity="0.08"
-						/>
-
-						{/* Diagonal Polygon 1: Secondary Color */}
-						<polygon
-							points="0,0 520,0 200,260 0,260"
-							fill={secondaryColor || "#e88722"}
-							fillOpacity="0.85"
-						/>
-
-						{/* Diagonal Polygon 2: Primary Color */}
-						<polygon
-							points="100,0 380,0 260,260 0,180"
-							fill={primaryColor || "#ca0808"}
-							fillOpacity="0.95"
-						/>
-
-						{/* Diagonal Polygon 3: Tertiary Color corner */}
-						<polygon
-							points="0,0 180,0 0,180"
-							fill={tertiaryColor || "#53967a"}
-							fillOpacity="0.90"
-						/>
-
-						{/* Accent Diagonal Band */}
-						<polygon
-							points="320,0 640,0 380,260 260,260"
-							fill={secondaryColor || "#e88722"}
-							fillOpacity="0.35"
-						/>
-					</svg>
+					<OrgGeometricBanner
+						primaryColor={primaryColor}
+						secondaryColor={secondaryColor}
+						tertiaryColor={tertiaryColor}
+					/>
 				)}
 			</div>
 

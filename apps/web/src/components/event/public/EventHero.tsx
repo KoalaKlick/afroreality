@@ -10,6 +10,7 @@ import { shareEvent } from "@/lib/utils/share-utils";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
 import { EventInfoPill } from "@/components/shared/EventInfoPill";
+import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 
 interface EventHeroProps {
 	readonly event: {
@@ -98,15 +99,21 @@ export function EventHero({
 	return (
 		<div className="relative w-full overflow-hidden bg-background">
 			{/* ── Top Hero Banner (matching category detail page) ── */}
-			{heroImageUrl && (
-				<div className="relative h-48 sm:h-64 md:h-80 w-full overflow-hidden bg-muted">
+			<div className="relative h-48 sm:h-64 md:h-80 w-full overflow-hidden bg-muted/30">
+				{heroImageUrl ? (
 					<img
 						src={heroImageUrl}
 						alt={event.title}
 						className="w-full h-full object-cover"
 					/>
-				</div>
-			)}
+				) : (
+					<OrgGeometricBanner
+						primaryColor={organization.primaryColor}
+						secondaryColor={organization.secondaryColor}
+						tertiaryColor={organization.tertiaryColor}
+					/>
+				)}
+			</div>
 
 			{/* ── Sticky Top Navigation Bar ── */}
 			<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">

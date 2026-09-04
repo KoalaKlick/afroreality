@@ -7,6 +7,7 @@ import { CategorySidebarCard } from "@/components/event/public/CategorySidebarCa
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
 import { Section } from "@/components/Landing/shared/Section";
+import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
@@ -174,15 +175,21 @@ export default async function PublicCategoryPage({
 		>
 			{/* Mobile / Tablet View (< xl) */}
 			<div className="flex flex-col xl:hidden flex-1 @container/content">
-				{heroImg && (
-					<div className="relative h-48 sm:h-64 w-full overflow-hidden bg-muted">
+				<div className="relative h-48 sm:h-64 w-full overflow-hidden bg-muted/30">
+					{heroImg ? (
 						<img
 							src={heroImg}
 							alt={category.name}
 							className="w-full h-full object-cover"
 						/>
-					</div>
-				)}
+					) : (
+						<OrgGeometricBanner
+							primaryColor={organization.primaryColor}
+							secondaryColor={organization.secondaryColor}
+							tertiaryColor={organization.tertiaryColor}
+						/>
+					)}
+				</div>
 
 				<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs">

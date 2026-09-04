@@ -112,6 +112,20 @@ export function PublicTicketGrid({
     "--color-brand-tertiary": (organization as any).tertiaryColor || "#EF3340",
   } as React.CSSProperties;
 
+  if (!tickets || tickets.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center rounded-2xl bg-card">
+        <NoTicketIllustration className="size-44 mb-4 opacity-85" />
+        <h4 className="text-xl font-bold uppercase tracking-tight mb-1">
+          No Tickets Available
+        </h4>
+        <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+          Ticket tiers haven&apos;t been configured for this event yet. Please check back later.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-2">
@@ -125,9 +139,9 @@ export function PublicTicketGrid({
               key={ticket.id}
               type="button"
               onClick={() => setSelectedTicket(ticket)}
-              className="group text-left transition-all"
+              className="group text-left transition-all h-full flex flex-col justify-between"
             >
-              <div className="space-y-4">
+              <div className="space-y-4 h-full flex flex-col justify-between w-full">
                 <TicketRenderer
                   variant={ticket.designVariant}
                   className="mx-auto"

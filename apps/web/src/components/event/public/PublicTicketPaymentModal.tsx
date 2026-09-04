@@ -110,10 +110,16 @@ export function PublicTicketPaymentModal({
 	const totalAmount = unitPrice * quantity;
 	const isFree = totalAmount === 0;
 
+	const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+	const isEmailValid = email.trim() ? isValidEmail(email) : false;
+	const isNameValid = buyerName.trim().length >= 2;
+	const isQuantityValid = quantity >= minPerOrder && quantity <= maxPerOrder;
+	const isFormValid = isNameValid && isEmailValid && isQuantityValid;
+
 	async function handleSubmitPayment(e: React.FormEvent) {
 		e.preventDefault();
-		if (!buyerName.trim() || !email.trim()) {
-			toast.error("Please enter your name and email address.");
+		if (!isNameValid || !isEmailValid) {
+			toast.error("Please enter a valid name and email address.");
 			return;
 		}
 
@@ -293,7 +299,7 @@ export function PublicTicketPaymentModal({
 						<Button
 							type="submit"
 							className="w-full font-bold text-xs h-10 gap-2"
-							disabled={loading}
+							disabled={loading || !isFormValid}
 						>
 							<Lock className="size-3.5" />
 							{isFree

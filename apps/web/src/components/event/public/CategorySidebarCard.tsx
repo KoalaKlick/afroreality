@@ -19,6 +19,7 @@ import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
+import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 
 interface CategorySidebarCardProps {
 	readonly category: {
@@ -45,6 +46,9 @@ interface CategorySidebarCardProps {
 			name: string;
 			slug: string;
 			logoUrl?: string | null;
+			primaryColor?: string | null;
+			secondaryColor?: string | null;
+			tertiaryColor?: string | null;
 		};
 	};
 	readonly sponsors?: any[];
@@ -72,15 +76,21 @@ export function CategorySidebarCard({
 	return (
 		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">
 			{/* Template / Cover Header - Stays Fixed */}
-			{templateImg && (
-				<div className="relative h-36 shrink-0 w-full overflow-hidden bg-muted">
+			<div className="relative h-36 shrink-0 w-full overflow-hidden bg-muted/30">
+				{templateImg ? (
 					<img
 						src={templateImg}
 						alt={category.name}
 						className="w-full h-full object-cover"
 					/>
-				</div>
-			)}
+				) : (
+					<OrgGeometricBanner
+						primaryColor={event.organization.primaryColor}
+						secondaryColor={event.organization.secondaryColor}
+						tertiaryColor={event.organization.tertiaryColor}
+					/>
+				)}
+			</div>
 
 			<div className="p-6 flex flex-col flex-1 min-h-0 space-y-5 overflow-hidden">
 				{/* Back link & Event context - Stays Fixed */}
@@ -93,12 +103,7 @@ export function CategorySidebarCard({
 
 					<div className="space-y-1">
 						<div className="flex flex-wrap items-center gap-2">
-							<Badge
-								variant="secondary"
-								className="text-[10px] bg-primary/10 text-primary border-primary/20 font-bold uppercase tracking-wider"
-							>
-								Voting Category
-							</Badge>
+				
 							{isInternalVoting && (
 								<Badge
 									variant="outline"

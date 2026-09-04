@@ -98,11 +98,37 @@ export function VotePaymentModal({
 		? getEventImageUrl(nominee.imageUrl)
 		: null;
 
+	const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+	const isEmailValid = voterEmail.trim() ? isValidEmail(voterEmail) : false;
+
+	const isFormValid = (() => {
+		if (isInternalVoting) {
+			if (!voterKey.trim()) return false;
+			if (voterEmail.trim() && !isValidEmail(voterEmail)) return false;
+			return true;
+		}
+		if (!isFree) {
+			// Paid voting: email is required and must be valid
+			if (!isEmailValid) return false;
+			if (voteCount < 1) return false;
+			return true;
+		}
+		// Free voting: if email entered, must be valid
+		if (voterEmail.trim() && !isValidEmail(voterEmail)) return false;
+		if (voteCount < 1) return false;
+		return true;
+	})();
+
 	async function handleSubmitVote(e: React.FormEvent) {
 		e.preventDefault();
 
 		if (isInternalVoting && !voterKey.trim()) {
 			toast.error("Please enter your confidential voting key.");
+			return;
+		}
+
+		if (!isInternalVoting && !isFree && (!voterEmail.trim() || !isValidEmail(voterEmail))) {
+			toast.error("Please enter a valid email address for your payment receipt.");
 			return;
 		}
 
@@ -260,8 +286,8 @@ export function VotePaymentModal({
 								)}
 
 								<div className="space-y-2">
-									<Label htmlFor="voter-email" className="text-xs">
-										Your Email (Optional for receipt)
+									<Label htmlFor="voter-email" className="text-xs font-semibold">
+										Email Address {!isInternalVoting && !isFree ? "*" : "(Optional)"}
 									</Label>
 									<div className="relative">
 										<Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
@@ -272,9 +298,19 @@ export function VotePaymentModal({
 											value={voterEmail}
 											onChange={(e) => setVoterEmail(e.target.value)}
 											className="pl-9 h-9 text-xs"
+											required={!isInternalVoting && !isFree}
 											disabled={loading}
 										/>
 									</div>
+									{!isInternalVoting && !isFree ? (
+										<p className="text-[10px] text-muted-foreground">
+											Required for your payment receipt and confirmation.
+										</p>
+									) : (
+										<p className="text-[10px] text-muted-foreground">
+											Optional for receiving a ballot confirmation receipt.
+										</p>
+									)}
 								</div>
 							</div>
 						)}
@@ -282,7 +318,7 @@ export function VotePaymentModal({
 						<Button
 							type="submit"
 							className="w-full font-bold text-xs h-10 gap-2"
-							disabled={loading}
+							disabled={loading || !isFormValid}
 						>
 							<Vote className="size-4" />
 							{isInternalVoting

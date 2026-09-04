@@ -20,14 +20,16 @@ export function EventsGrid({
 }: EventsGridProps) {
 	if (loading) {
 		return (
-			<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-				{Array.from({ length: 8 }).map((_, i) => (
-					<div key={i} className="animate-pulse space-y-2.5">
-						<div className="aspect-4/5 bg-muted rounded-xl border border-border shadow-none" />
-						<div className="h-4 bg-muted rounded w-3/4" />
-						<div className="h-3.5 bg-muted rounded w-1/2" />
-					</div>
-				))}
+			<div className="@container">
+				<div className="grid gap-5 grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4">
+					{Array.from({ length: 8 }).map((_, i) => (
+						<div key={i} className="animate-pulse space-y-2.5">
+							<div className="aspect-4/5 bg-muted rounded-xl border border-border shadow-none" />
+							<div className="h-4 bg-muted rounded w-3/4" />
+							<div className="h-3.5 bg-muted rounded w-1/2" />
+						</div>
+					))}
+				</div>
 			</div>
 		);
 	}
@@ -70,16 +72,18 @@ export function EventsGrid({
 	}
 
 	return (
-		<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-			{events.map((event) => (
-				<Link
-					key={event.id}
-					href={`/${event.organization.slug}/event/${event.slug}`}
-					className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
-				>
-					<EventCard event={event} />
-				</Link>
-			))}
+		<div className="@container">
+			<div className="grid gap-5 grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4">
+				{events.map((event) => (
+					<Link
+						key={event.id}
+						href={`/${event.organization.slug}/event/${event.slug}`}
+						className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+					>
+						<EventCard event={event} />
+					</Link>
+				))}
+			</div>
 		</div>
 	);
 }

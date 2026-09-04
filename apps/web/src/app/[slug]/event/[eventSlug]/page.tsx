@@ -8,6 +8,7 @@ import { EventHero } from "@/components/event/public/EventHero";
 import { EventSidebarCard } from "@/components/event/public/EventSidebarCard";
 import { EventVotingCategories } from "@/components/event/public/EventVotingCategories";
 import { EventDetailsSection } from "@/components/event/public/EventDetailsSection";
+import { StandardEventContent } from "@/components/event/public/StandardEventContent";
 import { PublicTicketGrid } from "@/components/event/public/PublicTicketGrid";
 import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
 import { UssdFloatingWidget } from "@/components/event/public/UssdFloatingWidget";
@@ -105,6 +106,7 @@ export default async function PublicEventPage({
 
 	const isTicketed = event.type === "ticketed" || event.type === "hybrid";
 	const isVoting = event.type === "voting" || event.type === "hybrid";
+	const isStandard = event.type === "standard" || (!isTicketed && !isVoting);
 
 	const ticketTypes = event.ticketTypes || [];
 	const votingCategories = event.votingCategories || [];
@@ -416,6 +418,19 @@ export default async function PublicEventPage({
 					</>
 				)}
 
+				{isStandard && (
+					<>
+						<PanAfricanDivider />
+						<Section maxWidth="7xl" className="py-8">
+							<StandardEventContent
+								event={event as any}
+								orgSlug={orgSlug}
+								eventSlug={eventSlug}
+							/>
+						</Section>
+					</>
+				)}
+
 				<PanAfricanDivider />
 
 				<EventDetailsSection
@@ -482,6 +497,14 @@ export default async function PublicEventPage({
 							>
 								{ticketsContent}
 							</div>
+						)}
+
+						{isStandard && (
+							<StandardEventContent
+								event={event as any}
+								orgSlug={orgSlug}
+								eventSlug={eventSlug}
+							/>
 						)}
 
 						{/* Event Gallery for Desktop */}

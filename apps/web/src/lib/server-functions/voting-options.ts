@@ -4,39 +4,32 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "../session";
 import { serializeJsonSafe } from "../utils";
 import { sendNominationConfirmationEmail } from "@/lib/email/nomination";
+import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
 
 /**
- * Internal helper: Generate a 3-letter prefix based on nominee name
- */
-function generateNomineePrefix(nomineeName: string): string {
-	const clean = nomineeName.trim().replace(/[^a-zA-Z0-9\s]/g, "");
-	const parts = clean.split(/\s+/).filter(Boolean);
-
-	if (parts.length === 0) return "NOM";
-
-	const initials = parts.map((p) => p[0]?.toUpperCase() ?? "X");
-
-	if (initials.length >= 3) {
-		return initials.slice(0, 3).join("");
-	}
-	if (initials.length === 2) {
-		const lastName = parts[1] ?? "";
-		const thirdChar = lastName.length > 1 ? (lastName[1]?.toUpperCase() ?? "X") : "X";
-		return initials.join("") + thirdChar;
-	}
-	const singleName = (parts[0] ?? "").toUpperCase();
-	return singleName.length >= 3 ? singleName.slice(0, 3) : singleName.padEnd(3, "X");
-}
-
-/**
- * Generate a unique nominee code for an event based on nominee name
+ * Generate a unique nominee code for an event based on category initials + 2-digit sequence
+ * e.g., "Best Male Artist" -> "BMA01", "BMA02"
  */
 export async function generateNomineeCode(
 	eventId: string,
-	nomineeName: string,
+	categoryIdOrName?: string | null,
+	fallbackText?: string | null,
 ): Promise<string> {
+	let resolvedCategoryName: string | null = null;
+
 	try {
-		const prefix = generateNomineePrefix(nomineeName);
+		if (categoryIdOrName) {
+			// Check if categoryIdOrName is a category ID in database
+			const category = await prisma.votingCategory.findUnique({
+				where: { id: categoryIdOrName },
+				select: { name: true },
+			});
+			resolvedCategoryName = category?.name ?? categoryIdOrName;
+		} else if (fallbackText) {
+			resolvedCategoryName = fallbackText;
+		}
+
+		const prefix = extractCategoryPrefix(resolvedCategoryName);
 
 		const options = await prisma.votingOption.findMany({
 			where: {
@@ -59,10 +52,11 @@ export async function generateNomineeCode(
 		}
 
 		const nextNumber = maxNumber + 1;
-		return `${prefix}${nextNumber.toString().padStart(3, "0")}`;
+		return `${prefix}${nextNumber.toString().padStart(2, "0")}`;
 	} catch (error) {
 		console.error("Error generating nominee code:", error);
-		return `NOM${Date.now().toString().slice(-4)}`;
+		const prefix = extractCategoryPrefix(resolvedCategoryName || categoryIdOrName || fallbackText);
+		return `${prefix}01`;
 	}
 }
 
@@ -72,13 +66,14 @@ export async function generateNomineeCode(
 export async function createVotingOption({ data }: { data: any }): Promise<any> {
 	await requireSession();
 	const nomineeCode =
-		data.nomineeCode || (await generateNomineeCode(data.eventId, data.optionText));
+		data.nomineeCode || (await generateNomineeCode(data.eventId, data.categoryId, data.optionText));
 
 	const option = await prisma.votingOption.create({
 		data: {
 			eventId: data.eventId,
 			categoryId: data.categoryId,
 			optionText: data.optionText.trim(),
+			email: data.email?.trim() || null,
 			description: data.description || null,
 			imageUrl: data.imageUrl || null,
 			nomineeCode,
@@ -95,7 +90,10 @@ export async function updateVotingOption({ data }: { data: any }): Promise<any> 
 	const { id, ...rest } = data;
 	const updated = await prisma.votingOption.update({
 		where: { id: id || data.optionId },
-		data: rest,
+		data: {
+			...rest,
+			...(rest.email !== undefined ? { email: rest.email?.trim() || null } : {}),
+		},
 	});
 	return serializeJsonSafe(updated);
 }
@@ -118,6 +116,34 @@ export async function updateVotingOptionStatus({
 export async function deleteVotingOption({ data }: { data: any }): Promise<any> {
 	await requireSession();
 	const targetId = data.id || data.optionId;
+	if (!targetId) throw new Error("Missing option id");
+
+	const option = await prisma.votingOption.findUnique({
+		where: { id: targetId },
+		select: { id: true, deletionCode: true, votesCount: true, optionText: true },
+	});
+
+	if (!option) return { success: true };
+
+	// Highest constraint: Nominees with recorded votes CANNOT be deleted under any circumstance
+	const voteRecordCount = await prisma.vote.count({ where: { optionId: targetId } });
+	const totalVotes = Math.max(Number(option.votesCount || 0), voteRecordCount);
+	if (totalVotes > 0) {
+		throw new Error(
+			`Cannot delete "${option.optionText}" because they have already received ${totalVotes.toLocaleString()} vote${totalVotes > 1 ? "s" : ""}. To preserve contest integrity, nominees with votes cannot be removed.`,
+		);
+	}
+
+	// If this nominee has an exit key (paid nomination), verify the nominator's exit key
+	if (option.deletionCode) {
+		const code = data.deletionCode || data.code;
+		if (!code || code.trim() !== option.deletionCode.trim()) {
+			throw new Error(
+				"Invalid exit key. This paid nomination requires the nominator's exit key to delete.",
+			);
+		}
+	}
+
 	await prisma.votingOption.delete({ where: { id: targetId } });
 	return { success: true };
 }
@@ -137,8 +163,9 @@ export async function approveNomination({ data }: { data: any }): Promise<any> {
 
 	if (!option) throw new Error("Nomination not found");
 
-	const deletionCode =
-		option.deletionCode || Math.floor(100000 + Math.random() * 900000).toString();
+	// For free nominations, do not generate an exit key; only preserve if already set on paid nominations
+	const isPaidNomination = Number(option.category?.nominationPrice || 0) > 0;
+	const deletionCode = isPaidNomination ? (option.deletionCode || null) : null;
 
 	const updated = await prisma.votingOption.update({
 		where: { id: targetId },
@@ -157,6 +184,7 @@ export async function approveNomination({ data }: { data: any }): Promise<any> {
 			nomineeName: option.optionText,
 			categoryName: option.category?.name || "Category",
 			eventName: option.event?.title || "Event",
+			status: "approved",
 			deletionCode,
 			organizationName: option.event?.organization?.name || "Fextiva",
 			bannerUrl: option.event?.bannerImage || option.event?.flierImage,
@@ -170,19 +198,64 @@ export async function rejectNomination({ data }: { data: any }): Promise<any> {
 	return updateVotingOptionStatus({ data: { ...data, status: "rejected" } });
 }
 
+export async function resendNominationEmail({
+	data,
+}: {
+	data: { optionId: string };
+}): Promise<{ success: boolean; error?: string }> {
+	await requireSession();
+	const targetId = data.optionId;
+	if (!targetId) return { success: false, error: "Missing nomination option ID" };
+
+	const option = await prisma.votingOption.findUnique({
+		where: { id: targetId },
+		include: {
+			category: true,
+			event: { include: { organization: true } },
+		},
+	});
+
+	if (!option) return { success: false, error: "Nomination not found" };
+
+	const recipientEmail = option.nominatedByEmail || option.email;
+	if (!recipientEmail) {
+		return { success: false, error: "No recipient email found on this nomination" };
+	}
+
+	const isLive = option.status === "approved";
+	const isPaidNomination = Number(option.category?.nominationPrice || 0) > 0;
+	const deletionCode = isLive && isPaidNomination ? (option.deletionCode || null) : null;
+
+	const res = await sendNominationConfirmationEmail({
+		email: recipientEmail,
+		recipientName: option.nominatedByName || recipientEmail,
+		nomineeName: option.optionText,
+		categoryName: option.category?.name || "Category",
+		eventName: option.event?.title || "Event",
+		status: option.status,
+		deletionCode,
+		organizationName: option.event?.organization?.name || "Fextiva",
+		bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+	});
+
+	if (!res.success) {
+		return { success: false, error: res.error || "Failed to send email" };
+	}
+
+	return { success: true };
+}
+
 export async function getSuggestedNomineeCode({
 	data,
 }: {
 	data: any;
 }): Promise<{ code: string }> {
-	if (data.optionText) {
-		const code = await generateNomineeCode(data.eventId, data.optionText);
-		return { code };
-	}
-	const count = await prisma.votingOption.count({
-		where: { categoryId: data.categoryId },
-	});
-	return { code: `NOM${String(count + 1).padStart(3, "0")}` };
+	const code = await generateNomineeCode(
+		data.eventId,
+		data.categoryId,
+		data.optionText,
+	);
+	return { code };
 }
 
 /**
@@ -243,8 +316,7 @@ export async function submitPublicNomination({
 
 	const requireApproval = category.requireApproval ?? true;
 	const status = requireApproval ? "pending" : "approved";
-	const nomineeCode = await generateNomineeCode(data.eventId, data.optionText);
-	const deletionCode = Math.floor(100000 + Math.random() * 900000).toString();
+	const nomineeCode = await generateNomineeCode(data.eventId, data.categoryId, category.name);
 
 	const option = await prisma.votingOption.create({
 		data: {
@@ -259,11 +331,11 @@ export async function submitPublicNomination({
 			nomineeCode,
 			status,
 			isPublicNomination: true,
-			deletionCode,
+			deletionCode: null, // Free nomination: no exit key needed
 		},
 	});
 
-	// Fire confirmation email
+	// Fire confirmation email without exit key
 	const recipientEmail = data.nominatorEmail?.trim() || data.email?.trim();
 	if (recipientEmail) {
 		sendNominationConfirmationEmail({
@@ -272,7 +344,8 @@ export async function submitPublicNomination({
 			nomineeName: data.optionText.trim(),
 			categoryName: category.name,
 			eventName: category.event.title,
-			deletionCode: status === "approved" ? deletionCode : null,
+			status,
+			deletionCode: null,
 			organizationName: category.event.organization?.name || "Fextiva",
 			bannerUrl: category.event.bannerImage || category.event.flierImage,
 		}).catch((err) =>
@@ -305,10 +378,21 @@ export async function withdrawNominationWithKey({
 
 	const option = await prisma.votingOption.findUnique({
 		where: { id: optionId },
+		select: { id: true, deletionCode: true, votesCount: true, optionText: true },
 	});
 
 	if (!option) {
 		return { success: false, error: "Nominee not found." };
+	}
+
+	// Highest constraint: Nominees with recorded votes CANNOT be withdrawn
+	const voteRecordCount = await prisma.vote.count({ where: { optionId } });
+	const totalVotes = Math.max(Number(option.votesCount || 0), voteRecordCount);
+	if (totalVotes > 0) {
+		return {
+			success: false,
+			error: `Cannot withdraw "${option.optionText}" because they have already received ${totalVotes.toLocaleString()} vote${totalVotes > 1 ? "s" : ""}. Nominees with recorded votes cannot be withdrawn once voting has commenced.`,
+		};
 	}
 
 	if (!option.deletionCode || option.deletionCode !== deletionCode.trim()) {

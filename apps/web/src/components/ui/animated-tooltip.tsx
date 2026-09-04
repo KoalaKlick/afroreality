@@ -50,7 +50,7 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 
 	return (
 		<div
-			className="group relative -mr-2.5 hover:z-50 cursor-pointer"
+			className="relative -mr-2.5 hover:z-50 cursor-pointer"
 			onMouseEnter={() => setHovered(true)}
 			onMouseLeave={() => {
 				setHovered(false);
@@ -96,12 +96,12 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 					onMouseMove={handleMouseMove}
 					src={item.image}
 					alt={item.name}
-					className="relative !m-0 h-9 w-9 shrink-0 rounded-full border-2 border-background object-cover object-top !p-0 shadow-sm transition duration-300 group-hover:scale-110 group-hover:border-primary"
+					className="relative !m-0 h-9 w-9 shrink-0 rounded-full border-2 border-background object-cover object-top !p-0 shadow-sm transition duration-300 hover:scale-110"
 				/>
 			) : (
 				<div
 					onMouseMove={handleMouseMove}
-					className="relative !m-0 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground shadow-sm transition duration-300 group-hover:scale-110 group-hover:border-primary"
+					className="relative !m-0 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground shadow-sm transition duration-300 hover:scale-110"
 				>
 					<Users className="size-3.5" />
 				</div>

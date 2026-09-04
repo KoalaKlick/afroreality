@@ -29,6 +29,7 @@ export interface OptionItem {
 	id: string;
 	categoryId: string;
 	optionText: string;
+	email?: string | null;
 	nomineeCode?: string | null;
 	description?: string | null;
 	imageUrl?: string | null;
@@ -57,6 +58,7 @@ export function OptionSheet({
 }: OptionSheetProps) {
 	const [isPending, startTransition] = useTransition();
 	const [optionText, setOptionText] = useState("");
+	const [email, setEmail] = useState("");
 	const [nomineeCode, setNomineeCode] = useState("");
 	const [description, setDescription] = useState("");
 	const [imageUrl, setImageUrl] = useState("");
@@ -75,11 +77,13 @@ export function OptionSheet({
 	useEffect(() => {
 		if (editingOption) {
 			setOptionText(editingOption.optionText);
+			setEmail(editingOption.email ?? "");
 			setNomineeCode(editingOption.nomineeCode ?? "");
 			setDescription(editingOption.description ?? "");
 			setImageUrl(editingOption.imageUrl ?? "");
 		} else {
 			setOptionText("");
+			setEmail("");
 			setNomineeCode("");
 			setDescription("");
 			setImageUrl("");
@@ -115,13 +119,19 @@ export function OptionSheet({
 
 		startTransition(async () => {
 			try {
+				const cleanDesc =
+					description && description.replace(/<[^>]*>/g, "").trim()
+						? description.trim()
+						: null;
+
 				if (editingOption) {
 					await updateVotingOption({
 						data: {
 							id: editingOption.id,
 							optionText,
+							email: email.trim() || null,
 							nomineeCode: nomineeCode || undefined,
-							description: description || undefined,
+							description: cleanDesc,
 							imageUrl: imageUrl || undefined,
 						},
 					});
@@ -132,8 +142,9 @@ export function OptionSheet({
 							eventId,
 							categoryId,
 							optionText,
+							email: email.trim() || null,
 							nomineeCode: nomineeCode || undefined,
-							description: description || undefined,
+							description: cleanDesc,
 							imageUrl: imageUrl || undefined,
 						},
 					});
@@ -206,7 +217,7 @@ export function OptionSheet({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="option-name">Nominee Name / Option</Label>
+						<Label htmlFor="option-name">Nominee Name / Option *</Label>
 						<Input
 							id="option-name"
 							value={optionText}
@@ -214,6 +225,20 @@ export function OptionSheet({
 							placeholder="e.g., John Doe or Team Alpha"
 							required
 						/>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="nominee-email">Nominee Email (Optional)</Label>
+						<Input
+							id="nominee-email"
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							placeholder="e.g., nominee@example.com"
+						/>
+						<p className="text-xs text-muted-foreground">
+							Optional email address to contact or notify the nominee.
+						</p>
 					</div>
 
 					<div className="space-y-2">

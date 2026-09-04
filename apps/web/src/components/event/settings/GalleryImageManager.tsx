@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Plus, X, Loader2, Image as ImageIcon, Upload } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
+import AddFilesIcon from "@/assets/add-files.svg";
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/lib/image-url-utils";
 import { useImageUpload } from "@/hooks/use-image-upload";
@@ -186,11 +187,11 @@ export function GalleryImageManager({
 							<p className="text-sm font-medium text-primary">Uploading...</p>
 						</>
 					) : (
-						<>
-							<Upload className="size-10 mb-2 opacity-50" />
-							<p className="text-sm font-medium">Click to add images</p>
-							<p className="text-xs">Up to {maxImages} images at once</p>
-						</>
+					<>
+						<AddFilesIcon className="size-10 text-primary/80 mb-1" />
+						<p className="text-xs font-medium text-foreground">Click to add images</p>
+						<p className="text-[10px] text-muted-foreground">Up to {maxImages} images at once</p>
+					</>
 					)}
 				</div>
 			)}

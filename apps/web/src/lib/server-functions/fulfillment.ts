@@ -198,7 +198,7 @@ export async function fulfillSuccessfulPayment({
 				const requireApproval = category?.requireApproval ?? true;
 				const newStatus = requireApproval ? "pending" : "approved";
 				const deletionCode = Math.floor(100000 + Math.random() * 900000).toString();
-				const nomineeCode = await generateNomineeCode(metadata.eventId, metadata.nomineeName);
+				const nomineeCode = await generateNomineeCode(metadata.eventId, metadata.categoryId, category?.name);
 
 				option = await prisma.votingOption.create({
 					data: {

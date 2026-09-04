@@ -18,9 +18,12 @@ export const ALLOWED_STORAGE_FOLDERS = [
 	"organizations",
 	"documents",
 	"nominees",
+	"nominee",
+	"nominations",
 	"tickets",
 	"uploads",
 	"sponsors",
+	"content",
 ] as const;
 
 export type StorageFolder = (typeof ALLOWED_STORAGE_FOLDERS)[number];

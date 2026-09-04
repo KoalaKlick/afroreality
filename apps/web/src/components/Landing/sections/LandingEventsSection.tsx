@@ -96,7 +96,7 @@ export function LandingEventsSection({
 	const events = initialEvents && initialEvents.length > 0 ? initialEvents : DEMO_EVENTS;
 
 	return (
-		<Section id="events" class="mt-20 md:mt-24" content-class="space-y-8">
+		<Section id="events" class="mt-20 md:mt-24 @container" content-class="space-y-8">
 			{/* Section Header */}
 			<div className="md:flex justify-between items-end gap-6">
 				<div className="max-w-md space-y-2">
@@ -142,12 +142,12 @@ export function LandingEventsSection({
 					</Link>
 				</div>
 			) : (
-				<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="grid gap-5 grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4">
 					{events.slice(0, 4).map((event) => (
 						<Link
 							key={event.id}
 							href={`/${event.organization.slug}/event/${event.slug}`}
-							className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+							className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
 						>
 							<EventCard event={event} />
 						</Link>

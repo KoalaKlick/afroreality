@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-	Vote,
-	User,
-	Share2,
-	Trophy,
-	Sparkles,
-	BarChart2,
-} from "lucide-react";
+import { Vote, Share2, Sparkles, BarChart2, Hash, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	Sheet,
@@ -21,6 +14,8 @@ import { PublicNominationModal } from "@/components/event/public/PublicNominatio
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { shareNominee } from "@/lib/utils/share-utils";
+import { NoNomineeIllustration } from "@/components/common/NoNomineeIllustration";
+import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
 
 interface VotingOption {
 	id: string;
@@ -28,8 +23,14 @@ interface VotingOption {
 	nomineeCode?: string | null;
 	imageUrl?: string | null;
 	bio?: string | null;
+	description?: string | null;
 	votes?: number;
 	votesCount?: number | bigint;
+}
+
+function stripHtml(html?: string | null): string {
+	if (!html) return "";
+	return html.replace(/<[^>]*>?/gm, "").trim();
 }
 
 interface NomineeGridProps {
@@ -96,7 +97,7 @@ export function NomineeGrid({
 		await shareNominee({
 			optionText: nominee.optionText,
 			nomineeCode: nominee.nomineeCode,
-			bio: nominee.bio,
+			bio: nominee.description || nominee.bio,
 			imageUrl: nominee.imageUrl,
 			categoryName: categoryName,
 		});
@@ -104,19 +105,19 @@ export function NomineeGrid({
 
 	if (!nominees || nominees.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center p-12 text-center border rounded-2xl bg-card">
-				<Trophy className="size-12 text-muted-foreground/40 mb-3" />
-				<h4 className="text-lg font-bold">No Nominees Yet</h4>
+			<div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl bg-card">
+				<NoNomineeIllustration className="w-48 h-auto mb-4 opacity-85" />
+				<h4 className="text-xl font-bold uppercase tracking-tight mb-1">No Nominees Yet</h4>
 				<p className="text-xs text-muted-foreground max-w-sm mt-1">
-					Nominees have not been announced or approved for this category yet.
+					Nominees have not been announced or approved for this category yet. Check back soon!
 				</p>
 			</div>
 		);
 	}
 
 	return (
-		<>
-			<div className="grid grid-cols-1 @lg:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
+		<div className="@container">
+			<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
 				{nominees.concat().map((nominee, index) => {
 					const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
 					const votePercentage =
@@ -127,14 +128,12 @@ export function NomineeGrid({
 					return (
 						<div
 							key={`${nominee.id}-${index}`}
-							className="group relative flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-4 transition-all duration-300 hover:border-primary/50 hover:shadow-lg shadow-xs"
+							onClick={() => handleOpenSheet(nominee)}
+							className="group relative flex flex-col justify-between h-full gap-2.5 rounded-2xl bg-card p-2.5 transition-all duration-300 hover:shadow-md cursor-pointer"
 						>
-							<div
-								onClick={() => handleOpenSheet(nominee)}
-								className="cursor-pointer space-y-3"
-							>
-								{/* Nominee Avatar */}
-								<div className="relative aspect-4/5 w-full rounded-xl overflow-hidden bg-muted flex items-center justify-center border">
+							<div className="space-y-2.5 flex-1 flex flex-col">
+								{/* Nominee Avatar / Poster */}
+								<div className="relative aspect-4/5 w-full rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
 									{nominee.imageUrl ? (
 										<img
 											src={getEventImageUrl(nominee.imageUrl) || ""}
@@ -142,18 +141,26 @@ export function NomineeGrid({
 											className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
 										/>
 									) : (
-										<User className="size-12 text-muted-foreground/50" />
-									)}
-
-									{nominee.nomineeCode && (
-										<div className="absolute top-2.5 right-2.5 rounded-full bg-background/85 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-mono font-bold tracking-wider uppercase border text-primary">
-											#{nominee.nomineeCode}
+										<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-4 text-center">
+											<NoNomineeIllustration className="w-full h-full p-4 object-contain opacity-75" />
 										</div>
 									)}
 
+									<div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-200" />
+
+									{/* Top-Left Code Badge (mirrors EventCard top-left badge) */}
+									<div className="absolute top-2.5 left-2.5 bg-background/95 backdrop-blur-md rounded-md py-1 px-2.5 flex flex-col items-center justify-center min-w-[48px] border border-border/80 shadow-none z-10">
+										<span className="text-[9px] font-bold uppercase text-muted-foreground tracking-wider">
+											CODE
+										</span>
+										<span className="text-sm font-bold font-mono text-primary leading-none mt-0.5">
+											{nominee.nomineeCode || `${extractCategoryPrefix(categoryName)}${String(index + 1).padStart(2, "0")}`}
+										</span>
+									</div>
+
 									{/* Real-Time Live Standings Badge on Image (if enabled) */}
 									{showTotalVotesPublicly && (
-										<div className="absolute bottom-2.5 left-2.5 rounded-full bg-background/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold border flex items-center gap-1 shadow-xs text-foreground">
+										<div className="absolute bottom-2.5 left-2.5 rounded-md bg-background/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold border border-border/70 flex items-center gap-1 shadow-xs text-foreground z-10">
 											<BarChart2 className="size-3 text-primary" />
 											<span>
 												{resultDisplayType === "count"
@@ -165,21 +172,20 @@ export function NomineeGrid({
 								</div>
 
 								{/* Nominee Meta */}
-								<div>
+								<div className="flex flex-col gap-1 px-0.5">
 									<h4 className="font-bold text-base text-foreground line-clamp-1 group-hover:text-primary transition-colors">
 										{nominee.optionText}
 									</h4>
-									{nominee.bio && (
-										<RichTextDisplay
-											content={nominee.bio}
-											className="text-xs text-muted-foreground line-clamp-2 mt-1 leading-relaxed"
-										/>
+									{(nominee.description || nominee.bio) && (
+										<p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+											{stripHtml(nominee.description || nominee.bio)}
+										</p>
 									)}
 								</div>
 							</div>
 
 							{/* Actions */}
-							<div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between gap-2">
+							<div className="pt-2 mt-auto border-t border-border/50 flex items-center justify-between gap-2">
 								<Button
 									variant="ghost"
 									size="icon"
@@ -192,7 +198,10 @@ export function NomineeGrid({
 
 								<Button
 									size="sm"
-									onClick={() => handleOpenVoteModal(nominee)}
+									onClick={(e) => {
+										e.stopPropagation();
+										handleOpenVoteModal(nominee);
+									}}
 									className="text-xs font-bold gap-1.5 h-8 flex-1"
 									disabled={isEnded}
 								>
@@ -213,10 +222,10 @@ export function NomineeGrid({
 				})}
 			</div>
 
-			{/* Nominee Profile Quick-View Sheet */}
+			{/* Nominee Profile Quick-View Sheet / Drawer */}
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 				<SheetContent
-					className="sm:max-w-md p-6 overflow-y-auto"
+					className="sm:max-w-md p-6 overflow-y-auto flex flex-col justify-between"
 					style={brandVars}
 				>
 					{selectedNominee && (() => {
@@ -229,14 +238,20 @@ export function NomineeGrid({
 								: 0;
 
 						return (
-							<div className="space-y-6">
-								<SheetHeader>
-									<SheetTitle className="text-xl font-bold">
+							<div className="space-y-6 flex-1 flex flex-col">
+								<SheetHeader className="text-left space-y-1">
+									<SheetTitle className="text-2xl font-black uppercase tracking-tight">
 										{selectedNominee.optionText}
 									</SheetTitle>
+									{selectedNominee.nomineeCode && (
+										<div className="flex items-center gap-1.5 text-xs font-mono font-bold text-primary">
+											<Hash className="size-3.5" />
+											<span>{selectedNominee.nomineeCode}</span>
+										</div>
+									)}
 								</SheetHeader>
 
-								<div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-muted border flex items-center justify-center">
+								<div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-muted border border-border/60 shadow-sm flex items-center justify-center shrink-0">
 									{selectedNominee.imageUrl ? (
 										<img
 											src={getEventImageUrl(selectedNominee.imageUrl) || ""}
@@ -244,12 +259,14 @@ export function NomineeGrid({
 											className="size-full object-cover"
 										/>
 									) : (
-										<User className="size-16 text-muted-foreground/40" />
+										<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-6 text-center">
+											<NoNomineeIllustration className="w-full h-full p-6 object-contain opacity-75" />
+										</div>
 									)}
 
 									{/* Real-Time Live Standings Badge on Sheet Image */}
 									{showTotalVotesPublicly && (
-										<div className="absolute bottom-3 left-3 rounded-full bg-background/90 backdrop-blur-md px-3 py-1 text-xs font-bold border border-border/60 flex items-center gap-1.5 shadow-md text-foreground">
+										<div className="absolute bottom-3 left-3 rounded-md bg-background/90 backdrop-blur-md px-3 py-1.5 text-xs font-bold border border-border/60 flex items-center gap-1.5 shadow-md text-foreground">
 											<BarChart2 className="size-3.5 text-primary" />
 											<span>
 												{resultDisplayType === "count"
@@ -260,21 +277,27 @@ export function NomineeGrid({
 									)}
 								</div>
 
-								{selectedNominee.bio && (
-									<div className="space-y-1">
-										<h5 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-											About Nominee
-										</h5>
+								{/* Why Vote For Me / Description */}
+								<div className="space-y-2 rounded-xl p-4 bg-muted/40 border border-border/60">
+									<h5 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+										<Sparkles className="size-3.5 text-primary" />
+										<span>Why Vote For Me</span>
+									</h5>
+									{(selectedNominee.description || selectedNominee.bio) ? (
 										<RichTextDisplay
-											content={selectedNominee.bio}
-											className="text-xs text-muted-foreground leading-relaxed"
+											content={selectedNominee.description || selectedNominee.bio || ""}
+											className="text-xs text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
 										/>
-									</div>
-								)}
+									) : (
+										<p className="text-xs text-muted-foreground italic">
+											No statement provided by nominee.
+										</p>
+									)}
+								</div>
 
-								<div className="flex items-center gap-3 pt-4 border-t">
+								<div className="flex items-center gap-3 pt-4 border-t border-border/80 mt-auto shrink-0">
 									<Button
-										className="flex-1 font-bold gap-2"
+										className="flex-1 font-bold gap-2 h-11"
 										disabled={isEnded}
 										onClick={() => {
 											setSheetOpen(false);
@@ -289,13 +312,13 @@ export function NomineeGrid({
 													? "Cast Ballot"
 													: isFree
 														? "Vote Free"
-														: `Vote (GHS ${votePrice.toFixed(2)})`}
+														: `Vote for ${selectedNominee.optionText} (GHS ${votePrice.toFixed(2)})`}
 										</span>
 									</Button>
 									<Button
 										variant="outline"
 										size="icon"
-										className="size-10 shrink-0"
+										className="size-11 shrink-0"
 										onClick={(e) => handleShare(e, selectedNominee)}
 										title="Share Nominee"
 									>
@@ -324,7 +347,7 @@ export function NomineeGrid({
 					brandVars={brandVars}
 				/>
 			)}
-		</>
+		</div>
 	);
 }
 
@@ -359,7 +382,7 @@ export function PublicNomineeSheet({
 	eventSlug,
 }: PublicNomineeSheetProps) {
 	return (
-		<div className="space-y-8">
+		<div className="space-y-8 @container">
 			{/* Public Nomination Banner */}
 			{category.allowPublicNomination && !isEnded && (
 				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-lg bg-card text-foreground">

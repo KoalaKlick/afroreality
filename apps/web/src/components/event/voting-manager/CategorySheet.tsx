@@ -15,7 +15,8 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, ImageIcon, Info, Lock, Percent, Hash } from "lucide-react";
+import { Loader2, X, Info, Lock, Percent, Hash } from "lucide-react";
+import AddFilesIcon from "@/assets/add-files.svg";
 import { toast } from "sonner";
 import {
 	createVotingCategory,
@@ -49,6 +50,12 @@ export interface CategoryItem {
 		imageUrl?: string | null;
 		votesCount: number | bigint;
 		status?: string | null;
+		isPublicNomination?: boolean;
+		email?: string | null;
+		nominatedByName?: string | null;
+		nominatedByEmail?: string | null;
+		deletionCode?: string | null;
+		createdAt?: string | Date;
 	}[];
 }
 
@@ -74,7 +81,7 @@ export function CategorySheet({
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const { isUploading, upload } = useImageUpload({
-		folder: "templates",
+		folder: "events",
 		convertOptions: {
 			quality: 0.85,
 			maxWidth: 1200,
@@ -185,12 +192,17 @@ export function CategorySheet({
 					resultDisplayType: formData.resultDisplayType,
 				};
 
+				const cleanDescription =
+					formData.description && formData.description.replace(/<[^>]*>/g, "").trim()
+						? formData.description.trim()
+						: null;
+
 				if (editingCategory) {
 					await updateVotingCategory({
 						data: {
 							id: editingCategory.id,
 							name: formData.name,
-							description: formData.description || undefined,
+							description: cleanDescription || undefined,
 							templateImage: formData.templateImage || null,
 							templateConfig: updatedTemplateConfig,
 							votePrice: votePriceNum,
@@ -210,7 +222,7 @@ export function CategorySheet({
 						data: {
 							eventId,
 							name: formData.name,
-							description: formData.description || undefined,
+							description: cleanDescription || undefined,
 							templateImage: formData.templateImage || undefined,
 							templateConfig: updatedTemplateConfig,
 							votePrice: votePriceNum,
@@ -284,6 +296,7 @@ export function CategorySheet({
 										setFormData((prev) => ({ ...prev, description: val }))
 									}
 									placeholder="Briefly describe what this category recognizes..."
+									minimal
 								/>
 							</div>
 
@@ -318,20 +331,26 @@ export function CategorySheet({
 										</Button>
 									</div>
 								) : (
-									<div
+									<button
+										type="button"
 										onClick={() => fileInputRef.current?.click()}
-										className="border-2 border-dashed border-border/80 hover:border-primary/50 hover:bg-primary/5 transition-colors rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer text-center gap-2"
+										disabled={isUploading}
+										className="w-full rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer text-center gap-1 hover:bg-primary/5 transition-colors bg-muted/40"
 									>
-										<div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-											<ImageIcon className="size-5" />
-										</div>
-										<div className="text-xs font-medium">
-											{isUploading ? "Uploading template..." : "Click to upload template image"}
-										</div>
-										<p className="text-[11px] text-muted-foreground">
-											PNG or JPG up to 2MB
-										</p>
-									</div>
+										{isUploading ? (
+											<Loader2 className="size-8 animate-spin text-primary" />
+										) : (
+											<>
+												<AddFilesIcon className="size-10 text-primary/80 mb-1" />
+												<span className="text-xs font-medium text-foreground">
+													Upload Category Image
+												</span>
+												<span className="text-[10px] text-muted-foreground">
+													PNG, JPG or WebP
+												</span>
+											</>
+										)}
+									</button>
 								)}
 
 								<input

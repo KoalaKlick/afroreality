@@ -19,6 +19,7 @@ import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { EventLocationDisplayMap } from "@/components/shared/map";
+import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 
 interface EventSidebarCardProps {
 	readonly event: {
@@ -112,11 +113,10 @@ export function EventSidebarCard({
 						className="w-full h-full object-cover"
 					/>
 				) : (
-					<div
-						className="w-full h-full"
-						style={{
-							background: `linear-gradient(135deg, ${primaryColor}cc 0%, ${event.organization.secondaryColor || "#FFD100"}99 50%, ${event.organization.tertiaryColor || "#EF3340"}cc 100%)`,
-						}}
+					<OrgGeometricBanner
+						primaryColor={event.organization.primaryColor}
+						secondaryColor={event.organization.secondaryColor}
+						tertiaryColor={event.organization.tertiaryColor}
 					/>
 				)}
 
