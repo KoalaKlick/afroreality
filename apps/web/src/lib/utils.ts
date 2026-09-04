@@ -38,6 +38,23 @@ export function getErrorMessage(err: unknown): string {
 
 	const trimmed = raw.trim();
 
+	// Intercept raw Prisma Unique Constraint Violation errors (e.g., P2002)
+	if (
+		trimmed.includes("P2002") ||
+		trimmed.includes("UniqueConstraintViolation") ||
+		trimmed.includes("Unique constraint failed") ||
+		trimmed.includes("driverAdapterError")
+	) {
+		if (
+			trimmed.includes("nominee_code") ||
+			trimmed.includes("nomineeCode") ||
+			trimmed.includes("VotingOption")
+		) {
+			return "Nominee code is already taken for this event. Please enter a different code or leave it blank to auto-generate.";
+		}
+		return "A record with this unique code or identifier already exists.";
+	}
+
 	if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
 		try {
 			const parsed = JSON.parse(trimmed);

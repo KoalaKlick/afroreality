@@ -65,37 +65,112 @@ export async function generateNomineeCode(
  */
 export async function createVotingOption({ data }: { data: any }): Promise<any> {
 	await requireSession();
-	const nomineeCode =
-		data.nomineeCode || (await generateNomineeCode(data.eventId, data.categoryId, data.optionText));
+	const eventId = data.eventId;
+	let nomineeCode = data.nomineeCode?.trim();
 
-	const option = await prisma.votingOption.create({
-		data: {
-			eventId: data.eventId,
-			categoryId: data.categoryId,
-			optionText: data.optionText.trim(),
-			email: data.email?.trim() || null,
-			description: data.description || null,
-			imageUrl: data.imageUrl || null,
-			nomineeCode,
-			status: "approved",
-			isPublicNomination: false,
-		},
-	});
-	revalidatePath(`/my-events/${data.eventId}`);
-	return serializeJsonSafe(option);
+	if (nomineeCode) {
+		const existing = await prisma.votingOption.findFirst({
+			where: {
+				eventId,
+				nomineeCode,
+			},
+			select: { id: true },
+		});
+		if (existing) {
+			throw new Error(
+				`Nominee code "${nomineeCode}" is already taken for this event. Please choose a different code or leave it blank to auto-generate.`
+			);
+		}
+	} else {
+		nomineeCode = await generateNomineeCode(eventId, data.categoryId, data.optionText);
+	}
+
+	try {
+		const option = await prisma.votingOption.create({
+			data: {
+				eventId: data.eventId,
+				categoryId: data.categoryId,
+				optionText: data.optionText.trim(),
+				email: data.email?.trim() || null,
+				description: data.description || null,
+				imageUrl: data.imageUrl || null,
+				nomineeCode,
+				status: "approved",
+				isPublicNomination: false,
+			},
+		});
+		revalidatePath(`/my-events/${data.eventId}`);
+		return serializeJsonSafe(option);
+	} catch (error: any) {
+		const errStr = String(error?.message || error?.meta?.driverAdapterError || error);
+		if (
+			error?.code === "P2002" ||
+			errStr.includes("P2002") ||
+			errStr.includes("UniqueConstraintViolation") ||
+			errStr.includes("nominee_code")
+		) {
+			throw new Error(
+				`Nominee code "${nomineeCode}" is already taken for this event. Please choose a different code or leave it blank to auto-generate.`
+			);
+		}
+		throw error;
+	}
 }
 
 export async function updateVotingOption({ data }: { data: any }): Promise<any> {
 	await requireSession();
 	const { id, ...rest } = data;
-	const updated = await prisma.votingOption.update({
-		where: { id: id || data.optionId },
-		data: {
-			...rest,
-			...(rest.email !== undefined ? { email: rest.email?.trim() || null } : {}),
-		},
-	});
-	return serializeJsonSafe(updated);
+	const targetId = id || data.optionId;
+	if (!targetId) throw new Error("Missing option id");
+
+	const newCode = rest.nomineeCode?.trim();
+	if (newCode) {
+		const current = await prisma.votingOption.findUnique({
+			where: { id: targetId },
+			select: { eventId: true },
+		});
+
+		if (current?.eventId) {
+			const existing = await prisma.votingOption.findFirst({
+				where: {
+					eventId: current.eventId,
+					nomineeCode: newCode,
+					id: { not: targetId },
+				},
+				select: { id: true },
+			});
+			if (existing) {
+				throw new Error(
+					`Nominee code "${newCode}" is already assigned to another nominee in this event.`
+				);
+			}
+		}
+	}
+
+	try {
+		const updated = await prisma.votingOption.update({
+			where: { id: targetId },
+			data: {
+				...rest,
+				...(rest.email !== undefined ? { email: rest.email?.trim() || null } : {}),
+				...(newCode ? { nomineeCode: newCode } : {}),
+			},
+		});
+		return serializeJsonSafe(updated);
+	} catch (error: any) {
+		const errStr = String(error?.message || error?.meta?.driverAdapterError || error);
+		if (
+			error?.code === "P2002" ||
+			errStr.includes("P2002") ||
+			errStr.includes("UniqueConstraintViolation") ||
+			errStr.includes("nominee_code")
+		) {
+			throw new Error(
+				`Nominee code "${newCode || "provided"}" is already assigned to another nominee in this event. Please enter a unique code.`
+			);
+		}
+		throw error;
+	}
 }
 
 export async function updateVotingOptionStatus({
@@ -318,49 +393,68 @@ export async function submitPublicNomination({
 	const status = requireApproval ? "pending" : "approved";
 	const nomineeCode = await generateNomineeCode(data.eventId, data.categoryId, category.name);
 
-	const option = await prisma.votingOption.create({
-		data: {
-			eventId: data.eventId,
-			categoryId: data.categoryId,
-			optionText: data.optionText.trim(),
-			email: data.email?.trim() || null,
-			description: data.description?.trim() || null,
-			imageUrl: data.imageUrl || null,
-			nominatedByName: data.nominatorName?.trim() || null,
-			nominatedByEmail: data.nominatorEmail?.trim() || null,
-			nomineeCode,
-			status,
-			isPublicNomination: true,
-			deletionCode: null, // Free nomination: no exit key needed
-		},
-	});
+	try {
+		const option = await prisma.votingOption.create({
+			data: {
+				eventId: data.eventId,
+				categoryId: data.categoryId,
+				optionText: data.optionText.trim(),
+				email: data.email?.trim() || null,
+				description: data.description?.trim() || null,
+				imageUrl: data.imageUrl || null,
+				nominatedByName: data.nominatorName?.trim() || null,
+				nominatedByEmail: data.nominatorEmail?.trim() || null,
+				nomineeCode,
+				status,
+				isPublicNomination: true,
+				deletionCode: null, // Free nomination: no exit key needed
+			},
+		});
 
-	// Fire confirmation email without exit key
-	const recipientEmail = data.nominatorEmail?.trim() || data.email?.trim();
-	if (recipientEmail) {
-		sendNominationConfirmationEmail({
-			email: recipientEmail,
-			recipientName: data.nominatorName?.trim() || recipientEmail,
-			nomineeName: data.optionText.trim(),
-			categoryName: category.name,
-			eventName: category.event.title,
-			status,
-			deletionCode: null,
-			organizationName: category.event.organization?.name || "Fextiva",
-			bannerUrl: category.event.bannerImage || category.event.flierImage,
-		}).catch((err) =>
-			console.error("[voting] Failed to send free nomination confirmation email:", err),
-		);
+		// Fire confirmation email without exit key
+		const recipientEmail = data.nominatorEmail?.trim() || data.email?.trim();
+		if (recipientEmail) {
+			sendNominationConfirmationEmail({
+				email: recipientEmail,
+				recipientName: data.nominatorName?.trim() || recipientEmail,
+				nomineeName: data.optionText.trim(),
+				categoryName: category.name,
+				eventName: category.event.title,
+				status,
+				deletionCode: null,
+				organizationName: category.event.organization?.name || "Fextiva",
+				bannerUrl: category.event.bannerImage || category.event.flierImage,
+			}).catch((err) =>
+				console.error("[voting] Failed to send free nomination confirmation email:", err),
+			);
+		}
+
+		return {
+			success: true,
+			data: serializeJsonSafe({
+				id: option.id,
+				nomineeCode: option.nomineeCode,
+				status: option.status,
+			}),
+		};
+	} catch (error: any) {
+		const errStr = String(error?.message || error?.meta?.driverAdapterError || error);
+		if (
+			error?.code === "P2002" ||
+			errStr.includes("P2002") ||
+			errStr.includes("UniqueConstraintViolation") ||
+			errStr.includes("nominee_code")
+		) {
+			return {
+				success: false,
+				error: "A nominee with this code already exists. Please try submitting again.",
+			};
+		}
+		return {
+			success: false,
+			error: error?.message || "Failed to submit nomination.",
+		};
 	}
-
-	return {
-		success: true,
-		data: serializeJsonSafe({
-			id: option.id,
-			nomineeCode: option.nomineeCode,
-			status: option.status,
-		}),
-	};
 }
 
 /**
