@@ -17,7 +17,12 @@ import { CategorySheet, type CategoryItem } from "./CategorySheet";
 import { OptionSheet, type OptionItem } from "./OptionSheet";
 import { NominationRequestsSheet, type NominationOption } from "./NominationRequestsSheet";
 import { deleteVotingCategory } from "@/lib/server-functions/voting";
-import { deleteVotingOption, approveNomination, rejectNomination } from "@/lib/server-functions/voting-options";
+import {
+	deleteVotingOption,
+	requestNomineeChange,
+	approveNomination,
+	rejectNomination,
+} from "@/lib/server-functions/voting-options";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
 import { NoNomineeIllustration } from "@/components/common/NoNomineeIllustration";
@@ -165,7 +170,7 @@ export function CategoryList({
 		});
 	}
 
-	function handleDeleteOption(optionId?: string, code?: string) {
+	function handleDeleteOption(optionId?: string) {
 		const targetId = optionId || optionToDelete?.id;
 		if (!targetId) return;
 
@@ -182,8 +187,13 @@ export function CategoryList({
 
 		startTransition(async () => {
 			try {
-				await deleteVotingOption({ data: { id: targetId, deletionCode: code } });
-				toast.success("Nominee deleted");
+				const res = await requestNomineeChange({
+					data: {
+						optionId: targetId,
+						requestType: "DELETE",
+					},
+				});
+				toast.success(res.message || "Deletion request sent to nominee for approval.");
 				setOptionToDelete(null);
 				if (onRefresh) onRefresh();
 			} catch (err) {
@@ -425,21 +435,17 @@ export function CategoryList({
 															displayImage={opt.imageUrl ?? null}
 															canEdit={canEdit}
 															isPending={isDeleting}
-															requiresDeletionCode={Boolean(opt.deletionCode)}
+															requiresDeletionCode={false}
 															onEdit={() => handleEditOption(cat, opt)}
-															onDelete={(code) => {
+															onDelete={() => {
 																const votesCount = Number(opt.votesCount || 0);
 																if (votesCount > 0) {
 																	toast.error(
-																		`Cannot delete "${opt.optionText}" because they already have ${votesCount.toLocaleString()} recorded vote${votesCount > 1 ? "s" : ""}. Nominees with votes cannot be removed.`,
+																		`Cannot delete "${opt.optionText}" because they already have ${votesCount.toLocaleString()} recorded vote${votesCount > 1 ? "s" : ""}. Nominees with votes cannot be removed.`
 																	);
 																	return;
 																}
-																if (opt.deletionCode) {
-																	handleDeleteOption(opt.id, code);
-																} else {
-																	setOptionToDelete(opt);
-																}
+																setOptionToDelete(opt);
 															}}
 														/>
 													))}

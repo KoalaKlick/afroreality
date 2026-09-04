@@ -17,7 +17,7 @@ import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import {
 	createVotingOption,
-	updateVotingOption,
+	requestNomineeChange,
 	getSuggestedNomineeCode,
 } from "@/lib/server-functions/voting-options";
 import { useImageUpload } from "@/hooks/use-image-upload";
@@ -30,6 +30,7 @@ export interface OptionItem {
 	categoryId: string;
 	optionText: string;
 	email?: string | null;
+	phone?: string | null;
 	nomineeCode?: string | null;
 	description?: string | null;
 	imageUrl?: string | null;
@@ -59,6 +60,7 @@ export function OptionSheet({
 	const [isPending, startTransition] = useTransition();
 	const [optionText, setOptionText] = useState("");
 	const [email, setEmail] = useState("");
+	const [phone, setPhone] = useState("");
 	const [nomineeCode, setNomineeCode] = useState("");
 	const [description, setDescription] = useState("");
 	const [imageUrl, setImageUrl] = useState("");
@@ -78,12 +80,14 @@ export function OptionSheet({
 		if (editingOption) {
 			setOptionText(editingOption.optionText);
 			setEmail(editingOption.email ?? "");
+			setPhone(editingOption.phone ?? "");
 			setNomineeCode(editingOption.nomineeCode ?? "");
 			setDescription(editingOption.description ?? "");
 			setImageUrl(editingOption.imageUrl ?? "");
 		} else {
 			setOptionText("");
 			setEmail("");
+			setPhone("");
 			setNomineeCode("");
 			setDescription("");
 			setImageUrl("");
@@ -117,6 +121,11 @@ export function OptionSheet({
 			return;
 		}
 
+		if (!email.trim()) {
+			toast.error("Nominee email address is required so they can receive their Confirmation Code.");
+			return;
+		}
+
 		startTransition(async () => {
 			try {
 				const cleanDesc =
@@ -125,30 +134,36 @@ export function OptionSheet({
 						: null;
 
 				if (editingOption) {
-					await updateVotingOption({
+					const res = await requestNomineeChange({
 						data: {
-							id: editingOption.id,
-							optionText,
-							email: email.trim() || null,
-							nomineeCode: nomineeCode || undefined,
-							description: cleanDesc,
-							imageUrl: imageUrl || undefined,
+							optionId: editingOption.id,
+							requestType: "EDIT",
+							proposedChanges: {
+								optionText: optionText.trim(),
+								email: email.trim(),
+								phone: phone.trim() || undefined,
+								nomineeCode: nomineeCode.trim() || undefined,
+								description: cleanDesc || undefined,
+								imageUrl: imageUrl || undefined,
+							},
 						},
 					});
-					toast.success("Nominee updated successfully");
+
+					toast.success(res.message || "Change request sent to nominee for approval.");
 				} else {
 					await createVotingOption({
 						data: {
 							eventId,
 							categoryId,
-							optionText,
-							email: email.trim() || null,
-							nomineeCode: nomineeCode || undefined,
+							optionText: optionText.trim(),
+							email: email.trim(),
+							phone: phone.trim() || undefined,
+							nomineeCode: nomineeCode.trim() || undefined,
 							description: cleanDesc,
 							imageUrl: imageUrl || undefined,
 						},
 					});
-					toast.success("Nominee added successfully");
+					toast.success(`Nominee added successfully. Confirmation Code sent to ${email.trim()}.`);
 				}
 
 				onOpenChange(false);
@@ -228,17 +243,29 @@ export function OptionSheet({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="nominee-email">Nominee Email (Optional)</Label>
+						<Label htmlFor="nominee-email">Nominee Email *</Label>
 						<Input
 							id="nominee-email"
 							type="email"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 							placeholder="e.g., nominee@example.com"
+							required
 						/>
 						<p className="text-xs text-muted-foreground">
-							Optional email address to contact or notify the nominee.
+							Required so the candidate receives their Confirmation Code and change requests.
 						</p>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor="nominee-phone">Nominee Phone (Optional)</Label>
+						<Input
+							id="nominee-phone"
+							type="tel"
+							value={phone}
+							onChange={(e) => setPhone(e.target.value)}
+							placeholder="e.g., +233 24 123 4567"
+						/>
 					</div>
 
 					<div className="space-y-2">

@@ -2,9 +2,25 @@
 import { prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "../session";
-import { serializeJsonSafe } from "../utils";
-import { sendNominationConfirmationEmail } from "@/lib/email/nomination";
+import { serializeJsonSafe, getFrontendBaseUrl } from "../utils";
+import {
+	sendNominationConfirmationEmail,
+	sendNomineeChangeRequestEmail,
+} from "@/lib/email/nomination";
 import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
+
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
+}
+
+function generateConfirmationCode(): string {
+	return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 /**
  * Generate a unique nominee code for an event based on category initials + 2-digit sequence
@@ -66,6 +82,14 @@ export async function generateNomineeCode(
 export async function createVotingOption({ data }: { data: any }): Promise<any> {
 	await requireSession();
 	const eventId = data.eventId;
+
+	const nomineeEmail = data.email?.trim();
+	if (!nomineeEmail) {
+		throw new Error(
+			"Nominee email address is required so they can receive their Confirmation Code and change requests."
+		);
+	}
+
 	let nomineeCode = data.nomineeCode?.trim();
 
 	if (nomineeCode) {
@@ -85,20 +109,44 @@ export async function createVotingOption({ data }: { data: any }): Promise<any> 
 		nomineeCode = await generateNomineeCode(eventId, data.categoryId, data.optionText);
 	}
 
+	const confirmationCode = generateConfirmationCode();
+
 	try {
 		const option = await prisma.votingOption.create({
 			data: {
 				eventId: data.eventId,
 				categoryId: data.categoryId,
 				optionText: data.optionText.trim(),
-				email: data.email?.trim() || null,
+				email: nomineeEmail,
+				phone: data.phone?.trim() || null,
 				description: data.description || null,
 				imageUrl: data.imageUrl || null,
 				nomineeCode,
+				deletionCode: confirmationCode,
 				status: "approved",
 				isPublicNomination: false,
 			},
+			include: {
+				category: true,
+				event: {
+					include: { organization: true },
+				},
+			},
 		});
+
+		// Send Confirmation Code email to nominee
+		sendNominationConfirmationEmail({
+			email: nomineeEmail,
+			recipientName: option.optionText,
+			nomineeName: option.optionText,
+			categoryName: option.category?.name || "Category",
+			eventName: option.event?.title || "Event",
+			status: "approved",
+			confirmationCode,
+			organizationName: option.event?.organization?.name || "Fextiva",
+			bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+		}).catch((err) => console.error("[voting] Failed to send nominee confirmation email:", err));
+
 		revalidatePath(`/my-events/${data.eventId}`);
 		return serializeJsonSafe(option);
 	} catch (error: any) {
@@ -392,6 +440,8 @@ export async function submitPublicNomination({
 	const requireApproval = category.requireApproval ?? true;
 	const status = requireApproval ? "pending" : "approved";
 	const nomineeCode = await generateNomineeCode(data.eventId, data.categoryId, category.name);
+	const confirmationCode = generateConfirmationCode();
+	const nomineeEmail = data.email?.trim() || data.nominatorEmail?.trim() || null;
 
 	try {
 		const option = await prisma.votingOption.create({
@@ -399,7 +449,7 @@ export async function submitPublicNomination({
 				eventId: data.eventId,
 				categoryId: data.categoryId,
 				optionText: data.optionText.trim(),
-				email: data.email?.trim() || null,
+				email: nomineeEmail,
 				description: data.description?.trim() || null,
 				imageUrl: data.imageUrl || null,
 				nominatedByName: data.nominatorName?.trim() || null,
@@ -407,21 +457,21 @@ export async function submitPublicNomination({
 				nomineeCode,
 				status,
 				isPublicNomination: true,
-				deletionCode: null, // Free nomination: no exit key needed
+				deletionCode: confirmationCode,
 			},
 		});
 
-		// Fire confirmation email without exit key
-		const recipientEmail = data.nominatorEmail?.trim() || data.email?.trim();
+		// Fire confirmation email with Confirmation Code
+		const recipientEmail = nomineeEmail;
 		if (recipientEmail) {
 			sendNominationConfirmationEmail({
 				email: recipientEmail,
-				recipientName: data.nominatorName?.trim() || recipientEmail,
+				recipientName: data.nominatorName?.trim() || data.optionText.trim(),
 				nomineeName: data.optionText.trim(),
 				categoryName: category.name,
 				eventName: category.event.title,
 				status,
-				deletionCode: null,
+				confirmationCode,
 				organizationName: category.event.organization?.name || "Fextiva",
 				bannerUrl: category.event.bannerImage || category.event.flierImage,
 			}).catch((err) =>
@@ -458,7 +508,7 @@ export async function submitPublicNomination({
 }
 
 /**
- * Public action: Withdraw/delete a public nomination using the exit key (deletionCode)
+ * Public action: Withdraw/delete a public nomination using the exit key / Confirmation Code
  */
 export async function withdrawNominationWithKey({
 	data,
@@ -467,7 +517,7 @@ export async function withdrawNominationWithKey({
 }): Promise<{ success: boolean; error?: string }> {
 	const { optionId, deletionCode } = data;
 	if (!optionId || !deletionCode?.trim()) {
-		return { success: false, error: "Option ID and exit key are required." };
+		return { success: false, error: "Option ID and Confirmation Code are required." };
 	}
 
 	const option = await prisma.votingOption.findUnique({
@@ -490,11 +540,314 @@ export async function withdrawNominationWithKey({
 	}
 
 	if (!option.deletionCode || option.deletionCode !== deletionCode.trim()) {
-		return { success: false, error: "Invalid nomination exit key." };
+		return { success: false, error: "Invalid Confirmation Code." };
 	}
 
 	await prisma.votingOption.delete({
 		where: { id: optionId },
+	});
+
+	return { success: true };
+}
+
+/**
+ * Organizer Action: Submit a proposed Edit or Delete request on a nominee.
+ * Creates a logged NomineeChangeRequest and sends a notification email to the nominee.
+ */
+export async function requestNomineeChange({
+	data,
+}: {
+	data: {
+		optionId: string;
+		requestType: "EDIT" | "DELETE";
+		proposedChanges?: {
+			optionText?: string;
+			categoryId?: string;
+			nomineeCode?: string;
+			email?: string;
+			phone?: string;
+			description?: string;
+			imageUrl?: string;
+		};
+	};
+}): Promise<{ success: boolean; requestId?: string; requiresNomineeApproval: boolean; message?: string }> {
+	const session = await requireSession();
+	const { optionId, requestType, proposedChanges = {} } = data;
+
+	if (!optionId) throw new Error("Missing option ID");
+
+	const option = await prisma.votingOption.findUnique({
+		where: { id: optionId },
+		include: {
+			category: true,
+			event: {
+				include: { organization: true },
+			},
+		},
+	});
+
+	if (!option) throw new Error("Nominee not found");
+
+	// Determine if voting has started / votes exist
+	const votesOnOption = await prisma.vote.count({ where: { optionId } });
+	const totalOptionVotes = Math.max(Number(option.votesCount || 0), votesOnOption);
+	const votesOnEvent = await prisma.vote.count({ where: { eventId: option.eventId } });
+	const eventStarted = Boolean(option.event.startDate && new Date() >= new Date(option.event.startDate));
+	const isVotingLive = totalOptionVotes > 0 || votesOnEvent > 0 || eventStarted;
+
+	// Check if this nominee was a paid nomination
+	const isPaidNomination =
+		Number(option.category?.nominationPrice || 0) > 0 ||
+		(option.isPublicNomination === true && Boolean(option.category?.nominationPrice && Number(option.category.nominationPrice) > 0));
+
+	// HARD BOUNDARY CHECKS
+	if (requestType === "DELETE") {
+		if (isVotingLive) {
+			throw new Error(
+				`Cannot delete "${option.optionText}" because voting has already started or votes have been recorded. Nominees cannot be removed once voting is live.`
+			);
+		}
+		if (isPaidNomination) {
+			throw new Error(
+				`Cannot delete "${option.optionText}" because this is a paid nomination. Paid nominations cannot be deleted.`
+			);
+		}
+	}
+
+	if (requestType === "EDIT" && isVotingLive) {
+		// Detect if identity-critical fields are changing
+		const isNameChanging = proposedChanges.optionText !== undefined && proposedChanges.optionText.trim() !== option.optionText;
+		const isCategoryChanging = proposedChanges.categoryId !== undefined && proposedChanges.categoryId !== option.categoryId;
+		const isCodeChanging = proposedChanges.nomineeCode !== undefined && proposedChanges.nomineeCode.trim() !== (option.nomineeCode || "");
+		const isEmailChanging = proposedChanges.email !== undefined && proposedChanges.email.trim() !== (option.email || "");
+
+		if (isNameChanging || isCategoryChanging || isCodeChanging || isEmailChanging) {
+			throw new Error(
+				"Voting has already started for this event. Identity-critical fields (Name, Category, Nominee Code, Email) cannot be edited once voting is live. You may only update photo or bio."
+			);
+		}
+	}
+
+	// Create logged NomineeChangeRequest record
+	const changeRequest = await prisma.nomineeChangeRequest.create({
+		data: {
+			optionId: option.id,
+			eventId: option.eventId,
+			requestType: requestType as any,
+			proposedChanges: proposedChanges as any,
+			status: "pending",
+			requestedBy: session.userId,
+		},
+	});
+
+	const nomineeEmail = option.email || option.nominatedByEmail;
+	if (!nomineeEmail) {
+		throw new Error(
+			"Nominee does not have an email address on file. An email is required so they can receive and approve change requests."
+		);
+	}
+
+	const baseUrl = getFrontendBaseUrl().replace(/\/$/, "");
+	const confirmUrl = `${baseUrl}/confirm-change/${changeRequest.id}`;
+
+	// Build human-readable changes summary HTML for the email
+	let changesSummaryHtml = "";
+	if (requestType === "DELETE") {
+		changesSummaryHtml = `<p style="margin:0;color:#dc2626;font-weight:700;">Permanently remove profile "${escapeHtml(option.optionText)}" from category "${escapeHtml(option.category?.name || "")}".</p>`;
+	} else {
+		const items: string[] = [];
+		if (proposedChanges.optionText && proposedChanges.optionText !== option.optionText) {
+			items.push(`<li><strong>Name:</strong> ${escapeHtml(option.optionText)} &rarr; <strong>${escapeHtml(proposedChanges.optionText)}</strong></li>`);
+		}
+		if (proposedChanges.description && proposedChanges.description !== option.description) {
+			items.push(`<li><strong>Bio / Description:</strong> Updated</li>`);
+		}
+		if (proposedChanges.imageUrl && proposedChanges.imageUrl !== option.imageUrl) {
+			items.push(`<li><strong>Photo:</strong> Updated</li>`);
+		}
+		if (proposedChanges.phone && proposedChanges.phone !== option.phone) {
+			items.push(`<li><strong>Phone:</strong> ${escapeHtml(option.phone || "None")} &rarr; <strong>${escapeHtml(proposedChanges.phone)}</strong></li>`);
+		}
+		if (proposedChanges.email && proposedChanges.email !== option.email) {
+			items.push(`<li><strong>Email:</strong> ${escapeHtml(option.email || "None")} &rarr; <strong>${escapeHtml(proposedChanges.email)}</strong></li>`);
+		}
+		changesSummaryHtml = `<ul style="margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.6;">${items.join("")}</ul>`;
+	}
+
+	// Dispatch Notification Email to Nominee
+	await sendNomineeChangeRequestEmail({
+		email: nomineeEmail,
+		recipientName: option.nominatedByName || option.optionText,
+		nomineeName: option.optionText,
+		categoryName: option.category?.name || "Category",
+		eventName: option.event?.title || "Event",
+		organizationName: option.event?.organization?.name || "Fextiva",
+		requestType: requestType as any,
+		changesSummaryHtml,
+		confirmUrl,
+		bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+	});
+
+	return {
+		success: true,
+		requestId: changeRequest.id,
+		requiresNomineeApproval: true,
+		message: `Change request sent to nominee (${nomineeEmail}) for approval.`,
+	};
+}
+
+/**
+ * Public Action: Retrieve NomineeChangeRequest details by ID for the approval page
+ */
+export async function getNomineeChangeRequest(requestId: string): Promise<any> {
+	if (!requestId) return null;
+
+	const request = await prisma.nomineeChangeRequest.findUnique({
+		where: { id: requestId },
+		include: {
+			option: {
+				select: {
+					id: true,
+					optionText: true,
+					email: true,
+					phone: true,
+					imageUrl: true,
+					description: true,
+					nomineeCode: true,
+					status: true,
+					category: {
+						select: { id: true, name: true },
+					},
+					event: {
+						select: {
+							id: true,
+							title: true,
+							slug: true,
+							startDate: true,
+							organization: {
+								select: { name: true, slug: true, logoUrl: true },
+							},
+						},
+					},
+				},
+			},
+		},
+	});
+
+	if (!request) return null;
+
+	return serializeJsonSafe(request);
+}
+
+/**
+ * Public Action: Nominee enters their Confirmation Code in-platform to approve a Change Request
+ */
+export async function approveNomineeChangeRequest({
+	requestId,
+	confirmationCode,
+}: {
+	requestId: string;
+	confirmationCode: string;
+}): Promise<{ success: boolean; error?: string }> {
+	if (!requestId || !confirmationCode?.trim()) {
+		return { success: false, error: "Request ID and Confirmation Code are required." };
+	}
+
+	const request = await prisma.nomineeChangeRequest.findUnique({
+		where: { id: requestId },
+		include: {
+			option: true,
+			event: true,
+		},
+	});
+
+	if (!request) return { success: false, error: "Change request not found." };
+
+	if (request.status !== "pending") {
+		return {
+			success: false,
+			error: `This request has already been ${request.status}.`,
+		};
+	}
+
+	// Verify Confirmation Code against option.deletionCode
+	const validCode = request.option.deletionCode?.trim();
+	if (!validCode || validCode !== confirmationCode.trim()) {
+		return {
+			success: false,
+			error: "Invalid Confirmation Code. Please check the code sent to your email and try again.",
+		};
+	}
+
+	const { optionId, requestType, proposedChanges } = request;
+	const changes = (proposedChanges as any) || {};
+
+	if (requestType === "DELETE") {
+		// Re-verify hard boundaries
+		const votesOnOption = await prisma.vote.count({ where: { optionId } });
+		if (votesOnOption > 0 || Number(request.option.votesCount || 0) > 0) {
+			return {
+				success: false,
+				error: "Cannot delete nominee because votes have already been recorded.",
+			};
+		}
+
+		await prisma.votingOption.delete({ where: { id: optionId } });
+	} else if (requestType === "EDIT") {
+		await prisma.votingOption.update({
+			where: { id: optionId },
+			data: {
+				...(changes.optionText !== undefined ? { optionText: changes.optionText.trim() } : {}),
+				...(changes.description !== undefined ? { description: changes.description } : {}),
+				...(changes.imageUrl !== undefined ? { imageUrl: changes.imageUrl } : {}),
+				...(changes.email !== undefined ? { email: changes.email?.trim() || null } : {}),
+				...(changes.phone !== undefined ? { phone: changes.phone?.trim() || null } : {}),
+				...(changes.categoryId !== undefined ? { categoryId: changes.categoryId } : {}),
+				...(changes.nomineeCode !== undefined ? { nomineeCode: changes.nomineeCode.trim() } : {}),
+			},
+		});
+	}
+
+	// Mark request approved
+	await prisma.nomineeChangeRequest.update({
+		where: { id: requestId },
+		data: {
+			status: "approved",
+			resolvedAt: new Date(),
+		},
+	});
+
+	revalidatePath(`/my-events/${request.eventId}`);
+
+	return { success: true };
+}
+
+/**
+ * Public Action: Nominee declines/rejects a Change Request in-platform
+ */
+export async function rejectNomineeChangeRequest({
+	requestId,
+}: {
+	requestId: string;
+}): Promise<{ success: boolean; error?: string }> {
+	if (!requestId) return { success: false, error: "Missing request ID" };
+
+	const request = await prisma.nomineeChangeRequest.findUnique({
+		where: { id: requestId },
+	});
+
+	if (!request) return { success: false, error: "Request not found" };
+
+	if (request.status !== "pending") {
+		return { success: false, error: `Request is already ${request.status}` };
+	}
+
+	await prisma.nomineeChangeRequest.update({
+		where: { id: requestId },
+		data: {
+			status: "rejected",
+			resolvedAt: new Date(),
+		},
 	});
 
 	return { success: true };

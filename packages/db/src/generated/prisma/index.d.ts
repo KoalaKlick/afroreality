@@ -174,6 +174,11 @@ export type VotingCategory = $Result.DefaultSelection<Prisma.$VotingCategoryPayl
  */
 export type VotingOption = $Result.DefaultSelection<Prisma.$VotingOptionPayload>
 /**
+ * Model NomineeChangeRequest
+ * 
+ */
+export type NomineeChangeRequest = $Result.DefaultSelection<Prisma.$NomineeChangeRequestPayload>
+/**
  * Model Vote
  * 
  */
@@ -422,6 +427,24 @@ export const UssdSessionStatus: {
 
 export type UssdSessionStatus = (typeof UssdSessionStatus)[keyof typeof UssdSessionStatus]
 
+
+export const ChangeRequestType: {
+  EDIT: 'EDIT',
+  DELETE: 'DELETE'
+};
+
+export type ChangeRequestType = (typeof ChangeRequestType)[keyof typeof ChangeRequestType]
+
+
+export const ChangeRequestStatus: {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  expired: 'expired'
+};
+
+export type ChangeRequestStatus = (typeof ChangeRequestStatus)[keyof typeof ChangeRequestStatus]
+
 }
 
 export type OrganizationRole = $Enums.OrganizationRole
@@ -515,6 +538,14 @@ export const PricingPlan: typeof $Enums.PricingPlan
 export type UssdSessionStatus = $Enums.UssdSessionStatus
 
 export const UssdSessionStatus: typeof $Enums.UssdSessionStatus
+
+export type ChangeRequestType = $Enums.ChangeRequestType
+
+export const ChangeRequestType: typeof $Enums.ChangeRequestType
+
+export type ChangeRequestStatus = $Enums.ChangeRequestStatus
+
+export const ChangeRequestStatus: typeof $Enums.ChangeRequestStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -956,6 +987,16 @@ export class PrismaClient<
     * ```
     */
   get votingOption(): Prisma.VotingOptionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.nomineeChangeRequest`: Exposes CRUD operations for the **NomineeChangeRequest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more NomineeChangeRequests
+    * const nomineeChangeRequests = await prisma.nomineeChangeRequest.findMany()
+    * ```
+    */
+  get nomineeChangeRequest(): Prisma.NomineeChangeRequestDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.vote`: Exposes CRUD operations for the **Vote** model.
@@ -1445,6 +1486,7 @@ export namespace Prisma {
     Verification: 'Verification',
     VotingCategory: 'VotingCategory',
     VotingOption: 'VotingOption',
+    NomineeChangeRequest: 'NomineeChangeRequest',
     Vote: 'Vote'
   };
 
@@ -1461,7 +1503,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "activityLog" | "event" | "eventSponsor" | "eventGalleryLink" | "eventSocialLink" | "eventMember" | "eventRegistrationField" | "accounts" | "sessions" | "users" | "organization" | "teamMember" | "organizationInvitation" | "membershipRequest" | "organizationSocialLink" | "wallet" | "transaction" | "payment" | "payout" | "feeConfiguration" | "promoter" | "referral" | "commission" | "ticketType" | "ticketOrder" | "ticket" | "profile" | "ussdSession" | "ussdState" | "verification" | "votingCategory" | "votingOption" | "vote"
+      modelProps: "activityLog" | "event" | "eventSponsor" | "eventGalleryLink" | "eventSocialLink" | "eventMember" | "eventRegistrationField" | "accounts" | "sessions" | "users" | "organization" | "teamMember" | "organizationInvitation" | "membershipRequest" | "organizationSocialLink" | "wallet" | "transaction" | "payment" | "payout" | "feeConfiguration" | "promoter" | "referral" | "commission" | "ticketType" | "ticketOrder" | "ticket" | "profile" | "ussdSession" | "ussdState" | "verification" | "votingCategory" | "votingOption" | "nomineeChangeRequest" | "vote"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3833,6 +3875,80 @@ export namespace Prisma {
           }
         }
       }
+      NomineeChangeRequest: {
+        payload: Prisma.$NomineeChangeRequestPayload<ExtArgs>
+        fields: Prisma.NomineeChangeRequestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.NomineeChangeRequestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NomineeChangeRequestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>
+          }
+          findFirst: {
+            args: Prisma.NomineeChangeRequestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NomineeChangeRequestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>
+          }
+          findMany: {
+            args: Prisma.NomineeChangeRequestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>[]
+          }
+          create: {
+            args: Prisma.NomineeChangeRequestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>
+          }
+          createMany: {
+            args: Prisma.NomineeChangeRequestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NomineeChangeRequestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>[]
+          }
+          delete: {
+            args: Prisma.NomineeChangeRequestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>
+          }
+          update: {
+            args: Prisma.NomineeChangeRequestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>
+          }
+          deleteMany: {
+            args: Prisma.NomineeChangeRequestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NomineeChangeRequestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.NomineeChangeRequestUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>[]
+          }
+          upsert: {
+            args: Prisma.NomineeChangeRequestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NomineeChangeRequestPayload>
+          }
+          aggregate: {
+            args: Prisma.NomineeChangeRequestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNomineeChangeRequest>
+          }
+          groupBy: {
+            args: Prisma.NomineeChangeRequestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<NomineeChangeRequestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NomineeChangeRequestCountArgs<ExtArgs>
+            result: $Utils.Optional<NomineeChangeRequestCountAggregateOutputType> | number
+          }
+        }
+      }
       Vote: {
         payload: Prisma.$VotePayload<ExtArgs>
         fields: Prisma.VoteFieldRefs
@@ -4062,6 +4178,7 @@ export namespace Prisma {
     verification?: VerificationOmit
     votingCategory?: VotingCategoryOmit
     votingOption?: VotingOptionOmit
+    nomineeChangeRequest?: NomineeChangeRequestOmit
     vote?: VoteOmit
   }
 
@@ -4154,6 +4271,7 @@ export namespace Prisma {
     votes: number
     votingCategories: number
     votingOptions: number
+    nomineeChangeRequests: number
   }
 
   export type EventCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4168,6 +4286,7 @@ export namespace Prisma {
     votes?: boolean | EventCountOutputTypeCountVotesArgs
     votingCategories?: boolean | EventCountOutputTypeCountVotingCategoriesArgs
     votingOptions?: boolean | EventCountOutputTypeCountVotingOptionsArgs
+    nomineeChangeRequests?: boolean | EventCountOutputTypeCountNomineeChangeRequestsArgs
   }
 
   // Custom InputTypes
@@ -4256,6 +4375,13 @@ export namespace Prisma {
    */
   export type EventCountOutputTypeCountVotingOptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VotingOptionWhereInput
+  }
+
+  /**
+   * EventCountOutputType without action
+   */
+  export type EventCountOutputTypeCountNomineeChangeRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NomineeChangeRequestWhereInput
   }
 
 
@@ -4840,10 +4966,12 @@ export namespace Prisma {
 
   export type VotingOptionCountOutputType = {
     votes: number
+    changeRequests: number
   }
 
   export type VotingOptionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     votes?: boolean | VotingOptionCountOutputTypeCountVotesArgs
+    changeRequests?: boolean | VotingOptionCountOutputTypeCountChangeRequestsArgs
   }
 
   // Custom InputTypes
@@ -4862,6 +4990,13 @@ export namespace Prisma {
    */
   export type VotingOptionCountOutputTypeCountVotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VoteWhereInput
+  }
+
+  /**
+   * VotingOptionCountOutputType without action
+   */
+  export type VotingOptionCountOutputTypeCountChangeRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NomineeChangeRequestWhereInput
   }
 
 
@@ -6479,6 +6614,7 @@ export namespace Prisma {
     votes?: boolean | Event$votesArgs<ExtArgs>
     votingCategories?: boolean | Event$votingCategoriesArgs<ExtArgs>
     votingOptions?: boolean | Event$votingOptionsArgs<ExtArgs>
+    nomineeChangeRequests?: boolean | Event$nomineeChangeRequestsArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["event"]>
 
@@ -6606,6 +6742,7 @@ export namespace Prisma {
     votes?: boolean | Event$votesArgs<ExtArgs>
     votingCategories?: boolean | Event$votingCategoriesArgs<ExtArgs>
     votingOptions?: boolean | Event$votingOptionsArgs<ExtArgs>
+    nomineeChangeRequests?: boolean | Event$nomineeChangeRequestsArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type EventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6633,6 +6770,7 @@ export namespace Prisma {
       votes: Prisma.$VotePayload<ExtArgs>[]
       votingCategories: Prisma.$VotingCategoryPayload<ExtArgs>[]
       votingOptions: Prisma.$VotingOptionPayload<ExtArgs>[]
+      nomineeChangeRequests: Prisma.$NomineeChangeRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7074,6 +7212,7 @@ export namespace Prisma {
     votes<T extends Event$votesArgs<ExtArgs> = {}>(args?: Subset<T, Event$votesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     votingCategories<T extends Event$votingCategoriesArgs<ExtArgs> = {}>(args?: Subset<T, Event$votingCategoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotingCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     votingOptions<T extends Event$votingOptionsArgs<ExtArgs> = {}>(args?: Subset<T, Event$votingOptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotingOptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    nomineeChangeRequests<T extends Event$nomineeChangeRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Event$nomineeChangeRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7816,6 +7955,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: VotingOptionScalarFieldEnum | VotingOptionScalarFieldEnum[]
+  }
+
+  /**
+   * Event.nomineeChangeRequests
+   */
+  export type Event$nomineeChangeRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    where?: NomineeChangeRequestWhereInput
+    orderBy?: NomineeChangeRequestOrderByWithRelationInput | NomineeChangeRequestOrderByWithRelationInput[]
+    cursor?: NomineeChangeRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: NomineeChangeRequestScalarFieldEnum | NomineeChangeRequestScalarFieldEnum[]
   }
 
   /**
@@ -43132,6 +43295,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     email: string | null
+    phone: string | null
     isPublicNomination: boolean | null
     nominatedByEmail: string | null
     nominatedById: string | null
@@ -43154,6 +43318,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     email: string | null
+    phone: string | null
     isPublicNomination: boolean | null
     nominatedByEmail: string | null
     nominatedById: string | null
@@ -43176,6 +43341,7 @@ export namespace Prisma {
     createdAt: number
     updatedAt: number
     email: number
+    phone: number
     isPublicNomination: number
     nominatedByEmail: number
     nominatedById: number
@@ -43210,6 +43376,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     email?: true
+    phone?: true
     isPublicNomination?: true
     nominatedByEmail?: true
     nominatedById?: true
@@ -43232,6 +43399,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     email?: true
+    phone?: true
     isPublicNomination?: true
     nominatedByEmail?: true
     nominatedById?: true
@@ -43254,6 +43422,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     email?: true
+    phone?: true
     isPublicNomination?: true
     nominatedByEmail?: true
     nominatedById?: true
@@ -43363,6 +43532,7 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     email: string | null
+    phone: string | null
     isPublicNomination: boolean
     nominatedByEmail: string | null
     nominatedById: string | null
@@ -43404,6 +43574,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     email?: boolean
+    phone?: boolean
     isPublicNomination?: boolean
     nominatedByEmail?: boolean
     nominatedById?: boolean
@@ -43413,6 +43584,7 @@ export namespace Prisma {
     finalImage?: boolean
     deletionCode?: boolean
     votes?: boolean | VotingOption$votesArgs<ExtArgs>
+    changeRequests?: boolean | VotingOption$changeRequestsArgs<ExtArgs>
     category?: boolean | VotingOption$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
     nominatedBy?: boolean | VotingOption$nominatedByArgs<ExtArgs>
@@ -43431,6 +43603,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     email?: boolean
+    phone?: boolean
     isPublicNomination?: boolean
     nominatedByEmail?: boolean
     nominatedById?: boolean
@@ -43456,6 +43629,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     email?: boolean
+    phone?: boolean
     isPublicNomination?: boolean
     nominatedByEmail?: boolean
     nominatedById?: boolean
@@ -43481,6 +43655,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     email?: boolean
+    phone?: boolean
     isPublicNomination?: boolean
     nominatedByEmail?: boolean
     nominatedById?: boolean
@@ -43491,9 +43666,10 @@ export namespace Prisma {
     deletionCode?: boolean
   }
 
-  export type VotingOptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "categoryId" | "optionText" | "description" | "imageUrl" | "orderIdx" | "votesCount" | "createdAt" | "updatedAt" | "email" | "isPublicNomination" | "nominatedByEmail" | "nominatedById" | "nominatedByName" | "nomineeCode" | "status" | "finalImage" | "deletionCode", ExtArgs["result"]["votingOption"]>
+  export type VotingOptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "categoryId" | "optionText" | "description" | "imageUrl" | "orderIdx" | "votesCount" | "createdAt" | "updatedAt" | "email" | "phone" | "isPublicNomination" | "nominatedByEmail" | "nominatedById" | "nominatedByName" | "nomineeCode" | "status" | "finalImage" | "deletionCode", ExtArgs["result"]["votingOption"]>
   export type VotingOptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     votes?: boolean | VotingOption$votesArgs<ExtArgs>
+    changeRequests?: boolean | VotingOption$changeRequestsArgs<ExtArgs>
     category?: boolean | VotingOption$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
     nominatedBy?: boolean | VotingOption$nominatedByArgs<ExtArgs>
@@ -43514,6 +43690,7 @@ export namespace Prisma {
     name: "VotingOption"
     objects: {
       votes: Prisma.$VotePayload<ExtArgs>[]
+      changeRequests: Prisma.$NomineeChangeRequestPayload<ExtArgs>[]
       category: Prisma.$VotingCategoryPayload<ExtArgs> | null
       event: Prisma.$EventPayload<ExtArgs>
       nominatedBy: Prisma.$ProfilePayload<ExtArgs> | null
@@ -43530,6 +43707,7 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       email: string | null
+      phone: string | null
       isPublicNomination: boolean
       nominatedByEmail: string | null
       nominatedById: string | null
@@ -43933,6 +44111,7 @@ export namespace Prisma {
   export interface Prisma__VotingOptionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     votes<T extends VotingOption$votesArgs<ExtArgs> = {}>(args?: Subset<T, VotingOption$votesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    changeRequests<T extends VotingOption$changeRequestsArgs<ExtArgs> = {}>(args?: Subset<T, VotingOption$changeRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     category<T extends VotingOption$categoryArgs<ExtArgs> = {}>(args?: Subset<T, VotingOption$categoryArgs<ExtArgs>>): Prisma__VotingCategoryClient<$Result.GetResult<Prisma.$VotingCategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     event<T extends EventDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventDefaultArgs<ExtArgs>>): Prisma__EventClient<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     nominatedBy<T extends VotingOption$nominatedByArgs<ExtArgs> = {}>(args?: Subset<T, VotingOption$nominatedByArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -43976,6 +44155,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"VotingOption", 'DateTime'>
     readonly updatedAt: FieldRef<"VotingOption", 'DateTime'>
     readonly email: FieldRef<"VotingOption", 'String'>
+    readonly phone: FieldRef<"VotingOption", 'String'>
     readonly isPublicNomination: FieldRef<"VotingOption", 'Boolean'>
     readonly nominatedByEmail: FieldRef<"VotingOption", 'String'>
     readonly nominatedById: FieldRef<"VotingOption", 'String'>
@@ -44409,6 +44589,30 @@ export namespace Prisma {
   }
 
   /**
+   * VotingOption.changeRequests
+   */
+  export type VotingOption$changeRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    where?: NomineeChangeRequestWhereInput
+    orderBy?: NomineeChangeRequestOrderByWithRelationInput | NomineeChangeRequestOrderByWithRelationInput[]
+    cursor?: NomineeChangeRequestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: NomineeChangeRequestScalarFieldEnum | NomineeChangeRequestScalarFieldEnum[]
+  }
+
+  /**
    * VotingOption.category
    */
   export type VotingOption$categoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -44462,6 +44666,1125 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: VotingOptionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model NomineeChangeRequest
+   */
+
+  export type AggregateNomineeChangeRequest = {
+    _count: NomineeChangeRequestCountAggregateOutputType | null
+    _min: NomineeChangeRequestMinAggregateOutputType | null
+    _max: NomineeChangeRequestMaxAggregateOutputType | null
+  }
+
+  export type NomineeChangeRequestMinAggregateOutputType = {
+    id: string | null
+    optionId: string | null
+    eventId: string | null
+    requestType: $Enums.ChangeRequestType | null
+    status: $Enums.ChangeRequestStatus | null
+    requestedBy: string | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type NomineeChangeRequestMaxAggregateOutputType = {
+    id: string | null
+    optionId: string | null
+    eventId: string | null
+    requestType: $Enums.ChangeRequestType | null
+    status: $Enums.ChangeRequestStatus | null
+    requestedBy: string | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type NomineeChangeRequestCountAggregateOutputType = {
+    id: number
+    optionId: number
+    eventId: number
+    requestType: number
+    proposedChanges: number
+    status: number
+    requestedBy: number
+    createdAt: number
+    resolvedAt: number
+    _all: number
+  }
+
+
+  export type NomineeChangeRequestMinAggregateInputType = {
+    id?: true
+    optionId?: true
+    eventId?: true
+    requestType?: true
+    status?: true
+    requestedBy?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type NomineeChangeRequestMaxAggregateInputType = {
+    id?: true
+    optionId?: true
+    eventId?: true
+    requestType?: true
+    status?: true
+    requestedBy?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type NomineeChangeRequestCountAggregateInputType = {
+    id?: true
+    optionId?: true
+    eventId?: true
+    requestType?: true
+    proposedChanges?: true
+    status?: true
+    requestedBy?: true
+    createdAt?: true
+    resolvedAt?: true
+    _all?: true
+  }
+
+  export type NomineeChangeRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NomineeChangeRequest to aggregate.
+     */
+    where?: NomineeChangeRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NomineeChangeRequests to fetch.
+     */
+    orderBy?: NomineeChangeRequestOrderByWithRelationInput | NomineeChangeRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: NomineeChangeRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NomineeChangeRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NomineeChangeRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned NomineeChangeRequests
+    **/
+    _count?: true | NomineeChangeRequestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: NomineeChangeRequestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: NomineeChangeRequestMaxAggregateInputType
+  }
+
+  export type GetNomineeChangeRequestAggregateType<T extends NomineeChangeRequestAggregateArgs> = {
+        [P in keyof T & keyof AggregateNomineeChangeRequest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNomineeChangeRequest[P]>
+      : GetScalarType<T[P], AggregateNomineeChangeRequest[P]>
+  }
+
+
+
+
+  export type NomineeChangeRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NomineeChangeRequestWhereInput
+    orderBy?: NomineeChangeRequestOrderByWithAggregationInput | NomineeChangeRequestOrderByWithAggregationInput[]
+    by: NomineeChangeRequestScalarFieldEnum[] | NomineeChangeRequestScalarFieldEnum
+    having?: NomineeChangeRequestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: NomineeChangeRequestCountAggregateInputType | true
+    _min?: NomineeChangeRequestMinAggregateInputType
+    _max?: NomineeChangeRequestMaxAggregateInputType
+  }
+
+  export type NomineeChangeRequestGroupByOutputType = {
+    id: string
+    optionId: string
+    eventId: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonValue
+    status: $Enums.ChangeRequestStatus
+    requestedBy: string | null
+    createdAt: Date
+    resolvedAt: Date | null
+    _count: NomineeChangeRequestCountAggregateOutputType | null
+    _min: NomineeChangeRequestMinAggregateOutputType | null
+    _max: NomineeChangeRequestMaxAggregateOutputType | null
+  }
+
+  type GetNomineeChangeRequestGroupByPayload<T extends NomineeChangeRequestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<NomineeChangeRequestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof NomineeChangeRequestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NomineeChangeRequestGroupByOutputType[P]>
+            : GetScalarType<T[P], NomineeChangeRequestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type NomineeChangeRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    optionId?: boolean
+    eventId?: boolean
+    requestType?: boolean
+    proposedChanges?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    option?: boolean | VotingOptionDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nomineeChangeRequest"]>
+
+  export type NomineeChangeRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    optionId?: boolean
+    eventId?: boolean
+    requestType?: boolean
+    proposedChanges?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    option?: boolean | VotingOptionDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nomineeChangeRequest"]>
+
+  export type NomineeChangeRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    optionId?: boolean
+    eventId?: boolean
+    requestType?: boolean
+    proposedChanges?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    option?: boolean | VotingOptionDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nomineeChangeRequest"]>
+
+  export type NomineeChangeRequestSelectScalar = {
+    id?: boolean
+    optionId?: boolean
+    eventId?: boolean
+    requestType?: boolean
+    proposedChanges?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+  }
+
+  export type NomineeChangeRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "optionId" | "eventId" | "requestType" | "proposedChanges" | "status" | "requestedBy" | "createdAt" | "resolvedAt", ExtArgs["result"]["nomineeChangeRequest"]>
+  export type NomineeChangeRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    option?: boolean | VotingOptionDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }
+  export type NomineeChangeRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    option?: boolean | VotingOptionDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }
+  export type NomineeChangeRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    option?: boolean | VotingOptionDefaultArgs<ExtArgs>
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }
+
+  export type $NomineeChangeRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "NomineeChangeRequest"
+    objects: {
+      option: Prisma.$VotingOptionPayload<ExtArgs>
+      event: Prisma.$EventPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      optionId: string
+      eventId: string
+      requestType: $Enums.ChangeRequestType
+      proposedChanges: Prisma.JsonValue
+      status: $Enums.ChangeRequestStatus
+      requestedBy: string | null
+      createdAt: Date
+      resolvedAt: Date | null
+    }, ExtArgs["result"]["nomineeChangeRequest"]>
+    composites: {}
+  }
+
+  type NomineeChangeRequestGetPayload<S extends boolean | null | undefined | NomineeChangeRequestDefaultArgs> = $Result.GetResult<Prisma.$NomineeChangeRequestPayload, S>
+
+  type NomineeChangeRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<NomineeChangeRequestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: NomineeChangeRequestCountAggregateInputType | true
+    }
+
+  export interface NomineeChangeRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['NomineeChangeRequest'], meta: { name: 'NomineeChangeRequest' } }
+    /**
+     * Find zero or one NomineeChangeRequest that matches the filter.
+     * @param {NomineeChangeRequestFindUniqueArgs} args - Arguments to find a NomineeChangeRequest
+     * @example
+     * // Get one NomineeChangeRequest
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends NomineeChangeRequestFindUniqueArgs>(args: SelectSubset<T, NomineeChangeRequestFindUniqueArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one NomineeChangeRequest that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {NomineeChangeRequestFindUniqueOrThrowArgs} args - Arguments to find a NomineeChangeRequest
+     * @example
+     * // Get one NomineeChangeRequest
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends NomineeChangeRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, NomineeChangeRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first NomineeChangeRequest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NomineeChangeRequestFindFirstArgs} args - Arguments to find a NomineeChangeRequest
+     * @example
+     * // Get one NomineeChangeRequest
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends NomineeChangeRequestFindFirstArgs>(args?: SelectSubset<T, NomineeChangeRequestFindFirstArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first NomineeChangeRequest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NomineeChangeRequestFindFirstOrThrowArgs} args - Arguments to find a NomineeChangeRequest
+     * @example
+     * // Get one NomineeChangeRequest
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends NomineeChangeRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, NomineeChangeRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more NomineeChangeRequests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NomineeChangeRequestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all NomineeChangeRequests
+     * const nomineeChangeRequests = await prisma.nomineeChangeRequest.findMany()
+     * 
+     * // Get first 10 NomineeChangeRequests
+     * const nomineeChangeRequests = await prisma.nomineeChangeRequest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nomineeChangeRequestWithIdOnly = await prisma.nomineeChangeRequest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends NomineeChangeRequestFindManyArgs>(args?: SelectSubset<T, NomineeChangeRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a NomineeChangeRequest.
+     * @param {NomineeChangeRequestCreateArgs} args - Arguments to create a NomineeChangeRequest.
+     * @example
+     * // Create one NomineeChangeRequest
+     * const NomineeChangeRequest = await prisma.nomineeChangeRequest.create({
+     *   data: {
+     *     // ... data to create a NomineeChangeRequest
+     *   }
+     * })
+     * 
+     */
+    create<T extends NomineeChangeRequestCreateArgs>(args: SelectSubset<T, NomineeChangeRequestCreateArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many NomineeChangeRequests.
+     * @param {NomineeChangeRequestCreateManyArgs} args - Arguments to create many NomineeChangeRequests.
+     * @example
+     * // Create many NomineeChangeRequests
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends NomineeChangeRequestCreateManyArgs>(args?: SelectSubset<T, NomineeChangeRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many NomineeChangeRequests and returns the data saved in the database.
+     * @param {NomineeChangeRequestCreateManyAndReturnArgs} args - Arguments to create many NomineeChangeRequests.
+     * @example
+     * // Create many NomineeChangeRequests
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many NomineeChangeRequests and only return the `id`
+     * const nomineeChangeRequestWithIdOnly = await prisma.nomineeChangeRequest.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends NomineeChangeRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, NomineeChangeRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a NomineeChangeRequest.
+     * @param {NomineeChangeRequestDeleteArgs} args - Arguments to delete one NomineeChangeRequest.
+     * @example
+     * // Delete one NomineeChangeRequest
+     * const NomineeChangeRequest = await prisma.nomineeChangeRequest.delete({
+     *   where: {
+     *     // ... filter to delete one NomineeChangeRequest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends NomineeChangeRequestDeleteArgs>(args: SelectSubset<T, NomineeChangeRequestDeleteArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one NomineeChangeRequest.
+     * @param {NomineeChangeRequestUpdateArgs} args - Arguments to update one NomineeChangeRequest.
+     * @example
+     * // Update one NomineeChangeRequest
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends NomineeChangeRequestUpdateArgs>(args: SelectSubset<T, NomineeChangeRequestUpdateArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more NomineeChangeRequests.
+     * @param {NomineeChangeRequestDeleteManyArgs} args - Arguments to filter NomineeChangeRequests to delete.
+     * @example
+     * // Delete a few NomineeChangeRequests
+     * const { count } = await prisma.nomineeChangeRequest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends NomineeChangeRequestDeleteManyArgs>(args?: SelectSubset<T, NomineeChangeRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NomineeChangeRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NomineeChangeRequestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many NomineeChangeRequests
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends NomineeChangeRequestUpdateManyArgs>(args: SelectSubset<T, NomineeChangeRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NomineeChangeRequests and returns the data updated in the database.
+     * @param {NomineeChangeRequestUpdateManyAndReturnArgs} args - Arguments to update many NomineeChangeRequests.
+     * @example
+     * // Update many NomineeChangeRequests
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more NomineeChangeRequests and only return the `id`
+     * const nomineeChangeRequestWithIdOnly = await prisma.nomineeChangeRequest.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends NomineeChangeRequestUpdateManyAndReturnArgs>(args: SelectSubset<T, NomineeChangeRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one NomineeChangeRequest.
+     * @param {NomineeChangeRequestUpsertArgs} args - Arguments to update or create a NomineeChangeRequest.
+     * @example
+     * // Update or create a NomineeChangeRequest
+     * const nomineeChangeRequest = await prisma.nomineeChangeRequest.upsert({
+     *   create: {
+     *     // ... data to create a NomineeChangeRequest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the NomineeChangeRequest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends NomineeChangeRequestUpsertArgs>(args: SelectSubset<T, NomineeChangeRequestUpsertArgs<ExtArgs>>): Prisma__NomineeChangeRequestClient<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of NomineeChangeRequests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NomineeChangeRequestCountArgs} args - Arguments to filter NomineeChangeRequests to count.
+     * @example
+     * // Count the number of NomineeChangeRequests
+     * const count = await prisma.nomineeChangeRequest.count({
+     *   where: {
+     *     // ... the filter for the NomineeChangeRequests we want to count
+     *   }
+     * })
+    **/
+    count<T extends NomineeChangeRequestCountArgs>(
+      args?: Subset<T, NomineeChangeRequestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NomineeChangeRequestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a NomineeChangeRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NomineeChangeRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends NomineeChangeRequestAggregateArgs>(args: Subset<T, NomineeChangeRequestAggregateArgs>): Prisma.PrismaPromise<GetNomineeChangeRequestAggregateType<T>>
+
+    /**
+     * Group by NomineeChangeRequest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NomineeChangeRequestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends NomineeChangeRequestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: NomineeChangeRequestGroupByArgs['orderBy'] }
+        : { orderBy?: NomineeChangeRequestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, NomineeChangeRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNomineeChangeRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the NomineeChangeRequest model
+   */
+  readonly fields: NomineeChangeRequestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for NomineeChangeRequest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__NomineeChangeRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    option<T extends VotingOptionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, VotingOptionDefaultArgs<ExtArgs>>): Prisma__VotingOptionClient<$Result.GetResult<Prisma.$VotingOptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    event<T extends EventDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventDefaultArgs<ExtArgs>>): Prisma__EventClient<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the NomineeChangeRequest model
+   */
+  interface NomineeChangeRequestFieldRefs {
+    readonly id: FieldRef<"NomineeChangeRequest", 'String'>
+    readonly optionId: FieldRef<"NomineeChangeRequest", 'String'>
+    readonly eventId: FieldRef<"NomineeChangeRequest", 'String'>
+    readonly requestType: FieldRef<"NomineeChangeRequest", 'ChangeRequestType'>
+    readonly proposedChanges: FieldRef<"NomineeChangeRequest", 'Json'>
+    readonly status: FieldRef<"NomineeChangeRequest", 'ChangeRequestStatus'>
+    readonly requestedBy: FieldRef<"NomineeChangeRequest", 'String'>
+    readonly createdAt: FieldRef<"NomineeChangeRequest", 'DateTime'>
+    readonly resolvedAt: FieldRef<"NomineeChangeRequest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * NomineeChangeRequest findUnique
+   */
+  export type NomineeChangeRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which NomineeChangeRequest to fetch.
+     */
+    where: NomineeChangeRequestWhereUniqueInput
+  }
+
+  /**
+   * NomineeChangeRequest findUniqueOrThrow
+   */
+  export type NomineeChangeRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which NomineeChangeRequest to fetch.
+     */
+    where: NomineeChangeRequestWhereUniqueInput
+  }
+
+  /**
+   * NomineeChangeRequest findFirst
+   */
+  export type NomineeChangeRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which NomineeChangeRequest to fetch.
+     */
+    where?: NomineeChangeRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NomineeChangeRequests to fetch.
+     */
+    orderBy?: NomineeChangeRequestOrderByWithRelationInput | NomineeChangeRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NomineeChangeRequests.
+     */
+    cursor?: NomineeChangeRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NomineeChangeRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NomineeChangeRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NomineeChangeRequests.
+     */
+    distinct?: NomineeChangeRequestScalarFieldEnum | NomineeChangeRequestScalarFieldEnum[]
+  }
+
+  /**
+   * NomineeChangeRequest findFirstOrThrow
+   */
+  export type NomineeChangeRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which NomineeChangeRequest to fetch.
+     */
+    where?: NomineeChangeRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NomineeChangeRequests to fetch.
+     */
+    orderBy?: NomineeChangeRequestOrderByWithRelationInput | NomineeChangeRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NomineeChangeRequests.
+     */
+    cursor?: NomineeChangeRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NomineeChangeRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NomineeChangeRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NomineeChangeRequests.
+     */
+    distinct?: NomineeChangeRequestScalarFieldEnum | NomineeChangeRequestScalarFieldEnum[]
+  }
+
+  /**
+   * NomineeChangeRequest findMany
+   */
+  export type NomineeChangeRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * Filter, which NomineeChangeRequests to fetch.
+     */
+    where?: NomineeChangeRequestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NomineeChangeRequests to fetch.
+     */
+    orderBy?: NomineeChangeRequestOrderByWithRelationInput | NomineeChangeRequestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing NomineeChangeRequests.
+     */
+    cursor?: NomineeChangeRequestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NomineeChangeRequests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NomineeChangeRequests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NomineeChangeRequests.
+     */
+    distinct?: NomineeChangeRequestScalarFieldEnum | NomineeChangeRequestScalarFieldEnum[]
+  }
+
+  /**
+   * NomineeChangeRequest create
+   */
+  export type NomineeChangeRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a NomineeChangeRequest.
+     */
+    data: XOR<NomineeChangeRequestCreateInput, NomineeChangeRequestUncheckedCreateInput>
+  }
+
+  /**
+   * NomineeChangeRequest createMany
+   */
+  export type NomineeChangeRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many NomineeChangeRequests.
+     */
+    data: NomineeChangeRequestCreateManyInput | NomineeChangeRequestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * NomineeChangeRequest createManyAndReturn
+   */
+  export type NomineeChangeRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * The data used to create many NomineeChangeRequests.
+     */
+    data: NomineeChangeRequestCreateManyInput | NomineeChangeRequestCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * NomineeChangeRequest update
+   */
+  export type NomineeChangeRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a NomineeChangeRequest.
+     */
+    data: XOR<NomineeChangeRequestUpdateInput, NomineeChangeRequestUncheckedUpdateInput>
+    /**
+     * Choose, which NomineeChangeRequest to update.
+     */
+    where: NomineeChangeRequestWhereUniqueInput
+  }
+
+  /**
+   * NomineeChangeRequest updateMany
+   */
+  export type NomineeChangeRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update NomineeChangeRequests.
+     */
+    data: XOR<NomineeChangeRequestUpdateManyMutationInput, NomineeChangeRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which NomineeChangeRequests to update
+     */
+    where?: NomineeChangeRequestWhereInput
+    /**
+     * Limit how many NomineeChangeRequests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * NomineeChangeRequest updateManyAndReturn
+   */
+  export type NomineeChangeRequestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * The data used to update NomineeChangeRequests.
+     */
+    data: XOR<NomineeChangeRequestUpdateManyMutationInput, NomineeChangeRequestUncheckedUpdateManyInput>
+    /**
+     * Filter which NomineeChangeRequests to update
+     */
+    where?: NomineeChangeRequestWhereInput
+    /**
+     * Limit how many NomineeChangeRequests to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * NomineeChangeRequest upsert
+   */
+  export type NomineeChangeRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the NomineeChangeRequest to update in case it exists.
+     */
+    where: NomineeChangeRequestWhereUniqueInput
+    /**
+     * In case the NomineeChangeRequest found by the `where` argument doesn't exist, create a new NomineeChangeRequest with this data.
+     */
+    create: XOR<NomineeChangeRequestCreateInput, NomineeChangeRequestUncheckedCreateInput>
+    /**
+     * In case the NomineeChangeRequest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<NomineeChangeRequestUpdateInput, NomineeChangeRequestUncheckedUpdateInput>
+  }
+
+  /**
+   * NomineeChangeRequest delete
+   */
+  export type NomineeChangeRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
+    /**
+     * Filter which NomineeChangeRequest to delete.
+     */
+    where: NomineeChangeRequestWhereUniqueInput
+  }
+
+  /**
+   * NomineeChangeRequest deleteMany
+   */
+  export type NomineeChangeRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NomineeChangeRequests to delete
+     */
+    where?: NomineeChangeRequestWhereInput
+    /**
+     * Limit how many NomineeChangeRequests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * NomineeChangeRequest without action
+   */
+  export type NomineeChangeRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NomineeChangeRequest
+     */
+    select?: NomineeChangeRequestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NomineeChangeRequest
+     */
+    omit?: NomineeChangeRequestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NomineeChangeRequestInclude<ExtArgs> | null
   }
 
 
@@ -46393,6 +47716,7 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     email: 'email',
+    phone: 'phone',
     isPublicNomination: 'isPublicNomination',
     nominatedByEmail: 'nominatedByEmail',
     nominatedById: 'nominatedById',
@@ -46404,6 +47728,21 @@ export namespace Prisma {
   };
 
   export type VotingOptionScalarFieldEnum = (typeof VotingOptionScalarFieldEnum)[keyof typeof VotingOptionScalarFieldEnum]
+
+
+  export const NomineeChangeRequestScalarFieldEnum: {
+    id: 'id',
+    optionId: 'optionId',
+    eventId: 'eventId',
+    requestType: 'requestType',
+    proposedChanges: 'proposedChanges',
+    status: 'status',
+    requestedBy: 'requestedBy',
+    createdAt: 'createdAt',
+    resolvedAt: 'resolvedAt'
+  };
+
+  export type NomineeChangeRequestScalarFieldEnum = (typeof NomineeChangeRequestScalarFieldEnum)[keyof typeof NomineeChangeRequestScalarFieldEnum]
 
 
   export const VoteScalarFieldEnum: {
@@ -46439,6 +47778,13 @@ export namespace Prisma {
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const QueryMode: {
@@ -46854,6 +48200,34 @@ export namespace Prisma {
    */
   export type ListEnumUssdSessionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UssdSessionStatus[]'>
     
+
+
+  /**
+   * Reference to a field of type 'ChangeRequestType'
+   */
+  export type EnumChangeRequestTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChangeRequestType'>
+    
+
+
+  /**
+   * Reference to a field of type 'ChangeRequestType[]'
+   */
+  export type ListEnumChangeRequestTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChangeRequestType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ChangeRequestStatus'
+   */
+  export type EnumChangeRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChangeRequestStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ChangeRequestStatus[]'
+   */
+  export type ListEnumChangeRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChangeRequestStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -46996,6 +48370,7 @@ export namespace Prisma {
     votes?: VoteListRelationFilter
     votingCategories?: VotingCategoryListRelationFilter
     votingOptions?: VotingOptionListRelationFilter
+    nomineeChangeRequests?: NomineeChangeRequestListRelationFilter
   }
 
   export type EventOrderByWithRelationInput = {
@@ -47044,6 +48419,7 @@ export namespace Prisma {
     votes?: VoteOrderByRelationAggregateInput
     votingCategories?: VotingCategoryOrderByRelationAggregateInput
     votingOptions?: VotingOptionOrderByRelationAggregateInput
+    nomineeChangeRequests?: NomineeChangeRequestOrderByRelationAggregateInput
   }
 
   export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -47096,6 +48472,7 @@ export namespace Prisma {
     votes?: VoteListRelationFilter
     votingCategories?: VotingCategoryListRelationFilter
     votingOptions?: VotingOptionListRelationFilter
+    nomineeChangeRequests?: NomineeChangeRequestListRelationFilter
   }, "id" | "ussdCode" | "organizationId_slug">
 
   export type EventOrderByWithAggregationInput = {
@@ -50010,6 +51387,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"VotingOption"> | Date | string
     updatedAt?: DateTimeFilter<"VotingOption"> | Date | string
     email?: StringNullableFilter<"VotingOption"> | string | null
+    phone?: StringNullableFilter<"VotingOption"> | string | null
     isPublicNomination?: BoolFilter<"VotingOption"> | boolean
     nominatedByEmail?: StringNullableFilter<"VotingOption"> | string | null
     nominatedById?: StringNullableFilter<"VotingOption"> | string | null
@@ -50019,6 +51397,7 @@ export namespace Prisma {
     finalImage?: StringNullableFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableFilter<"VotingOption"> | string | null
     votes?: VoteListRelationFilter
+    changeRequests?: NomineeChangeRequestListRelationFilter
     category?: XOR<VotingCategoryNullableScalarRelationFilter, VotingCategoryWhereInput> | null
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
     nominatedBy?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
@@ -50036,6 +51415,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     email?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
     isPublicNomination?: SortOrder
     nominatedByEmail?: SortOrderInput | SortOrder
     nominatedById?: SortOrderInput | SortOrder
@@ -50045,6 +51425,7 @@ export namespace Prisma {
     finalImage?: SortOrderInput | SortOrder
     deletionCode?: SortOrderInput | SortOrder
     votes?: VoteOrderByRelationAggregateInput
+    changeRequests?: NomineeChangeRequestOrderByRelationAggregateInput
     category?: VotingCategoryOrderByWithRelationInput
     event?: EventOrderByWithRelationInput
     nominatedBy?: ProfileOrderByWithRelationInput
@@ -50066,6 +51447,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"VotingOption"> | Date | string
     updatedAt?: DateTimeFilter<"VotingOption"> | Date | string
     email?: StringNullableFilter<"VotingOption"> | string | null
+    phone?: StringNullableFilter<"VotingOption"> | string | null
     isPublicNomination?: BoolFilter<"VotingOption"> | boolean
     nominatedByEmail?: StringNullableFilter<"VotingOption"> | string | null
     nominatedById?: StringNullableFilter<"VotingOption"> | string | null
@@ -50075,6 +51457,7 @@ export namespace Prisma {
     finalImage?: StringNullableFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableFilter<"VotingOption"> | string | null
     votes?: VoteListRelationFilter
+    changeRequests?: NomineeChangeRequestListRelationFilter
     category?: XOR<VotingCategoryNullableScalarRelationFilter, VotingCategoryWhereInput> | null
     event?: XOR<EventScalarRelationFilter, EventWhereInput>
     nominatedBy?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
@@ -50092,6 +51475,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     email?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
     isPublicNomination?: SortOrder
     nominatedByEmail?: SortOrderInput | SortOrder
     nominatedById?: SortOrderInput | SortOrder
@@ -50122,6 +51506,7 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"VotingOption"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"VotingOption"> | Date | string
     email?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
+    phone?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
     isPublicNomination?: BoolWithAggregatesFilter<"VotingOption"> | boolean
     nominatedByEmail?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
     nominatedById?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
@@ -50130,6 +51515,84 @@ export namespace Prisma {
     status?: EnumApprovalStatusWithAggregatesFilter<"VotingOption"> | $Enums.ApprovalStatus
     finalImage?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
+  }
+
+  export type NomineeChangeRequestWhereInput = {
+    AND?: NomineeChangeRequestWhereInput | NomineeChangeRequestWhereInput[]
+    OR?: NomineeChangeRequestWhereInput[]
+    NOT?: NomineeChangeRequestWhereInput | NomineeChangeRequestWhereInput[]
+    id?: UuidFilter<"NomineeChangeRequest"> | string
+    optionId?: UuidFilter<"NomineeChangeRequest"> | string
+    eventId?: UuidFilter<"NomineeChangeRequest"> | string
+    requestType?: EnumChangeRequestTypeFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestType
+    proposedChanges?: JsonFilter<"NomineeChangeRequest">
+    status?: EnumChangeRequestStatusFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestStatus
+    requestedBy?: StringNullableFilter<"NomineeChangeRequest"> | string | null
+    createdAt?: DateTimeFilter<"NomineeChangeRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"NomineeChangeRequest"> | Date | string | null
+    option?: XOR<VotingOptionScalarRelationFilter, VotingOptionWhereInput>
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+  }
+
+  export type NomineeChangeRequestOrderByWithRelationInput = {
+    id?: SortOrder
+    optionId?: SortOrder
+    eventId?: SortOrder
+    requestType?: SortOrder
+    proposedChanges?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    option?: VotingOptionOrderByWithRelationInput
+    event?: EventOrderByWithRelationInput
+  }
+
+  export type NomineeChangeRequestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: NomineeChangeRequestWhereInput | NomineeChangeRequestWhereInput[]
+    OR?: NomineeChangeRequestWhereInput[]
+    NOT?: NomineeChangeRequestWhereInput | NomineeChangeRequestWhereInput[]
+    optionId?: UuidFilter<"NomineeChangeRequest"> | string
+    eventId?: UuidFilter<"NomineeChangeRequest"> | string
+    requestType?: EnumChangeRequestTypeFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestType
+    proposedChanges?: JsonFilter<"NomineeChangeRequest">
+    status?: EnumChangeRequestStatusFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestStatus
+    requestedBy?: StringNullableFilter<"NomineeChangeRequest"> | string | null
+    createdAt?: DateTimeFilter<"NomineeChangeRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"NomineeChangeRequest"> | Date | string | null
+    option?: XOR<VotingOptionScalarRelationFilter, VotingOptionWhereInput>
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+  }, "id">
+
+  export type NomineeChangeRequestOrderByWithAggregationInput = {
+    id?: SortOrder
+    optionId?: SortOrder
+    eventId?: SortOrder
+    requestType?: SortOrder
+    proposedChanges?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    _count?: NomineeChangeRequestCountOrderByAggregateInput
+    _max?: NomineeChangeRequestMaxOrderByAggregateInput
+    _min?: NomineeChangeRequestMinOrderByAggregateInput
+  }
+
+  export type NomineeChangeRequestScalarWhereWithAggregatesInput = {
+    AND?: NomineeChangeRequestScalarWhereWithAggregatesInput | NomineeChangeRequestScalarWhereWithAggregatesInput[]
+    OR?: NomineeChangeRequestScalarWhereWithAggregatesInput[]
+    NOT?: NomineeChangeRequestScalarWhereWithAggregatesInput | NomineeChangeRequestScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"NomineeChangeRequest"> | string
+    optionId?: UuidWithAggregatesFilter<"NomineeChangeRequest"> | string
+    eventId?: UuidWithAggregatesFilter<"NomineeChangeRequest"> | string
+    requestType?: EnumChangeRequestTypeWithAggregatesFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestType
+    proposedChanges?: JsonWithAggregatesFilter<"NomineeChangeRequest">
+    status?: EnumChangeRequestStatusWithAggregatesFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestStatus
+    requestedBy?: StringNullableWithAggregatesFilter<"NomineeChangeRequest"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"NomineeChangeRequest"> | Date | string
+    resolvedAt?: DateTimeNullableWithAggregatesFilter<"NomineeChangeRequest"> | Date | string | null
   }
 
   export type VoteWhereInput = {
@@ -50384,6 +51847,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateInput = {
@@ -50430,6 +51894,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventUpdateInput = {
@@ -50476,6 +51941,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateInput = {
@@ -50522,6 +51988,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventCreateManyInput = {
@@ -53853,6 +55320,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedByName?: string | null
@@ -53861,6 +55329,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
     event: EventCreateNestedOneWithoutVotingOptionsInput
     nominatedBy?: ProfileCreateNestedOneWithoutNominatedOptionsInput
@@ -53878,6 +55347,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedById?: string | null
@@ -53887,6 +55357,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type VotingOptionUpdateInput = {
@@ -53899,6 +55370,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -53907,6 +55379,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
     event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
     nominatedBy?: ProfileUpdateOneWithoutNominatedOptionsNestedInput
@@ -53924,6 +55397,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -53933,6 +55407,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type VotingOptionCreateManyInput = {
@@ -53947,6 +55422,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedById?: string | null
@@ -53967,6 +55443,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -53988,6 +55465,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -53996,6 +55474,88 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type NomineeChangeRequestCreateInput = {
+    id?: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+    option: VotingOptionCreateNestedOneWithoutChangeRequestsInput
+    event: EventCreateNestedOneWithoutNomineeChangeRequestsInput
+  }
+
+  export type NomineeChangeRequestUncheckedCreateInput = {
+    id?: string
+    optionId: string
+    eventId: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type NomineeChangeRequestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    option?: VotingOptionUpdateOneRequiredWithoutChangeRequestsNestedInput
+    event?: EventUpdateOneRequiredWithoutNomineeChangeRequestsNestedInput
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    optionId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type NomineeChangeRequestCreateManyInput = {
+    id?: string
+    optionId: string
+    eventId: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type NomineeChangeRequestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    optionId?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VoteCreateInput = {
@@ -54484,6 +56044,12 @@ export namespace Prisma {
     none?: VotingOptionWhereInput
   }
 
+  export type NomineeChangeRequestListRelationFilter = {
+    every?: NomineeChangeRequestWhereInput
+    some?: NomineeChangeRequestWhereInput
+    none?: NomineeChangeRequestWhereInput
+  }
+
   export type EventGalleryLinkOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -54525,6 +56091,10 @@ export namespace Prisma {
   }
 
   export type VotingOptionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type NomineeChangeRequestOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -56889,6 +58459,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     email?: SortOrder
+    phone?: SortOrder
     isPublicNomination?: SortOrder
     nominatedByEmail?: SortOrder
     nominatedById?: SortOrder
@@ -56916,6 +58487,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     email?: SortOrder
+    phone?: SortOrder
     isPublicNomination?: SortOrder
     nominatedByEmail?: SortOrder
     nominatedById?: SortOrder
@@ -56938,6 +58510,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     email?: SortOrder
+    phone?: SortOrder
     isPublicNomination?: SortOrder
     nominatedByEmail?: SortOrder
     nominatedById?: SortOrder
@@ -56953,14 +58526,131 @@ export namespace Prisma {
     votesCount?: SortOrder
   }
 
-  export type EventMemberNullableScalarRelationFilter = {
-    is?: EventMemberWhereInput | null
-    isNot?: EventMemberWhereInput | null
+  export type EnumChangeRequestTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestType | EnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestTypeFilter<$PrismaModel> | $Enums.ChangeRequestType
+  }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type EnumChangeRequestStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestStatus | EnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestStatusFilter<$PrismaModel> | $Enums.ChangeRequestStatus
   }
 
   export type VotingOptionScalarRelationFilter = {
     is?: VotingOptionWhereInput
     isNot?: VotingOptionWhereInput
+  }
+
+  export type NomineeChangeRequestCountOrderByAggregateInput = {
+    id?: SortOrder
+    optionId?: SortOrder
+    eventId?: SortOrder
+    requestType?: SortOrder
+    proposedChanges?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type NomineeChangeRequestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    optionId?: SortOrder
+    eventId?: SortOrder
+    requestType?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type NomineeChangeRequestMinOrderByAggregateInput = {
+    id?: SortOrder
+    optionId?: SortOrder
+    eventId?: SortOrder
+    requestType?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type EnumChangeRequestTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestType | EnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestTypeWithAggregatesFilter<$PrismaModel> | $Enums.ChangeRequestType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumChangeRequestTypeFilter<$PrismaModel>
+    _max?: NestedEnumChangeRequestTypeFilter<$PrismaModel>
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
+  }
+
+  export type EnumChangeRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestStatus | EnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ChangeRequestStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumChangeRequestStatusFilter<$PrismaModel>
+    _max?: NestedEnumChangeRequestStatusFilter<$PrismaModel>
+  }
+
+  export type EventMemberNullableScalarRelationFilter = {
+    is?: EventMemberWhereInput | null
+    isNot?: EventMemberWhereInput | null
   }
 
   export type VoteCountOrderByAggregateInput = {
@@ -57160,6 +58850,13 @@ export namespace Prisma {
     connect?: VotingOptionWhereUniqueInput | VotingOptionWhereUniqueInput[]
   }
 
+  export type NomineeChangeRequestCreateNestedManyWithoutEventInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutEventInput, NomineeChangeRequestUncheckedCreateWithoutEventInput> | NomineeChangeRequestCreateWithoutEventInput[] | NomineeChangeRequestUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutEventInput | NomineeChangeRequestCreateOrConnectWithoutEventInput[]
+    createMany?: NomineeChangeRequestCreateManyEventInputEnvelope
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+  }
+
   export type EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput = {
     create?: XOR<EventGalleryLinkCreateWithoutEventInput, EventGalleryLinkUncheckedCreateWithoutEventInput> | EventGalleryLinkCreateWithoutEventInput[] | EventGalleryLinkUncheckedCreateWithoutEventInput[]
     connectOrCreate?: EventGalleryLinkCreateOrConnectWithoutEventInput | EventGalleryLinkCreateOrConnectWithoutEventInput[]
@@ -57235,6 +58932,13 @@ export namespace Prisma {
     connectOrCreate?: VotingOptionCreateOrConnectWithoutEventInput | VotingOptionCreateOrConnectWithoutEventInput[]
     createMany?: VotingOptionCreateManyEventInputEnvelope
     connect?: VotingOptionWhereUniqueInput | VotingOptionWhereUniqueInput[]
+  }
+
+  export type NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutEventInput, NomineeChangeRequestUncheckedCreateWithoutEventInput> | NomineeChangeRequestCreateWithoutEventInput[] | NomineeChangeRequestUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutEventInput | NomineeChangeRequestCreateOrConnectWithoutEventInput[]
+    createMany?: NomineeChangeRequestCreateManyEventInputEnvelope
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
   }
 
   export type EnumEventTypeFieldUpdateOperationsInput = {
@@ -57451,6 +59155,20 @@ export namespace Prisma {
     deleteMany?: VotingOptionScalarWhereInput | VotingOptionScalarWhereInput[]
   }
 
+  export type NomineeChangeRequestUpdateManyWithoutEventNestedInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutEventInput, NomineeChangeRequestUncheckedCreateWithoutEventInput> | NomineeChangeRequestCreateWithoutEventInput[] | NomineeChangeRequestUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutEventInput | NomineeChangeRequestCreateOrConnectWithoutEventInput[]
+    upsert?: NomineeChangeRequestUpsertWithWhereUniqueWithoutEventInput | NomineeChangeRequestUpsertWithWhereUniqueWithoutEventInput[]
+    createMany?: NomineeChangeRequestCreateManyEventInputEnvelope
+    set?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    disconnect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    delete?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    update?: NomineeChangeRequestUpdateWithWhereUniqueWithoutEventInput | NomineeChangeRequestUpdateWithWhereUniqueWithoutEventInput[]
+    updateMany?: NomineeChangeRequestUpdateManyWithWhereWithoutEventInput | NomineeChangeRequestUpdateManyWithWhereWithoutEventInput[]
+    deleteMany?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
+  }
+
   export type EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput = {
     create?: XOR<EventGalleryLinkCreateWithoutEventInput, EventGalleryLinkUncheckedCreateWithoutEventInput> | EventGalleryLinkCreateWithoutEventInput[] | EventGalleryLinkUncheckedCreateWithoutEventInput[]
     connectOrCreate?: EventGalleryLinkCreateOrConnectWithoutEventInput | EventGalleryLinkCreateOrConnectWithoutEventInput[]
@@ -57603,6 +59321,20 @@ export namespace Prisma {
     update?: VotingOptionUpdateWithWhereUniqueWithoutEventInput | VotingOptionUpdateWithWhereUniqueWithoutEventInput[]
     updateMany?: VotingOptionUpdateManyWithWhereWithoutEventInput | VotingOptionUpdateManyWithWhereWithoutEventInput[]
     deleteMany?: VotingOptionScalarWhereInput | VotingOptionScalarWhereInput[]
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutEventInput, NomineeChangeRequestUncheckedCreateWithoutEventInput> | NomineeChangeRequestCreateWithoutEventInput[] | NomineeChangeRequestUncheckedCreateWithoutEventInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutEventInput | NomineeChangeRequestCreateOrConnectWithoutEventInput[]
+    upsert?: NomineeChangeRequestUpsertWithWhereUniqueWithoutEventInput | NomineeChangeRequestUpsertWithWhereUniqueWithoutEventInput[]
+    createMany?: NomineeChangeRequestCreateManyEventInputEnvelope
+    set?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    disconnect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    delete?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    update?: NomineeChangeRequestUpdateWithWhereUniqueWithoutEventInput | NomineeChangeRequestUpdateWithWhereUniqueWithoutEventInput[]
+    updateMany?: NomineeChangeRequestUpdateManyWithWhereWithoutEventInput | NomineeChangeRequestUpdateManyWithWhereWithoutEventInput[]
+    deleteMany?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
   }
 
   export type EventCreateNestedOneWithoutSponsorsInput = {
@@ -59861,6 +61593,13 @@ export namespace Prisma {
     connect?: VoteWhereUniqueInput | VoteWhereUniqueInput[]
   }
 
+  export type NomineeChangeRequestCreateNestedManyWithoutOptionInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutOptionInput, NomineeChangeRequestUncheckedCreateWithoutOptionInput> | NomineeChangeRequestCreateWithoutOptionInput[] | NomineeChangeRequestUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutOptionInput | NomineeChangeRequestCreateOrConnectWithoutOptionInput[]
+    createMany?: NomineeChangeRequestCreateManyOptionInputEnvelope
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+  }
+
   export type VotingCategoryCreateNestedOneWithoutVotingOptionsInput = {
     create?: XOR<VotingCategoryCreateWithoutVotingOptionsInput, VotingCategoryUncheckedCreateWithoutVotingOptionsInput>
     connectOrCreate?: VotingCategoryCreateOrConnectWithoutVotingOptionsInput
@@ -59886,6 +61625,13 @@ export namespace Prisma {
     connect?: VoteWhereUniqueInput | VoteWhereUniqueInput[]
   }
 
+  export type NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutOptionInput, NomineeChangeRequestUncheckedCreateWithoutOptionInput> | NomineeChangeRequestCreateWithoutOptionInput[] | NomineeChangeRequestUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutOptionInput | NomineeChangeRequestCreateOrConnectWithoutOptionInput[]
+    createMany?: NomineeChangeRequestCreateManyOptionInputEnvelope
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+  }
+
   export type VoteUpdateManyWithoutOptionNestedInput = {
     create?: XOR<VoteCreateWithoutOptionInput, VoteUncheckedCreateWithoutOptionInput> | VoteCreateWithoutOptionInput[] | VoteUncheckedCreateWithoutOptionInput[]
     connectOrCreate?: VoteCreateOrConnectWithoutOptionInput | VoteCreateOrConnectWithoutOptionInput[]
@@ -59898,6 +61644,20 @@ export namespace Prisma {
     update?: VoteUpdateWithWhereUniqueWithoutOptionInput | VoteUpdateWithWhereUniqueWithoutOptionInput[]
     updateMany?: VoteUpdateManyWithWhereWithoutOptionInput | VoteUpdateManyWithWhereWithoutOptionInput[]
     deleteMany?: VoteScalarWhereInput | VoteScalarWhereInput[]
+  }
+
+  export type NomineeChangeRequestUpdateManyWithoutOptionNestedInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutOptionInput, NomineeChangeRequestUncheckedCreateWithoutOptionInput> | NomineeChangeRequestCreateWithoutOptionInput[] | NomineeChangeRequestUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutOptionInput | NomineeChangeRequestCreateOrConnectWithoutOptionInput[]
+    upsert?: NomineeChangeRequestUpsertWithWhereUniqueWithoutOptionInput | NomineeChangeRequestUpsertWithWhereUniqueWithoutOptionInput[]
+    createMany?: NomineeChangeRequestCreateManyOptionInputEnvelope
+    set?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    disconnect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    delete?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    update?: NomineeChangeRequestUpdateWithWhereUniqueWithoutOptionInput | NomineeChangeRequestUpdateWithWhereUniqueWithoutOptionInput[]
+    updateMany?: NomineeChangeRequestUpdateManyWithWhereWithoutOptionInput | NomineeChangeRequestUpdateManyWithWhereWithoutOptionInput[]
+    deleteMany?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
   }
 
   export type VotingCategoryUpdateOneWithoutVotingOptionsNestedInput = {
@@ -59940,6 +61700,56 @@ export namespace Prisma {
     update?: VoteUpdateWithWhereUniqueWithoutOptionInput | VoteUpdateWithWhereUniqueWithoutOptionInput[]
     updateMany?: VoteUpdateManyWithWhereWithoutOptionInput | VoteUpdateManyWithWhereWithoutOptionInput[]
     deleteMany?: VoteScalarWhereInput | VoteScalarWhereInput[]
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput = {
+    create?: XOR<NomineeChangeRequestCreateWithoutOptionInput, NomineeChangeRequestUncheckedCreateWithoutOptionInput> | NomineeChangeRequestCreateWithoutOptionInput[] | NomineeChangeRequestUncheckedCreateWithoutOptionInput[]
+    connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutOptionInput | NomineeChangeRequestCreateOrConnectWithoutOptionInput[]
+    upsert?: NomineeChangeRequestUpsertWithWhereUniqueWithoutOptionInput | NomineeChangeRequestUpsertWithWhereUniqueWithoutOptionInput[]
+    createMany?: NomineeChangeRequestCreateManyOptionInputEnvelope
+    set?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    disconnect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    delete?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+    update?: NomineeChangeRequestUpdateWithWhereUniqueWithoutOptionInput | NomineeChangeRequestUpdateWithWhereUniqueWithoutOptionInput[]
+    updateMany?: NomineeChangeRequestUpdateManyWithWhereWithoutOptionInput | NomineeChangeRequestUpdateManyWithWhereWithoutOptionInput[]
+    deleteMany?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
+  }
+
+  export type VotingOptionCreateNestedOneWithoutChangeRequestsInput = {
+    create?: XOR<VotingOptionCreateWithoutChangeRequestsInput, VotingOptionUncheckedCreateWithoutChangeRequestsInput>
+    connectOrCreate?: VotingOptionCreateOrConnectWithoutChangeRequestsInput
+    connect?: VotingOptionWhereUniqueInput
+  }
+
+  export type EventCreateNestedOneWithoutNomineeChangeRequestsInput = {
+    create?: XOR<EventCreateWithoutNomineeChangeRequestsInput, EventUncheckedCreateWithoutNomineeChangeRequestsInput>
+    connectOrCreate?: EventCreateOrConnectWithoutNomineeChangeRequestsInput
+    connect?: EventWhereUniqueInput
+  }
+
+  export type EnumChangeRequestTypeFieldUpdateOperationsInput = {
+    set?: $Enums.ChangeRequestType
+  }
+
+  export type EnumChangeRequestStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ChangeRequestStatus
+  }
+
+  export type VotingOptionUpdateOneRequiredWithoutChangeRequestsNestedInput = {
+    create?: XOR<VotingOptionCreateWithoutChangeRequestsInput, VotingOptionUncheckedCreateWithoutChangeRequestsInput>
+    connectOrCreate?: VotingOptionCreateOrConnectWithoutChangeRequestsInput
+    upsert?: VotingOptionUpsertWithoutChangeRequestsInput
+    connect?: VotingOptionWhereUniqueInput
+    update?: XOR<XOR<VotingOptionUpdateToOneWithWhereWithoutChangeRequestsInput, VotingOptionUpdateWithoutChangeRequestsInput>, VotingOptionUncheckedUpdateWithoutChangeRequestsInput>
+  }
+
+  export type EventUpdateOneRequiredWithoutNomineeChangeRequestsNestedInput = {
+    create?: XOR<EventCreateWithoutNomineeChangeRequestsInput, EventUncheckedCreateWithoutNomineeChangeRequestsInput>
+    connectOrCreate?: EventCreateOrConnectWithoutNomineeChangeRequestsInput
+    upsert?: EventUpsertWithoutNomineeChangeRequestsInput
+    connect?: EventWhereUniqueInput
+    update?: XOR<XOR<EventUpdateToOneWithWhereWithoutNomineeChangeRequestsInput, EventUpdateWithoutNomineeChangeRequestsInput>, EventUncheckedUpdateWithoutNomineeChangeRequestsInput>
   }
 
   export type VotingCategoryCreateNestedOneWithoutVotesInput = {
@@ -60767,6 +62577,63 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumUssdSessionStatusFilter<$PrismaModel>
     _max?: NestedEnumUssdSessionStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumChangeRequestTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestType | EnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestTypeFilter<$PrismaModel> | $Enums.ChangeRequestType
+  }
+
+  export type NestedEnumChangeRequestStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestStatus | EnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestStatusFilter<$PrismaModel> | $Enums.ChangeRequestStatus
+  }
+
+  export type NestedEnumChangeRequestTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestType | EnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestType[] | ListEnumChangeRequestTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestTypeWithAggregatesFilter<$PrismaModel> | $Enums.ChangeRequestType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumChangeRequestTypeFilter<$PrismaModel>
+    _max?: NestedEnumChangeRequestTypeFilter<$PrismaModel>
+  }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedEnumChangeRequestStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ChangeRequestStatus | EnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ChangeRequestStatus[] | ListEnumChangeRequestStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumChangeRequestStatusWithAggregatesFilter<$PrismaModel> | $Enums.ChangeRequestStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumChangeRequestStatusFilter<$PrismaModel>
+    _max?: NestedEnumChangeRequestStatusFilter<$PrismaModel>
   }
 
   export type OrganizationCreateWithoutActivityLogsInput = {
@@ -61599,6 +63466,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedByName?: string | null
@@ -61607,6 +63475,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
     nominatedBy?: ProfileCreateNestedOneWithoutNominatedOptionsInput
   }
@@ -61622,6 +63491,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedById?: string | null
@@ -61631,6 +63501,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type VotingOptionCreateOrConnectWithoutEventInput = {
@@ -61640,6 +63511,38 @@ export namespace Prisma {
 
   export type VotingOptionCreateManyEventInputEnvelope = {
     data: VotingOptionCreateManyEventInput | VotingOptionCreateManyEventInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type NomineeChangeRequestCreateWithoutEventInput = {
+    id?: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+    option: VotingOptionCreateNestedOneWithoutChangeRequestsInput
+  }
+
+  export type NomineeChangeRequestUncheckedCreateWithoutEventInput = {
+    id?: string
+    optionId: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type NomineeChangeRequestCreateOrConnectWithoutEventInput = {
+    where: NomineeChangeRequestWhereUniqueInput
+    create: XOR<NomineeChangeRequestCreateWithoutEventInput, NomineeChangeRequestUncheckedCreateWithoutEventInput>
+  }
+
+  export type NomineeChangeRequestCreateManyEventInputEnvelope = {
+    data: NomineeChangeRequestCreateManyEventInput | NomineeChangeRequestCreateManyEventInput[]
     skipDuplicates?: boolean
   }
 
@@ -62164,6 +64067,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"VotingOption"> | Date | string
     updatedAt?: DateTimeFilter<"VotingOption"> | Date | string
     email?: StringNullableFilter<"VotingOption"> | string | null
+    phone?: StringNullableFilter<"VotingOption"> | string | null
     isPublicNomination?: BoolFilter<"VotingOption"> | boolean
     nominatedByEmail?: StringNullableFilter<"VotingOption"> | string | null
     nominatedById?: StringNullableFilter<"VotingOption"> | string | null
@@ -62172,6 +64076,37 @@ export namespace Prisma {
     status?: EnumApprovalStatusFilter<"VotingOption"> | $Enums.ApprovalStatus
     finalImage?: StringNullableFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableFilter<"VotingOption"> | string | null
+  }
+
+  export type NomineeChangeRequestUpsertWithWhereUniqueWithoutEventInput = {
+    where: NomineeChangeRequestWhereUniqueInput
+    update: XOR<NomineeChangeRequestUpdateWithoutEventInput, NomineeChangeRequestUncheckedUpdateWithoutEventInput>
+    create: XOR<NomineeChangeRequestCreateWithoutEventInput, NomineeChangeRequestUncheckedCreateWithoutEventInput>
+  }
+
+  export type NomineeChangeRequestUpdateWithWhereUniqueWithoutEventInput = {
+    where: NomineeChangeRequestWhereUniqueInput
+    data: XOR<NomineeChangeRequestUpdateWithoutEventInput, NomineeChangeRequestUncheckedUpdateWithoutEventInput>
+  }
+
+  export type NomineeChangeRequestUpdateManyWithWhereWithoutEventInput = {
+    where: NomineeChangeRequestScalarWhereInput
+    data: XOR<NomineeChangeRequestUpdateManyMutationInput, NomineeChangeRequestUncheckedUpdateManyWithoutEventInput>
+  }
+
+  export type NomineeChangeRequestScalarWhereInput = {
+    AND?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
+    OR?: NomineeChangeRequestScalarWhereInput[]
+    NOT?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
+    id?: UuidFilter<"NomineeChangeRequest"> | string
+    optionId?: UuidFilter<"NomineeChangeRequest"> | string
+    eventId?: UuidFilter<"NomineeChangeRequest"> | string
+    requestType?: EnumChangeRequestTypeFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestType
+    proposedChanges?: JsonFilter<"NomineeChangeRequest">
+    status?: EnumChangeRequestStatusFilter<"NomineeChangeRequest"> | $Enums.ChangeRequestStatus
+    requestedBy?: StringNullableFilter<"NomineeChangeRequest"> | string | null
+    createdAt?: DateTimeFilter<"NomineeChangeRequest"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"NomineeChangeRequest"> | Date | string | null
   }
 
   export type EventCreateWithoutSponsorsInput = {
@@ -62217,6 +64152,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutSponsorsInput = {
@@ -62262,6 +64198,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutSponsorsInput = {
@@ -62323,6 +64260,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutSponsorsInput = {
@@ -62368,6 +64306,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventCreateWithoutGalleryLinksInput = {
@@ -62413,6 +64352,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutGalleryLinksInput = {
@@ -62458,6 +64398,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutGalleryLinksInput = {
@@ -62519,6 +64460,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutGalleryLinksInput = {
@@ -62564,6 +64506,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventCreateWithoutSocialLinksInput = {
@@ -62609,6 +64552,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutSocialLinksInput = {
@@ -62654,6 +64598,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutSocialLinksInput = {
@@ -62715,6 +64660,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutSocialLinksInput = {
@@ -62760,6 +64706,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventCreateWithoutMembersInput = {
@@ -62805,6 +64752,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutMembersInput = {
@@ -62850,6 +64798,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutMembersInput = {
@@ -62951,6 +64900,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutMembersInput = {
@@ -62996,6 +64946,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type VoteUpsertWithWhereUniqueWithoutEventMemberInput = {
@@ -63057,6 +65008,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutRegistrationFieldsInput = {
@@ -63102,6 +65054,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutRegistrationFieldsInput = {
@@ -63163,6 +65116,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutRegistrationFieldsInput = {
@@ -63208,6 +65162,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type usersCreateWithoutAccountsInput = {
@@ -63544,6 +65499,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutOrganizationInput = {
@@ -63589,6 +65545,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutOrganizationInput = {
@@ -67583,6 +69540,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutTicketTypesInput = {
@@ -67628,6 +69586,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutTicketTypesInput = {
@@ -67731,6 +69690,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutTicketTypesInput = {
@@ -67776,6 +69736,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type TicketUpsertWithWhereUniqueWithoutTicketTypeInput = {
@@ -67837,6 +69798,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutTicketOrdersInput = {
@@ -67882,6 +69844,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutTicketOrdersInput = {
@@ -68107,6 +70070,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutTicketOrdersInput = {
@@ -68152,6 +70116,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type PaymentUpsertWithoutTicketOrdersInput = {
@@ -68347,6 +70312,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutTicketsInput = {
@@ -68392,6 +70358,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutTicketsInput = {
@@ -68541,6 +70508,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutTicketsInput = {
@@ -68586,6 +70554,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type TicketOrderUpsertWithoutTicketsInput = {
@@ -68767,6 +70736,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutCreatorInput = {
@@ -68812,6 +70782,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutCreatorInput = {
@@ -69352,6 +71323,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedByName?: string | null
@@ -69360,6 +71332,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
     event: EventCreateNestedOneWithoutVotingOptionsInput
   }
@@ -69376,6 +71349,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedByName?: string | null
@@ -69384,6 +71358,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type VotingOptionCreateOrConnectWithoutNominatedByInput = {
@@ -69887,6 +71862,7 @@ export namespace Prisma {
     tickets?: TicketCreateNestedManyWithoutEventInput
     votes?: VoteCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutVotingCategoriesInput = {
@@ -69932,6 +71908,7 @@ export namespace Prisma {
     tickets?: TicketUncheckedCreateNestedManyWithoutEventInput
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutVotingCategoriesInput = {
@@ -69949,6 +71926,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedByName?: string | null
@@ -69957,6 +71935,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     event: EventCreateNestedOneWithoutVotingOptionsInput
     nominatedBy?: ProfileCreateNestedOneWithoutNominatedOptionsInput
   }
@@ -69972,6 +71951,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedById?: string | null
@@ -69981,6 +71961,7 @@ export namespace Prisma {
     finalImage?: string | null
     deletionCode?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
+    changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type VotingOptionCreateOrConnectWithoutCategoryInput = {
@@ -70063,6 +72044,7 @@ export namespace Prisma {
     tickets?: TicketUpdateManyWithoutEventNestedInput
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutVotingCategoriesInput = {
@@ -70108,6 +72090,7 @@ export namespace Prisma {
     tickets?: TicketUncheckedUpdateManyWithoutEventNestedInput
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type VotingOptionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -70163,6 +72146,38 @@ export namespace Prisma {
 
   export type VoteCreateManyOptionInputEnvelope = {
     data: VoteCreateManyOptionInput | VoteCreateManyOptionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type NomineeChangeRequestCreateWithoutOptionInput = {
+    id?: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+    event: EventCreateNestedOneWithoutNomineeChangeRequestsInput
+  }
+
+  export type NomineeChangeRequestUncheckedCreateWithoutOptionInput = {
+    id?: string
+    eventId: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type NomineeChangeRequestCreateOrConnectWithoutOptionInput = {
+    where: NomineeChangeRequestWhereUniqueInput
+    create: XOR<NomineeChangeRequestCreateWithoutOptionInput, NomineeChangeRequestUncheckedCreateWithoutOptionInput>
+  }
+
+  export type NomineeChangeRequestCreateManyOptionInputEnvelope = {
+    data: NomineeChangeRequestCreateManyOptionInput | NomineeChangeRequestCreateManyOptionInput[]
     skipDuplicates?: boolean
   }
 
@@ -70260,6 +72275,7 @@ export namespace Prisma {
     tickets?: TicketCreateNestedManyWithoutEventInput
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutVotingOptionsInput = {
@@ -70305,6 +72321,7 @@ export namespace Prisma {
     tickets?: TicketUncheckedCreateNestedManyWithoutEventInput
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutVotingOptionsInput = {
@@ -70401,6 +72418,22 @@ export namespace Prisma {
   export type VoteUpdateManyWithWhereWithoutOptionInput = {
     where: VoteScalarWhereInput
     data: XOR<VoteUpdateManyMutationInput, VoteUncheckedUpdateManyWithoutOptionInput>
+  }
+
+  export type NomineeChangeRequestUpsertWithWhereUniqueWithoutOptionInput = {
+    where: NomineeChangeRequestWhereUniqueInput
+    update: XOR<NomineeChangeRequestUpdateWithoutOptionInput, NomineeChangeRequestUncheckedUpdateWithoutOptionInput>
+    create: XOR<NomineeChangeRequestCreateWithoutOptionInput, NomineeChangeRequestUncheckedCreateWithoutOptionInput>
+  }
+
+  export type NomineeChangeRequestUpdateWithWhereUniqueWithoutOptionInput = {
+    where: NomineeChangeRequestWhereUniqueInput
+    data: XOR<NomineeChangeRequestUpdateWithoutOptionInput, NomineeChangeRequestUncheckedUpdateWithoutOptionInput>
+  }
+
+  export type NomineeChangeRequestUpdateManyWithWhereWithoutOptionInput = {
+    where: NomineeChangeRequestScalarWhereInput
+    data: XOR<NomineeChangeRequestUpdateManyMutationInput, NomineeChangeRequestUncheckedUpdateManyWithoutOptionInput>
   }
 
   export type VotingCategoryUpsertWithoutVotingOptionsInput = {
@@ -70514,6 +72547,7 @@ export namespace Prisma {
     tickets?: TicketUpdateManyWithoutEventNestedInput
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutVotingOptionsInput = {
@@ -70559,6 +72593,7 @@ export namespace Prisma {
     tickets?: TicketUncheckedUpdateManyWithoutEventNestedInput
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type ProfileUpsertWithoutNominatedOptionsInput = {
@@ -70640,6 +72675,318 @@ export namespace Prisma {
     ticketOrders?: TicketOrderUncheckedUpdateManyWithoutBuyerNestedInput
     votes?: VoteUncheckedUpdateManyWithoutVoterNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type VotingOptionCreateWithoutChangeRequestsInput = {
+    id?: string
+    optionText: string
+    description?: string | null
+    imageUrl?: string | null
+    orderIdx?: number
+    votesCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email?: string | null
+    phone?: string | null
+    isPublicNomination?: boolean
+    nominatedByEmail?: string | null
+    nominatedByName?: string | null
+    nomineeCode?: string | null
+    status?: $Enums.ApprovalStatus
+    finalImage?: string | null
+    deletionCode?: string | null
+    votes?: VoteCreateNestedManyWithoutOptionInput
+    category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
+    event: EventCreateNestedOneWithoutVotingOptionsInput
+    nominatedBy?: ProfileCreateNestedOneWithoutNominatedOptionsInput
+  }
+
+  export type VotingOptionUncheckedCreateWithoutChangeRequestsInput = {
+    id?: string
+    eventId: string
+    categoryId?: string | null
+    optionText: string
+    description?: string | null
+    imageUrl?: string | null
+    orderIdx?: number
+    votesCount?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    email?: string | null
+    phone?: string | null
+    isPublicNomination?: boolean
+    nominatedByEmail?: string | null
+    nominatedById?: string | null
+    nominatedByName?: string | null
+    nomineeCode?: string | null
+    status?: $Enums.ApprovalStatus
+    finalImage?: string | null
+    deletionCode?: string | null
+    votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
+  }
+
+  export type VotingOptionCreateOrConnectWithoutChangeRequestsInput = {
+    where: VotingOptionWhereUniqueInput
+    create: XOR<VotingOptionCreateWithoutChangeRequestsInput, VotingOptionUncheckedCreateWithoutChangeRequestsInput>
+  }
+
+  export type EventCreateWithoutNomineeChangeRequestsInput = {
+    id?: string
+    title: string
+    description?: string | null
+    slug: string
+    type: $Enums.EventType
+    status?: $Enums.EventStatus
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    timezone?: string
+    isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
+    flierImage?: string | null
+    bannerImage?: string | null
+    venueName?: string | null
+    venueAddress?: string | null
+    venueCity?: string | null
+    venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
+    isVirtual?: boolean
+    virtualLink?: string | null
+    maxAttendees?: number | null
+    registrationDeadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publishedAt?: Date | string | null
+    hasUssd?: boolean
+    ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
+    members?: EventMemberCreateNestedManyWithoutEventInput
+    registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
+    socialLinks?: EventSocialLinkCreateNestedManyWithoutEventInput
+    sponsors?: EventSponsorCreateNestedManyWithoutEventInput
+    creator?: ProfileCreateNestedOneWithoutCreatedEventsInput
+    organization: OrganizationCreateNestedOneWithoutEventsInput
+    ticketOrders?: TicketOrderCreateNestedManyWithoutEventInput
+    ticketTypes?: TicketTypeCreateNestedManyWithoutEventInput
+    tickets?: TicketCreateNestedManyWithoutEventInput
+    votes?: VoteCreateNestedManyWithoutEventInput
+    votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
+    votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+  }
+
+  export type EventUncheckedCreateWithoutNomineeChangeRequestsInput = {
+    id?: string
+    organizationId: string
+    creatorId?: string | null
+    title: string
+    description?: string | null
+    slug: string
+    type: $Enums.EventType
+    status?: $Enums.EventStatus
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    timezone?: string
+    isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
+    flierImage?: string | null
+    bannerImage?: string | null
+    venueName?: string | null
+    venueAddress?: string | null
+    venueCity?: string | null
+    venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
+    isVirtual?: boolean
+    virtualLink?: string | null
+    maxAttendees?: number | null
+    registrationDeadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publishedAt?: Date | string | null
+    hasUssd?: boolean
+    ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
+    members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
+    registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
+    socialLinks?: EventSocialLinkUncheckedCreateNestedManyWithoutEventInput
+    sponsors?: EventSponsorUncheckedCreateNestedManyWithoutEventInput
+    ticketOrders?: TicketOrderUncheckedCreateNestedManyWithoutEventInput
+    ticketTypes?: TicketTypeUncheckedCreateNestedManyWithoutEventInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutEventInput
+    votes?: VoteUncheckedCreateNestedManyWithoutEventInput
+    votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
+    votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+  }
+
+  export type EventCreateOrConnectWithoutNomineeChangeRequestsInput = {
+    where: EventWhereUniqueInput
+    create: XOR<EventCreateWithoutNomineeChangeRequestsInput, EventUncheckedCreateWithoutNomineeChangeRequestsInput>
+  }
+
+  export type VotingOptionUpsertWithoutChangeRequestsInput = {
+    update: XOR<VotingOptionUpdateWithoutChangeRequestsInput, VotingOptionUncheckedUpdateWithoutChangeRequestsInput>
+    create: XOR<VotingOptionCreateWithoutChangeRequestsInput, VotingOptionUncheckedCreateWithoutChangeRequestsInput>
+    where?: VotingOptionWhereInput
+  }
+
+  export type VotingOptionUpdateToOneWithWhereWithoutChangeRequestsInput = {
+    where?: VotingOptionWhereInput
+    data: XOR<VotingOptionUpdateWithoutChangeRequestsInput, VotingOptionUncheckedUpdateWithoutChangeRequestsInput>
+  }
+
+  export type VotingOptionUpdateWithoutChangeRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    optionText?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    orderIdx?: IntFieldUpdateOperationsInput | number
+    votesCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
+    nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
+    nomineeCode?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
+    finalImage?: NullableStringFieldUpdateOperationsInput | string | null
+    deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    votes?: VoteUpdateManyWithoutOptionNestedInput
+    category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
+    event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
+    nominatedBy?: ProfileUpdateOneWithoutNominatedOptionsNestedInput
+  }
+
+  export type VotingOptionUncheckedUpdateWithoutChangeRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    optionText?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    orderIdx?: IntFieldUpdateOperationsInput | number
+    votesCount?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
+    nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
+    nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
+    nomineeCode?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
+    finalImage?: NullableStringFieldUpdateOperationsInput | string | null
+    deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
+  }
+
+  export type EventUpsertWithoutNomineeChangeRequestsInput = {
+    update: XOR<EventUpdateWithoutNomineeChangeRequestsInput, EventUncheckedUpdateWithoutNomineeChangeRequestsInput>
+    create: XOR<EventCreateWithoutNomineeChangeRequestsInput, EventUncheckedCreateWithoutNomineeChangeRequestsInput>
+    where?: EventWhereInput
+  }
+
+  export type EventUpdateToOneWithWhereWithoutNomineeChangeRequestsInput = {
+    where?: EventWhereInput
+    data: XOR<EventUpdateWithoutNomineeChangeRequestsInput, EventUncheckedUpdateWithoutNomineeChangeRequestsInput>
+  }
+
+  export type EventUpdateWithoutNomineeChangeRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: StringFieldUpdateOperationsInput | string
+    type?: EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+    status?: EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
+    flierImage?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    venueName?: NullableStringFieldUpdateOperationsInput | string | null
+    venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCity?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    isVirtual?: BoolFieldUpdateOperationsInput | boolean
+    virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
+    maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hasUssd?: BoolFieldUpdateOperationsInput | boolean
+    ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
+    members?: EventMemberUpdateManyWithoutEventNestedInput
+    registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
+    socialLinks?: EventSocialLinkUpdateManyWithoutEventNestedInput
+    sponsors?: EventSponsorUpdateManyWithoutEventNestedInput
+    creator?: ProfileUpdateOneWithoutCreatedEventsNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutEventsNestedInput
+    ticketOrders?: TicketOrderUpdateManyWithoutEventNestedInput
+    ticketTypes?: TicketTypeUpdateManyWithoutEventNestedInput
+    tickets?: TicketUpdateManyWithoutEventNestedInput
+    votes?: VoteUpdateManyWithoutEventNestedInput
+    votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
+    votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+  }
+
+  export type EventUncheckedUpdateWithoutNomineeChangeRequestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    creatorId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: StringFieldUpdateOperationsInput | string
+    type?: EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+    status?: EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
+    flierImage?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    venueName?: NullableStringFieldUpdateOperationsInput | string | null
+    venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCity?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    isVirtual?: BoolFieldUpdateOperationsInput | boolean
+    virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
+    maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hasUssd?: BoolFieldUpdateOperationsInput | boolean
+    ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
+    members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
+    registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
+    socialLinks?: EventSocialLinkUncheckedUpdateManyWithoutEventNestedInput
+    sponsors?: EventSponsorUncheckedUpdateManyWithoutEventNestedInput
+    ticketOrders?: TicketOrderUncheckedUpdateManyWithoutEventNestedInput
+    ticketTypes?: TicketTypeUncheckedUpdateManyWithoutEventNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutEventNestedInput
+    votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
+    votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
+    votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type VotingCategoryCreateWithoutVotesInput = {
@@ -70736,6 +73083,7 @@ export namespace Prisma {
     tickets?: TicketCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutVotesInput = {
@@ -70781,6 +73129,7 @@ export namespace Prisma {
     tickets?: TicketUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutVotesInput = {
@@ -70829,6 +73178,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedByName?: string | null
@@ -70836,6 +73186,7 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
     event: EventCreateNestedOneWithoutVotingOptionsInput
     nominatedBy?: ProfileCreateNestedOneWithoutNominatedOptionsInput
@@ -70853,6 +73204,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedById?: string | null
@@ -70861,6 +73213,7 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
 
   export type VotingOptionCreateOrConnectWithoutVotesInput = {
@@ -71101,6 +73454,7 @@ export namespace Prisma {
     tickets?: TicketUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutVotesInput = {
@@ -71146,6 +73500,7 @@ export namespace Prisma {
     tickets?: TicketUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventMemberUpsertWithoutVotesInput = {
@@ -71206,6 +73561,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71213,6 +73569,7 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
     event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
     nominatedBy?: ProfileUpdateOneWithoutNominatedOptionsNestedInput
@@ -71230,6 +73587,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71238,6 +73596,7 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type PaymentUpsertWithoutVotesInput = {
@@ -71521,6 +73880,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedById?: string | null
@@ -71529,6 +73889,17 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+  }
+
+  export type NomineeChangeRequestCreateManyEventInput = {
+    id?: string
+    optionId: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
   }
 
   export type EventGalleryLinkUpdateWithoutEventInput = {
@@ -71959,6 +74330,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71967,6 +74339,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
     nominatedBy?: ProfileUpdateOneWithoutNominatedOptionsNestedInput
   }
@@ -71982,6 +74355,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -71991,6 +74365,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type VotingOptionUncheckedUpdateManyWithoutEventInput = {
@@ -72004,6 +74379,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72012,6 +74388,39 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type NomineeChangeRequestUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    option?: VotingOptionUpdateOneRequiredWithoutChangeRequestsNestedInput
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    optionId?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateManyWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    optionId?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type VoteCreateManyEventMemberInput = {
@@ -72356,6 +74765,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutOrganizationInput = {
@@ -72401,6 +74811,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutOrganizationInput = {
@@ -73699,6 +76110,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedByName?: string | null
@@ -73805,6 +76217,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutCreatorInput = {
@@ -73850,6 +76263,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutCreatorInput = {
@@ -74394,6 +76808,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -74402,6 +76817,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
     event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
   }
@@ -74418,6 +76834,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -74426,6 +76843,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type VotingOptionUncheckedUpdateManyWithoutNominatedByInput = {
@@ -74440,6 +76858,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -74524,6 +76943,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     email?: string | null
+    phone?: string | null
     isPublicNomination?: boolean
     nominatedByEmail?: string | null
     nominatedById?: string | null
@@ -74589,6 +77009,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedByName?: NullableStringFieldUpdateOperationsInput | string | null
@@ -74597,6 +77018,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
     nominatedBy?: ProfileUpdateOneWithoutNominatedOptionsNestedInput
   }
@@ -74612,6 +77034,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -74621,6 +77044,7 @@ export namespace Prisma {
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
+    changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
 
   export type VotingOptionUncheckedUpdateManyWithoutCategoryInput = {
@@ -74634,6 +77058,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     isPublicNomination?: BoolFieldUpdateOperationsInput | boolean
     nominatedByEmail?: NullableStringFieldUpdateOperationsInput | string | null
     nominatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -74657,6 +77082,17 @@ export namespace Prisma {
     voterPhone?: string | null
     eventMemberId?: string | null
     voterId?: string | null
+  }
+
+  export type NomineeChangeRequestCreateManyOptionInput = {
+    id?: string
+    eventId: string
+    requestType: $Enums.ChangeRequestType
+    proposedChanges: JsonNullValueInput | InputJsonValue
+    status?: $Enums.ChangeRequestStatus
+    requestedBy?: string | null
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
   }
 
   export type VoteUpdateWithoutOptionInput = {
@@ -74702,6 +77138,39 @@ export namespace Prisma {
     voterPhone?: NullableStringFieldUpdateOperationsInput | string | null
     eventMemberId?: NullableStringFieldUpdateOperationsInput | string | null
     voterId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type NomineeChangeRequestUpdateWithoutOptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    event?: EventUpdateOneRequiredWithoutNomineeChangeRequestsNestedInput
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateWithoutOptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type NomineeChangeRequestUncheckedUpdateManyWithoutOptionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    requestType?: EnumChangeRequestTypeFieldUpdateOperationsInput | $Enums.ChangeRequestType
+    proposedChanges?: JsonNullValueInput | InputJsonValue
+    status?: EnumChangeRequestStatusFieldUpdateOperationsInput | $Enums.ChangeRequestStatus
+    requestedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
 

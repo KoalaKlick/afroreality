@@ -27,35 +27,68 @@ model VotingCategory {
 }
 
 model VotingOption {
-  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  eventId            String          @map("event_id") @db.Uuid
-  categoryId         String?         @map("category_id") @db.Uuid
-  optionText         String          @map("option_text")
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId            String                 @map("event_id") @db.Uuid
+  categoryId         String?                @map("category_id") @db.Uuid
+  optionText         String                 @map("option_text")
   description        String?
-  imageUrl           String?         @map("image_url")
-  orderIdx           Int             @default(0) @map("order_idx")
-  votesCount         Int             @default(0) @map("votes_count")
-  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  imageUrl           String?                @map("image_url")
+  orderIdx           Int                    @default(0) @map("order_idx")
+  votesCount         Int                    @default(0) @map("votes_count")
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   email              String?
-  isPublicNomination Boolean         @default(false) @map("is_public_nomination")
-  nominatedByEmail   String?         @map("nominated_by_email")
-  nominatedById      String?         @map("nominated_by_id")
-  nominatedByName    String?         @map("nominated_by_name")
-  nomineeCode        String?         @map("nominee_code")
-  status             ApprovalStatus  @default(approved)
-  finalImage         String?         @map("final_image")
-  deletionCode       String?         @map("deletion_code")
+  phone              String?
+  isPublicNomination Boolean                @default(false) @map("is_public_nomination")
+  nominatedByEmail   String?                @map("nominated_by_email")
+  nominatedById      String?                @map("nominated_by_id")
+  nominatedByName    String?                @map("nominated_by_name")
+  nomineeCode        String?                @map("nominee_code")
+  status             ApprovalStatus         @default(approved)
+  finalImage         String?                @map("final_image")
+  deletionCode       String?                @map("deletion_code")
   votes              Vote[]
-  category           VotingCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  event              Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  nominatedBy        Profile?        @relation("NominatedOptions", fields: [nominatedById], references: [id])
+  changeRequests     NomineeChangeRequest[]
+  category           VotingCategory?        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  event              Event                  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  nominatedBy        Profile?               @relation("NominatedOptions", fields: [nominatedById], references: [id])
 
   @@unique([eventId, nomineeCode])
   @@index([eventId], map: "idx_voting_options_event")
   @@index([categoryId], map: "idx_voting_options_category")
   @@index([status], map: "idx_voting_options_status")
   @@map("voting_options")
+}
+
+model NomineeChangeRequest {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  optionId        String              @map("option_id") @db.Uuid
+  eventId         String              @map("event_id") @db.Uuid
+  requestType     ChangeRequestType   @map("request_type")
+  proposedChanges Json                @map("proposed_changes")
+  status          ChangeRequestStatus @default(pending)
+  requestedBy     String?             @map("requested_by")
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  resolvedAt      DateTime?           @map("resolved_at") @db.Timestamptz(6)
+
+  option          VotingOption        @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([optionId], map: "idx_change_requests_option")
+  @@index([eventId], map: "idx_change_requests_event")
+  @@map("nominee_change_requests")
+}
+
+enum ChangeRequestType {
+  EDIT
+  DELETE
+}
+
+enum ChangeRequestStatus {
+  pending
+  approved
+  rejected
+  expired
 }
 
 model Vote {

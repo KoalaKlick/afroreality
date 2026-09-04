@@ -624,6 +624,7 @@ exports.Prisma.VotingOptionScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   email: 'email',
+  phone: 'phone',
   isPublicNomination: 'isPublicNomination',
   nominatedByEmail: 'nominatedByEmail',
   nominatedById: 'nominatedById',
@@ -632,6 +633,18 @@ exports.Prisma.VotingOptionScalarFieldEnum = {
   status: 'status',
   finalImage: 'finalImage',
   deletionCode: 'deletionCode'
+};
+
+exports.Prisma.NomineeChangeRequestScalarFieldEnum = {
+  id: 'id',
+  optionId: 'optionId',
+  eventId: 'eventId',
+  requestType: 'requestType',
+  proposedChanges: 'proposedChanges',
+  status: 'status',
+  requestedBy: 'requestedBy',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
 };
 
 exports.Prisma.VoteScalarFieldEnum = {
@@ -657,6 +670,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -834,6 +851,18 @@ exports.UssdSessionStatus = exports.$Enums.UssdSessionStatus = {
   cancelled: 'cancelled'
 };
 
+exports.ChangeRequestType = exports.$Enums.ChangeRequestType = {
+  EDIT: 'EDIT',
+  DELETE: 'DELETE'
+};
+
+exports.ChangeRequestStatus = exports.$Enums.ChangeRequestStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  expired: 'expired'
+};
+
 exports.Prisma.ModelName = {
   ActivityLog: 'ActivityLog',
   Event: 'Event',
@@ -867,6 +896,7 @@ exports.Prisma.ModelName = {
   Verification: 'Verification',
   VotingCategory: 'VotingCategory',
   VotingOption: 'VotingOption',
+  NomineeChangeRequest: 'NomineeChangeRequest',
   Vote: 'Vote'
 };
 
