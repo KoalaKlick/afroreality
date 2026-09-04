@@ -5,7 +5,7 @@ import { ArrowLeft, Calendar, Clock, MapPin, Share2, Building2 } from "lucide-re
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TagPill } from "@/components/ui/tag-pill";
-import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
+import { formatEventDisplay } from "@/lib/utils/event-dto";
 import { shareEvent } from "@/lib/utils/share-utils";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
@@ -50,40 +50,16 @@ export function EventHero({
 }: EventHeroProps) {
 	const { organization } = event;
 
-	const heroImageUrl = getEventImageUrl(
-		event.bannerUrl ||
-			event.flierUrl ||
-			(event as any).bannerImage ||
-			(event as any).flierImage,
-	);
-	const orgLogoUrl = getOrgImageUrl(organization.logoUrl);
+	const {
+		bannerImageUrl: heroImageUrl,
+		logoImageUrl: orgLogoUrl,
+		formattedFullDate: dateStr,
+		formattedTime: timeStr,
+		endsOnStr,
+		brandColors,
+	} = formatEventDisplay(event);
 
-	const startDate = event.startDate ? new Date(event.startDate) : null;
-	const dateStr = startDate
-		? startDate.toLocaleDateString("en-US", {
-				weekday: "long",
-				year: "numeric",
-				month: "long",
-				day: "numeric",
-			})
-		: "Date TBA";
-
-	const timeStr = startDate
-		? startDate.toLocaleTimeString("en-US", {
-				hour: "2-digit",
-				minute: "2-digit",
-			})
-		: "";
-
-	const endsOnStr = event.endDate
-		? new Date(event.endDate).toLocaleDateString("en-US", {
-				month: "short",
-				day: "numeric",
-				year: "numeric",
-			})
-		: null;
-
-	const primaryColor = organization.primaryColor || "#009A44";
+	const primaryColor = brandColors.primary;
 
 	const handleShareEvent = async () => {
 		await shareEvent({

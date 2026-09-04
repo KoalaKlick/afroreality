@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
+import { getEventImageUrl } from "@/lib/image-url-utils";
+import { formatEventDisplay } from "@/lib/utils/event-dto";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
@@ -68,10 +69,8 @@ export function CategorySidebarCard({
 	eventSlug,
 }: CategorySidebarCardProps) {
 	const isInternalVoting = event.votingMode === "internal";
-	const orgLogo = getOrgImageUrl(event.organization.logoUrl);
-	const templateImg = getEventImageUrl(
-		category.templateImage || event.flierUrl || event.bannerUrl || (event as any).flierImage
-	);
+	const { bannerImageUrl: eventBannerImg, logoImageUrl: orgLogo } = formatEventDisplay(event);
+	const templateImg = getEventImageUrl(category.templateImage) || eventBannerImg;
 
 	return (
 		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">

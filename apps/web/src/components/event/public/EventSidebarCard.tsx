@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TagPill } from "@/components/ui/tag-pill";
-import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
+import { formatEventDisplay } from "@/lib/utils/event-dto";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
@@ -70,37 +70,13 @@ export function EventSidebarCard({
 	sponsors = [],
 	orgSlug,
 }: EventSidebarCardProps) {
-	const bannerImage = getEventImageUrl(
-		event.bannerUrl ||
-			event.flierUrl ||
-			(event as any).bannerImage ||
-			(event as any).flierImage,
-	);
-	const logoImage = getOrgImageUrl(event.organization.logoUrl);
-
-	const formattedDate = event.startDate
-		? new Date(event.startDate).toLocaleDateString("en-US", {
-				weekday: "short",
-				month: "short",
-				day: "numeric",
-				year: "numeric",
-			})
-		: null;
-
-	const formattedTime = event.startDate
-		? new Date(event.startDate).toLocaleTimeString("en-US", {
-				hour: "2-digit",
-				minute: "2-digit",
-			})
-		: null;
-
-	const locationText = event.isVirtual
-		? "Virtual Event"
-		: [event.venueName, event.venueCity, event.venueCountry]
-				.filter(Boolean)
-				.join(", ") || "Location TBA";
-
-	const primaryColor = event.organization?.primaryColor || "#009A44";
+	const {
+		bannerImageUrl: bannerImage,
+		logoImageUrl: logoImage,
+		formattedDate,
+		formattedTime,
+		locationText,
+	} = formatEventDisplay(event);
 
 	return (
 		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">
