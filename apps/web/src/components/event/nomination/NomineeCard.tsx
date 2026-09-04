@@ -21,6 +21,7 @@ import {
   Globe,
   Mail,
   Hash,
+  Loader2,
 } from "lucide-react";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { getEventImageUrl } from "@/lib/image-url-utils";
@@ -36,9 +37,11 @@ interface NomineeCardProps {
   readonly displayImage: string | null;
   readonly canEdit: boolean;
   readonly isPending?: boolean;
+  readonly isResending?: boolean;
   readonly requiresDeletionCode?: boolean;
   readonly onEdit: () => void;
   readonly onDelete: (code?: string) => void;
+  readonly onResendCode?: () => void;
   readonly onApprove?: () => void;
   readonly onReject?: () => void;
 }
@@ -48,9 +51,11 @@ export function NomineeCard({
   displayImage,
   canEdit,
   isPending = false,
+  isResending = false,
   requiresDeletionCode = false,
   onEdit,
   onDelete,
+  onResendCode,
   onApprove,
   onReject,
 }: NomineeCardProps) {
@@ -145,6 +150,22 @@ export function NomineeCard({
                 >
                   <Pencil className="size-3.5" />
                 </Button>
+                {onResendCode && (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="size-8 bg-background/90 hover:bg-background text-foreground"
+                    onClick={onResendCode}
+                    disabled={isResending}
+                    title="Resend Confirmation Code"
+                  >
+                    {isResending ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Mail className="size-3.5" />
+                    )}
+                  </Button>
+                )}
                 {hasVotes ? (
                   <Button
                     size="icon"
@@ -168,7 +189,7 @@ export function NomineeCard({
                         <AlertDialogDescription>
                           This will remove {option.optionText} from this category.
                           <div className="mt-4 space-y-2">
-                            <Label htmlFor="del-code">Enter 6-digit Deletion Code</Label>
+                            <Label htmlFor="del-code">Enter 6-digit Confirmation Code</Label>
                             <Input
                               id="del-code"
                               placeholder="000000"
@@ -178,7 +199,7 @@ export function NomineeCard({
                               className="text-center font-mono text-xl tracking-widest"
                             />
                             <p className="text-xs text-muted-foreground">
-                              This nominee paid a fee. The code was sent to their email.
+                              The confirmation code was sent to the nominee&apos;s email address.
                             </p>
                           </div>
                         </AlertDialogDescription>

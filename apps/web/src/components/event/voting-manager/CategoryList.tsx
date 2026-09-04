@@ -22,6 +22,7 @@ import {
 	requestNomineeChange,
 	approveNomination,
 	rejectNomination,
+	resendNominationEmail,
 } from "@/lib/server-functions/voting-options";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
@@ -68,8 +69,7 @@ export function CategoryList({
 	const [isDeleting, startTransition] = useTransition();
 
 	const [isNominationSheetOpen, setIsNominationSheetOpen] = useState(false);
-	const [activeCategoryForNominations, setActiveCategoryForNominations] =
-		useState<CategoryItem | null>(null);
+	const [resendingOptionId, setResendingOptionId] = useState<string | null>(null);
 
 	// Extract all public nominations across all categories (excluding admin-created nominees)
 	const allPublicNominations = useMemo(() => {
@@ -93,7 +93,6 @@ export function CategoryList({
 	).length;
 
 	function handleOpenAllNominations() {
-		setActiveCategoryForNominations(null);
 		setIsNominationSheetOpen(true);
 	}
 
@@ -112,11 +111,6 @@ export function CategoryList({
 		setActiveCategoryForOption(cat);
 		setEditingOption(opt);
 		setIsOptSheetOpen(true);
-	}
-
-	function handleOpenNominations(cat: CategoryItem) {
-		setActiveCategoryForNominations(cat);
-		setIsNominationSheetOpen(true);
 	}
 
 	function handleApproveOption(optionId: string) {
@@ -141,6 +135,26 @@ export function CategoryList({
 				toast.error(getErrorMessage(err));
 			}
 		});
+	}
+
+	async function handleResendCode(option: any) {
+		if (!option?.id) return;
+		setResendingOptionId(option.id);
+		toast.loading("Resending nomination confirmation email...");
+		try {
+			const res = await resendNominationEmail({ data: { optionId: option.id } });
+			toast.dismiss();
+			if (res.success) {
+				toast.success("Confirmation email resent successfully!");
+			} else {
+				toast.error(res.error || "Failed to resend confirmation email");
+			}
+		} catch (err: any) {
+			toast.dismiss();
+			toast.error(getErrorMessage(err) || "Failed to resend confirmation email");
+		} finally {
+			setResendingOptionId(null);
+		}
 	}
 
 	function handleDeleteCategory() {
@@ -307,25 +321,6 @@ export function CategoryList({
 
 								{canEdit && (
 									<div className="flex items-center gap-2">
-										{cat.allowPublicNomination && (
-											<Button
-												size="sm"
-												variant="outline"
-												onClick={() => handleOpenNominations(cat)}
-												className="gap-1.5"
-											>
-												<Inbox className="size-3.5" />
-												Requests
-												{cat.votingOptions.filter((o) => o.isPublicNomination && o.status === "pending").length > 0 && (
-													<Badge
-														variant="secondary"
-														className="bg-yellow-500 text-white text-[10px] h-4 px-1 font-mono"
-													>
-														{cat.votingOptions.filter((o) => o.isPublicNomination && o.status === "pending").length}
-													</Badge>
-												)}
-											</Button>
-										)}
 										<Button
 											size="sm"
 											variant="outline"
@@ -402,17 +397,6 @@ export function CategoryList({
 												</p>
 												{canEdit && (
 													<div className="flex items-center gap-2">
-														{pendingCount > 0 && cat.allowPublicNomination && (
-															<Button
-																size="sm"
-																variant="outline"
-																onClick={() => handleOpenNominations(cat)}
-																className="gap-1.5"
-															>
-																<Inbox className="size-3.5" />
-																Review Requests ({pendingCount})
-															</Button>
-														)}
 														<Button
 															size="sm"
 															variant="outline"
@@ -435,8 +419,10 @@ export function CategoryList({
 															displayImage={opt.imageUrl ?? null}
 															canEdit={canEdit}
 															isPending={isDeleting}
+															isResending={resendingOptionId === opt.id}
 															requiresDeletionCode={false}
 															onEdit={() => handleEditOption(cat, opt)}
+															onResendCode={() => handleResendCode(opt)}
 															onDelete={() => {
 																const votesCount = Number(opt.votesCount || 0);
 																if (votesCount > 0) {
@@ -511,18 +497,7 @@ export function CategoryList({
 			<NominationRequestsSheet
 				open={isNominationSheetOpen}
 				onOpenChange={setIsNominationSheetOpen}
-				options={
-					activeCategoryForNominations
-						? (activeCategoryForNominations.votingOptions
-								.filter((o) => o.isPublicNomination)
-								.map((o) => ({
-									...o,
-									categoryId: activeCategoryForNominations.id,
-									categoryName: activeCategoryForNominations.name,
-								})) as unknown as NominationOption[])
-						: allPublicNominations
-				}
-				categoryName={activeCategoryForNominations?.name}
+				options={allPublicNominations}
 				categories={categories.map((c) => ({ id: c.id, name: c.name }))}
 				onRefresh={() => {
 					onRefresh?.();

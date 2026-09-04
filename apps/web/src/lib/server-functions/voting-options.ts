@@ -340,14 +340,20 @@ export async function resendNominationEmail({
 
 	if (!option) return { success: false, error: "Nomination not found" };
 
-	const recipientEmail = option.nominatedByEmail || option.email;
+	const recipientEmail = option.email || option.nominatedByEmail;
 	if (!recipientEmail) {
 		return { success: false, error: "No recipient email found on this nomination" };
 	}
 
-	const isLive = option.status === "approved";
-	const isPaidNomination = Number(option.category?.nominationPrice || 0) > 0;
-	const deletionCode = isLive && isPaidNomination ? (option.deletionCode || null) : null;
+	// Ensure every nominee has a Confirmation Code — backfill legacy nominees
+	let confirmationCode = option.deletionCode;
+	if (!confirmationCode) {
+		confirmationCode = generateConfirmationCode();
+		await prisma.votingOption.update({
+			where: { id: targetId },
+			data: { deletionCode: confirmationCode },
+		});
+	}
 
 	const res = await sendNominationConfirmationEmail({
 		email: recipientEmail,
@@ -356,7 +362,7 @@ export async function resendNominationEmail({
 		categoryName: option.category?.name || "Category",
 		eventName: option.event?.title || "Event",
 		status: option.status,
-		deletionCode,
+		confirmationCode,
 		organizationName: option.event?.organization?.name || "Fextiva",
 		bannerUrl: option.event?.bannerImage || option.event?.flierImage,
 	});

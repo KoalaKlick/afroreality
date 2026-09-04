@@ -42,7 +42,17 @@ function getPrismaClient(): PrismaClient {
 
 export const prisma = new Proxy({} as PrismaClient, {
   get(_target, prop, receiver) {
-    const client = getPrismaClient();
+    let client = getPrismaClient();
+    if (
+      typeof prop === "string" &&
+      !prop.startsWith("$") &&
+      !prop.startsWith("_") &&
+      !(client as any)[prop]
+    ) {
+      // Model property missing on cached client (e.g. newly added Prisma model during dev HMR)
+      globalForPrisma.prismaInstance = undefined;
+      client = getPrismaClient();
+    }
     const value = Reflect.get(client, prop, receiver);
     if (typeof value === "function") {
       return value.bind(client);
