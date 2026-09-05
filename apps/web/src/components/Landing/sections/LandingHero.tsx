@@ -9,7 +9,7 @@ const HERO_CARDS = [
 	{
 		id: "organizer",
 		title: "Organizers & Hosts",
-		img: "/landing/cta/create-event-3.webp",
+		img: "/landing/create-event-3.png",
 		translate: "-translate-y-4 sm:-translate-y-6 md:-translate-y-8 lg:-translate-y-10",
 		rotate: "-rotate-[10deg] sm:-rotate-[14deg] md:-rotate-[16deg]",
 		color: "bg-secondary dark:bg-secondary-600",
@@ -20,7 +20,7 @@ const HERO_CARDS = [
 	{
 		id: "creator",
 		title: "Creators & Artists",
-		img: "/landing/cta/create-event-2.webp",
+		img: "/landing/create-event-2.png",
 		translate: "-translate-y-12 sm:-translate-y-18 md:-translate-y-28 lg:-translate-y-36",
 		rotate: "rotate-0",
 		color: "bg-primary dark:bg-primary-700",
@@ -31,7 +31,7 @@ const HERO_CARDS = [
 	{
 		id: "attendee",
 		title: "Attendees & Voters",
-		img: "/landing/cta/create-event-1.webp",
+		img: "/landing/create-event-1.png",
 		translate: "translate-y-2 sm:-translate-y-2 md:-translate-y-6 lg:-translate-y-10",
 		rotate: "rotate-[10deg] sm:rotate-[14deg] md:rotate-[16deg]",
 		color: "bg-tertiary-600 dark:bg-tertiary-700",
