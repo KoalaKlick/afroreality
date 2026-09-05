@@ -45,29 +45,29 @@ const HERO_CARDS = [
 export function LandingHero() {
 	return (
 		<Section className="relative mt-4 sm:mt-8 md:mt-12 pt-2 pb-8 overflow-hidden" contentClassName="relative space-y-10 sm:space-y-14">
-			{/* ── Subtle World Map Background Layer ── */}
+			{/* ── Subtle World Map Background Layer (Moved Down) ── */}
 			<div
-				className="absolute -top-10 sm:-top-16 inset-x-0 z-0 pointer-events-none flex items-center justify-center opacity-45 dark:opacity-35 overflow-hidden"
+				className="absolute top-48 sm:top-56 md:top-64 inset-x-0 z-0 pointer-events-none flex items-center justify-center opacity-45 dark:opacity-35 overflow-hidden"
 				aria-hidden="true"
 			>
 				<div className="w-[140%] sm:w-[120%] md:w-full max-w-6xl">
 					<WorldMap
 						lineColor="#ea580c"
 						dots={[
-							// Lagos to Nairobi
-							{ start: { lat: 6.5244, lng: 3.3792 }, end: { lat: -1.2921, lng: 36.8219 } },
-							// Nairobi to Johannesburg
-							{ start: { lat: -1.2921, lng: 36.8219 }, end: { lat: -26.2041, lng: 28.0473 } },
+							// Dakar to Accra
+							{ start: { lat: 14.7167, lng: -17.4677 }, end: { lat: 5.6037, lng: -0.1870 } },
 							// Accra to Lagos
 							{ start: { lat: 5.6037, lng: -0.1870 }, end: { lat: 6.5244, lng: 3.3792 } },
-							// Lagos to London
-							{ start: { lat: 6.5244, lng: 3.3792 }, end: { lat: 51.5074, lng: -0.1278 } },
-							// Cairo to Nairobi
-							{ start: { lat: 30.0444, lng: 31.2357 }, end: { lat: -1.2921, lng: 36.8219 } },
-							// Johannesburg to London
-							{ start: { lat: -26.2041, lng: 28.0473 }, end: { lat: 51.5074, lng: -0.1278 } },
-							// London to New York
-							{ start: { lat: 51.5074, lng: -0.1278 }, end: { lat: 40.7128, lng: -74.0060 } },
+							// Lagos to Nairobi
+							{ start: { lat: 6.5244, lng: 3.3792 }, end: { lat: -1.2921, lng: 36.8219 } },
+							// Nairobi to Kigali
+							{ start: { lat: -1.2921, lng: 36.8219 }, end: { lat: -1.9441, lng: 30.0619 } },
+							// Nairobi to Johannesburg
+							{ start: { lat: -1.2921, lng: 36.8219 }, end: { lat: -26.2041, lng: 28.0473 } },
+							// Lagos to Johannesburg
+							{ start: { lat: 6.5244, lng: 3.3792 }, end: { lat: -26.2041, lng: 28.0473 } },
+							// Johannesburg to Cape Town
+							{ start: { lat: -26.2041, lng: 28.0473 }, end: { lat: -33.9249, lng: 18.4241 } },
 						]}
 					/>
 				</div>

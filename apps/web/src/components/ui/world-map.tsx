@@ -31,7 +31,7 @@ export default function WorldMap({
 
 	const isDark = mounted && resolvedTheme === "dark";
 	const effectiveDotsColor =
-		dotsColor || (isDark ? "rgba(255, 255, 255, 0.10)" : "rgba(15, 23, 42, 0.08)");
+		dotsColor || (isDark ? "rgba(255, 255, 255, 0.30)" : "rgba(15, 23, 42, 0.30)");
 
 	const svgMap = useMemo(() => {
 		const map = new DottedMap({ height: 100, grid: "diagonal" });
@@ -54,7 +54,7 @@ export default function WorldMap({
 		end: { x: number; y: number },
 	) => {
 		const midX = (start.x + end.x) / 2;
-		const midY = Math.min(start.y, end.y) - 50;
+		const midY = Math.min(start.y, end.y) - 18;
 		return `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
 	};
 
@@ -82,8 +82,8 @@ export default function WorldMap({
 							y2="0%"
 						>
 							<stop offset="0%" stopColor="white" stopOpacity="0" />
-							<stop offset="8%" stopColor={lineColor} stopOpacity="0.45" />
-							<stop offset="92%" stopColor={lineColor} stopOpacity="0.45" />
+							<stop offset="8%" stopColor={lineColor} stopOpacity="0.30" />
+							<stop offset="92%" stopColor={lineColor} stopOpacity="0.30" />
 							<stop offset="100%" stopColor="white" stopOpacity="0" />
 						</linearGradient>
 
