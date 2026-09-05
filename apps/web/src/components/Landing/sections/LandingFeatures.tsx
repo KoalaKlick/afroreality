@@ -3,7 +3,7 @@
 import { Section } from "../Section";
 import { getUssdRootDialCode } from "@/lib/utils/ussd";
 
-// ── Minimal Custom SVG Watermarks (Theme-adaptive, ultra-light line art) ──
+// ── Solid Silhouette SVG Watermarks (Theme-adaptive, filled vector stamp aesthetic) ──
 
 function BrandWatermark() {
 	return (
@@ -14,13 +14,22 @@ function BrandWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
-			<rect x="20" y="24" width="120" height="96" rx="4" stroke="currentColor" strokeWidth="2.5" strokeDasharray="6 6" />
-			<rect x="34" y="38" width="40" height="32" rx="2" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="2" />
-			<circle cx="108" cy="54" r="16" stroke="currentColor" strokeWidth="2.5" />
-			<circle cx="108" cy="54" r="6" fill="currentColor" />
-			<line x1="34" y1="84" x2="126" y2="84" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-			<line x1="34" y1="98" x2="90" y2="98" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-			<path d="M120 100 L136 136 L108 126 Z" stroke="currentColor" strokeWidth="2" fill="currentColor" fillOpacity="0.2" />
+			{/* Solid browser window / brand canvas */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M18 24C18 19.5817 21.5817 16 26 16H134C138.418 16 142 19.5817 142 24V136C142 140.418 138.418 144 134 144H26C21.5817 144 18 140.418 18 136V24ZM28 42H132V134H28V42ZM36 29C36 30.6569 34.6569 32 33 32C31.3431 32 30 30.6569 30 29C30 27.3431 31.3431 26 33 26C34.6569 26 36 27.3431 36 29ZM44 32C45.6569 32 47 30.6569 47 29C47 27.3431 45.6569 26 44 26C42.3431 26 41 27.3431 41 29C41 30.6569 42.3431 32 44 32ZM58 29C58 30.6569 56.6569 32 55 32C53.3431 32 52 30.6569 52 29C52 27.3431 53.3431 26 55 26C56.6569 26 58 27.3431 58 29Z"
+				fill="currentColor"
+			/>
+			{/* Solid Brand Avatar / Logo badge */}
+			<rect x="38" y="52" width="36" height="36" rx="18" fill="currentColor" />
+			{/* Solid typography hierarchy bars */}
+			<rect x="82" y="54" width="42" height="10" rx="5" fill="currentColor" />
+			<rect x="82" y="70" width="28" height="8" rx="4" fill="currentColor" fillOpacity="0.6" />
+			{/* Solid brand color swatches */}
+			<rect x="38" y="100" width="24" height="20" rx="5" fill="currentColor" />
+			<rect x="68" y="100" width="24" height="20" rx="5" fill="currentColor" fillOpacity="0.7" />
+			<rect x="98" y="100" width="24" height="20" rx="5" fill="currentColor" fillOpacity="0.4" />
 		</svg>
 	);
 }
@@ -34,14 +43,30 @@ function ReachWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
-			<path d="M30 60 L65 45 L65 115 L30 100 Z" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.15" />
-			<path d="M65 52 L105 32 L105 128 L65 108 Z" stroke="currentColor" strokeWidth="2.5" />
-			<rect x="22" y="70" width="8" height="20" rx="2" stroke="currentColor" strokeWidth="2" fill="currentColor" />
-			<path d="M48 108 L48 132 L36 132" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-			{/* Broadcast Waves */}
-			<path d="M120 60 A 24 24 0 0 1 120 100" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-			<path d="M134 46 A 44 44 0 0 1 134 114" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" />
-			<path d="M148 32 A 64 64 0 0 1 148 128" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+			{/* Solid Megaphone Body */}
+			<path
+				d="M20 62C20 58.6863 22.6863 56 26 56H48L92 26C95.5 23.5 100 26 100 30.5V129.5C100 134 95.5 136.5 92 134L48 104H26C22.6863 104 20 101.314 20 98V62Z"
+				fill="currentColor"
+			/>
+			{/* Solid Handle */}
+			<path
+				d="M38 104H52V128C52 133.523 47.5228 138 42 138C36.4772 138 32 133.523 32 128V110L38 104Z"
+				fill="currentColor"
+			/>
+			{/* Solid Concentric Sound Beams */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M112 50C114.761 50 117 52.2386 117 55C125.837 61.6274 131 70.817 131 80C131 89.183 125.837 98.3726 117 105C114.761 106.709 111.603 106.261 109.895 104.021C108.186 101.78 108.634 98.6225 110.874 96.9142C117.163 92.1274 121 86.183 121 80C121 73.817 117.163 67.8726 110.874 63.0858C108.634 61.3775 108.186 58.2198 109.895 55.9792C110.375 55.3496 111.161 50 112 50Z"
+				fill="currentColor"
+			/>
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M128 32C130.761 32 133 34.2386 133 37C146.5 48 154 63.5 154 80C154 96.5 146.5 112 133 123C130.761 124.709 127.603 124.261 125.895 122.021C124.186 119.78 124.634 116.623 126.874 114.914C137.5 106 144 93.5 144 80C144 66.5 137.5 54 126.874 45.0858C124.634 43.3775 124.186 40.2198 125.895 37.9792C126.375 37.3496 127.161 32 128 32Z"
+				fill="currentColor"
+				fillOpacity="0.7"
+			/>
 		</svg>
 	);
 }
@@ -55,20 +80,36 @@ function TicketWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
+			{/* Solid Ticket with side notches and inner cutouts */}
 			<path
-				d="M24 40 C24 40, 54 40, 54 40 C54 50, 62 58, 72 58 C82 58, 90 50, 90 40 L136 40 L136 120 L90 120 C90 110, 82 102, 72 102 C62 102, 54 110, 54 120 L24 120 Z"
-				stroke="currentColor"
-				strokeWidth="2.5"
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M20 36C20 29.3726 25.3726 24 32 24H128C134.627 24 140 29.3726 140 36V66C131.163 66 124 72.268 124 80C124 87.732 131.163 94 140 94V124C140 130.627 134.627 136 128 136H32C25.3726 136 20 130.627 20 124V94C28.8366 94 36 87.732 36 80C36 72.268 28.8366 66 20 66V36Z"
+				fill="currentColor"
 			/>
-			{/* Perforation line */}
-			<line x1="72" y1="58" x2="72" y2="102" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" />
-			{/* QR preview */}
-			<rect x="36" y="60" width="24" height="24" rx="2" stroke="currentColor" strokeWidth="2" fill="currentColor" fillOpacity="0.2" />
-			<rect x="42" y="66" width="12" height="12" fill="currentColor" />
-			{/* Ticket details */}
-			<line x1="88" y1="64" x2="124" y2="64" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-			<line x1="88" y1="76" x2="116" y2="76" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-			<line x1="88" y1="88" x2="120" y2="88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+			{/* Perforation line (cutout dots) */}
+			<circle cx="88" cy="36" r="3" fill="var(--color-background, #fff)" />
+			<circle cx="88" cy="48" r="3" fill="var(--color-background, #fff)" />
+			<circle cx="88" cy="60" r="3" fill="var(--color-background, #fff)" />
+			<circle cx="88" cy="72" r="3" fill="var(--color-background, #fff)" />
+			<circle cx="88" cy="88" r="3" fill="var(--color-background, #fff)" />
+			<circle cx="88" cy="100" r="3" fill="var(--color-background, #fff)" />
+			<circle cx="88" cy="112" r="3" fill="var(--color-background, #fff)" />
+			<circle cx="88" cy="124" r="3" fill="var(--color-background, #fff)" />
+			{/* Solid QR Code silhouette on left stub */}
+			<rect x="36" y="48" width="36" height="36" rx="6" fill="var(--color-background, #fff)" />
+			<rect x="42" y="54" width="10" height="10" rx="2" fill="currentColor" />
+			<rect x="56" y="54" width="10" height="10" rx="2" fill="currentColor" />
+			<rect x="42" y="68" width="10" height="10" rx="2" fill="currentColor" />
+			<rect x="58" y="70" width="6" height="6" fill="currentColor" />
+			{/* Ticket stub content blocks */}
+			<rect x="36" y="96" width="36" height="8" rx="4" fill="var(--color-background, #fff)" fillOpacity="0.8" />
+			<rect x="36" y="110" width="24" height="6" rx="3" fill="var(--color-background, #fff)" fillOpacity="0.6" />
+			{/* Right Stub Details */}
+			<rect x="100" y="48" width="28" height="10" rx="5" fill="var(--color-background, #fff)" />
+			<rect x="100" y="66" width="22" height="8" rx="4" fill="var(--color-background, #fff)" fillOpacity="0.8" />
+			<rect x="100" y="82" width="26" height="8" rx="4" fill="var(--color-background, #fff)" fillOpacity="0.8" />
+			<rect x="100" y="104" width="28" height="14" rx="4" fill="var(--color-background, #fff)" />
 		</svg>
 	);
 }
@@ -82,18 +123,32 @@ function SettlementWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
-			{/* Phone */}
-			<rect x="24" y="32" width="56" height="96" rx="8" stroke="currentColor" strokeWidth="2.5" />
-			<line x1="42" y1="40" x2="62" y2="40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-			<circle cx="52" cy="116" r="4" stroke="currentColor" strokeWidth="1.5" />
-			{/* MoMo payment badge */}
-			<rect x="32" y="52" width="40" height="48" rx="4" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="1.5" />
-			<path d="M42 76 L52 66 L62 76" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-			<line x1="52" y1="66" x2="52" y2="86" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-			{/* Card behind */}
-			<rect x="68" y="54" width="72" height="48" rx="6" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.1" />
-			<line x1="68" y1="68" x2="140" y2="68" stroke="currentColor" strokeWidth="3" />
-			<rect x="76" y="80" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="currentColor" />
+			{/* Solid Phone Body */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M20 28C20 20.268 26.268 14 34 14H78C85.732 14 92 20.268 92 28V132C92 139.732 85.732 146 78 146H34C26.268 146 20 139.732 20 132V28ZM28 32C28 29.7909 29.7909 28 32 28H80C82.2091 28 84 29.7909 84 32V124C84 126.209 82.2091 128 80 128H32C29.7909 128 28 126.209 28 124V32ZM56 138C58.2091 138 60 136.209 60 134C60 131.791 58.2091 130 56 130C53.7909 130 52 131.791 52 134C52 136.209 53.7909 138 56 138Z"
+				fill="currentColor"
+			/>
+			{/* Mobile transfer arrow bubble */}
+			<rect x="36" y="44" width="40" height="40" rx="8" fill="currentColor" />
+			<path
+				d="M48 64L56 56M56 56L64 64M56 56V72"
+				stroke="var(--color-background, #fff)"
+				strokeWidth="3.5"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+			<rect x="36" y="94" width="40" height="8" rx="4" fill="currentColor" fillOpacity="0.7" />
+			<rect x="36" y="108" width="26" height="6" rx="3" fill="currentColor" fillOpacity="0.4" />
+			{/* Solid Card Stacking Behind */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M84 46C84 40.4772 88.4772 36 94 36H138C143.523 36 148 40.4772 148 46V102C148 107.523 143.523 112 138 112H94C88.4772 112 84 107.523 84 102V46ZM84 56H148V68H84V56ZM96 82C93.7909 82 92 83.7909 92 86V92C92 94.2091 93.7909 96 96 96H108C110.209 96 112 94.2091 112 92V86C112 83.7909 110.209 82 108 82H96Z"
+				fill="currentColor"
+				fillOpacity="0.85"
+			/>
 		</svg>
 	);
 }
@@ -107,17 +162,35 @@ function VotingWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
-			{/* Ballot box */}
-			<path d="M30 70 L130 70 L120 134 L40 134 Z" stroke="currentColor" strokeWidth="2.5" />
-			<line x1="20" y1="70" x2="140" y2="70" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-			<rect x="62" y="66" width="36" height="8" rx="2" fill="currentColor" />
-			{/* Ballot paper sliding in */}
-			<rect x="52" y="24" width="56" height="52" rx="3" stroke="currentColor" strokeWidth="2" fill="currentColor" fillOpacity="0.15" />
-			<circle cx="66" cy="40" r="5" stroke="currentColor" strokeWidth="1.5" />
-			<path d="M63 40 L65 43 L70 37" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-			<line x1="76" y1="40" x2="96" y2="40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-			<circle cx="66" cy="54" r="5" stroke="currentColor" strokeWidth="1.5" />
-			<line x1="76" y1="54" x2="96" y2="54" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+			{/* Solid Ballot Box */}
+			<path
+				d="M24 72H136L124 138C123 142.418 119.418 146 115 146H45C40.5817 146 37 142.418 36 138L24 72Z"
+				fill="currentColor"
+			/>
+			{/* Ballot box lid with slot */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M18 62C18 57.5817 21.5817 54 26 54H134C138.418 54 142 57.5817 142 62V68C142 72.4183 138.418 76 134 76H26C21.5817 76 18 72.4183 18 68V62ZM56 62C56 60.3431 57.3431 59 59 59H101C102.657 59 104 60.3431 104 62C104 63.6569 102.657 65 101 65H59C57.3431 65 56 63.6569 56 62Z"
+				fill="currentColor"
+			/>
+			{/* Solid Ballot Paper Sliding Into Box */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M48 18C48 13.5817 51.5817 10 56 10H104C108.418 10 112 13.5817 112 18V56H48V18ZM62 26C62 29.3137 59.3137 32 56 32C52.6863 32 50 29.3137 50 26C50 22.6863 52.6863 20 56 20C59.3137 20 62 22.6863 62 26ZM70 24H98V28H70V24ZM62 42C62 45.3137 59.3137 48 56 48C52.6863 48 50 45.3137 50 42C50 38.6863 52.6863 36 56 36C59.3137 36 62 38.6863 62 42ZM70 40H94V44H70V40Z"
+				fill="currentColor"
+				fillOpacity="0.9"
+			/>
+			{/* Checkmark inside ballot top circle */}
+			<circle cx="56" cy="26" r="6" fill="currentColor" />
+			<path
+				d="M53 26L55 28L59 24"
+				stroke="var(--color-background, #fff)"
+				strokeWidth="1.5"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
 		</svg>
 	);
 }
@@ -131,19 +204,26 @@ function GateCrewWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
-			{/* Shield Base */}
+			{/* Solid Outer Shield */}
 			<path
-				d="M80 24 L130 42 C130 84, 108 120, 80 136 C52 120, 30 84, 30 42 Z"
-				stroke="currentColor"
-				strokeWidth="2.5"
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M80 14L138 38V82C138 116.5 113.5 142.5 80 152C46.5 142.5 22 116.5 22 82V38L80 14ZM80 28L126 47V82C126 110.5 106.5 131.5 80 139C53.5 131.5 34 110.5 34 82V47L80 28Z"
 				fill="currentColor"
-				fillOpacity="0.1"
 			/>
-			{/* Scan crosshair / beam */}
-			<circle cx="80" cy="74" r="24" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" />
-			<path d="M66 74 L94 74" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-			<path d="M80 60 L80 88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-			<path d="M72 74 L78 80 L88 68" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+			{/* Solid Inner Crest / Badge */}
+			<path
+				d="M80 38L116 54V82C116 104.5 100.5 121 80 127C59.5 121 44 104.5 44 82V54L80 38Z"
+				fill="currentColor"
+			/>
+			{/* Solid Verified Checkmark in Negative Space */}
+			<path
+				d="M65 82L75 92L95 72"
+				stroke="var(--color-background, #fff)"
+				strokeWidth="7"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
 		</svg>
 	);
 }
@@ -157,17 +237,19 @@ function AnalyticsWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
-			{/* Axis */}
-			<line x1="26" y1="130" x2="136" y2="130" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-			<line x1="26" y1="30" x2="26" y2="130" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-			{/* Trend bars */}
-			<rect x="36" y="90" width="16" height="40" rx="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1.5" />
-			<rect x="60" y="70" width="16" height="60" rx="2" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.5" />
-			<rect x="84" y="48" width="16" height="82" rx="2" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="1.5" />
-			<rect x="108" y="32" width="16" height="98" rx="2" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="1.5" />
-			{/* Ascending Trend Line */}
-			<path d="M38 96 L68 72 L92 50 L116 30" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-			<circle cx="116" cy="30" r="4" fill="currentColor" />
+			{/* Solid Ascending Bar Chart Columns */}
+			<rect x="20" y="104" width="22" height="38" rx="6" fill="currentColor" fillOpacity="0.4" />
+			<rect x="50" y="80" width="22" height="62" rx="6" fill="currentColor" fillOpacity="0.6" />
+			<rect x="80" y="56" width="22" height="86" rx="6" fill="currentColor" fillOpacity="0.8" />
+			<rect x="110" y="32" width="22" height="110" rx="6" fill="currentColor" />
+
+			{/* Solid Ascending Growth Ribbon / Trend Indicator */}
+			<path
+				d="M24 92C48 76 74 56 114 26L110 20L138 20L134 48L126 40C88 68 62 88 32 104L24 92Z"
+				fill="currentColor"
+			/>
+			{/* Baseline Ground */}
+			<rect x="14" y="142" width="132" height="6" rx="3" fill="currentColor" />
 		</svg>
 	);
 }
@@ -181,24 +263,34 @@ function ScaleWatermark() {
 			className="size-full"
 			aria-hidden="true"
 		>
-			{/* Server Stack / Infrastructure */}
-			<rect x="28" y="32" width="104" height="26" rx="3" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.1" />
-			<circle cx="42" cy="45" r="3" fill="currentColor" />
-			<circle cx="54" cy="45" r="3" fill="currentColor" />
-			<line x1="72" y1="45" x2="118" y2="45" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-
-			<rect x="28" y="68" width="104" height="26" rx="3" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.1" />
-			<circle cx="42" cy="81" r="3" fill="currentColor" />
-			<circle cx="54" cy="81" r="3" fill="currentColor" />
-			<line x1="72" y1="81" x2="118" y2="81" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-
-			<rect x="28" y="104" width="104" height="26" rx="3" stroke="currentColor" strokeWidth="2.5" fill="currentColor" fillOpacity="0.1" />
-			<circle cx="42" cy="117" r="3" fill="currentColor" />
-			<circle cx="54" cy="117" r="3" fill="currentColor" />
-			<line x1="72" y1="117" x2="118" y2="117" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-
-			{/* Uptime pulse pulse lines */}
-			<path d="M136 45 L144 45 L148 38 L152 52 L156 45" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+			{/* Solid Server Rack Unit 1 */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M22 26C22 20.4772 26.4772 16 32 16H128C133.523 16 138 20.4772 138 26V46C138 51.5228 133.523 56 128 56H32C26.4772 56 22 51.5228 22 46V26ZM38 36C38 38.2091 36.2091 40 34 40C31.7909 40 30 38.2091 30 36C30 33.7909 31.7909 32 34 32C36.2091 32 38 33.7909 38 36ZM48 40C50.2091 40 52 38.2091 52 36C52 33.7909 50.2091 32 48 32C45.7909 32 44 33.7909 44 36C44 38.2091 45.7909 40 48 40ZM64 32H126V40H64V32Z"
+				fill="currentColor"
+			/>
+			{/* Solid Server Rack Unit 2 */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M22 64C22 58.4772 26.4772 54 32 54H128C133.523 54 138 58.4772 138 64V84C138 89.5228 133.523 94 128 94H32C26.4772 94 22 89.5228 22 84V64ZM38 74C38 76.2091 36.2091 78 34 78C31.7909 78 30 76.2091 30 74C30 71.7909 31.7909 70 34 70C36.2091 70 38 71.7909 38 74ZM48 78C50.2091 78 52 76.2091 52 74C52 71.7909 50.2091 70 48 70C45.7909 70 44 71.7909 44 74C44 76.2091 45.7909 78 48 78ZM64 70H126V78H64V70Z"
+				fill="currentColor"
+				fillOpacity="0.9"
+			/>
+			{/* Solid Server Rack Unit 3 */}
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M22 102C22 96.4772 26.4772 92 32 92H128C133.523 92 138 96.4772 138 102V122C138 127.523 133.523 132 128 132H32C26.4772 132 22 127.523 22 122V102ZM38 112C38 114.209 36.2091 116 34 116C31.7909 116 30 114.209 30 112C30 109.791 31.7909 108 34 108C36.2091 108 38 109.791 38 112ZM48 116C50.2091 116 52 114.209 52 112C52 109.791 50.2091 108 48 108C45.7909 108 44 109.791 44 112C44 114.209 45.7909 116 48 116ZM64 108H126V116H64V108Z"
+				fill="currentColor"
+				fillOpacity="0.8"
+			/>
+			{/* High-voltage solid lightning bolt overlay */}
+			<path
+				d="M142 66L118 96H132L120 126L152 84H134L142 66Z"
+				fill="currentColor"
+			/>
 		</svg>
 	);
 }
@@ -290,9 +382,9 @@ export function LandingFeatures() {
 							key={feature.title}
 							className="group relative bg-card p-6 sm:p-7 md:p-8 flex flex-col justify-between overflow-hidden transition-colors duration-200 hover:bg-muted/30 border-[0.5px] border-border"
 						>
-							{/* Subtle Background SVG Watermark */}
+							{/* Subtle Solid Silhouette Background SVG Watermark */}
 							<div
-								className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 size-32 sm:size-36 pointer-events-none opacity-[0.07] dark:opacity-[0.09] text-foreground transition-all duration-300 group-hover:opacity-[0.16] dark:group-hover:opacity-[0.20] group-hover:text-primary group-hover:scale-105"
+								className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 size-32 sm:size-36 pointer-events-none opacity-[0.06] dark:opacity-[0.08] text-foreground transition-all duration-300 group-hover:opacity-[0.14] dark:group-hover:opacity-[0.18] group-hover:text-primary group-hover:scale-105"
 								aria-hidden="true"
 							>
 								<Watermark />
