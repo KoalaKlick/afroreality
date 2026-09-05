@@ -45,9 +45,9 @@ const HERO_CARDS = [
 export function LandingHero() {
 	return (
 		<Section className="relative mt-4 sm:mt-8 md:mt-12 pt-2 pb-8 overflow-hidden" contentClassName="relative space-y-10 sm:space-y-14">
-			{/* ── World Map Background Layer ── */}
+			{/* ── Subtle World Map Background Layer ── */}
 			<div
-				className="absolute -top-10 sm:-top-16 inset-x-0 z-0 pointer-events-none flex items-center justify-center opacity-85 dark:opacity-75 overflow-hidden"
+				className="absolute -top-10 sm:-top-16 inset-x-0 z-0 pointer-events-none flex items-center justify-center opacity-45 dark:opacity-35 overflow-hidden"
 				aria-hidden="true"
 			>
 				<div className="w-[140%] sm:w-[120%] md:w-full max-w-6xl">

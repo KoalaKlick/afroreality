@@ -31,12 +31,12 @@ export default function WorldMap({
 
 	const isDark = mounted && resolvedTheme === "dark";
 	const effectiveDotsColor =
-		dotsColor || (isDark ? "rgba(255, 255, 255, 0.28)" : "rgba(15, 23, 42, 0.22)");
+		dotsColor || (isDark ? "rgba(255, 255, 255, 0.10)" : "rgba(15, 23, 42, 0.08)");
 
 	const svgMap = useMemo(() => {
 		const map = new DottedMap({ height: 100, grid: "diagonal" });
 		return map.getSVG({
-			radius: 0.25,
+			radius: 0.22,
 			color: effectiveDotsColor,
 			shape: "circle",
 			backgroundColor: "transparent",
@@ -62,7 +62,7 @@ export default function WorldMap({
 		<div className={`w-full aspect-[2/1] rounded-lg relative font-sans ${className}`}>
 			{/* Dotted Map Base rendered inline */}
 			<div
-				className="h-full w-full pointer-events-none select-none [&>svg]:w-full [&>svg]:h-full [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)]"
+				className="h-full w-full pointer-events-none select-none [&>svg]:w-full [&>svg]:h-full [mask-image:linear-gradient(to_bottom,transparent,white_15%,white_85%,transparent)]"
 				dangerouslySetInnerHTML={{ __html: svgMap }}
 			/>
 
@@ -71,7 +71,7 @@ export default function WorldMap({
 				<svg
 					ref={svgRef}
 					viewBox="0 0 800 400"
-					className="w-full h-full absolute inset-0 pointer-events-none select-none [mask-image:linear-gradient(to_bottom,transparent_2%,white_15%,white_85%,transparent_98%)]"
+					className="w-full h-full absolute inset-0 pointer-events-none select-none [mask-image:linear-gradient(to_bottom,transparent_5%,white_20%,white_80%,transparent_95%)]"
 				>
 					<defs>
 						<linearGradient
@@ -82,13 +82,13 @@ export default function WorldMap({
 							y2="0%"
 						>
 							<stop offset="0%" stopColor="white" stopOpacity="0" />
-							<stop offset="5%" stopColor={lineColor} stopOpacity="1" />
-							<stop offset="95%" stopColor={lineColor} stopOpacity="1" />
+							<stop offset="8%" stopColor={lineColor} stopOpacity="0.45" />
+							<stop offset="92%" stopColor={lineColor} stopOpacity="0.45" />
 							<stop offset="100%" stopColor="white" stopOpacity="0" />
 						</linearGradient>
 
 						<radialGradient id="map-dot-glow" cx="50%" cy="50%" r="50%">
-							<stop offset="0%" stopColor={lineColor} stopOpacity="0.45" />
+							<stop offset="0%" stopColor={lineColor} stopOpacity="0.2" />
 							<stop offset="100%" stopColor={lineColor} stopOpacity="0" />
 						</radialGradient>
 					</defs>
@@ -102,7 +102,7 @@ export default function WorldMap({
 									d={createCurvedPath(startPoint, endPoint)}
 									fill="none"
 									stroke="url(#map-path-gradient)"
-									strokeWidth="1.5"
+									strokeWidth="1"
 									initial={{ pathLength: 0 }}
 									animate={{ pathLength: 1 }}
 									transition={{ duration: 1.5, delay: 0.3 * i, ease: "easeOut" }}
@@ -118,30 +118,30 @@ export default function WorldMap({
 								return (
 									<g key={`pt-${pt.lat}-${pt.lng}-${j}`}>
 										{/* Soft radial glow */}
-										<circle cx={x} cy={y} r="14" fill="url(#map-dot-glow)" />
+										<circle cx={x} cy={y} r="10" fill="url(#map-dot-glow)" />
 										{/* Solid core dot */}
-										<circle cx={x} cy={y} r="3" fill={lineColor} />
+										<circle cx={x} cy={y} r="2" fill={lineColor} opacity="0.6" />
 										{/* Pulsing ring */}
 										<circle
 											cx={x}
 											cy={y}
-											r="3"
+											r="2"
 											fill={lineColor}
-											opacity="0.5"
+											opacity="0.25"
 										>
 											<animate
 												attributeName="r"
-												from="3"
-												to="12"
-												dur="2.5s"
+												from="2"
+												to="8"
+												dur="3s"
 												begin={`${i * 0.4}s`}
 												repeatCount="indefinite"
 											/>
 											<animate
 												attributeName="opacity"
-												from="0.5"
+												from="0.25"
 												to="0"
-												dur="2.5s"
+												dur="3s"
 												begin={`${i * 0.4}s`}
 												repeatCount="indefinite"
 											/>
