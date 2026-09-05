@@ -293,11 +293,11 @@ export const EVENT_TYPES = [
 		label: "Voting Event",
 		description: "Run awards, polls or pageants with USSD & online voting",
 	},
-	{
-		value: "hybrid" as const,
-		label: "Hybrid Event",
-		description: "Complete solution with both ticketing and voting",
-	},
+	// {
+	// 	value: "hybrid" as const,
+	// 	label: "Hybrid Event",
+	// 	description: "Complete solution with both ticketing and voting",
+	// },
 ] as const;
 
 export const EVENT_CATEGORIES = [
