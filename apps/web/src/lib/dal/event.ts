@@ -135,7 +135,7 @@ export async function getEventStats(
 	}
 
 	const now = new Date();
-	const PAID_STATUSES = ["completed", "paid"];
+	const PAID_STATUSES: readonly string[] = ["completed"];
 
 	const [
 		statusTypeGroups,
@@ -311,7 +311,7 @@ export async function getEventDetail(
 }
 
 export async function getEventStatsAndTrends(eventId: string) {
-	const PAID_STATUSES = ["completed", "paid"];
+	const PAID_STATUSES: readonly string[] = ["completed"];
 
 	const event = await prisma.event.findUnique({
 		where: { id: eventId },
@@ -426,7 +426,7 @@ export async function getEventStatsAndTrends(eventId: string) {
 
 	// Compute accurate vote revenue from vote transactions
 	const rawVoteRevenue = votesList.reduce((sum, v) => {
-		if (v.payment?.amount && PAID_STATUSES.includes(v.payment.status)) {
+		if (v.payment?.amount && (v.payment.status === "completed" || PAID_STATUSES.includes(v.payment.status))) {
 			return sum + Number(v.payment.amount);
 		}
 		const unitPrice = Number(v.category?.votePrice || 1);

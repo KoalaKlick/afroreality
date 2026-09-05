@@ -628,7 +628,7 @@ export async function getLandingStatsData() {
 			prisma.ticket.count({
 				where: {
 					order: {
-						status: { in: ["completed", "paid"] as any },
+						status: "completed",
 					},
 				},
 			}).catch(() => 0),

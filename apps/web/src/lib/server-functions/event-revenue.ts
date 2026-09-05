@@ -6,7 +6,7 @@ import { requireSession } from "../session";
 import { serializeJsonSafe } from "../utils";
 import { requireOrgRole } from "./auth-helpers";
 
-const PAID_STATUSES = ["completed", "paid"];
+const PAID_STATUSES = ["completed"] as const;
 
 export interface EventRevenuePayment {
     id: string;
