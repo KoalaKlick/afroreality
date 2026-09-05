@@ -59,7 +59,7 @@ export default async function HomePage() {
 	]);
 
 	return (
-		<div className="min-h-screen w-full overflow-x-clip space-y-20 bg-background text-foreground">
+		<div className="min-h-screen w-full overflow-x-clip space-y-20 bg-white dark:bg-secondary-950 text-foreground">
 			<LandingNavbar />
 			<main className="space-y-10">
 				<LandingHero />
