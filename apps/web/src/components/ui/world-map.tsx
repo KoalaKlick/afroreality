@@ -2,7 +2,8 @@
 
 import DottedMap from "dotted-map";
 import { motion } from "motion/react";
-import { useMemo, useRef } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface MapProps {
 	readonly dots?: Array<{
@@ -16,21 +17,31 @@ interface MapProps {
 
 export default function WorldMap({
 	dots = [],
-	lineColor = "var(--primary, #ea580c)",
-	dotsColor = "currentColor",
+	lineColor = "#ea580c",
+	dotsColor,
 	className = "",
 }: MapProps) {
 	const svgRef = useRef<SVGSVGElement>(null);
+	const { resolvedTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const isDark = mounted && resolvedTheme === "dark";
+	const effectiveDotsColor =
+		dotsColor || (isDark ? "rgba(255, 255, 255, 0.28)" : "rgba(15, 23, 42, 0.22)");
 
 	const svgMap = useMemo(() => {
 		const map = new DottedMap({ height: 100, grid: "diagonal" });
 		return map.getSVG({
-			radius: 0.22,
-			color: dotsColor,
+			radius: 0.25,
+			color: effectiveDotsColor,
 			shape: "circle",
 			backgroundColor: "transparent",
 		});
-	}, [dotsColor]);
+	}, [effectiveDotsColor]);
 
 	const projectPoint = (lat: number, lng: number) => {
 		const x = (lng + 180) * (800 / 360);
@@ -48,23 +59,19 @@ export default function WorldMap({
 	};
 
 	return (
-		<div
-			className={`w-full aspect-[2/1] rounded-lg relative font-sans text-muted-foreground/30 dark:text-muted-foreground/20 ${className}`}
-		>
-			{/* eslint-disable-next-line @next/next/no-img-element */}
-			<img
-				src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
-				className="h-full w-full [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)] [mask-composite:intersect] pointer-events-none select-none"
-				alt="world map"
-				height="495"
-				width="1056"
-				draggable={false}
+		<div className={`w-full aspect-[2/1] rounded-lg relative font-sans ${className}`}>
+			{/* Dotted Map Base rendered inline */}
+			<div
+				className="h-full w-full pointer-events-none select-none [&>svg]:w-full [&>svg]:h-full [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)]"
+				dangerouslySetInnerHTML={{ __html: svgMap }}
 			/>
+
+			{/* Animated Lines and Pulsing Points */}
 			{dots.length > 0 && (
 				<svg
 					ref={svgRef}
 					viewBox="0 0 800 400"
-					className="w-full h-full absolute inset-0 pointer-events-none select-none [mask-image:linear-gradient(to_bottom,transparent_2%,white_15%,white_85%,transparent_98%)] [mask-composite:intersect]"
+					className="w-full h-full absolute inset-0 pointer-events-none select-none [mask-image:linear-gradient(to_bottom,transparent_2%,white_15%,white_85%,transparent_98%)]"
 				>
 					<defs>
 						<linearGradient
@@ -81,7 +88,7 @@ export default function WorldMap({
 						</linearGradient>
 
 						<radialGradient id="map-dot-glow" cx="50%" cy="50%" r="50%">
-							<stop offset="0%" stopColor={lineColor} stopOpacity="0.35" />
+							<stop offset="0%" stopColor={lineColor} stopOpacity="0.45" />
 							<stop offset="100%" stopColor={lineColor} stopOpacity="0" />
 						</radialGradient>
 					</defs>
@@ -113,26 +120,26 @@ export default function WorldMap({
 										{/* Soft radial glow */}
 										<circle cx={x} cy={y} r="14" fill="url(#map-dot-glow)" />
 										{/* Solid core dot */}
-										<circle cx={x} cy={y} r="2.5" fill={lineColor} />
+										<circle cx={x} cy={y} r="3" fill={lineColor} />
 										{/* Pulsing ring */}
 										<circle
 											cx={x}
 											cy={y}
-											r="2.5"
+											r="3"
 											fill={lineColor}
-											opacity="0.4"
+											opacity="0.5"
 										>
 											<animate
 												attributeName="r"
-												from="2.5"
-												to="11"
+												from="3"
+												to="12"
 												dur="2.5s"
 												begin={`${i * 0.4}s`}
 												repeatCount="indefinite"
 											/>
 											<animate
 												attributeName="opacity"
-												from="0.4"
+												from="0.5"
 												to="0"
 												dur="2.5s"
 												begin={`${i * 0.4}s`}

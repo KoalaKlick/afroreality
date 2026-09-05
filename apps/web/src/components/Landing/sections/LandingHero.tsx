@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import WorldMap from "@/components/ui/world-map";
 import { Section } from "../Section";
 
 const HERO_CARDS = [
 	{
 		id: "organizer",
 		title: "Organizers & Hosts",
-		img: "/landing/create-event-3.png",
+		img: "/landing/cta/create-event-3.webp",
 		translate: "-translate-y-4 sm:-translate-y-6 md:-translate-y-8 lg:-translate-y-10",
 		rotate: "-rotate-[10deg] sm:-rotate-[14deg] md:-rotate-[16deg]",
 		color: "bg-secondary dark:bg-secondary-600",
@@ -20,7 +21,7 @@ const HERO_CARDS = [
 	{
 		id: "creator",
 		title: "Creators & Artists",
-		img: "/landing/create-event-2.png",
+		img: "/landing/cta/create-event-2.webp",
 		translate: "-translate-y-12 sm:-translate-y-18 md:-translate-y-28 lg:-translate-y-36",
 		rotate: "rotate-0",
 		color: "bg-primary dark:bg-primary-700",
@@ -31,7 +32,7 @@ const HERO_CARDS = [
 	{
 		id: "attendee",
 		title: "Attendees & Voters",
-		img: "/landing/create-event-1.png",
+		img: "/landing/cta/create-event-1.webp",
 		translate: "translate-y-2 sm:-translate-y-2 md:-translate-y-6 lg:-translate-y-10",
 		rotate: "rotate-[10deg] sm:rotate-[14deg] md:rotate-[16deg]",
 		color: "bg-tertiary-600 dark:bg-tertiary-700",
@@ -43,10 +44,37 @@ const HERO_CARDS = [
 
 export function LandingHero() {
 	return (
-		<Section class="mt-8 sm:mt-12 md:mt-16 pt-4 pb-8 overflow-hidden" content-class="relative space-y-10 sm:space-y-14">
+		<Section className="relative mt-4 sm:mt-8 md:mt-12 pt-2 pb-8 overflow-hidden" contentClassName="relative space-y-10 sm:space-y-14">
+			{/* ── World Map Background Layer ── */}
+			<div
+				className="absolute -top-10 sm:-top-16 inset-x-0 z-0 pointer-events-none flex items-center justify-center opacity-85 dark:opacity-75 overflow-hidden"
+				aria-hidden="true"
+			>
+				<div className="w-[140%] sm:w-[120%] md:w-full max-w-6xl">
+					<WorldMap
+						lineColor="#ea580c"
+						dots={[
+							// Lagos to Nairobi
+							{ start: { lat: 6.5244, lng: 3.3792 }, end: { lat: -1.2921, lng: 36.8219 } },
+							// Nairobi to Johannesburg
+							{ start: { lat: -1.2921, lng: 36.8219 }, end: { lat: -26.2041, lng: 28.0473 } },
+							// Accra to Lagos
+							{ start: { lat: 5.6037, lng: -0.1870 }, end: { lat: 6.5244, lng: 3.3792 } },
+							// Lagos to London
+							{ start: { lat: 6.5244, lng: 3.3792 }, end: { lat: 51.5074, lng: -0.1278 } },
+							// Cairo to Nairobi
+							{ start: { lat: 30.0444, lng: 31.2357 }, end: { lat: -1.2921, lng: 36.8219 } },
+							// Johannesburg to London
+							{ start: { lat: -26.2041, lng: 28.0473 }, end: { lat: 51.5074, lng: -0.1278 } },
+							// London to New York
+							{ start: { lat: 51.5074, lng: -0.1278 }, end: { lat: 40.7128, lng: -74.0060 } },
+						]}
+					/>
+				</div>
+			</div>
+
 			{/* Text & Action Area */}
 			<div className="relative space-y-5 text-center max-w-3xl mx-auto z-20">
-
 				<h1 className="font-bold text-3xl sm:text-5xl md:text-6xl tracking-tight text-foreground font-millik leading-[1.1]">
 					Your Event. Your Brand.{" "}
 					<span className="text-primary block sm:inline">
@@ -60,7 +88,7 @@ export function LandingHero() {
 
 				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
 					<Link href="/register">
-						<Button className="r">
+						<Button className="font-semibold shadow-md shadow-primary/20">
 							Get Started Free
 							<ArrowRight className="size-4 ml-2" />
 						</Button>
@@ -72,7 +100,6 @@ export function LandingHero() {
 						</Button>
 					</Link>
 				</div>
-
 			</div>
 
 			{/* 3-Card Character Fan (Primary, Secondary, Tertiary) */}
