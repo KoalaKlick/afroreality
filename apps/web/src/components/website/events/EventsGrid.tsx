@@ -4,6 +4,7 @@ import Link from "next/link";
 import { EventCard, type TawnyEventData } from "./EventCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
+import { NoEventsIllustration } from "@/components/common/NoEventsIllustration";
 
 interface EventsGridProps {
 	readonly events: TawnyEventData[];
@@ -38,8 +39,8 @@ export function EventsGrid({
 		return (
 			<div className="border border-border rounded-2xl bg-card/30 p-6 sm:p-12">
 				<EmptyState
-					variant="data"
-					svgClassName="w-40 h-40 sm:w-48 sm:h-48 mb-4"
+					svgIcon={NoEventsIllustration}
+					svgClassName="w-44 sm:w-52 h-auto mb-4"
 					title="No Events Found"
 					description={
 						hasActiveFilters

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowRight, CalendarX } from "lucide-react";
+import { Plus, ArrowRight } from "lucide-react";
 import { Section } from "../Section";
 import { EventCard, type TawnyEventData } from "@/components/website/events/EventCard";
+import { NoEventsIllustration } from "@/components/common/NoEventsIllustration";
 
 // High quality fallback Pan-African events if DB is empty
 const DEMO_EVENTS: TawnyEventData[] = [
@@ -128,10 +129,10 @@ export function LandingEventsSection({
 
 			{/* Events Grid */}
 			{events.length === 0 ? (
-				<div className="text-center py-16 border border-border rounded-xl">
-					<CalendarX className="size-10 text-muted-foreground mx-auto mb-3" />
-					<h3 className="text-base font-semibold mb-1">No Events Yet</h3>
-					<p className="text-xs text-muted-foreground mb-4">
+				<div className="flex flex-col items-center justify-center text-center py-16 px-4 border border-border rounded-2xl bg-card/40">
+					<NoEventsIllustration className="w-44 sm:w-52 h-auto mb-4" />
+					<h3 className="text-base sm:text-lg font-semibold mb-1">No Events Yet</h3>
+					<p className="text-xs sm:text-sm text-muted-foreground mb-5 max-w-sm">
 						Be the first to host an event across Africa on our platform!
 					</p>
 					<Link href="/register">
