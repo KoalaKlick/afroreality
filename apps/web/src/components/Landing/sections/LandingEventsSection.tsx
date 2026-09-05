@@ -96,7 +96,7 @@ export function LandingEventsSection({
 	const events = initialEvents && initialEvents.length > 0 ? initialEvents : DEMO_EVENTS;
 
 	return (
-		<Section id="events" class="mt-20 md:mt-24 @container" content-class="space-y-8">
+		<Section id="events" class="mt-20 md:mt-24 @container bg-secondary-100 py-10" content-class="space-y-8">
 			{/* Section Header */}
 			<div className="md:flex justify-between items-end gap-6">
 				<div className="max-w-md space-y-2">

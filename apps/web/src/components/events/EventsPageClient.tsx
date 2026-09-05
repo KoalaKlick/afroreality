@@ -104,7 +104,7 @@ export function EventsPageClient({
 	}, [initialOrganizers, searchQuery]);
 
 	return (
-		<div className="min-h-screen bg-background overflow-x-hidden">
+		<div className="min-h-screen bg-secondary-100 overflow-x-hidden">
 			<main className="pt-6 sm:pt-8">
 				{/* Hero Section */}
 				<section className="relative py-6 sm:py-8 overflow-hidden">

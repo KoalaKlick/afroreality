@@ -144,12 +144,12 @@ export function LandingNavbar() {
 					</div>
 					<div className="pt-3 border-t border-border flex gap-2.5">
 						<Link href="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-							<Button variant="outline" className="w-full h-9 rounded-sm text-xs font-semibold shadow-none">
+							<Button variant="outline" className="w-full h-9 text-xs font-semibold shadow-none">
 								Sign in
 							</Button>
 						</Link>
 						<Link href="/register" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-							<Button className="w-full h-9 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold shadow-none">
+							<Button className="rounded-xs">
 								Get Started
 							</Button>
 						</Link>
