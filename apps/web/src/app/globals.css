@@ -71,6 +71,8 @@ html {
   /* Organization Branding Colors */
   --color-brand-primary: var(--color-primary);
   --color-brand-secondary: var(--color-secondary);
+  --color-tertiary: var(--color-tertiary-600);
+  --color-tertiary-foreground: #ffffff;
   --color-brand-tertiary: var(--color-tertiary);
 
   /* Primary - Brand Red / Crimson (from logo.svg - swapped with tertiary) */
