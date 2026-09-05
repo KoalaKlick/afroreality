@@ -40,7 +40,7 @@ export function LandingFooter() {
 	return (
 		<footer className="border-t border-border mt-24 bg-card/40">
 			{/* Pan-African Tri-Color Strip */}
-			<PanAfricanDivider className="h-1 opacity-70" />
+			<PanAfricanDivider className="h-px opacity-70" />
 
 			<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-6">
 				{/* Main Footer Body */}
