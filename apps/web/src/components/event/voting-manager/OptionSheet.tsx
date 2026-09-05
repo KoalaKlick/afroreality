@@ -149,7 +149,11 @@ export function OptionSheet({
 						},
 					});
 
-					toast.success(res.message || "Change request sent to nominee for approval.");
+					if (res.requiresNomineeApproval) {
+						toast.success(res.message || "Change request sent to nominee for approval.");
+					} else {
+						toast.success(res.message || "Nominee updated successfully.");
+					}
 				} else {
 					await createVotingOption({
 						data: {

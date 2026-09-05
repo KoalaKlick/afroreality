@@ -171,17 +171,33 @@ export async function updateVotingOption({ data }: { data: any }): Promise<any> 
 	const targetId = id || data.optionId;
 	if (!targetId) throw new Error("Missing option id");
 
-	const newCode = rest.nomineeCode?.trim();
-	if (newCode) {
-		const current = await prisma.votingOption.findUnique({
-			where: { id: targetId },
-			select: { eventId: true },
-		});
+	const option = await prisma.votingOption.findUnique({
+		where: { id: targetId },
+		include: {
+			event: { select: { id: true, status: true, startDate: true } },
+		},
+	});
+	if (!option) throw new Error("Nominee not found");
 
-		if (current?.eventId) {
+	const eventPublished = option.event.status === "published" || option.event.status === "ongoing";
+	const votesOnOption = await prisma.vote.count({ where: { optionId: targetId } });
+	const totalOptionVotes = Math.max(Number(option.votesCount || 0), votesOnOption);
+	const votesOnEvent = await prisma.vote.count({ where: { eventId: option.eventId } });
+	const eventDateStarted = Boolean(option.event.startDate && new Date() >= new Date(option.event.startDate));
+	const isVotingStarted = totalOptionVotes > 0 || votesOnEvent > 0 || (eventPublished && eventDateStarted);
+
+	const newCode = rest.nomineeCode?.trim();
+	const isCodeChanging = newCode !== undefined && newCode !== (option.nomineeCode || "").trim();
+
+	if (isCodeChanging) {
+		if (isVotingStarted) {
+			throw new Error("Nominee code cannot be changed once event voting has started.");
+		}
+
+		if (newCode) {
 			const existing = await prisma.votingOption.findFirst({
 				where: {
-					eventId: current.eventId,
+					eventId: option.eventId,
 					nomineeCode: newCode,
 					id: { not: targetId },
 				},
@@ -595,20 +611,21 @@ export async function requestNomineeChange({
 	if (!option) throw new Error("Nominee not found");
 
 	// Determine if voting has started / votes exist
+	const eventPublished = option.event.status === "published" || option.event.status === "ongoing";
 	const votesOnOption = await prisma.vote.count({ where: { optionId } });
 	const totalOptionVotes = Math.max(Number(option.votesCount || 0), votesOnOption);
 	const votesOnEvent = await prisma.vote.count({ where: { eventId: option.eventId } });
-	const eventStarted = Boolean(option.event.startDate && new Date() >= new Date(option.event.startDate));
-	const isVotingLive = totalOptionVotes > 0 || votesOnEvent > 0 || eventStarted;
+	const eventDateStarted = Boolean(option.event.startDate && new Date() >= new Date(option.event.startDate));
+	const isVotingStarted = totalOptionVotes > 0 || votesOnEvent > 0 || (eventPublished && eventDateStarted);
 
 	// Check if this nominee was a paid nomination
 	const isPaidNomination =
 		Number(option.category?.nominationPrice || 0) > 0 ||
 		(option.isPublicNomination === true && Boolean(option.category?.nominationPrice && Number(option.category.nominationPrice) > 0));
 
-	// HARD BOUNDARY CHECKS
+	// HARD BOUNDARY CHECKS FOR DELETE
 	if (requestType === "DELETE") {
-		if (isVotingLive) {
+		if (isVotingStarted) {
 			throw new Error(
 				`Cannot delete "${option.optionText}" because voting has already started or votes have been recorded. Nominees cannot be removed once voting is live.`
 			);
@@ -618,29 +635,111 @@ export async function requestNomineeChange({
 				`Cannot delete "${option.optionText}" because this is a paid nomination. Paid nominations cannot be deleted.`
 			);
 		}
+
+		await prisma.votingOption.delete({ where: { id: optionId } });
+		return {
+			success: true,
+			requiresNomineeApproval: false,
+			message: "Nominee deleted successfully.",
+		};
 	}
 
-	if (requestType === "EDIT" && isVotingLive) {
-		// Detect if identity-critical fields are changing
-		const isNameChanging = proposedChanges.optionText !== undefined && proposedChanges.optionText.trim() !== option.optionText;
-		const isCategoryChanging = proposedChanges.categoryId !== undefined && proposedChanges.categoryId !== option.categoryId;
-		const isCodeChanging = proposedChanges.nomineeCode !== undefined && proposedChanges.nomineeCode.trim() !== (option.nomineeCode || "");
-		const isEmailChanging = proposedChanges.email !== undefined && proposedChanges.email.trim() !== (option.email || "");
+	// EDIT FLOW
+	const newNomineeCode = proposedChanges.nomineeCode !== undefined ? proposedChanges.nomineeCode.trim() : undefined;
+	const isCodeChanging = newNomineeCode !== undefined && newNomineeCode !== (option.nomineeCode || "").trim();
 
-		if (isNameChanging || isCategoryChanging || isCodeChanging || isEmailChanging) {
-			throw new Error(
-				"Voting has already started for this event. Identity-critical fields (Name, Category, Nominee Code, Email) cannot be edited once voting is live. You may only update photo or bio."
-			);
+	if (isCodeChanging) {
+		if (isVotingStarted) {
+			throw new Error("Nominee code cannot be changed once event voting has started.");
+		}
+		if (newNomineeCode) {
+			const existing = await prisma.votingOption.findFirst({
+				where: {
+					eventId: option.eventId,
+					nomineeCode: newNomineeCode,
+					id: { not: optionId },
+				},
+				select: { id: true },
+			});
+			if (existing) {
+				throw new Error(`Nominee code "${newNomineeCode}" is already assigned to another nominee in this event.`);
+			}
 		}
 	}
 
-	// Create logged NomineeChangeRequest record
+	// 1. If event is not published OR voting has not started yet, all updates work directly without approval
+	if (!eventPublished || !isVotingStarted) {
+		await prisma.votingOption.update({
+			where: { id: optionId },
+			data: {
+				...(proposedChanges.optionText !== undefined ? { optionText: proposedChanges.optionText.trim() } : {}),
+				...(proposedChanges.description !== undefined ? { description: proposedChanges.description } : {}),
+				...(proposedChanges.imageUrl !== undefined ? { imageUrl: proposedChanges.imageUrl } : {}),
+				...(proposedChanges.email !== undefined ? { email: proposedChanges.email?.trim() || null } : {}),
+				...(proposedChanges.phone !== undefined ? { phone: proposedChanges.phone?.trim() || null } : {}),
+				...(proposedChanges.categoryId !== undefined ? { categoryId: proposedChanges.categoryId } : {}),
+				...(newNomineeCode !== undefined ? { nomineeCode: newNomineeCode || null } : {}),
+			},
+		});
+
+		return {
+			success: true,
+			requiresNomineeApproval: false,
+			message: "Nominee updated successfully.",
+		};
+	}
+
+	// 2. Event is published and voting has started:
+	// Only name and email require nominee approval. Other details (photo, description, phone, category) update directly.
+	const isNameChanging = proposedChanges.optionText !== undefined && proposedChanges.optionText.trim() !== option.optionText.trim();
+	const isEmailChanging = proposedChanges.email !== undefined && proposedChanges.email.trim() !== (option.email || "").trim();
+
+	// Direct update for non-approval fields
+	const directUpdateData: any = {};
+	if (proposedChanges.description !== undefined && proposedChanges.description !== option.description) {
+		directUpdateData.description = proposedChanges.description;
+	}
+	if (proposedChanges.imageUrl !== undefined && proposedChanges.imageUrl !== option.imageUrl) {
+		directUpdateData.imageUrl = proposedChanges.imageUrl;
+	}
+	if (proposedChanges.phone !== undefined && proposedChanges.phone?.trim() !== (option.phone || "").trim()) {
+		directUpdateData.phone = proposedChanges.phone?.trim() || null;
+	}
+	if (proposedChanges.categoryId !== undefined && proposedChanges.categoryId !== option.categoryId) {
+		directUpdateData.categoryId = proposedChanges.categoryId;
+	}
+
+	if (Object.keys(directUpdateData).length > 0) {
+		await prisma.votingOption.update({
+			where: { id: optionId },
+			data: directUpdateData,
+		});
+	}
+
+	// If neither Name nor Email is changing, no approval request needed
+	if (!isNameChanging && !isEmailChanging) {
+		return {
+			success: true,
+			requiresNomineeApproval: false,
+			message: "Nominee details updated successfully.",
+		};
+	}
+
+	// Name or Email is changing, send approval request to nominee
+	const nomineeApprovalChanges: any = {};
+	if (isNameChanging) {
+		nomineeApprovalChanges.optionText = proposedChanges.optionText!.trim();
+	}
+	if (isEmailChanging) {
+		nomineeApprovalChanges.email = proposedChanges.email!.trim();
+	}
+
 	const changeRequest = await prisma.nomineeChangeRequest.create({
 		data: {
 			optionId: option.id,
 			eventId: option.eventId,
 			requestType: requestType as any,
-			proposedChanges: proposedChanges as any,
+			proposedChanges: nomineeApprovalChanges,
 			status: "pending",
 			requestedBy: session.userId,
 		},
@@ -649,36 +748,21 @@ export async function requestNomineeChange({
 	const nomineeEmail = option.email || option.nominatedByEmail;
 	if (!nomineeEmail) {
 		throw new Error(
-			"Nominee does not have an email address on file. An email is required so they can receive and approve change requests."
+			"Nominee does not have an email address on file. An email is required so they can receive and approve name/email changes."
 		);
 	}
 
 	const baseUrl = getFrontendBaseUrl().replace(/\/$/, "");
 	const confirmUrl = `${baseUrl}/confirm-change/${changeRequest.id}`;
 
-	// Build human-readable changes summary HTML for the email
-	let changesSummaryHtml = "";
-	if (requestType === "DELETE") {
-		changesSummaryHtml = `<p style="margin:0;color:#dc2626;font-weight:700;">Permanently remove profile "${escapeHtml(option.optionText)}" from category "${escapeHtml(option.category?.name || "")}".</p>`;
-	} else {
-		const items: string[] = [];
-		if (proposedChanges.optionText && proposedChanges.optionText !== option.optionText) {
-			items.push(`<li><strong>Name:</strong> ${escapeHtml(option.optionText)} &rarr; <strong>${escapeHtml(proposedChanges.optionText)}</strong></li>`);
-		}
-		if (proposedChanges.description && proposedChanges.description !== option.description) {
-			items.push(`<li><strong>Bio / Description:</strong> Updated</li>`);
-		}
-		if (proposedChanges.imageUrl && proposedChanges.imageUrl !== option.imageUrl) {
-			items.push(`<li><strong>Photo:</strong> Updated</li>`);
-		}
-		if (proposedChanges.phone && proposedChanges.phone !== option.phone) {
-			items.push(`<li><strong>Phone:</strong> ${escapeHtml(option.phone || "None")} &rarr; <strong>${escapeHtml(proposedChanges.phone)}</strong></li>`);
-		}
-		if (proposedChanges.email && proposedChanges.email !== option.email) {
-			items.push(`<li><strong>Email:</strong> ${escapeHtml(option.email || "None")} &rarr; <strong>${escapeHtml(proposedChanges.email)}</strong></li>`);
-		}
-		changesSummaryHtml = `<ul style="margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.6;">${items.join("")}</ul>`;
+	const items: string[] = [];
+	if (isNameChanging) {
+		items.push(`<li><strong>Name:</strong> ${escapeHtml(option.optionText)} &rarr; <strong>${escapeHtml(proposedChanges.optionText!)}</strong></li>`);
 	}
+	if (isEmailChanging) {
+		items.push(`<li><strong>Email:</strong> ${escapeHtml(option.email || "None")} &rarr; <strong>${escapeHtml(proposedChanges.email!)}</strong></li>`);
+	}
+	const changesSummaryHtml = `<ul style="margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.6;">${items.join("")}</ul>`;
 
 	// Dispatch Notification Email to Nominee
 	await sendNomineeChangeRequestEmail({
@@ -698,13 +782,10 @@ export async function requestNomineeChange({
 		success: true,
 		requestId: changeRequest.id,
 		requiresNomineeApproval: true,
-		message: `Change request sent to nominee (${nomineeEmail}) for approval.`,
+		message: `Change request for name/email sent to nominee (${nomineeEmail}) for approval.`,
 	};
 }
 
-/**
- * Public Action: Retrieve NomineeChangeRequest details by ID for the approval page
- */
 export async function getNomineeChangeRequest(requestId: string): Promise<any> {
 	if (!requestId) return null;
 
