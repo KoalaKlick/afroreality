@@ -17,6 +17,7 @@ const HERO_CARDS = [
 		zIndex: "z-10",
 		imgScale: "scale-x-[-1]",
 		topPercent: "22%",
+		imageWrapperClass: "",
 	},
 	{
 		id: "creator",
@@ -28,6 +29,7 @@ const HERO_CARDS = [
 		zIndex: "z-30",
 		imgScale: "",
 		topPercent: "30%",
+		imageWrapperClass: "",
 	},
 	{
 		id: "attendee",
@@ -37,14 +39,15 @@ const HERO_CARDS = [
 		rotate: "rotate-[10deg] sm:rotate-[14deg] md:rotate-[16deg]",
 		color: "bg-secondary dark:bg-secondary-600",
 		zIndex: "z-20",
-		imgScale: "scale-125 sm:scale-135 md:scale-140 origin-bottom",
+		imgScale: "scale-[1.3] sm:scale-[1.4] md:scale-[1.48] origin-bottom translate-x-3 sm:translate-x-6 md:translate-x-8",
 		topPercent: "22%",
+		imageWrapperClass: "overflow-visible",
 	},
 ];
 
 export function LandingHero() {
 	return (
-		<Section className="relative mt-4 sm:mt-8 md:mt-12 pt-2 pb-8 overflow-hidden" contentClassName="relative space-y-10 sm:space-y-14">
+		<Section className="relative mt-4 sm:mt-8 md:mt-12 pt-2 pb-8 overflow-hidden" contentClassName="relative space-y-10 sm:space-y-14 overflow-visible">
 			{/* ── Subtle World Map Background Layer (Moved Down) ── */}
 			<div
 				className="absolute top-48 sm:top-56 md:top-64 inset-x-0 z-0 pointer-events-none flex items-center justify-center opacity-45 dark:opacity-35 overflow-hidden"
@@ -96,16 +99,16 @@ export function LandingHero() {
 			</div>
 
 			{/* 3-Card Character Fan (Primary, Secondary, Tertiary) */}
-			<div className="w-full max-w-4xl mx-auto px-2 sm:px-6 md:px-10 pt-10 sm:pt-14 md:pt-20">
-				<div className="grid grid-cols-3 relative z-10 pointer-events-none">
+			<div className="w-full max-w-4xl mx-auto px-2 sm:px-6 md:px-10 pt-10 sm:pt-14 md:pt-20 overflow-visible">
+				<div className="grid grid-cols-3 relative z-10 pointer-events-none overflow-visible">
 					{HERO_CARDS.map((card) => (
 						<div
 							key={card.id}
-							className={`group relative flex flex-col justify-end ${card.translate} ${card.rotate} ${card.zIndex} transition-transform duration-500`}
+							className={`group relative flex flex-col justify-end ${card.translate} ${card.rotate} ${card.zIndex} transition-transform duration-500 overflow-visible`}
 							style={{ transformOrigin: "bottom center" }}
 						>
 							<div
-								className="relative pointer-events-none w-full overflow-hidden h-[180%] sm:h-[200%] place-content-end"
+								className="relative pointer-events-none w-full overflow-visible h-[180%] sm:h-[200%] place-content-end"
 								style={{ borderRadius: "0rem" }}
 							>
 								{/* Colored card backing */}
@@ -116,14 +119,14 @@ export function LandingHero() {
 
 								{/* Image */}
 								<div
-									className="cursor-pointer relative z-10 pointer-events-auto flex justify-center items-end pt-[8%] transition-transform duration-300 group-hover:scale-105"
+									className={`cursor-pointer relative z-10 pointer-events-auto flex justify-center items-end pt-[8%] transition-transform duration-300 group-hover:scale-105 overflow-visible ${card.imageWrapperClass || ""}`}
 									style={{ transformOrigin: "bottom center" }}
 								>
 									{/* eslint-disable-next-line @next/next/no-img-element */}
 									<img
 										src={card.img}
 										alt={card.title}
-										className={`w-full h-auto object-contain object-bottom select-none pointer-events-none ${card.imgScale}`}
+										className={`w-full max-w-none h-auto object-contain object-bottom select-none pointer-events-none ${card.imgScale}`}
 									/>
 								</div>
 							</div>
