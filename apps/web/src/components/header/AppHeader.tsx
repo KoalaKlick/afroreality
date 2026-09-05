@@ -90,30 +90,40 @@ export function AppHeader({ pendingInvitations = [], actions }: AppHeaderProps) 
 	};
 
 	const breadcrumbs = getBreadcrumbs();
+	const currentPage = breadcrumbs[breadcrumbs.length - 1];
 
 	return (
-		<header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 px-4 gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-poppins">
+		<header className="sticky top-0 z-30 flex h-14 sm:h-16 shrink-0 items-center justify-between w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 px-3 sm:px-4 gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-poppins max-w-full overflow-hidden">
 			{/* Left: Sidebar toggle & Breadcrumbs */}
-			<div className="flex items-center gap-2 min-w-0 flex-1">
-				<SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
+			<div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 overflow-hidden">
+				<SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground shrink-0" />
 				<Separator
 					orientation="vertical"
-					className="mr-2 data-[orientation=vertical]:h-4 h-4 bg-border/60"
+					className="mr-1 sm:mr-2 data-[orientation=vertical]:h-4 h-4 bg-border/60 shrink-0"
 				/>
+				
+				{/* Mobile: Compact single page title to prevent horizontal overflow */}
+				{currentPage && (
+					<span className="font-semibold text-xs sm:hidden truncate text-foreground">
+						{currentPage.label}
+					</span>
+				)}
+
+				{/* Desktop/Tablet: Full breadcrumb trail */}
 				{breadcrumbs.length > 0 && (
-					<Breadcrumb className="truncate">
-						<BreadcrumbList>
+					<Breadcrumb className="hidden sm:block truncate">
+						<BreadcrumbList className="flex-nowrap truncate">
 							{breadcrumbs.map((item, index) => {
 								const isLast = index === breadcrumbs.length - 1;
 								return (
 									<Fragment key={index}>
-										<BreadcrumbItem>
+										<BreadcrumbItem className="truncate">
 											{isLast ? (
-												<BreadcrumbPage className="font-medium text-foreground">
+												<BreadcrumbPage className="font-medium text-foreground truncate max-w-[150px] md:max-w-[220px]">
 													{item.label}
 												</BreadcrumbPage>
 											) : (
-												<BreadcrumbLink asChild>
+												<BreadcrumbLink asChild className="truncate">
 													<Link
 														href={item.href || "#"}
 														className="text-muted-foreground hover:text-foreground transition-colors"
@@ -133,16 +143,16 @@ export function AppHeader({ pendingInvitations = [], actions }: AppHeaderProps) 
 			</div>
 
 			{/* Right: Search, Notification Bell, & custom actions */}
-			<div className="flex items-center gap-2.5 shrink-0 ml-auto">
+			<div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto">
 				<GlobalSearch
 					open={searchOpen}
 					onOpenChange={setSearchOpen}
-					className="w-44 sm:w-60 md:w-72"
+					className="sm:w-48 md:w-64 lg:w-72"
 				/>
 
 				<NotificationBell pendingInvitations={pendingInvitations} />
 
-				{actions && <div className="flex items-center gap-2">{actions}</div>}
+				{actions && <div className="flex items-center gap-1.5 sm:gap-2">{actions}</div>}
 			</div>
 		</header>
 	);

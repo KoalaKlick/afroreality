@@ -3,23 +3,22 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-	Building2,
-	Calendar,
-	CreditCard,
-	Home,
-	PlusCircle,
 	Search,
+	X,
+	Calendar,
+	PlusCircle,
+	Building2,
 	Users,
 	Wallet,
-	X,
+	CreditCard,
+	Share2,
 } from "lucide-react";
-import { SearchHighlight } from "@/components/ui/search-highlight";
 import {
 	Sheet,
 	SheetContent,
-	SheetDescription,
 	SheetHeader,
 	SheetTitle,
+	SheetDescription,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -40,52 +39,61 @@ const SEARCHABLE_ITEMS: SearchableItem[] = [
 		to: "/dashboard",
 		breadcrumbLabel: "Overview & Analytics",
 		breadcrumbPath: ["App", "Dashboard"],
-		description: "View real-time event stats, revenue charts, and quick actions",
-		icon: Home,
-	},
-	{
-		id: "events-my",
-		label: "My Events",
-		to: "/my-events",
-		breadcrumbLabel: "Event Management",
-		breadcrumbPath: ["App", "Events", "My Events"],
-		description: "Manage your ticketed, voting, hybrid, and standard events",
+		description: "View real-time event stats, revenue, live ongoing events, and recent activity",
 		icon: Calendar,
 	},
 	{
-		id: "events-new",
-		label: "Create New Event",
+		id: "my-events",
+		label: "My Events",
+		to: "/my-events",
+		breadcrumbLabel: "Manage Events",
+		breadcrumbPath: ["App", "Events", "My Events"],
+		description: "Browse, filter, edit, and manage all your events",
+		icon: Calendar,
+	},
+	{
+		id: "create-event",
+		label: "Create Event",
 		to: "/my-events/create",
-		breadcrumbLabel: "Event Creation Wizard",
+		breadcrumbLabel: "New Event Wizard",
 		breadcrumbPath: ["App", "Events", "Create Event"],
-		description: "Setup new event details, location, tickets, and configuration",
+		description: "Create a new standard, ticketed, voting, or hybrid event",
 		icon: PlusCircle,
+	},
+	{
+		id: "promoter",
+		label: "Promoter Dashboard",
+		to: "/promoter",
+		breadcrumbLabel: "Promoter Program",
+		breadcrumbPath: ["App", "Promoter"],
+		description: "Track promotion performance, referrals, and commission payouts",
+		icon: Share2,
 	},
 	{
 		id: "org-general",
 		label: "Organization Settings",
 		to: "/organization/manage",
-		breadcrumbLabel: "Organization Management",
-		breadcrumbPath: ["App", "Organization", "General Settings"],
-		description: "Customize organization branding, banner, logo, and theme colors",
+		breadcrumbLabel: "General Settings",
+		breadcrumbPath: ["App", "Organization", "General"],
+		description: "Update organization name, slug, brand colors, and contact info",
 		icon: Building2,
 	},
 	{
 		id: "org-members",
-		label: "Team Members & Roles",
+		label: "Organization Members",
 		to: "/organization/members",
-		breadcrumbLabel: "Member Permissions",
+		breadcrumbLabel: "Team & Permissions",
 		breadcrumbPath: ["App", "Organization", "Members"],
-		description: "Invite team members, assign admin/member roles, and manage invites",
+		description: "Invite team members, assign roles, and manage invitations",
 		icon: Users,
 	},
 	{
 		id: "org-wallet",
 		label: "Wallet & Payouts",
 		to: "/organization/wallet",
-		breadcrumbLabel: "Financial Management",
+		breadcrumbLabel: "Balance & Withdrawals",
 		breadcrumbPath: ["App", "Organization", "Wallet"],
-		description: "View available balance, transaction history, and manage payout accounts",
+		description: "Check wallet balance, payout history, and payment accounts",
 		icon: Wallet,
 	},
 	{
@@ -103,6 +111,31 @@ interface GlobalSearchProps {
 	readonly open?: boolean;
 	readonly onOpenChange?: (open: boolean) => void;
 	readonly className?: string;
+}
+
+function SearchHighlight({
+	text,
+	keyword,
+}: {
+	readonly text: string;
+	readonly keyword: string;
+}) {
+	if (!keyword.trim()) return <>{text}</>;
+	const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+	const parts = text.split(regex);
+	return (
+		<>
+			{parts.map((part, i) =>
+				part.toLowerCase() === keyword.toLowerCase() ? (
+					<mark key={i} className="bg-primary/25 text-foreground rounded-xs px-0.5 font-bold">
+						{part}
+					</mark>
+				) : (
+					part
+				),
+			)}
+		</>
+	);
 }
 
 export function GlobalSearch({
@@ -168,10 +201,21 @@ export function GlobalSearch({
 
 	return (
 		<>
-			{/* Trigger Button */}
+			{/* Mobile Trigger Button: Compact Icon Button */}
+			<button
+				type="button"
+				onClick={() => onOpenChange(true)}
+				className="sm:hidden flex items-center justify-center size-9 rounded-xl border border-input bg-muted/40 hover:bg-muted/70 text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer shrink-0"
+				aria-label="Open search"
+				title="Search"
+			>
+				<Search className="size-4" />
+			</button>
+
+			{/* Tablet/Desktop Trigger Button: Full Input Bar */}
 			<div
 				className={cn(
-					"relative flex items-center rounded-xl border border-input bg-muted/40 hover:bg-muted/70 transition-all duration-200 cursor-pointer select-none",
+					"relative hidden sm:flex items-center rounded-xl border border-input bg-muted/40 hover:bg-muted/70 transition-all duration-200 cursor-pointer select-none",
 					className,
 				)}
 				onClick={() => onOpenChange(true)}
@@ -193,7 +237,7 @@ export function GlobalSearch({
 					if (!isOpen) setSearch("");
 				}}
 			>
-				<SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full bg-background border-l">
+				<SheetContent side="right" className="w-[92vw] sm:max-w-md p-0 flex flex-col h-full bg-background border-l">
 					<div className="h-full flex flex-col">
 						{/* Header */}
 						<SheetHeader className="px-5 pt-5 pb-4 border-b border-border/50 bg-muted/30">

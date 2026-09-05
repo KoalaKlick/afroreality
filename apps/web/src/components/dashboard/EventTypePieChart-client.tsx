@@ -39,7 +39,7 @@ export function EventTypePieChart({ byType }: EventTypePieChartProps) {
 	const total = data.reduce((sum, d) => sum + d.value, 0);
 
 	return (
-		<div className="rounded-xl bg-card p-6 shadow-xs border border-border/50">
+		<div className="rounded-xl bg-card p-4 sm:p-6 shadow-xs border border-border/50 min-w-0 max-w-full overflow-hidden">
 			<div className="mb-4 flex items-center gap-2">
 				<PieChartIcon className="size-4 text-amber-500" />
 				<h3 className="font-semibold text-foreground text-sm">Event Types</h3>

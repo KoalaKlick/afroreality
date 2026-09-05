@@ -115,7 +115,7 @@ const EVENT_STATS: StatDefinition[] = [
 		getValue: (s) =>
 			s.totalTicketsSold > 0
 				? `${Math.round((s.totalAttendees / s.totalTicketsSold) * 100)}%`
-				: "—",
+				: "0%",
 	},
 ];
 
@@ -210,11 +210,11 @@ export function CustomizableEventStats({
 	const activeKeys = mounted ? selected : defaultKeys;
 	const activeStats = pool.filter((s) => activeKeys.includes(s.key));
 
-return (
-		<div className="space-y-2">
-			<div className="flex items-center justify-between">
+	return (
+		<div className="space-y-2.5 min-w-0 max-w-full">
+			<div className="flex items-center justify-between gap-2">
 				<h3 className="text-sm font-medium text-muted-foreground">Overview</h3>
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-1.5 sm:gap-2">
 					{pool.length > MAX_STATS && (
 						<Sheet>
 							<SheetTrigger asChild>
@@ -227,16 +227,16 @@ return (
 									<ChevronRight className="ml-1 h-3 w-3" />
 								</Button>
 							</SheetTrigger>
-							<SheetContent side="right" className="w-full max-w-lg">
+							<SheetContent side="right" className="w-[92vw] sm:max-w-lg">
 								<SheetHeader>
 									<SheetTitle>All Stats</SheetTitle>
 									<SheetDescription>
 										Complete overview of your event metrics
 									</SheetDescription>
 								</SheetHeader>
-								<SheetBody className="flex-1 overflow-y-auto p-0">
-									<div className="mt-6">
-										<StatsGrid columns={2}>
+								<SheetBody className="flex-1 overflow-y-auto p-0 mt-4">
+									<div className="py-2">
+										<StatsGrid columns={2} scrollOnMobile={false}>
 											{pool.map((stat) => (
 												<StatCard
 													key={stat.key}
@@ -264,18 +264,18 @@ return (
 								<div>
 									<p className="text-sm font-medium">Customize Stats</p>
 									<p className="text-xs text-muted-foreground">
-										Pick up to {MAX_STATS} , selecting a new one replaces the last
+										Pick up to {MAX_STATS}, selecting a new one replaces the last
 									</p>
 								</div>
-								<div className="space-y-2">
+								<div className="space-y-2 max-h-64 overflow-y-auto pr-1">
 									{pool.map((stat) => {
 										const isActive = selected.includes(stat.key);
 										return (
 											<div
 												key={stat.key}
-												className="flex items-center justify-between gap-2 text-sm"
+												className="flex items-center justify-between gap-2 text-sm py-1"
 											>
-												<span>{stat.label}</span>
+												<span className="truncate">{stat.label}</span>
 												<Switch
 													checked={isActive}
 													disabled={isActive && selected.length <= 1}
@@ -290,7 +290,7 @@ return (
 					</Popover>
 				</div>
 			</div>
-			<StatsGrid columns={4}>
+			<StatsGrid columns={4} scrollOnMobile={true}>
 				{activeStats.map((stat) => (
 					<StatCard
 						key={stat.key}

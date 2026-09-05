@@ -114,10 +114,10 @@ function formatCompact(value: number | string): string {
  */
 function getValueSizeClass(display: string): string {
 	const len = display.length;
-	if (len <= 4) return "text-4xl leading-10";
-	if (len <= 7) return "text-3xl leading-9";
-	if (len <= 11) return "text-2xl leading-8";
-	return "text-xl leading-7";
+	if (len <= 4) return "text-2xl sm:text-3xl lg:text-4xl leading-tight";
+	if (len <= 7) return "text-xl sm:text-2xl lg:text-3xl leading-tight";
+	if (len <= 11) return "text-lg sm:text-xl lg:text-2xl leading-tight";
+	return "text-base sm:text-lg lg:text-xl leading-snug";
 }
 
 /**
@@ -164,7 +164,7 @@ export function StatCard({
 		return (
 			<Card
 				className={cn(
-					"relative p-5 group overflow-hidden border transition-all duration-300 hover:shadow-md min-h-[120px] flex flex-col justify-between bg-card",
+					"relative p-4 sm:p-5 group overflow-hidden border transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
 					cardStyle,
 					className,
 					onClick && "cursor-pointer active:scale-[0.98]",
@@ -174,14 +174,14 @@ export function StatCard({
 			>
 				<CardContent className="p-0 flex-1 flex flex-col justify-between relative z-10">
 					<div className="flex items-start justify-between gap-2">
-						<div className="space-y-1.5 flex-1">
-							<p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+						<div className="space-y-1 sm:space-y-1.5 flex-1 min-w-0">
+							<p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
 								{label}
 							</p>
 							<p
 								className={cn(
 									sizeClass,
-									"font-bold font-montserrat tracking-tight text-foreground",
+									"font-bold font-montserrat tracking-tight text-foreground truncate",
 								)}
 							>
 								{isNumeric ? (
@@ -191,17 +191,17 @@ export function StatCard({
 								)}
 							</p>
 							{description && (
-								<p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+								<p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{description}</p>
 							)}
 						</div>
 						{!iconSrc && Icon && (
-							<div className="p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
-								<Icon className={cn("size-5", iconStyles[variant])} />
+							<div className="p-2 sm:p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
+								<Icon className={cn("size-4 sm:size-5", iconStyles[variant])} />
 							</div>
 						)}
 					</div>
 					{children && (
-						<div className="mt-3 relative z-20">{children}</div>
+						<div className="mt-2.5 sm:mt-3 relative z-20">{children}</div>
 					)}
 				</CardContent>
 
@@ -210,7 +210,7 @@ export function StatCard({
 					<img
 						src={iconSrc}
 						alt={label}
-						className="size-24 object-contain opacity-40 dark:opacity-45 group-hover:opacity-85 group-hover:scale-110 transition-all duration-300 select-none pointer-events-none absolute -bottom-3 -right-3"
+						className="size-16 sm:size-24 object-contain opacity-40 dark:opacity-45 group-hover:opacity-85 group-hover:scale-110 transition-all duration-300 select-none pointer-events-none absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3"
 					/>
 				)}
 			</Card>
@@ -219,7 +219,7 @@ export function StatCard({
 
 	if (href) {
 		return (
-			<Link href={href} className="block">
+			<Link href={href} className="block flex-1 shrink-0 snap-start min-w-[190px] xs:min-w-[210px] sm:min-w-0">
 				{content}
 			</Link>
 		);
@@ -235,14 +235,37 @@ interface StatsGridProps {
 	children: ReactNode;
 	columns?: 2 | 3 | 4 | 5;
 	className?: string;
+	scrollOnMobile?: boolean;
 }
 
 export function StatsGrid({
 	children,
 	columns = 4,
 	className,
+	scrollOnMobile = true,
 }: StatsGridProps) {
 	const colClasses = {
+		2: "sm:grid-cols-2",
+		3: "sm:grid-cols-2 lg:grid-cols-3",
+		4: "sm:grid-cols-2 lg:grid-cols-4",
+		5: "sm:grid-cols-3 lg:grid-cols-5",
+	};
+
+	if (scrollOnMobile) {
+		return (
+			<div
+				className={cn(
+					"flex overflow-x-auto gap-3.5 pb-2 pt-0.5 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:gap-4 scrollbar-none snap-x snap-mandatory scroll-smooth",
+					colClasses[columns],
+					className,
+				)}
+			>
+				{children}
+			</div>
+		);
+	}
+
+	const regularColClasses = {
 		2: "grid-cols-1 sm:grid-cols-2",
 		3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
 		4: "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4",
@@ -250,7 +273,7 @@ export function StatsGrid({
 	};
 
 	return (
-		<div className={cn("grid gap-4", colClasses[columns], className)}>
+		<div className={cn("grid gap-4", regularColClasses[columns], className)}>
 			{children}
 		</div>
 	);

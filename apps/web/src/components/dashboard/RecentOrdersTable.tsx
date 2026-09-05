@@ -46,7 +46,7 @@ function formatRelative(date: string) {
 
 export function RecentOrdersTable({ orders = [] }: RecentOrdersTableProps) {
 	return (
-		<div className="rounded-xl bg-card p-6 shadow-xs border border-border/50">
+		<div className="rounded-xl bg-card p-4 sm:p-6 shadow-xs border border-border/50 min-w-0 max-w-full overflow-hidden">
 			<div className="mb-4 flex items-center gap-2">
 				<Receipt className="size-4 text-emerald-600" />
 				<h3 className="font-semibold text-foreground text-sm">Recent Orders</h3>
@@ -60,21 +60,21 @@ export function RecentOrdersTable({ orders = [] }: RecentOrdersTableProps) {
 					svgClassName="w-24 h-24 mb-2 opacity-90"
 				/>
 			) : (
-				<div className="overflow-x-auto -mx-6">
-					<Table>
+				<div className="overflow-x-auto -mx-4 sm:-mx-6">
+					<Table className="min-w-[500px]">
 						<TableHeader>
 							<TableRow>
-								<TableHead className="pl-6">Buyer</TableHead>
+								<TableHead className="pl-4 sm:pl-6">Buyer</TableHead>
 								<TableHead>Event</TableHead>
 								<TableHead>Amount</TableHead>
 								<TableHead>Status</TableHead>
-								<TableHead className="pr-6 text-right">When</TableHead>
+								<TableHead className="pr-4 sm:pr-6 text-right">When</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
 							{orders.map((order) => (
 								<TableRow key={order.id}>
-									<TableCell className="pl-6">
+									<TableCell className="pl-4 sm:pl-6">
 										<div className="min-w-0">
 											<p className="truncate text-sm font-medium">
 												{order.buyerName || "Guest"}
@@ -95,7 +95,7 @@ export function RecentOrdersTable({ orders = [] }: RecentOrdersTableProps) {
 									<TableCell>
 										<StatusBadge variant={order.status === "paid" ? "completed" : order.status === "refunded" ? "warning" : order.status} />
 									</TableCell>
-									<TableCell className="pr-6 text-right text-xs text-muted-foreground">
+									<TableCell className="pr-4 sm:pr-6 text-right text-xs text-muted-foreground">
 										{formatRelative(order.createdAt)}
 									</TableCell>
 								</TableRow>

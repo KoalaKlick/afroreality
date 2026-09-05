@@ -20,13 +20,13 @@ export function RevenueChart({ data }: RevenueChartProps) {
 	const totalRevenue = (data || []).reduce((sum, item) => sum + (item.revenue || 0), 0);
 
 	return (
-		<div className="rounded-xl bg-card p-6 shadow-xs border border-border/50">
-			<div className="mb-4 flex items-center justify-between">
-				<div className="flex items-center gap-2">
-					<TrendingUp className="size-4 text-emerald-600" />
-					<h3 className="font-semibold text-foreground text-sm">Revenue Trend</h3>
+		<div className="rounded-xl bg-card p-4 sm:p-6 shadow-xs border border-border/50 min-w-0 max-w-full overflow-hidden">
+			<div className="mb-4 flex items-center justify-between gap-2">
+				<div className="flex items-center gap-2 min-w-0">
+					<TrendingUp className="size-4 text-emerald-600 shrink-0" />
+					<h3 className="font-semibold text-foreground text-sm truncate">Revenue Trend</h3>
 				</div>
-				<span className="text-xs font-semibold text-emerald-600">
+				<span className="text-xs font-semibold text-emerald-600 shrink-0">
 					Total: GHS {totalRevenue.toLocaleString()}
 				</span>
 			</div>
