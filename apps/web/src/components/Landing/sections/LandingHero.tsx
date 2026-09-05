@@ -10,7 +10,7 @@ const HERO_CARDS = [
 	{
 		id: "organizer",
 		title: "Organizers & Hosts",
-		img: "/landing/cta/create-event-3.webp",
+		img: "/landing/create-event-3.png",
 		translate: "-translate-y-4 sm:-translate-y-6 md:-translate-y-8 lg:-translate-y-10",
 		rotate: "-rotate-[10deg] sm:-rotate-[14deg] md:-rotate-[16deg]",
 		color: "bg-secondary dark:bg-secondary-600",
@@ -21,7 +21,7 @@ const HERO_CARDS = [
 	{
 		id: "creator",
 		title: "Creators & Artists",
-		img: "/landing/cta/create-event-2.webp",
+		img: "/landing/create-event-1.png",
 		translate: "-translate-y-12 sm:-translate-y-18 md:-translate-y-28 lg:-translate-y-36",
 		rotate: "rotate-0",
 		color: "bg-primary dark:bg-primary-700",
@@ -32,12 +32,12 @@ const HERO_CARDS = [
 	{
 		id: "attendee",
 		title: "Attendees & Voters",
-		img: "/landing/cta/create-event-1.webp",
+		img: "/landing/create-event-2.png",
 		translate: "translate-y-2 sm:-translate-y-2 md:-translate-y-6 lg:-translate-y-10",
 		rotate: "rotate-[10deg] sm:rotate-[14deg] md:rotate-[16deg]",
-		color: "bg-tertiary-600 dark:bg-tertiary-700",
+		color: "bg-secondary dark:bg-secondary-600",
 		zIndex: "z-20",
-		imgScale: "",
+		imgScale: "scale-125 sm:scale-135 md:scale-140 origin-bottom",
 		topPercent: "22%",
 	},
 ];
@@ -75,27 +75,20 @@ export function LandingHero() {
 
 			{/* Text & Action Area */}
 			<div className="relative space-y-5 text-center max-w-3xl mx-auto z-20">
-				<h1 className="font-bold text-3xl sm:text-5xl md:text-6xl tracking-tight text-foreground font-millik leading-[1.1]">
+				<h1 className="font-bold text-3xl sm:text-5xl md:text-6xl mt-6 tracking-tight text-foreground font-millik leading-[1.1]">
 					Your Event. Your Brand.{" "}
 					<span className="text-primary block sm:inline">
 						Across Africa.
 					</span>
 				</h1>
 
-				<p className="max-w-xl mx-auto text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed">
+				<p className="max-w-xl mx-auto text-foreground text-sm sm:text-base md:text-lg leading-relaxed">
 					Launch free events for brand reach, sell tickets with instant payouts, or run trusted live voting. Fully branded with your colors and logo.
 				</p>
 
 				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-					<Link href="/register">
-						<Button className="font-semibold shadow-md shadow-primary/20">
-							Get Started Free
-							<ArrowRight className="size-4 ml-2" />
-						</Button>
-					</Link>
-
 					<Link href="/events">
-						<Button variant="outline" className="">
+						<Button className="">
 							Explore Events
 						</Button>
 					</Link>
