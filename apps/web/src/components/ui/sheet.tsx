@@ -48,7 +48,7 @@ function SheetContent({
 	children,
 	side = "right",
 	showCloseButton = true,
-	variant = "brand",
+	variant = "plain",
 	...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
 	side?: "top" | "right" | "bottom" | "left";
@@ -70,8 +70,6 @@ function SheetContent({
 						"inset-x-0 top-0 h-auto border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
 					side === "bottom" &&
 						"inset-x-0 bottom-0 h-auto border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-					variant === "brand" &&
-						"border-brand-secondary/20 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-brand-tertiary,#EF3340)_16%,transparent),transparent_28%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-brand-secondary,#FFD100)_14%,transparent),transparent_24%),radial-gradient(circle_at_bottom_left,color-mix(in_srgb,var(--color-brand-primary,#009A44)_10%,transparent),transparent_26%)] bg-background",
 					className,
 				)}
 				{...props}
