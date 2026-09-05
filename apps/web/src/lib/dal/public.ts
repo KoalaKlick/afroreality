@@ -412,22 +412,13 @@ export async function getPublicEventsList(options: GetPublicEventsOptions = {}) 
 			sort = "upcoming",
 		} = options;
 
-		const now = new Date();
-		const andConditions: any[] = [{ isPublic: true }];
+		const andConditions: any[] = [
+			{ isPublic: true },
+			{ status: { in: ["published", "ongoing"] } },
+		];
 
-		if (!orgSlug) {
-			// In public discovery / landing page, only show active events (not ended or cancelled)
-			andConditions.push({ status: { in: ["published", "ongoing"] } });
-			andConditions.push({
-				OR: [
-					{ endDate: null },
-					{ endDate: { gte: now } },
-				],
-			});
-		} else {
-			// On the organization's page, show all public events (including past/ended archives)
+		if (orgSlug) {
 			andConditions.push({ organization: { slug: orgSlug } });
-			andConditions.push({ status: { not: "draft" } });
 		}
 
 		if (type && type !== "all") {
@@ -448,14 +439,14 @@ export async function getPublicEventsList(options: GetPublicEventsOptions = {}) 
 			});
 		}
 
-		const where: any = { AND: andConditions };
-
-		let orderBy: any = { startDate: "asc" };
-		if (sort === "recent") {
-			orderBy = { createdAt: "desc" };
-		} else if (sort === "popular") {
+		let orderBy: any = { createdAt: "desc" };
+		if (sort === "upcoming") {
+			orderBy = [{ startDate: "asc" }, { createdAt: "desc" }];
+		} else if (sort === "recent" || sort === "popular") {
 			orderBy = { createdAt: "desc" };
 		}
+
+		const where: any = { AND: andConditions };
 
 		const [events, total] = await Promise.all([
 			prisma.event.findMany({

@@ -54,7 +54,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
 	const [eventsResult, stats] = await Promise.all([
-		getPublicEventsList({ limit: 4 }),
+		getPublicEventsList({ limit: 6 }),
 		getLandingStatsData(),
 	]);
 

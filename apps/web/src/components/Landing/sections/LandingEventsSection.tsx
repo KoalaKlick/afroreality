@@ -143,7 +143,7 @@ export function LandingEventsSection({
 				</div>
 			) : (
 				<div className="grid gap-5 grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4">
-					{events.slice(0, 4).map((event) => (
+					{events.slice(0, 6).map((event) => (
 						<Link
 							key={event.id}
 							href={`/${event.organization.slug}/event/${event.slug}`}
