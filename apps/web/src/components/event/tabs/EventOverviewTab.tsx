@@ -240,7 +240,7 @@ export function EventOverviewTab({
 					className="bg-card"
 				/>
 				<StatCard
-					label="Galleries"
+					label="External Albums"
 					value={galleryLinks.length}
 					iconSrc={statIcons.analytics}
 					className="bg-card"

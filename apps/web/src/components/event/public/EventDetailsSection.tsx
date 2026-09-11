@@ -6,7 +6,7 @@ import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { EventGallery } from "@/components/shared/EventGallery";
 import { EventLocationDisplayMap } from "@/components/shared/map";
-import { ImageIcon, ChevronRight, Trophy, MapPin } from "lucide-react";
+import { ImageIcon, ChevronRight, Trophy, MapPin, ExternalLink } from "lucide-react";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { Badge } from "@/components/ui/badge";
 import { TagPill } from "@/components/ui/tag-pill";
@@ -103,24 +103,34 @@ export function EventDetailsSection({
 						)}
 					</div>
 
-					{/* Right: Galleries */}
+					{/* Right: Media & External Albums */}
 					{(galleryLinks.length > 0 || galleryImages.length > 0) && (
-						<div className="space-y-12">
+						<div className="space-y-10">
 							{galleryImages.length > 0 && (
-								<div className="space-y-6">
-									<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
-										<ImageIcon className="size-5 text-primary" />
-										<span>Event Photos.</span>
-									</h3>
+								<div className="space-y-4">
+									<div>
+										<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2.5">
+											<ImageIcon className="size-5 text-primary" />
+											<span>Event Photos</span>
+										</h3>
+										<p className="text-xs text-muted-foreground mt-0.5">
+											Featured photo highlights from the event
+										</p>
+									</div>
 									<EventGallery images={galleryImages} maxDisplay={5} />
 								</div>
 							)}
 							{galleryLinks.length > 0 && (
-								<div className="space-y-6">
-									<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
-										<ImageIcon className="size-5 text-primary" />
-										<span>Galleries.</span>
-									</h3>
+								<div className="space-y-4">
+									<div>
+										<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2.5">
+											<ExternalLink className="size-5 text-primary" />
+											<span>External Photo Albums</span>
+										</h3>
+										<p className="text-xs text-muted-foreground mt-0.5">
+											Full photo collections on Google Drive, Pixieset &amp; cloud storage
+										</p>
+									</div>
 									<div className="space-y-3">
 										{galleryLinks.map((link: any) => {
 											const provider = getGalleryProvider(link.url, "size-5");
@@ -130,17 +140,23 @@ export function EventDetailsSection({
 													href={link.url}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="flex items-center justify-between p-3.5 border hover:border-primary/50 transition-colors group"
+													className="flex items-center justify-between p-3.5 border rounded-xl bg-card hover:border-primary/50 transition-colors group"
 												>
-													<div className="flex items-center gap-3">
-														<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+													<div className="flex items-center gap-3 min-w-0">
+														<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
 															{provider.icon}
 														</div>
-														<span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors">
-															{provider.name}
-														</span>
+														<div className="min-w-0">
+															<span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors block truncate">
+																{link.name || provider.name}
+															</span>
+															<span className="text-[11px] text-muted-foreground flex items-center gap-1">
+																<span>View album on {provider.name}</span>
+																<ExternalLink className="size-2.5 opacity-70" />
+															</span>
+														</div>
 													</div>
-													<ChevronRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+													<ChevronRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
 												</a>
 											);
 										})}

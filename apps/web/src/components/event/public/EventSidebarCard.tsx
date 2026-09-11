@@ -9,6 +9,7 @@ import {
 	ImageIcon,
 	ChevronRight,
 	Trophy,
+	ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TagPill } from "@/components/ui/tag-pill";
@@ -217,12 +218,12 @@ export function EventSidebarCard({
 						</div>
 					)}
 
-					{/* Galleries */}
+					{/* External Photo Albums */}
 					{galleryLinks.length > 0 && (
 						<div className="space-y-2.5 pt-3 border-t border-dashed">
 							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
-								<ImageIcon className="size-3.5 text-primary" />
-								<span>Galleries.</span>
+								<ExternalLink className="size-3.5 text-primary" />
+								<span>External Albums.</span>
 							</h3>
 							<div className="space-y-2">
 								{galleryLinks.map((link: any) => {
@@ -238,9 +239,14 @@ export function EventSidebarCard({
 											<div className="size-7 rounded-md bg-muted border flex items-center justify-center shrink-0">
 												{provider.icon}
 											</div>
-											<span className="text-xs font-medium text-foreground truncate flex-1">
-												{link.name || "View Gallery"}
-											</span>
+											<div className="min-w-0 flex-1">
+												<span className="text-xs font-medium text-foreground truncate block">
+													{link.name || provider.name}
+												</span>
+												<span className="text-[10px] text-muted-foreground block truncate">
+													{provider.name}
+												</span>
+											</div>
 											<ChevronRight className="size-3 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
 										</a>
 									);

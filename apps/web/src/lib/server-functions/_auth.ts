@@ -2,6 +2,7 @@
 import { prisma } from '@repo/db';
 import { requireSession } from '../session';
 import { comparePassword, generateOtp } from '../crypto';
+import { sendVerificationEmail } from '../email/auth';
 
 export async function checkUserHasPassword(): Promise<{ hasPassword: boolean }> {
   try {
@@ -30,7 +31,10 @@ export async function sendSensitiveActionOtp(): Promise<{ success: boolean; emai
   try {
     const session = await requireSession();
     const user = await prisma.profile.findUnique({ where: { id: session.userId } });
+    if (!user || !user.email) return { success: false, error: 'User email not found.' };
+
     const otp = generateOtp();
+    await prisma.verification.deleteMany({ where: { identifier: session.userId } }).catch(() => {});
     await prisma.verification.create({
       data: {
         id: `ver_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
@@ -39,7 +43,18 @@ export async function sendSensitiveActionOtp(): Promise<{ success: boolean; emai
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
-    return { success: true, email: user?.email || undefined };
+
+    const res = await sendVerificationEmail({
+      email: user.email,
+      name: user.fullName || undefined,
+      otp,
+    });
+
+    if (!res.success) {
+      return { success: false, error: res.error || 'Failed to send verification code to email.' };
+    }
+
+    return { success: true, email: user.email };
   } catch (err: any) {
     return { success: false, error: err?.message || 'Failed to generate verification code.' };
   }

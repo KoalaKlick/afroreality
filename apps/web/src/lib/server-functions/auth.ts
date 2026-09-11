@@ -4,7 +4,7 @@ import { prisma } from "@repo/db";
 import bcrypt from "bcryptjs";
 import { signSession, setSessionCookie, clearSessionCookie } from "@/lib/session";
 import { toSafeUserDto } from "@/lib/dal/auth";
-import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email/auth";
+import { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangedEmail } from "@/lib/email/auth";
 
 // ============================================================
 // Auth service (email + password)
@@ -91,11 +91,31 @@ export async function loginAction({
     // onboarding must verify their email before continuing.
     const onboardingCompleted = Boolean(user.onboardingCompleted);
     if (!user.emailVerified && !onboardingCompleted) {
+      // Generate a fresh OTP and email it to the user so they have the code immediately
+      const otp = generateOtp();
+      await createOtpRecord(`${EMAIL_VERIFY_PREFIX}:${user.id}`, otp);
+
+      const emailRes = await sendVerificationEmail({
+        email: user.email,
+        name: user.fullName || undefined,
+        otp,
+      });
+
+      if (!emailRes.success) {
+        console.error("Failed to send verification email during login:", emailRes.error);
+        return {
+          success: false,
+          needsVerification: true,
+          email: user.email,
+          error: `Could not send verification email: ${emailRes.error || "Mail error"}. Please click Resend Code to try again.`,
+        };
+      }
+
       return {
         success: false,
         needsVerification: true,
         email: user.email,
-        error: "Please verify your email address before continuing.",
+        error: "Please verify your email address before continuing. A verification code has been sent to your email.",
       };
     }
 
@@ -215,12 +235,14 @@ export async function sendVerificationEmailAction({
   const cleanEmail = email.toLowerCase().trim();
 
   try {
-    const user = await prisma.profile.findUnique({
-      where: { email: cleanEmail },
+    const user = await prisma.profile.findFirst({
+      where: {
+        OR: [{ email: cleanEmail }, { username: cleanEmail }],
+      },
     });
 
     if (!user) {
-      return { success: false, error: "No account found for this email address." };
+      return { success: false, error: "No account found for this email address or username." };
     }
 
     if (user.emailVerified) {
@@ -231,7 +253,7 @@ export async function sendVerificationEmailAction({
     await createOtpRecord(`${EMAIL_VERIFY_PREFIX}:${user.id}`, otp);
 
     const res = await sendVerificationEmail({
-      email: cleanEmail,
+      email: user.email,
       name: user.fullName || undefined,
       otp,
     });
@@ -251,8 +273,10 @@ export async function sendRecoveryOtpAction({ email }: { email: string }): Promi
   const cleanEmail = email.toLowerCase().trim();
 
   try {
-    const user = await prisma.profile.findUnique({
-      where: { email: cleanEmail },
+    const user = await prisma.profile.findFirst({
+      where: {
+        OR: [{ email: cleanEmail }, { username: cleanEmail }],
+      },
     });
 
     if (!user) {
@@ -264,7 +288,7 @@ export async function sendRecoveryOtpAction({ email }: { email: string }): Promi
     await createOtpRecord(`${PASSWORD_RESET_PREFIX}:${user.id}`, otp);
 
     const res = await sendPasswordResetEmail({
-      email: cleanEmail,
+      email: user.email,
       name: user.fullName || undefined,
       otp,
     });
@@ -292,8 +316,10 @@ export async function verifyOtpAction({
   const cleanEmail = email.toLowerCase().trim();
 
   try {
-    const user = await prisma.profile.findUnique({
-      where: { email: cleanEmail },
+    const user = await prisma.profile.findFirst({
+      where: {
+        OR: [{ email: cleanEmail }, { username: cleanEmail }],
+      },
     });
 
     if (!user) {
@@ -362,8 +388,10 @@ export async function resetPasswordAction({
   const cleanEmail = email.toLowerCase().trim();
 
   try {
-    const user = await prisma.profile.findUnique({
-      where: { email: cleanEmail },
+    const user = await prisma.profile.findFirst({
+      where: {
+        OR: [{ email: cleanEmail }, { username: cleanEmail }],
+      },
     });
 
     if (!user) {
@@ -385,6 +413,12 @@ export async function resetPasswordAction({
       where: { id: user.id },
       data: { passwordHash },
     });
+
+    // Send confirmation email that password was changed
+    sendPasswordChangedEmail({
+      email: user.email,
+      name: user.fullName || undefined,
+    }).catch((err) => console.error("Error sending password changed email:", err));
 
     return { success: true };
   } catch (err: any) {

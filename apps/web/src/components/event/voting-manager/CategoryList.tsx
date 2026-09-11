@@ -411,7 +411,7 @@ export function CategoryList({
 											</div>
 										) : (
 											<div className="@container">
-												<div className="grid grid-cols-1 @xs:grid-cols-2 @md:grid-cols-3 @2xl:grid-cols-4 @4xl:grid-cols-5 @6xl:grid-cols-6 gap-3.5">
+												<div className="grid grid-cols-1 @sm:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 @[80rem]:grid-cols-5 @[100rem]:grid-cols-6 gap-3.5">
 													{approvedNominees.map((opt) => (
 														<NomineeCard
 															key={opt.id}

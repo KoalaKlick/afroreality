@@ -48,19 +48,19 @@ export function GalleryLinkDialog({
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
-						{link ? "Edit Photo Gallery" : "Add Photo Gallery"}
+						{link ? "Edit External Album" : "Add External Album"}
 					</DialogTitle>
 					<DialogDescription>
-						Link to external albums (Google Drive, Pixieset, Dropbox, etc.)
+						Link to full photo albums hosted externally (Pixieset, Google Drive, Dropbox, etc.)
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-4 py-2">
 					<div className="space-y-2">
-						<Label>Album Name</Label>
+						<Label>Album Title / Name</Label>
 						<Input
 							value={name}
 							onChange={(e) => setName(e.target.value)}
-							placeholder="e.g., Red Carpor Photos"
+							placeholder="e.g., Red Carpet Pixieset Gallery, High-Res Drive"
 							required
 						/>
 					</div>
@@ -70,7 +70,7 @@ export function GalleryLinkDialog({
 							type="url"
 							value={url}
 							onChange={(e) => setUrl(e.target.value)}
-							placeholder="https://drive.google.com/..."
+							placeholder="https://pixieset.com/... or https://drive.google.com/..."
 							required
 						/>
 					</div>
@@ -83,7 +83,7 @@ export function GalleryLinkDialog({
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isPending}>
-							Save Album
+							Save External Album
 						</Button>
 					</DialogFooter>
 				</form>

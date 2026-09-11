@@ -17,6 +17,8 @@ import {
 	Check,
 	Tag,
 	X,
+	FolderArchive,
+	ExternalLink,
 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -987,15 +989,15 @@ export function EventSettingsTab({
 					</div>
 				</Card>
 
-				{/* Event Gallery */}
+				{/* Event Photo Highlights */}
 				<Card className="p-6">
 					<div className="flex items-center justify-between mb-4">
 						<div className="space-y-1">
 							<h3 className="text-base font-semibold flex items-center gap-2">
-								<ImageIcon className="size-4 text-primary" /> Event Gallery
+								<ImageIcon className="size-4 text-primary" /> Event Photo Highlights
 							</h3>
 							<p className="text-xs text-muted-foreground">
-								Showcase up to 5 photos for your event
+								Upload up to 5 featured photos to display directly on your event showcase mosaic
 							</p>
 						</div>
 					</div>
@@ -1104,16 +1106,15 @@ export function EventSettingsTab({
 					</div>
 				</Card>
 
-				{/* Photo Gallery */}
+				{/* External Photo Albums & Cloud Drives */}
 				<Card className="p-6">
 					<div className="flex items-center justify-between mb-4">
 						<div className="space-y-1">
 							<h3 className="text-base font-semibold flex items-center gap-2">
-								<ImageIcon className="size-4 text-primary" /> Photo Gallery
-								Links
+								<FolderArchive className="size-4 text-primary" /> External Photo Albums &amp; Drives
 							</h3>
 							<p className="text-xs text-muted-foreground">
-								Share external albums (Google Drive, Pixieset, etc.)
+								Link to full external photo collections (Pixieset, Google Drive, Dropbox, Flickr)
 							</p>
 						</div>
 						{canEdit && (
@@ -1126,7 +1127,7 @@ export function EventSettingsTab({
 								}}
 								disabled={isPending}
 							>
-								<Plus className="size-4 mr-2" /> Add Album
+								<Plus className="size-4 mr-2" /> Add External Album
 							</Button>
 						)}
 					</div>
@@ -1143,7 +1144,7 @@ export function EventSettingsTab({
 									</div>
 									<div className="min-w-0 flex-1">
 										<p className="text-xs font-semibold truncate">
-											{link.name}
+ 											{link.name || provider.name}
 										</p>
 										<a
 											href={link.url}
@@ -1196,7 +1197,7 @@ export function EventSettingsTab({
 						})}
 						{formData.galleryLinks.length === 0 && (
 							<div className="w-full py-6 text-center text-sm text-muted-foreground italic bg-muted/10 rounded-xl border border-dashed">
-								No photo gallery links added yet
+								No external photo albums linked yet (e.g. Pixieset, Google Drive)
 							</div>
 						)}
 					</div>

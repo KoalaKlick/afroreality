@@ -1,4 +1,4 @@
-import { transporter, mailFromName, mailFromEmail } from "@/lib/mail/transport";
+import { getTransporter, getMailSender, transporter, mailFromName, mailFromEmail } from "@/lib/mail/transport";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 
 // Shared design tokens matching the AfroReality email system, derived from
@@ -22,6 +22,10 @@ const BORDER_RADIUS = "12px";
 const FONT_STACK =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif';
 
+function getBrandName(): string {
+  return process.env.SMTP_FROM_NAME || "AfroReality";
+}
+
 function emailShell({
   preview,
   bannerUrl,
@@ -34,6 +38,7 @@ function emailShell({
   const bannerSection = bannerUrl
     ? `<img src="${bannerUrl}" alt="Organization banner" style="display:block;width:100%;height:160px;object-fit:cover;" />`
     : "";
+  const brand = getBrandName();
 
   return `
     <!doctype html>
@@ -67,7 +72,7 @@ function emailShell({
                 <!-- Brand header -->
                 <tr>
                   <td style="padding:24px 40px 16px;text-align:center;">
-                    <p style="margin:0;font-size:24px;font-weight:900;color:${TEXT_PRIMARY};letter-spacing:-0.5px;text-transform:uppercase;">fextiva</p>
+                    <p style="margin:0;font-size:24px;font-weight:900;color:${TEXT_PRIMARY};letter-spacing:-0.5px;text-transform:uppercase;">${escapeHtml(brand)}</p>
                     <p style="margin:4px 0 0;font-size:11px;color:${TEXT_MUTED};letter-spacing:0.04em;">Empowering African Events</p>
                   </td>
                 </tr>
@@ -87,7 +92,7 @@ function emailShell({
                 <tr>
                   <td style="padding:16px 40px 24px;background-color:${FOOTER_BG};">
                     <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};text-align:center;">
-                      &copy; ${new Date().getFullYear()} fextiva. All rights reserved.
+                      &copy; ${new Date().getFullYear()} ${escapeHtml(brand)}. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -180,20 +185,23 @@ export async function sendVerificationEmail({
   url?: string;
 }) {
   try {
+    const sender = getMailSender();
+    const brand = sender.name || "AfroReality";
     const body = `
       ${greeting(name)}
-      ${paragraphs("Use the code below to verify your fextiva account:")}
+      ${paragraphs(`Use the code below to verify your ${escapeHtml(brand)} account:`)}
       ${otp ? otpBox({ label: "Verification Code", code: otp, accentBg: "#f3f7f5", accentBorder: ACCENT_PRIMARY, accentText: "#3e705b" }) : ""}
       ${url ? `${paragraphs("Or click below to verify directly:")}${primaryButton({ label: "Verify Email", href: url, color: ACCENT_PRIMARY })}` : ""}
       ${muted("If you didn't sign up, ignore this email.")}
     `;
 
-    const html = emailShell({ preview: "Verify your fextiva account", body });
+    const html = emailShell({ preview: `Verify your ${brand} account`, body });
+    const client = getTransporter();
 
-    const info = await transporter.sendMail({
-      from: `"${mailFromName}" <${mailFromEmail}>`,
+    const info = await client.sendMail({
+      from: sender.formatted,
       to: email,
-      subject: "Your fextiva verification code",
+      subject: `Your ${brand} verification code`,
       html,
     });
 
@@ -217,20 +225,23 @@ export async function sendPasswordResetEmail({
   resetUrl?: string;
 }) {
   try {
+    const sender = getMailSender();
+    const brand = sender.name || "AfroReality";
     const body = `
       ${greeting(name)}
-      ${paragraphs("We received a request to reset the password for your fextiva account.")}
+      ${paragraphs(`We received a request to reset the password for your ${escapeHtml(brand)} account.`)}
       ${otp ? otpBox({ label: "Your Password Reset Code", code: otp, accentBg: "#f9f1f1", accentBorder: ACCENT_TERTIARY, accentText: "#a70707", expiry: "Valid for 15 minutes" }) : ""}
       ${resetUrl ? `${paragraphs("You can also click the button below to reset your password directly:")}${primaryButton({ label: "Reset Password", href: resetUrl, color: ACCENT_TERTIARY })}` : ""}
       ${muted("If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.")}
     `;
 
-    const html = emailShell({ preview: "Reset your fextiva password", body });
+    const html = emailShell({ preview: `Reset your ${brand} password`, body });
+    const client = getTransporter();
 
-    const info = await transporter.sendMail({
-      from: `"${mailFromName}" <${mailFromEmail}>`,
+    const info = await client.sendMail({
+      from: sender.formatted,
       to: email,
-      subject: "Reset your fextiva password",
+      subject: `Reset your ${brand} password`,
       html,
     });
 
@@ -241,6 +252,45 @@ export async function sendPasswordResetEmail({
     return { success: false, error: error.message };
   }
 }
+
+export async function sendPasswordChangedEmail({
+  email,
+  name,
+}: {
+  email: string;
+  name?: string;
+}) {
+  try {
+    const sender = getMailSender();
+    const brand = sender.name || "AfroReality";
+    const body = `
+      ${greeting(name)}
+      ${paragraphs(
+        `The password for your ${escapeHtml(brand)} account was recently updated.`,
+        "If you completed this action, no further steps are needed.",
+        "If you did NOT perform this change, please reset your password immediately or contact our support team to secure your account."
+      )}
+      ${muted("This is an automated security notification.")}
+    `;
+
+    const html = emailShell({ preview: `Security alert: Your ${brand} password was changed`, body });
+    const client = getTransporter();
+
+    const info = await client.sendMail({
+      from: sender.formatted,
+      to: email,
+      subject: `Security Alert: Your ${brand} password was changed`,
+      html,
+    });
+
+    console.log("[EMAIL] Password changed confirmation email sent to", email, "messageId:", info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error: any) {
+    console.error("[EMAIL] Failed to send password changed email:", error);
+    return { success: false, error: error.message };
+  }
+}
+
 
 export async function sendOrganizationInvitationEmail({
   email,

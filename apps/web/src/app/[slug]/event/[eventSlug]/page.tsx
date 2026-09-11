@@ -324,13 +324,18 @@ export default async function PublicEventPage({
 							/>
 						)}
 
-						{/* Event Gallery for Desktop */}
+						{/* Event Photos Showcase for Desktop */}
 						{((event as any).galleryImages?.length > 0) && (
 							<div className="rounded-2xl border bg-card p-6 space-y-4">
-								<h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
-									<ImageIcon className="size-5 text-primary" />
-									Event Gallery
-								</h3>
+								<div className="flex items-center justify-between">
+									<h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
+										<ImageIcon className="size-5 text-primary" />
+										Event Photos
+									</h3>
+									<span className="text-xs font-semibold text-muted-foreground">
+										Highlights &amp; Showcase
+									</span>
+								</div>
 								<EventGallery
 									images={(event as any).galleryImages}
 									maxDisplay={5}

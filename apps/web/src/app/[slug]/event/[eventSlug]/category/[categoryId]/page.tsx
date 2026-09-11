@@ -17,6 +17,7 @@ import {
 	ArrowLeft,
 	Lock,
 	ImageIcon,
+	ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -136,7 +136,7 @@ export function getGalleryProvider(url: string, className?: string): { name: str
 	}
 
 	return {
-		name: "Photo Gallery",
+		name: "External Album",
 		icon: <Globe className={cn(iconClass, "text-muted-foreground")} />,
 		color: "text-muted-foreground",
 	};
