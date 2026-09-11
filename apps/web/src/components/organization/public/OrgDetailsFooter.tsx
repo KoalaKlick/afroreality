@@ -1,6 +1,6 @@
 "use client";
 
-import { Trophy, ImageIcon, ChevronRight } from "lucide-react";
+import { Trophy, ImageIcon, ChevronRight, ExternalLink } from "lucide-react";
 import { Section } from "@/components/Landing/shared/Section";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { getGalleryProvider } from "@/lib/utils/event-icons";
@@ -99,12 +99,12 @@ export function OrgDetailsFooter({
 						)}
 					</div>
 
-					{/* Photo Gallery Links */}
+					{/* External Photo Albums */}
 					{galleryLinks.length > 0 && (
 						<div className="space-y-4 pt-2 border-t border-dashed">
 							<h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3 font-millik">
-								<ImageIcon className="size-5 text-primary" />
-								<span>Photo Galleries.</span>
+								<ExternalLink className="size-5 text-primary" />
+								<span>External Photo Albums.</span>
 							</h3>
 							<div className="space-y-2.5">
 								{galleryLinks.map((link) => {

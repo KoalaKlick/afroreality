@@ -121,17 +121,13 @@ export function OptionSheet({
 			return;
 		}
 
-		if (!email.trim()) {
-			toast.error("Nominee email address is required so they can receive their Confirmation Code.");
-			return;
-		}
-
 		startTransition(async () => {
 			try {
 				const cleanDesc =
 					description && description.replace(/<[^>]*>/g, "").trim()
 						? description.trim()
 						: null;
+				const cleanEmail = email.trim() || undefined;
 
 				if (editingOption) {
 					const res = await requestNomineeChange({
@@ -140,7 +136,7 @@ export function OptionSheet({
 							requestType: "EDIT",
 							proposedChanges: {
 								optionText: optionText.trim(),
-								email: email.trim(),
+								email: cleanEmail,
 								phone: phone.trim() || undefined,
 								nomineeCode: nomineeCode.trim() || undefined,
 								description: cleanDesc || undefined,
@@ -160,14 +156,18 @@ export function OptionSheet({
 							eventId,
 							categoryId,
 							optionText: optionText.trim(),
-							email: email.trim(),
+							email: cleanEmail,
 							phone: phone.trim() || undefined,
 							nomineeCode: nomineeCode.trim() || undefined,
 							description: cleanDesc,
 							imageUrl: imageUrl || undefined,
 						},
 					});
-					toast.success(`Nominee added successfully. Confirmation Code sent to ${email.trim()}.`);
+					toast.success(
+						cleanEmail
+							? `Nominee added successfully. Confirmation Code sent to ${cleanEmail}.`
+							: "Nominee added successfully.",
+					);
 				}
 
 				onOpenChange(false);
@@ -247,17 +247,16 @@ export function OptionSheet({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="nominee-email">Nominee Email *</Label>
+						<Label htmlFor="nominee-email">Nominee Email (Optional)</Label>
 						<Input
 							id="nominee-email"
 							type="email"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
-							placeholder="e.g., nominee@example.com"
-							required
+							placeholder="e.g., nominee@example.com (optional)"
 						/>
 						<p className="text-xs text-muted-foreground">
-							Required so the candidate receives their Confirmation Code and change requests.
+							Optional. If provided, the nominee receives their Confirmation Code and update notices.
 						</p>
 					</div>
 

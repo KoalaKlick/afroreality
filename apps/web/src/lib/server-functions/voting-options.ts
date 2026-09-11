@@ -6,8 +6,10 @@ import { serializeJsonSafe, getFrontendBaseUrl } from "../utils";
 import {
 	sendNominationConfirmationEmail,
 	sendNomineeChangeRequestEmail,
+	sendNomineeUpdateNotificationEmail,
 } from "@/lib/email/nomination";
 import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
+import { logEventActivity } from "@/lib/audit/audit-logger";
 
 function escapeHtml(str: string): string {
 	return str
@@ -80,15 +82,10 @@ export async function generateNomineeCode(
  * Organizer action: Add an approved nominee directly
  */
 export async function createVotingOption({ data }: { data: any }): Promise<any> {
-	await requireSession();
+	const session = await requireSession();
 	const eventId = data.eventId;
 
-	const nomineeEmail = data.email?.trim();
-	if (!nomineeEmail) {
-		throw new Error(
-			"Nominee email address is required so they can receive their Confirmation Code and change requests."
-		);
-	}
+	const nomineeEmail = data.email?.trim() || null;
 
 	let nomineeCode = data.nomineeCode?.trim();
 
@@ -134,18 +131,40 @@ export async function createVotingOption({ data }: { data: any }): Promise<any> 
 			},
 		});
 
-		// Send Confirmation Code email to nominee
-		sendNominationConfirmationEmail({
-			email: nomineeEmail,
-			recipientName: option.optionText,
-			nomineeName: option.optionText,
-			categoryName: option.category?.name || "Category",
-			eventName: option.event?.title || "Event",
-			status: "approved",
-			confirmationCode,
-			organizationName: option.event?.organization?.name || "Fextiva",
-			bannerUrl: option.event?.bannerImage || option.event?.flierImage,
-		}).catch((err) => console.error("[voting] Failed to send nominee confirmation email:", err));
+		// Send Confirmation Code email to nominee if email exists
+		if (nomineeEmail) {
+			sendNominationConfirmationEmail({
+				email: nomineeEmail,
+				recipientName: option.optionText,
+				nomineeName: option.optionText,
+				categoryName: option.category?.name || "Category",
+				eventName: option.event?.title || "Event",
+				status: "approved",
+				confirmationCode,
+				organizationName: option.event?.organization?.name || "Fextiva",
+				bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+			}).catch((err) => console.error("[voting] Failed to send nominee confirmation email:", err));
+		}
+
+		// Log in event audit trail with machine IP
+		await logEventActivity({
+			eventId: data.eventId,
+			organizationId: option.event?.organization?.id,
+			userId: session.userId,
+			action: "nominee_created",
+			entityType: "nominee",
+			entityId: option.id,
+			description: `Added nominee "${option.optionText}" (Code: #${option.nomineeCode || "N/A"})${nomineeEmail ? ` with email ${nomineeEmail}` : " (No email provided)"}`,
+			metadata: {
+				nomineeId: option.id,
+				nomineeName: option.optionText,
+				nomineeCode: option.nomineeCode,
+				categoryId: option.categoryId,
+				categoryName: option.category?.name,
+				hasEmail: Boolean(nomineeEmail),
+				email: nomineeEmail,
+			},
+		});
 
 		revalidatePath(`/my-events/${data.eventId}`);
 		return serializeJsonSafe(option);
@@ -166,7 +185,7 @@ export async function createVotingOption({ data }: { data: any }): Promise<any> 
 }
 
 export async function updateVotingOption({ data }: { data: any }): Promise<any> {
-	await requireSession();
+	const session = await requireSession();
 	const { id, ...rest } = data;
 	const targetId = id || data.optionId;
 	if (!targetId) throw new Error("Missing option id");
@@ -220,6 +239,34 @@ export async function updateVotingOption({ data }: { data: any }): Promise<any> 
 				...(newCode ? { nomineeCode: newCode } : {}),
 			},
 		});
+
+		// Build field-level change diff for the audit trail
+		const metadataChanges: Record<string, { from: any; to: any }> = {};
+		const trackableFields = ["optionText", "email", "phone", "nomineeCode", "description", "imageUrl", "categoryId"] as const;
+		for (const field of trackableFields) {
+			const oldVal = (option as any)[field];
+			const newVal = (updated as any)[field];
+			if (newVal !== undefined && String(newVal ?? "") !== String(oldVal ?? "")) {
+				metadataChanges[field] = { from: oldVal ?? null, to: newVal ?? null };
+			}
+		}
+		const changedFields = Object.keys(metadataChanges);
+		const changeSummary = changedFields.length > 0 ? changedFields.join(", ") : "details";
+
+		await logEventActivity({
+			eventId: option.eventId,
+			userId: session.userId,
+			action: "nominee_updated",
+			entityType: "nominee",
+			entityId: targetId,
+			description: `Updated nominee "${updated.optionText}" (${changeSummary})`,
+			metadata: {
+				nomineeId: targetId,
+				nomineeName: updated.optionText,
+				changes: metadataChanges,
+			},
+		});
+
 		return serializeJsonSafe(updated);
 	} catch (error: any) {
 		const errStr = String(error?.message || error?.meta?.driverAdapterError || error);
@@ -242,24 +289,37 @@ export async function updateVotingOptionStatus({
 }: {
 	data: { id?: string; optionId?: string; status: any };
 }): Promise<any> {
-	await requireSession();
+	const session = await requireSession();
 	const targetId = data.id || data.optionId;
 	if (!targetId) throw new Error("Missing option id");
 	const updated = await prisma.votingOption.update({
 		where: { id: targetId },
 		data: { status: data.status },
+		include: { event: { select: { id: true, title: true, organizationId: true } } },
 	});
+
+	await logEventActivity({
+		eventId: updated.eventId,
+		organizationId: updated.event?.organizationId,
+		userId: session.userId,
+		action: "nominee_status_updated",
+		entityType: "nominee",
+		entityId: targetId,
+		description: `Status of nominee "${updated.optionText}" changed to "${data.status}"`,
+		metadata: { nomineeId: targetId, nomineeName: updated.optionText, newStatus: data.status },
+	});
+
 	return serializeJsonSafe(updated);
 }
 
 export async function deleteVotingOption({ data }: { data: any }): Promise<any> {
-	await requireSession();
+	const session = await requireSession();
 	const targetId = data.id || data.optionId;
 	if (!targetId) throw new Error("Missing option id");
 
 	const option = await prisma.votingOption.findUnique({
 		where: { id: targetId },
-		select: { id: true, deletionCode: true, votesCount: true, optionText: true },
+		select: { id: true, deletionCode: true, votesCount: true, optionText: true, eventId: true, nomineeCode: true },
 	});
 
 	if (!option) return { success: true };
@@ -284,11 +344,22 @@ export async function deleteVotingOption({ data }: { data: any }): Promise<any> 
 	}
 
 	await prisma.votingOption.delete({ where: { id: targetId } });
+
+	await logEventActivity({
+		eventId: option.eventId,
+		userId: session.userId,
+		action: "nominee_deleted",
+		entityType: "nominee",
+		entityId: targetId,
+		description: `Deleted nominee "${option.optionText}" (Code: #${option.nomineeCode || "N/A"})`,
+		metadata: { nomineeId: targetId, nomineeName: option.optionText, nomineeCode: option.nomineeCode },
+	});
+
 	return { success: true };
 }
 
 export async function approveNomination({ data }: { data: any }): Promise<any> {
-	await requireSession();
+	const session = await requireSession();
 	const targetId = data.id || data.optionId;
 	if (!targetId) throw new Error("Missing option id");
 
@@ -329,6 +400,17 @@ export async function approveNomination({ data }: { data: any }): Promise<any> {
 			bannerUrl: option.event?.bannerImage || option.event?.flierImage,
 		}).catch((err) => console.error("[voting] Failed to send approval email:", err));
 	}
+
+	await logEventActivity({
+		eventId: option.eventId,
+		organizationId: option.event?.organization?.id,
+		userId: session.userId,
+		action: "nominee_approved",
+		entityType: "nominee",
+		entityId: targetId,
+		description: `Approved nomination for "${option.optionText}" in category "${option.category?.name || "General"}"`,
+		metadata: { nomineeId: targetId, nomineeName: option.optionText, categoryName: option.category?.name },
+	});
 
 	return serializeJsonSafe(updated);
 }
@@ -637,6 +719,22 @@ export async function requestNomineeChange({
 		}
 
 		await prisma.votingOption.delete({ where: { id: optionId } });
+
+		await logEventActivity({
+			eventId: option.eventId,
+			organizationId: option.event?.organization?.id,
+			userId: session.userId,
+			action: "nominee_deleted",
+			entityType: "nominee",
+			entityId: optionId,
+			description: `Deleted nominee "${option.optionText}" (Code: #${option.nomineeCode || "N/A"})`,
+			metadata: {
+				nomineeId: optionId,
+				nomineeName: option.optionText,
+				nomineeCode: option.nomineeCode,
+			},
+		});
+
 		return {
 			success: true,
 			requiresNomineeApproval: false,
@@ -667,122 +765,122 @@ export async function requestNomineeChange({
 		}
 	}
 
-	// 1. If event is not published OR voting has not started yet, all updates work directly without approval
-	if (!eventPublished || !isVotingStarted) {
-		await prisma.votingOption.update({
-			where: { id: optionId },
-			data: {
-				...(proposedChanges.optionText !== undefined ? { optionText: proposedChanges.optionText.trim() } : {}),
-				...(proposedChanges.description !== undefined ? { description: proposedChanges.description } : {}),
-				...(proposedChanges.imageUrl !== undefined ? { imageUrl: proposedChanges.imageUrl } : {}),
-				...(proposedChanges.email !== undefined ? { email: proposedChanges.email?.trim() || null } : {}),
-				...(proposedChanges.phone !== undefined ? { phone: proposedChanges.phone?.trim() || null } : {}),
-				...(proposedChanges.categoryId !== undefined ? { categoryId: proposedChanges.categoryId } : {}),
-				...(newNomineeCode !== undefined ? { nomineeCode: newNomineeCode || null } : {}),
-			},
-		});
+	// Build update payload and audit diff
+	const updateData: any = {};
+	const changesList: string[] = [];
+	const metadataChanges: Record<string, { from: any; to: any }> = {};
 
-		return {
-			success: true,
-			requiresNomineeApproval: false,
-			message: "Nominee updated successfully.",
-		};
+	if (proposedChanges.optionText !== undefined && proposedChanges.optionText.trim() !== option.optionText.trim()) {
+		updateData.optionText = proposedChanges.optionText.trim();
+		changesList.push(`<li><strong>Name:</strong> ${escapeHtml(option.optionText)} &rarr; <strong>${escapeHtml(updateData.optionText)}</strong></li>`);
+		metadataChanges.name = { from: option.optionText, to: updateData.optionText };
 	}
-
-	// 2. Event is published and voting has started:
-	// Only name and email require nominee approval. Other details (photo, description, phone, category) update directly.
-	const isNameChanging = proposedChanges.optionText !== undefined && proposedChanges.optionText.trim() !== option.optionText.trim();
-	const isEmailChanging = proposedChanges.email !== undefined && proposedChanges.email.trim() !== (option.email || "").trim();
-
-	// Direct update for non-approval fields
-	const directUpdateData: any = {};
-	if (proposedChanges.description !== undefined && proposedChanges.description !== option.description) {
-		directUpdateData.description = proposedChanges.description;
-	}
-	if (proposedChanges.imageUrl !== undefined && proposedChanges.imageUrl !== option.imageUrl) {
-		directUpdateData.imageUrl = proposedChanges.imageUrl;
+	if (proposedChanges.email !== undefined && proposedChanges.email.trim() !== (option.email || "").trim()) {
+		updateData.email = proposedChanges.email.trim() || null;
+		changesList.push(`<li><strong>Email:</strong> ${escapeHtml(option.email || "None")} &rarr; <strong>${escapeHtml(updateData.email || "None")}</strong></li>`);
+		metadataChanges.email = { from: option.email, to: updateData.email };
 	}
 	if (proposedChanges.phone !== undefined && proposedChanges.phone?.trim() !== (option.phone || "").trim()) {
-		directUpdateData.phone = proposedChanges.phone?.trim() || null;
+		updateData.phone = proposedChanges.phone?.trim() || null;
+		changesList.push(`<li><strong>Phone:</strong> ${escapeHtml(option.phone || "None")} &rarr; <strong>${escapeHtml(updateData.phone || "None")}</strong></li>`);
+		metadataChanges.phone = { from: option.phone, to: updateData.phone };
+	}
+	if (isCodeChanging && newNomineeCode) {
+		updateData.nomineeCode = newNomineeCode;
+		changesList.push(`<li><strong>Nominee Code:</strong> #${option.nomineeCode || "N/A"} &rarr; #${updateData.nomineeCode}</li>`);
+		metadataChanges.nomineeCode = { from: option.nomineeCode, to: updateData.nomineeCode };
+	}
+	if (proposedChanges.description !== undefined && proposedChanges.description !== option.description) {
+		updateData.description = proposedChanges.description;
+		changesList.push(`<li><strong>Bio:</strong> Updated</li>`);
+		metadataChanges.description = { from: "previous bio", to: "updated bio" };
+	}
+	if (proposedChanges.imageUrl !== undefined && proposedChanges.imageUrl !== option.imageUrl) {
+		updateData.imageUrl = proposedChanges.imageUrl;
+		changesList.push(`<li><strong>Photo:</strong> Updated</li>`);
+		metadataChanges.imageUrl = { from: option.imageUrl, to: proposedChanges.imageUrl };
 	}
 	if (proposedChanges.categoryId !== undefined && proposedChanges.categoryId !== option.categoryId) {
-		directUpdateData.categoryId = proposedChanges.categoryId;
+		updateData.categoryId = proposedChanges.categoryId;
+		changesList.push(`<li><strong>Category:</strong> Changed category</li>`);
+		metadataChanges.categoryId = { from: option.categoryId, to: proposedChanges.categoryId };
 	}
 
-	if (Object.keys(directUpdateData).length > 0) {
+	// Apply direct update to the nominee in database
+	if (Object.keys(updateData).length > 0) {
 		await prisma.votingOption.update({
 			where: { id: optionId },
-			data: directUpdateData,
+			data: updateData,
 		});
 	}
 
-	// If neither Name nor Email is changing, no approval request needed
-	if (!isNameChanging && !isEmailChanging) {
-		return {
-			success: true,
-			requiresNomineeApproval: false,
-			message: "Nominee details updated successfully.",
-		};
-	}
+	/*
+	 * =========================================================================
+	 * STRICT NOMINEE APPROVAL FLOW (COMMENTED OUT PER USER SPECIFICATION):
+	 *
+	 * Previously, when event was published and voting started, changes to name or email
+	 * were forced into a pending NomineeChangeRequest requiring the nominee to manually
+	 * confirm before applying. This strict rule has been commented out. Instead, updates
+	 * apply directly and we dispatch an informational reminder to their email if present.
+	 * (Future implementation will support WhatsApp notifications when no email exists).
+	 *
+	 * const changeRequest = await prisma.nomineeChangeRequest.create({
+	 *   data: {
+	 *     optionId: option.id,
+	 *     eventId: option.eventId,
+	 *     requestType: requestType as any,
+	 *     proposedChanges: nomineeApprovalChanges,
+	 *     status: "pending",
+	 *     requestedBy: session.userId,
+	 *   },
+	 * });
+	 * =========================================================================
+	 */
 
-	// Name or Email is changing, send approval request to nominee
-	const nomineeApprovalChanges: any = {};
-	if (isNameChanging) {
-		nomineeApprovalChanges.optionText = proposedChanges.optionText!.trim();
-	}
-	if (isEmailChanging) {
-		nomineeApprovalChanges.email = proposedChanges.email!.trim();
-	}
-
-	const changeRequest = await prisma.nomineeChangeRequest.create({
-		data: {
-			optionId: option.id,
-			eventId: option.eventId,
-			requestType: requestType as any,
-			proposedChanges: nomineeApprovalChanges,
-			status: "pending",
-			requestedBy: session.userId,
-		},
-	});
-
-	const nomineeEmail = option.email || option.nominatedByEmail;
-	if (!nomineeEmail) {
-		throw new Error(
-			"Nominee does not have an email address on file. An email is required so they can receive and approve name/email changes."
+	// Send informational reminder email to the nominee if email is present
+	const nomineeEmail = updateData.email !== undefined ? updateData.email : (option.email || option.nominatedByEmail);
+	if (nomineeEmail && changesList.length > 0) {
+		const changesSummaryHtml = `<ul style="margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.6;">${changesList.join("")}</ul>`;
+		sendNomineeUpdateNotificationEmail({
+			email: nomineeEmail,
+			recipientName: option.nominatedByName || updateData.optionText || option.optionText,
+			nomineeName: updateData.optionText || option.optionText,
+			categoryName: option.category?.name || "Category",
+			eventName: option.event?.title || "Event",
+			organizationName: option.event?.organization?.name || "Fextiva",
+			changesSummaryHtml,
+			bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+		}).catch((err) =>
+			console.error("[voting] Failed to send nominee update notification email:", err),
 		);
 	}
 
-	const baseUrl = getFrontendBaseUrl().replace(/\/$/, "");
-	const confirmUrl = `${baseUrl}/confirm-change/${changeRequest.id}`;
+	// Record action in Event Audit Trail with machine IP
+	const updatedNomineeName = updateData.optionText || option.optionText;
+	const changeKeys = Object.keys(updateData);
+	const changeSummaryStr = changeKeys.length > 0 ? changeKeys.join(", ") : "no changes";
 
-	const items: string[] = [];
-	if (isNameChanging) {
-		items.push(`<li><strong>Name:</strong> ${escapeHtml(option.optionText)} &rarr; <strong>${escapeHtml(proposedChanges.optionText!)}</strong></li>`);
-	}
-	if (isEmailChanging) {
-		items.push(`<li><strong>Email:</strong> ${escapeHtml(option.email || "None")} &rarr; <strong>${escapeHtml(proposedChanges.email!)}</strong></li>`);
-	}
-	const changesSummaryHtml = `<ul style="margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.6;">${items.join("")}</ul>`;
-
-	// Dispatch Notification Email to Nominee
-	await sendNomineeChangeRequestEmail({
-		email: nomineeEmail,
-		recipientName: option.nominatedByName || option.optionText,
-		nomineeName: option.optionText,
-		categoryName: option.category?.name || "Category",
-		eventName: option.event?.title || "Event",
-		organizationName: option.event?.organization?.name || "Fextiva",
-		requestType: requestType as any,
-		changesSummaryHtml,
-		confirmUrl,
-		bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+	await logEventActivity({
+		eventId: option.eventId,
+		organizationId: option.event?.organization?.id,
+		userId: session.userId,
+		action: "nominee_updated",
+		entityType: "nominee",
+		entityId: option.id,
+		description: `Updated nominee "${updatedNomineeName}" (${changeSummaryStr})`,
+		metadata: {
+			nomineeId: option.id,
+			nomineeName: updatedNomineeName,
+			changes: metadataChanges,
+			hasEmail: Boolean(nomineeEmail),
+			email: nomineeEmail || null,
+		},
 	});
 
 	return {
 		success: true,
-		requestId: changeRequest.id,
-		requiresNomineeApproval: true,
-		message: `Change request for name/email sent to nominee (${nomineeEmail}) for approval.`,
+		requiresNomineeApproval: false,
+		message: `Nominee "${updatedNomineeName}" updated successfully.${nomineeEmail ? ` Notification sent to ${nomineeEmail}.` : ""}`,
 	};
 }
 

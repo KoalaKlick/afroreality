@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { serializeJsonSafe } from "../utils";
 import { requireEventRole, requireOrgRole } from "./auth-helpers";
 import { requireSession } from "@/lib/session";
+import { logEventActivity } from "@/lib/audit/audit-logger";
 
 /**
  * Event types that collect money (tickets / votes). Standard events are free
@@ -159,7 +160,7 @@ export async function createNewEvent({ data }: { data: any }) {
 }
 
 export async function updateExistingEvent({ data }: { data: any }) {
-	await requireEventRole(data.id, ["owner", "admin"]);
+	const { session, event } = await requireEventRole(data.id, ["owner", "admin"]);
 
 	// If this update transitions the event to published, enforce the payout gate.
 	if (data.status === "published") {
@@ -182,6 +183,23 @@ export async function updateExistingEvent({ data }: { data: any }) {
 		include: { sponsors: true, socialLinks: true, galleryLinks: true },
 	});
 
+	await logEventActivity({
+		eventId: id,
+		organizationId: event.organizationId,
+		userId: session.userId,
+		action: data.status ? "event_status_changed" : "event_updated",
+		entityType: "event",
+		entityId: id,
+		description: data.status
+			? `Changed event status to "${data.status}"`
+			: `Updated event details for "${updated.title}"`,
+		metadata: {
+			eventId: id,
+			eventTitle: updated.title,
+			updatedFields: Object.keys(rest),
+		},
+	});
+
 	revalidatePath("/my-events");
 	revalidatePath(`/my-events/${id}`);
 	return serializeJsonSafe(updated);
@@ -192,7 +210,7 @@ export async function changeEventStatus({
 }: {
 	data: { id: string; status: any };
 }) {
-	await requireEventRole(data.id, ["owner", "admin"]);
+	const { session, event } = await requireEventRole(data.id, ["owner", "admin"]);
 
 	// Publishing an event requires the organization payout account to be set up.
 	if (data.status === "published") {
@@ -204,6 +222,20 @@ export async function changeEventStatus({
 		data: {
 			status: data.status,
 			publishedAt: data.status === "published" ? new Date() : undefined,
+		},
+	});
+
+	await logEventActivity({
+		eventId: data.id,
+		organizationId: event.organizationId,
+		userId: session.userId,
+		action: "event_status_changed",
+		entityType: "event",
+		entityId: data.id,
+		description: `Changed event status to "${data.status}"`,
+		metadata: {
+			eventId: data.id,
+			status: data.status,
 		},
 	});
 

@@ -351,8 +351,8 @@ export default async function PublicCategoryPage({
 							{galleryLinks.length > 0 && (
 								<div className="space-y-4">
 									<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-										<ImageIcon className="size-5 text-primary" />
-										<span>Galleries.</span>
+										<ExternalLink className="size-5 text-primary" />
+										<span>External Photo Albums.</span>
 									</h3>
 									<div className="space-y-2.5">
 										{galleryLinks.map((link: any) => {
@@ -365,15 +365,20 @@ export default async function PublicCategoryPage({
 													rel="noopener noreferrer"
 													className="flex items-center justify-between p-3 rounded-xl border bg-card hover:border-primary/50 transition-colors group"
 												>
-													<div className="flex items-center gap-3">
-														<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+													<div className="flex items-center gap-3 min-w-0">
+														<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
 															{provider.icon}
 														</div>
-														<span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
-															{provider.name}
-														</span>
+														<div className="min-w-0">
+															<span className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors block truncate">
+																{link.name || provider.name}
+															</span>
+															<span className="text-[11px] text-muted-foreground">
+																View album on {provider.name}
+															</span>
+														</div>
 													</div>
-													<ChevronRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+													<ChevronRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
 												</a>
 											);
 										})}

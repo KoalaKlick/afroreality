@@ -20,6 +20,7 @@ import {
 	QrCode,
 	Settings,
 	Share2,
+	ShieldCheck,
 	Ticket,
 	Users,
 	Vote,
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { EventAuditTrailDrawer } from "../audit/EventAuditTrailDrawer";
 import AddFilesIcon from "@/assets/add-files.svg";
 import { StatusBadge } from "@/components/common/status-badge";
 import {
@@ -117,6 +119,7 @@ export function EventDetailHeader({
 	const [isStatusChanging, startStatusTransition] = useTransition();
 	const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
 	const [isPayoutDrawerOpen, setIsPayoutDrawerOpen] = useState(false);
+	const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
 
 	// Editable state
 	const [editingTitle, setEditingTitle] = useState(false);
@@ -263,6 +266,16 @@ export function EventDetailHeader({
 
 				{/* Unified Hero Card with Clean Light Primary-50 Background, No Shadow, No Border Bottom */}
 				<div className="relative rounded-t-2xl rounded-b-none border-t border-x border-b-0 border-border bg-primary-50/70 dark:bg-primary-950/20 overflow-hidden shadow-none">
+					{/* Audit Trail — top-right corner */}
+					<button
+						type="button"
+						onClick={() => setIsAuditDrawerOpen(true)}
+						className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-background/90 backdrop-blur-sm border border-border/80 shadow-sm hover:bg-background hover:border-primary/40 hover:shadow-md transition-all cursor-pointer text-foreground/80 hover:text-primary"
+						title="View Event Audit Trail and machine IP log"
+					>
+						<ShieldCheck className="size-3.5" />
+						<span className="hidden sm:inline">Audit Trail</span>
+					</button>
 					{/* Card Content: Flier sits flush at bottom, details beside */}
 					<div className="flex flex-col md:flex-row items-stretch md:items-end gap-6 pl-5 pt-5 sm:pl-7 sm:pt-7 pr-5 sm:pr-7 pb-5 sm:pb-7 md:pb-0">
 						{/* Event Flier (Flush with bottom, rounded top, no bottom roundness, border-background) */}
@@ -533,6 +546,8 @@ export function EventDetailHeader({
 											</Link>
 										</Button>
 									)}
+
+
 								</div>
 
 								{/* Right: Status Badges */}
@@ -711,6 +726,14 @@ export function EventDetailHeader({
 					</div>
 				</SheetContent>
 			</Sheet>
+
+			{/* Event Audit Trail Drawer */}
+			<EventAuditTrailDrawer
+				eventId={event.id}
+				eventTitle={event.title}
+				open={isAuditDrawerOpen}
+				onOpenChange={setIsAuditDrawerOpen}
+			/>
 		</>
 	);
 }

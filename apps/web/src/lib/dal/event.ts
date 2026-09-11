@@ -466,11 +466,28 @@ export async function getEventStatsAndTrends(eventId: string) {
 		totalOrders: isVotingOnly ? 0 : totalOrders,
 	};
 
+	const voteTrend = votesList
+		.slice()
+		.reverse()
+		.map((v) => ({
+			date: v.createdAt ? new Date(v.createdAt).toISOString() : new Date().toISOString(),
+			votes: v.voteCount || 1,
+		}));
+
+	const ticketTrend = ordersList
+		.slice()
+		.reverse()
+		.map((o) => ({
+			date: o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString(),
+			sales: 1,
+			revenue: Number(o.subtotal || 0),
+		}));
+
 	return serializeJsonSafe({
 		eventStats,
 		ticketTypeSales,
-		voteTrend: [],
-		ticketTrend: [],
+		voteTrend,
+		ticketTrend,
 		ticketsSold: eventStats.ticketsSold,
 		ticketRevenue,
 		checkIns: eventStats.checkIns,

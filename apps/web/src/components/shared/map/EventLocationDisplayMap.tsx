@@ -30,8 +30,8 @@ export function EventLocationDisplayMap({
 		return null;
 	}
 
-	// Google Maps embed URL zoomed into z=17 for detailed landmark view
-	const embedUrl = `https://maps.google.com/maps?q=${latitude},${longitude}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
+	// Google Maps embed URL at z=14 for a clear neighbourhood-level view
+	const embedUrl = `https://maps.google.com/maps?q=${latitude},${longitude}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
 
 	return (
 		<div

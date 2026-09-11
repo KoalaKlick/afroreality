@@ -328,3 +328,102 @@ export async function sendNomineeChangeRequestEmail(
 		return { success: false, error: error.message };
 	}
 }
+
+export interface SendNomineeUpdateNotificationEmailInput {
+	email: string;
+	recipientName?: string;
+	nomineeName: string;
+	categoryName: string;
+	eventName: string;
+	organizationName?: string;
+	changesSummaryHtml: string;
+	bannerUrl?: string | null;
+}
+
+export async function sendNomineeUpdateNotificationEmail(
+	params: SendNomineeUpdateNotificationEmailInput,
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+	try {
+		const {
+			email,
+			recipientName = "Valued Nominee",
+			nomineeName,
+			categoryName,
+			eventName,
+			organizationName = "Fextiva",
+			changesSummaryHtml,
+			bannerUrl,
+		} = params;
+
+		const previewText = `Update Notice: Your nominee details for ${eventName} have been updated`;
+
+		const body = `
+      <div style="margin-bottom:24px;">
+        <p style="margin:0;font-size:12px;font-weight:700;text-transform:uppercase;color:${ACCENT_PRIMARY};letter-spacing:0.05em;">
+          ${escapeHtml(organizationName)} &bull; ${escapeHtml(eventName)}
+        </p>
+        <h2 style="margin:6px 0 0;font-size:22px;font-weight:800;color:${TEXT_PRIMARY};line-height:1.25;">
+          Nominee Details Updated
+        </h2>
+      </div>
+
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
+        Hello <strong>${escapeHtml(recipientName)}</strong>,
+      </p>
+
+      <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
+        The organizer for <strong>${escapeHtml(eventName)}</strong> has updated the nominee profile details for <strong>${escapeHtml(nomineeName)}</strong> in the <strong>${escapeHtml(categoryName)}</strong> category.
+      </p>
+
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0;background-color:#f8fafc;border:1px solid ${DIVIDER};border-radius:10px;">
+        <tr>
+          <td style="padding:18px;">
+            <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;color:${TEXT_MUTED};letter-spacing:0.05em;">
+              Updated Details:
+            </p>
+            ${changesSummaryHtml}
+          </td>
+        </tr>
+      </table>
+
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 24px;background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+        <tr>
+          <td style="padding:14px 16px;font-size:13px;color:#166534;line-height:1.5;">
+            &#10003; <strong>Informational Notice:</strong> This change has been recorded in the event's audit trail. No further action is required from you.
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-top:32px;padding-top:20px;border-top:1px solid ${DIVIDER};text-align:center;">
+        <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};">
+          &copy; ${new Date().getFullYear()} ${escapeHtml(organizationName)} &middot; Powered by Fextiva
+        </p>
+      </div>
+    `;
+
+		const html = emailShell({
+			preview: previewText,
+			bannerUrl,
+			body,
+		});
+
+		const info = await transporter.sendMail({
+			from: `"${organizationName} via Fextiva" <${mailFromEmail}>`,
+			to: email,
+			subject: `Notice: Nominee Profile Updated - ${nomineeName} (${eventName})`,
+			html,
+		});
+
+		console.log(
+			"[EMAIL] Nominee update notification sent to",
+			email,
+			"messageId:",
+			info.messageId,
+		);
+		return { success: true, messageId: info.messageId };
+	} catch (error: any) {
+		console.error("[EMAIL] Failed to send nominee update notification email:", error);
+		return { success: false, error: error.message };
+	}
+}
+

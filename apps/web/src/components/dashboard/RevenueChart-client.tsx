@@ -231,12 +231,18 @@ export function RevenueChart({ data = [], trends }: RevenueChartProps) {
 								}}
 							/>
 							<Area
-								type="monotone"
+								type="linear"
 								dataKey="revenue"
 								stroke="#02a605"
 								strokeWidth={2.5}
 								fillOpacity={1}
 								fill="url(#areaRevenueGradient)"
+								dot={{
+									r: 2.5,
+									fill: "#02a605",
+									strokeWidth: 1,
+									stroke: "#fff",
+								}}
 								activeDot={{
 									r: 5,
 									stroke: "#02a605",
