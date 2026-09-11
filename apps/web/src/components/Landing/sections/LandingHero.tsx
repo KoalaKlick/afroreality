@@ -106,7 +106,7 @@ export function LandingHero() {
 					</div>
 
 					{/* Floating Card 1 — Live Voting */}
-					<div className="absolute top-[32%] sm:top-[30%] left-[2%] sm:left-[6%] xl:top-auto xl:bottom-[25%] xl:left-[19%] z-20 -rotate-[10deg] hover:-rotate-3 transition-all duration-300 pointer-events-auto">
+					<div className="absolute top-[32%] sm:top-[30%] left-[2%] sm:left-[6%] xl:top-auto xl:bottom-[25%] xl:left-[19%] z-20 rotate-[-33deg] xl:rotate-[-10deg] hover:rotate-0 transition-all duration-300 pointer-events-auto">
 						<div className="flex items-center gap-2 sm:gap-2.5 rounded-lg sm:rounded-xl bg-white dark:bg-card px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-stone-300/40 dark:shadow-black/30 border border-stone-100/90 dark:border-border">
 							<div className="flex size-7.5 sm:size-9 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-primary-50 dark:bg-primary-950/40 text-primary">
 								<VoteIcon className="size-4 sm:size-4.5 text-primary" />
@@ -137,7 +137,7 @@ export function LandingHero() {
 					</div>
 
 					{/* Floating Card 2 — Instant Payouts */}
-					<div className="absolute top-[34%] sm:top-[32%] right-[2%] sm:right-[6%] xl:top-auto xl:bottom-[27%] xl:right-[21%] z-20 rotate-[10deg] hover:-rotate-3 transition-all duration-300 pointer-events-auto">
+					<div className="absolute top-[34%] sm:top-[32%] right-[2%] sm:right-[6%] xl:top-auto xl:bottom-[27%] xl:right-[24%] z-20 rotate-[33deg] xl:rotate-[10deg] hover:-rotate-3 transition-all duration-300 pointer-events-auto">
 						<div className="flex items-center gap-2 sm:gap-2.5 rounded-lg sm:rounded-xl bg-white dark:bg-card px-3 py-2 sm:px-4 sm:py-2.5 shadow-xl shadow-stone-300/40 dark:shadow-black/30 border border-stone-100/90 dark:border-border">
 							<div className="flex size-7.5 sm:size-9 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-tertiary-50 dark:bg-tertiary-950/40 text-tertiary">
 								<TicketIcon className="size-4 sm:size-4.5 text-tertiary" />

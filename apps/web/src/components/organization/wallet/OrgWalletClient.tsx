@@ -4,6 +4,7 @@
 import {
 	ArrowDownToLine,
 	ArrowLeftRight,
+	Clock,
 	DollarSign,
 	CheckCircle2,
 	Landmark,
@@ -86,12 +87,16 @@ export function OrgWalletClient({
 	const [withdrawalMemo, setWithdrawalMemo] = useState("");
 	const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState(false);
 
-	const availableBalance = Math.max(
-		0,
-		(wallet?.balance ?? 0) - (wallet?.pendingDebits ?? 0),
-	);
+	const availableBalance =
+		typeof (wallet as any)?.availableBalance === "number"
+			? Number((wallet as any).availableBalance)
+			: Math.max(0, (wallet?.balance ?? 0) - (wallet?.pendingDebits ?? 0));
+
 	const pendingBalance =
-		(wallet?.pendingCredits ?? 0) + (wallet?.pendingDebits ?? 0);
+		typeof (wallet as any)?.pendingBalance === "number"
+			? Number((wallet as any).pendingBalance)
+			: (wallet?.pendingCredits ?? 0);
+
 	const currency = wallet?.currency ?? "GHS";
 
 	const hasPayoutAccount = !!(
@@ -316,11 +321,17 @@ export function OrgWalletClient({
 					availableBalance={availableBalance}
 					pendingBalance={pendingBalance}
 					totalRevenue={
-						totalInflowAmount > 0
-							? totalInflowAmount
-							: availableBalance + (wallet?.pendingCredits ?? 0)
+						typeof (wallet as any)?.totalInflows === "number"
+							? Number((wallet as any).totalInflows)
+							: totalInflowAmount > 0
+								? totalInflowAmount
+								: availableBalance + (wallet?.pendingCredits ?? 0)
 					}
-					totalWithdrawn={totalOutflowAmount}
+					totalWithdrawn={
+						typeof (wallet as any)?.totalPayouts === "number"
+							? Number((wallet as any).totalPayouts)
+							: totalOutflowAmount
+					}
 					currency={currency}
 				/>
 
@@ -492,12 +503,25 @@ export function OrgWalletClient({
 					</DialogHeader>
 
 					<div className="space-y-4 py-2">
-						{/* Available Balance Quick Banner */}
-						<div className="bg-primary-50/70 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50 rounded-lg p-3 flex items-center justify-between">
-							<div className="text-xs text-muted-foreground">Available to Withdraw:</div>
-							<div className="font-mono font-bold text-sm text-foreground">
-								{currency} {availableBalance.toFixed(2)}
+						{/* Available Balance & Settlement Status Banner */}
+						<div className="bg-primary-50/70 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50 rounded-lg p-3 space-y-1.5">
+							<div className="flex items-center justify-between">
+								<div className="text-xs text-muted-foreground">Available to Withdraw (Cleared):</div>
+								<div className="font-mono font-bold text-sm text-foreground">
+									{currency} {availableBalance.toFixed(2)}
+								</div>
 							</div>
+							{(wallet as any)?.pendingSettlement > 0 && (
+								<div className="flex items-center justify-between text-[11px] text-amber-600 dark:text-amber-400 border-t border-primary-100/50 dark:border-primary-900/30 pt-1.5">
+									<span className="flex items-center gap-1">
+										<Clock className="size-3" />
+										Pending T+1 Clearance:
+									</span>
+									<span className="font-mono font-semibold">
+										{currency} {Number((wallet as any).pendingSettlement).toFixed(2)}
+									</span>
+								</div>
+							)}
 						</div>
 
 						{/* Destination Account Summary */}
@@ -562,6 +586,17 @@ export function OrgWalletClient({
 								onChange={(e) => setWithdrawalMemo(e.target.value)}
 								placeholder="e.g. Event ticket sales payout"
 							/>
+						</div>
+
+						{/* T+1 Settlement Policy Note */}
+						<div className="text-[11px] text-muted-foreground bg-muted/40 rounded-lg p-2.5 space-y-1 border border-border/50">
+							<div className="font-medium text-foreground flex items-center gap-1.5">
+								<Clock className="size-3 text-primary" />
+								Paystack Settlement & Clearance (T+1)
+							</div>
+							<p className="leading-normal">
+								Withdrawals are disbursed directly via Paystack to your payout account. Payments clear into your withdrawable balance on T+1 business days (excluding weekends & Ghana public holidays).
+							</p>
 						</div>
 					</div>
 

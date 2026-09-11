@@ -375,3 +375,257 @@ export async function removePayoutAccount({
 		};
 	}
 }
+
+/**
+ * Creates or retrieves a Paystack Transfer Recipient
+ */
+export async function createPaystackTransferRecipient({
+	name,
+	accountNumber,
+	bankCode,
+	currency = "GHS",
+}: {
+	name: string;
+	accountNumber: string;
+	bankCode: string;
+	currency?: string;
+}): Promise<{ success: boolean; recipientCode?: string; message?: string }> {
+	if (!PAYSTACK_SECRET) {
+		return {
+			success: true,
+			recipientCode: `RCP_LOCAL_${Date.now()}`,
+			message: "Local mode recipient created.",
+		};
+	}
+
+	try {
+		const isMomo = ["MTN", "VOD", "ATL"].includes(bankCode.toUpperCase());
+		const response = await fetch("https://api.paystack.co/transferrecipient", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${PAYSTACK_SECRET}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				type: isMomo ? "mobile_money" : "nuban",
+				name: name.trim(),
+				account_number: accountNumber.trim(),
+				bank_code: bankCode.trim(),
+				currency: currency.toUpperCase(),
+			}),
+		});
+
+		const result = await response.json();
+
+		if (result.status && result.data?.recipient_code) {
+			return {
+				success: true,
+				recipientCode: result.data.recipient_code,
+			};
+		}
+
+		return {
+			success: false,
+			message: result.message || "Failed to create transfer recipient on Paystack.",
+		};
+	} catch (error) {
+		console.error("createPaystackTransferRecipient error:", error);
+		return {
+			success: false,
+			message: error instanceof Error ? error.message : "Error contacting Paystack.",
+		};
+	}
+}
+
+/**
+ * Initiates a real transfer via Paystack Transfers API
+ */
+export async function initiatePaystackTransfer({
+	amount,
+	recipientCode,
+	reference,
+	reason = "Wallet withdrawal",
+}: {
+	amount: number;
+	recipientCode: string;
+	reference: string;
+	reason?: string;
+}): Promise<{
+	success: boolean;
+	transferCode?: string;
+	status?: string;
+	message?: string;
+	raw?: any;
+}> {
+	if (!PAYSTACK_SECRET || recipientCode.startsWith("RCP_LOCAL_")) {
+		return {
+			success: true,
+			transferCode: `TRF_LOCAL_${Date.now()}`,
+			status: "success",
+			message: "Simulated transfer successful in local/dev mode.",
+		};
+	}
+
+	try {
+		const amountInSubunit = Math.round(amount * 100); // Pesewas or Cents
+
+		const response = await fetch("https://api.paystack.co/transfer", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${PAYSTACK_SECRET}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				source: "balance",
+				amount: amountInSubunit,
+				recipient: recipientCode,
+				reference,
+				reason,
+			}),
+		});
+
+		const result = await response.json();
+
+		if (result.status && result.data) {
+			return {
+				success: true,
+				transferCode: result.data.transfer_code,
+				status: result.data.status,
+				message: result.message,
+				raw: result.data,
+			};
+		}
+
+		return {
+			success: false,
+			message: result.message || "Paystack transfer initiation failed.",
+			raw: result,
+		};
+	} catch (error) {
+		console.error("initiatePaystackTransfer error:", error);
+		return {
+			success: false,
+			message: error instanceof Error ? error.message : "Error executing transfer on Paystack.",
+		};
+	}
+}
+
+/**
+ * Checks Paystack merchant balance to prevent transfer failures
+ */
+export async function checkPaystackBalance(
+	currency = "GHS",
+): Promise<{ success: boolean; balance?: number; message?: string }> {
+	if (!PAYSTACK_SECRET) {
+		return { success: true, balance: 1000000 };
+	}
+
+	try {
+		const response = await fetch("https://api.paystack.co/balance", {
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${PAYSTACK_SECRET}`,
+			},
+			cache: "no-store",
+		});
+
+		const result = await response.json();
+
+		if (result.status && Array.isArray(result.data)) {
+			const item = result.data.find((b: any) => b.currency === currency.toUpperCase());
+			const balanceInMajor = item ? item.balance / 100 : 0;
+			return {
+				success: true,
+				balance: balanceInMajor,
+			};
+		}
+
+		return { success: false, message: result.message };
+	} catch (error) {
+		return {
+			success: false,
+			message: error instanceof Error ? error.message : "Could not fetch Paystack balance.",
+		};
+	}
+}
+
+/**
+ * Fetch real settlements directly from Paystack API
+ */
+export async function fetchPaystackSettlements({
+	subaccountCode,
+}: {
+	subaccountCode?: string | null;
+} = {}): Promise<
+	Array<{
+		id: number;
+		amount: number;
+		status: string;
+		settlementDate: string;
+		currency: string;
+	}>
+> {
+	if (!PAYSTACK_SECRET) return [];
+	try {
+		let url = "https://api.paystack.co/settlement";
+		if (subaccountCode && !subaccountCode.startsWith("ACCT_LOCAL_")) {
+			url += `?subaccount=${encodeURIComponent(subaccountCode)}`;
+		}
+		const res = await fetch(url, {
+			headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+			cache: "no-store",
+		});
+		const json = await res.json();
+		if (json.status && Array.isArray(json.data)) {
+			return json.data.map((s: any) => ({
+				id: s.id,
+				amount: (s.total_amount || 0) / 100,
+				status: s.status,
+				settlementDate: s.settlement_date,
+				currency: s.currency || "GHS",
+			}));
+		}
+	} catch (e) {
+		console.warn("[PAYSTACK-SETTLEMENT-FETCH-ERR]", e);
+	}
+	return [];
+}
+
+/**
+ * Fetch real transfers directly from Paystack API
+ */
+export async function fetchPaystackTransfers(): Promise<
+	Array<{
+		id: number;
+		reference: string;
+		amount: number;
+		status: string;
+		transferredAt: string;
+		recipientName: string;
+		currency: string;
+	}>
+> {
+	if (!PAYSTACK_SECRET) return [];
+	try {
+		const res = await fetch("https://api.paystack.co/transfer", {
+			headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+			cache: "no-store",
+		});
+		const json = await res.json();
+		if (json.status && Array.isArray(json.data)) {
+			return json.data.map((t: any) => ({
+				id: t.id,
+				reference: t.reference,
+				amount: (t.amount || 0) / 100,
+				status: t.status,
+				transferredAt: t.transferred_at || t.createdAt,
+				recipientName: t.recipient?.name || "Recipient",
+				currency: t.currency || "GHS",
+			}));
+		}
+	} catch (e) {
+		console.warn("[PAYSTACK-TRANSFERS-FETCH-ERR]", e);
+	}
+	return [];
+}
+

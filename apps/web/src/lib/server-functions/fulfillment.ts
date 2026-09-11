@@ -294,9 +294,26 @@ export async function fulfillSuccessfulPayment({
 
 		if (organizationId) {
 			try {
+				const org = await prisma.organization.findUnique({
+					where: { id: organizationId },
+					select: {
+						paystackBankCode: true,
+						paystackAccountNumber: true,
+						paystackAccountName: true,
+						subaccountCode: true,
+					},
+				});
+
+				const feeType =
+					payment.purpose === "ticket_purchase"
+						? "ticket"
+						: payment.purpose === "nomination"
+							? "nomination"
+							: "vote";
+
 				const baseAmount = Number(metadata.baseAmount || payment.amount || 0);
-				const platformFee = Number(metadata.platformFee || 0);
-				const organizerReceives = Number(metadata.organizerReceives || (baseAmount - platformFee));
+				const platformFee = Number(metadata.platformFee ?? 0);
+				const organizerReceives = Number(metadata.organizerReceives ?? (baseAmount - platformFee));
 
 				// Find or create wallet
 				let wallet = await prisma.wallet.findFirst({
@@ -313,17 +330,23 @@ export async function fulfillSuccessfulPayment({
 					});
 				}
 
-				// Credit wallet if payment is not directly split
-				const isSplit = metadata.isSplit === true;
-				if (!isSplit && organizerReceives > 0) {
-					const existingTxn = await prisma.transaction.findFirst({
+				if (organizerReceives > 0) {
+					const existingCreditTxn = await prisma.transaction.findFirst({
 						where: {
 							walletId: wallet.id,
 							paymentId: payment.id,
+							type: "credit",
 						},
 					});
 
-					if (!existingTxn) {
+					const cleanLabel =
+						payment.purpose === "ticket_purchase"
+							? "Ticket Purchase"
+							: payment.purpose === "nomination"
+								? "Nomination Fee"
+								: "Voting Payment";
+
+					if (!existingCreditTxn) {
 						const currentBalance = Number(wallet.balance);
 						const newBalance = currentBalance + organizerReceives;
 
@@ -335,27 +358,21 @@ export async function fulfillSuccessfulPayment({
 							},
 						});
 
-						const category =
-							payment.purpose === "ticket_purchase"
-								? "ticket_purchase"
-								: payment.purpose === "vote_purchase"
-									? "vote_purchase"
-									: "wallet_topup";
-
+						const creditRef = `TXN-IN-${reference}`;
 						await prisma.transaction.create({
 							data: {
-								reference: `TXN-${reference}-${Date.now().toString().slice(-4)}`,
+								reference: creditRef,
 								walletId: wallet.id,
 								paymentId: payment.id,
 								type: "credit",
-								category,
+								category: payment.purpose === "ticket_purchase" ? "ticket_purchase" : "vote_purchase",
 								status: "completed",
 								amount: organizerReceives,
 								currency: "GHS",
 								feeAmount: platformFee,
 								balanceBefore: currentBalance,
 								balanceAfter: newBalance,
-								description: `Payment received for ${payment.purpose}: Ref ${reference}`,
+								description: `${cleanLabel} Revenue (${reference}) - Net: GHS ${organizerReceives.toFixed(2)}, Platform Fee: GHS ${platformFee.toFixed(2)}`,
 								completedAt: now,
 							},
 						});

@@ -40,7 +40,7 @@ export function UssdFloatingWidget({
 			>
 				<div
 					onClick={() => setIsOpen(true)}
-					className="group relative bg-background/95 hover:bg-background backdrop-blur-md border border-border hover:border-primary/60 rounded-lg p-1.5 flex flex-col items-center gap-1 cursor-pointer transition-colors shadow-none"
+					className="group relative bg-background/95 hover:bg-background backdrop-blur-md border border-border hover:border-primary/60 p-1.5 flex flex-col items-center gap-1 cursor-pointer transition-colors shadow-none"
 					title="Click to view offline USSD dialing details"
 					role="button"
 					tabIndex={0}

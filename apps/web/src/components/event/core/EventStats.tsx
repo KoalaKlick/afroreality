@@ -329,12 +329,74 @@ export interface EventStatsData {
 	};
 	totalTicketsSold: number;
 	totalRevenue: number;
+	totalInflows?: number;
+	organizerShare?: number;
+	availableBalance?: number;
+	pendingBalance?: number;
+	totalPayouts?: number;
+	totalWithdrawn?: number;
+	platformFees?: number;
 	totalAttendees: number;
 	totalVotes: number;
 	mostAttendedEvent?: { id: string; title: string; attendees: number };
 	upcomingEvent?: { id: string; title: string; startDate: Date };
 	recentEvent?: { id: string; title: string; endDate: Date };
+	currency?: string;
 }
+
+/**
+ * Common Stat Definition interface for shared card configurations
+ */
+export interface StatDefinition {
+	key: string;
+	label: string;
+	iconSrc: string;
+	getValue: (stats: EventStatsData, profile?: { organizationCount: number; createdEvents: number }) => number | string;
+	getDescription?: (stats: EventStatsData, profile?: { organizationCount: number; createdEvents: number }) => string | undefined;
+}
+
+/**
+ * Shared financial stat card definitions matching Wallet page terminology
+ */
+export const SHARED_FINANCIAL_STATS: Record<
+	"availableBalance" | "pendingClearance" | "inflows" | "totalPayouts",
+	StatDefinition
+> = {
+	availableBalance: {
+		key: "availableBalance",
+		label: "Available Balance",
+		iconSrc: statIcons.cedi,
+		getValue: (s) => formatAmount(s.availableBalance ?? s.organizerShare ?? s.totalRevenue),
+		getDescription: (s) =>
+			s.totalInflows && s.totalInflows > 0
+				? `Net share from ${formatAmount(s.totalInflows)} gross`
+				: "Ready for withdrawal / payout",
+	},
+	pendingClearance: {
+		key: "pendingClearance",
+		label: "Pending Clearance",
+		iconSrc: statIcons.ongoing,
+		getValue: (s) => formatAmount(s.pendingBalance ?? 0),
+		getDescription: () => "Processing / clearance",
+	},
+	inflows: {
+		key: "inflows",
+		label: "Total Inflows",
+		iconSrc: statIcons.analytics,
+		getValue: (s) => formatAmount(s.totalInflows ?? s.totalRevenue),
+		getDescription: (s) =>
+			s.platformFees && s.platformFees > 0
+				? `Over time (Platform Fee: ${formatAmount(s.platformFees)})`
+				: "Over time",
+	},
+	totalPayouts: {
+		key: "totalPayouts",
+		label: "Total Payouts",
+		iconSrc: statIcons.ticket,
+		getValue: (s) => formatAmount(s.totalPayouts ?? s.totalWithdrawn ?? 0),
+		getDescription: () => "Over time",
+	},
+};
 
 /**
  * Pre-built Event Stats Component

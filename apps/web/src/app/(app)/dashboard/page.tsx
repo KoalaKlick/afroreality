@@ -11,8 +11,14 @@ export const metadata = {
   description: "Overview of your events, revenue, and activity",
 };
 
-export default async function DashboardPage() {
-  const data = await getDashboardOverview();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const params = await searchParams;
+  const activeOrgId = typeof params?.org === "string" ? params.org : undefined;
+  const data = await getDashboardOverview(activeOrgId);
 
   const fallbackStats = {
     total: 0,
@@ -48,6 +54,7 @@ export default async function DashboardPage() {
         ongoingEvents={serializeJsonSafe(data?.ongoingEvents || [])}
         recentOrders={serializeJsonSafe(data?.recentOrders || [])}
         revenueData={serializeJsonSafe(data?.revenueData || [])}
+        revenueTrends={serializeJsonSafe(data?.revenueTrends)}
       />
     </Suspense>
   );

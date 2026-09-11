@@ -2,7 +2,9 @@
 
 import dynamic from "next/dynamic";
 import type { ComponentProps } from "react";
-import type { RevenueChart as RevenueChartType } from "./RevenueChart-client";
+import type { RevenueChart as RevenueChartType, RevenueTrendPoint, RevenueChartProps } from "./RevenueChart-client";
+
+export type { RevenueTrendPoint, RevenueChartProps };
 
 export const RevenueChart = dynamic(
 	() => import("./RevenueChart-client").then((mod) => mod.RevenueChart),

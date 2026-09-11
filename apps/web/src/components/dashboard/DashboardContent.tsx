@@ -17,7 +17,12 @@ interface DashboardContentProps {
 	};
 	readonly ongoingEvents: OngoingEvent[];
 	readonly recentOrders: OrderItem[];
-	readonly revenueData: { month: string; revenue: number }[];
+	readonly revenueData?: { month: string; revenue: number }[];
+	readonly revenueTrends?: {
+		daily: Array<{ date: string; revenue: number; orders: number; gross?: number }>;
+		weekly: Array<{ date: string; revenue: number; orders: number; gross?: number }>;
+		monthly: Array<{ date: string; revenue: number; orders: number; gross?: number }>;
+	};
 }
 
 export function DashboardContent({
@@ -25,7 +30,8 @@ export function DashboardContent({
 	profileStats,
 	ongoingEvents,
 	recentOrders,
-	revenueData,
+	revenueData = [],
+	revenueTrends,
 }: DashboardContentProps) {
 	return (
 		<div className="flex flex-1 flex-col gap-6">
@@ -37,12 +43,12 @@ export function DashboardContent({
 				stats={stats}
 				profileStats={profileStats ? { organizationCount: profileStats.organizations, createdEvents: profileStats.createdEvents } : undefined}
 				storageKey={`${PROJ_NAME.toLowerCase()}:dashboard-stats`}
-				defaultKeys={["total", "ticketsSold", "revenue", "votes"]}
+				defaultKeys={["total", "inflows", "availableBalance", "votes"]}
 			/>
 
 			{/* Charts Row */}
 			<div className="grid gap-6 lg:grid-cols-2">
-				<RevenueChart data={revenueData} />
+				<RevenueChart data={revenueData} trends={revenueTrends} />
 				<EventTypePieChart byType={stats.byType} />
 			</div>
 

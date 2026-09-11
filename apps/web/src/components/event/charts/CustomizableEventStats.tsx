@@ -22,19 +22,14 @@ import { PROJ_NAME } from "@/lib/constants/branding";
 import { formatAmount } from "@/lib/utils";
 import {
 	type EventStatsData,
+	SHARED_FINANCIAL_STATS,
+	type StatDefinition,
 	StatCard,
 	StatsGrid,
 	statIcons,
 } from "../core/EventStats";
 
 const MAX_STATS = 4;
-
-interface StatDefinition {
-	key: string;
-	label: string;
-	iconSrc: string;
-	getValue: (stats: EventStatsData, profile?: ProfileStats) => number | string;
-}
 
 interface ProfileStats {
 	organizationCount: number;
@@ -48,6 +43,15 @@ const EVENT_STATS: StatDefinition[] = [
 		iconSrc: statIcons.search,
 		getValue: (s) => s.total,
 	},
+	SHARED_FINANCIAL_STATS.inflows,
+	SHARED_FINANCIAL_STATS.availableBalance,
+	// Backward compatibility alias for organizerShare
+	{
+		...SHARED_FINANCIAL_STATS.availableBalance,
+		key: "organizerShare",
+	},
+	SHARED_FINANCIAL_STATS.pendingClearance,
+	SHARED_FINANCIAL_STATS.totalPayouts,
 	{
 		key: "published",
 		label: "Published",
@@ -106,7 +110,11 @@ const EVENT_STATS: StatDefinition[] = [
 		key: "revenue",
 		label: "Revenue",
 		iconSrc: statIcons.analytics,
-		getValue: (s) => formatAmount(s.totalRevenue),
+		getValue: (s) => formatAmount(s.organizerShare ?? s.totalRevenue),
+		getDescription: (s) =>
+			s.totalInflows
+				? `Gross: ${formatAmount(s.totalInflows)} • Fee: ${formatAmount(s.platformFees ?? 0)}`
+				: undefined,
 	},
 	{
 		key: "checkinRate",
@@ -136,6 +144,11 @@ const PROFILE_STATS: StatDefinition[] = [
 
 const DEFAULT_KEYS = ["total", "published", "ongoing", "ticketsSold"];
 
+const KEY_ALIASES: Record<string, string> = {
+	organizerShare: "availableBalance",
+	revenue: "availableBalance",
+};
+
 function loadSelectedKeys(storageKey: string, defaults: string[]): string[] {
 	if (globalThis.window === undefined) return defaults;
 	try {
@@ -147,7 +160,8 @@ function loadSelectedKeys(storageKey: string, defaults: string[]): string[] {
 				parsed.length > 0 &&
 				parsed.every((k) => typeof k === "string")
 			) {
-				return parsed.slice(0, MAX_STATS);
+				const migrated = parsed.map((k) => (typeof k === "string" && KEY_ALIASES[k]) ? KEY_ALIASES[k] : k);
+				return Array.from(new Set(migrated)).slice(0, MAX_STATS);
 			}
 		}
 	} catch {
@@ -172,7 +186,11 @@ export function CustomizableEventStats({
 	actions,
 }: CustomizableEventStatsProps) {
 	const pool = useMemo(
-		() => (profileStats ? [...EVENT_STATS, ...PROFILE_STATS] : EVENT_STATS),
+		() => {
+			const base = profileStats ? [...EVENT_STATS, ...PROFILE_STATS] : EVENT_STATS;
+			// Filter out internal alias keys so the customization sheet doesn't show duplicates
+			return base.filter((s) => s.key !== "organizerShare");
+		},
 		[profileStats],
 	);
 
@@ -297,6 +315,7 @@ export function CustomizableEventStats({
 						label={stat.label}
 						value={stat.getValue(stats, profileStats)}
 						iconSrc={stat.iconSrc}
+						description={stat.getDescription ? stat.getDescription(stats, profileStats) : undefined}
 					/>
 				))}
 			</StatsGrid>
