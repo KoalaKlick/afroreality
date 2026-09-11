@@ -13,8 +13,8 @@ export interface PublicTicketCheckoutInput {
 	ticketTypeId: string;
 	quantity: number;
 	buyerName: string;
-	buyerEmail: string;
-	buyerPhone?: string;
+	buyerEmail?: string;
+	buyerPhone: string;
 }
 
 export interface PublicVoteInput {
@@ -42,6 +42,7 @@ export interface PublicNominationCheckoutInput {
 	nomineeImageUrl?: string;
 	nominatorName?: string;
 	nominatorEmail?: string;
+	nominatorPhone?: string;
 	orgSlug?: string;
 	eventSlug?: string;
 }
@@ -64,10 +65,10 @@ export async function initiatePublicTicketCheckout({
 			buyerPhone,
 		} = data;
 
-		if (!eventId || !ticketTypeId || !buyerEmail || !buyerName) {
+		if (!eventId || !ticketTypeId || !buyerPhone || !buyerName) {
 			return {
 				success: false,
-				error: "Please provide all required attendee and ticket details.",
+				error: "Please provide all required attendee details (full name and phone number).",
 			};
 		}
 
@@ -161,7 +162,7 @@ export async function initiatePublicTicketCheckout({
 						eventId,
 						ticketCode,
 						attendeeName: buyerName,
-						attendeeEmail: buyerEmail,
+						attendeeEmail: buyerEmail?.trim() || null,
 						checkInStatus: "not_checked_in",
 					},
 				});
@@ -193,10 +194,12 @@ export async function initiatePublicTicketCheckout({
 		}
 
 		// Paid Ticket: Initialize Paystack Transaction with exact surcharge & subaccount routing
-		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
+		const callbackUrl = `${getFrontendBaseUrl()}/${organization.slug}/event/${ticketType.event.slug}`;
+		const sanitizedPhone = (buyerPhone || "").replace(/[^0-9]/g, "") || "attendee";
+		const paymentEmail = buyerEmail?.trim() || `${sanitizedPhone}@customer.fextiva.com`;
 
 		const paystackRes = await paystack.transaction.initialize({
-			email: buyerEmail,
+			email: paymentEmail,
 			amount: toPesewas(totalToCharge),
 			currency: ticketType.currency || "GHS",
 			callback_url: callbackUrl,
@@ -213,7 +216,7 @@ export async function initiatePublicTicketCheckout({
 				ticketTypeName: ticketType.name,
 				quantity,
 				buyerName,
-				buyerEmail,
+				buyerEmail: buyerEmail?.trim() || null,
 				buyerPhone,
 				organizationId: organization.id,
 				orgSlug: organization.slug,
@@ -241,7 +244,7 @@ export async function initiatePublicTicketCheckout({
 		const payment = await prisma.payment.create({
 			data: {
 				reference: paystackRes.data.reference,
-				email: buyerEmail,
+				email: paymentEmail,
 				purpose: "ticket_purchase",
 				amount: baseAmount,
 				currency: "GHS",
@@ -427,14 +430,21 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 		const isFree = baseAmount === 0;
 
 		if (isFree) {
+			if (!voterPhone) {
+				return {
+					success: false,
+					error: "Phone number is required to cast your vote.",
+				};
+			}
+
 			await prisma.vote.create({
 				data: {
 					eventId,
 					categoryId,
 					optionId,
 					voteCount,
-					voterEmail,
-					voterPhone,
+					voterEmail: voterEmail?.trim() || null,
+					voterPhone: voterPhone?.trim() || null,
 				},
 			});
 
@@ -453,12 +463,15 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 		}
 
 		// Paid Vote: Initialize Paystack with surcharge
-		if (!voterEmail) {
+		if (!voterPhone) {
 			return {
 				success: false,
-				error: "Email is required for payment receipt.",
+				error: "Phone number is required for payment confirmation.",
 			};
 		}
+
+		const sanitizedPhone = (voterPhone || "").replace(/[^0-9]/g, "") || "voter";
+		const paymentEmail = voterEmail?.trim() || `${sanitizedPhone}@customer.fextiva.com`;
 
 		const feeCalc = computeChargeAmount(baseAmount, "vote");
 		const totalToCharge = feeCalc.totalToCharge;
@@ -469,10 +482,10 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 		const organization = category.event.organization;
 		const subaccountCode = (organization as any)?.subaccountCode || null;
 
-		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
+		const callbackUrl = `${getFrontendBaseUrl()}/${organization.slug}/event/${category.event.slug}/category/${categoryId}`;
 
 		const paystackRes = await paystack.transaction.initialize({
-			email: voterEmail,
+			email: paymentEmail,
 			amount: toPesewas(totalToCharge),
 			currency: "GHS",
 			callback_url: callbackUrl,
@@ -488,7 +501,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 				votingOptionId: optionId,
 				nomineeName: nominee.optionText,
 				voteCount,
-				voterEmail,
+				voterEmail: voterEmail?.trim() || null,
 				voterPhone,
 				organizationId: organization.id,
 				orgSlug: organization.slug,
@@ -516,7 +529,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 		await prisma.payment.create({
 			data: {
 				reference: paystackRes.data.reference,
-				email: voterEmail,
+				email: paymentEmail,
 				purpose: "vote_purchase",
 				amount: baseAmount,
 				currency: "GHS",
@@ -586,6 +599,7 @@ export async function initiatePublicNomination({
 			nomineeImageUrl,
 			nominatorName,
 			nominatorEmail,
+			nominatorPhone,
 			orgSlug,
 			eventSlug,
 		} = data;
@@ -657,7 +671,7 @@ export async function initiatePublicNomination({
 		const payerEmail =
 			nominatorEmail?.trim() ||
 			nomineeEmail?.trim() ||
-			`nom-${Date.now().toString().slice(-6)}@pay.fextiva.com`;
+			(nominatorPhone ? `${nominatorPhone.replace(/[^0-9]/g, "")}@customer.fextiva.com` : `nom-${Date.now().toString().slice(-6)}@pay.fextiva.com`);
 
 		const feeCalc = computeChargeAmount(nominationPrice, "nomination");
 		const totalToCharge = feeCalc.totalToCharge;
@@ -668,7 +682,7 @@ export async function initiatePublicNomination({
 		const organization = category.event.organization;
 		const subaccountCode = (organization as any)?.subaccountCode || null;
 
-		const callbackUrl = `${getFrontendBaseUrl()}/payment/callback`;
+		const callbackUrl = `${getFrontendBaseUrl()}/${orgSlug || organization.slug}/event/${eventSlug || category.event.slug}/category/${categoryId}`;
 
 		const paystackRes = await paystack.transaction.initialize({
 			email: payerEmail,
@@ -690,6 +704,7 @@ export async function initiatePublicNomination({
 				nomineeImageUrl: nomineeImageUrl || null,
 				nominatorName: nominatorName || null,
 				nominatorEmail: nominatorEmail || null,
+				nominatorPhone: nominatorPhone || null,
 				organizationId: organization.id,
 				orgSlug: orgSlug || organization.slug,
 				eventSlug: eventSlug || category.event.slug,

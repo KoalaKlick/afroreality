@@ -23,6 +23,7 @@ import {
 	Mail,
 	Lock,
 	User,
+	Phone,
 } from "lucide-react";
 import { initiatePublicVote } from "@/lib/server-functions/public-checkout";
 import { toast } from "sonner";
@@ -99,7 +100,13 @@ export function VotePaymentModal({
 		: null;
 
 	const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
-	const isEmailValid = voterEmail.trim() ? isValidEmail(voterEmail) : false;
+	const isValidPhone = (val: string) => {
+		const cleaned = val.replace(/[\s\-\(\)]/g, "");
+		return cleaned.length >= 9 && /^[+]?[0-9]{9,15}$/.test(cleaned);
+	};
+
+	const isEmailValid = !voterEmail.trim() || isValidEmail(voterEmail);
+	const isPhoneValid = isValidPhone(voterPhone);
 
 	const isFormValid = (() => {
 		if (isInternalVoting) {
@@ -107,15 +114,9 @@ export function VotePaymentModal({
 			if (voterEmail.trim() && !isValidEmail(voterEmail)) return false;
 			return true;
 		}
-		if (!isFree) {
-			// Paid voting: email is required and must be valid
-			if (!isEmailValid) return false;
-			if (voteCount < 1) return false;
-			return true;
-		}
-		// Free voting: if email entered, must be valid
-		if (voterEmail.trim() && !isValidEmail(voterEmail)) return false;
 		if (voteCount < 1) return false;
+		if (!isPhoneValid) return false;
+		if (!isEmailValid) return false;
 		return true;
 	})();
 
@@ -127,9 +128,15 @@ export function VotePaymentModal({
 			return;
 		}
 
-		if (!isInternalVoting && !isFree && (!voterEmail.trim() || !isValidEmail(voterEmail))) {
-			toast.error("Please enter a valid email address for your payment receipt.");
-			return;
+		if (!isInternalVoting) {
+			if (!isPhoneValid) {
+				toast.error("Please enter a valid phone number (e.g. 024 123 4567).");
+				return;
+			}
+			if (voterEmail.trim() && !isValidEmail(voterEmail)) {
+				toast.error("Please enter a valid email address or leave it empty.");
+				return;
+			}
 		}
 
 		setLoading(true);
@@ -175,7 +182,7 @@ export function VotePaymentModal({
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="sm:max-w-md p-6" style={brandVars}>
+			<DialogContent className="sm:max-w-md" style={brandVars}>
 				<DialogHeader>
 					<DialogTitle className="text-xl font-bold">
 						{step === "success"
@@ -285,32 +292,49 @@ export function VotePaymentModal({
 									</div>
 								)}
 
+								{/* Phone Number (Required on top) */}
+								<div className="space-y-2">
+									<Label htmlFor="voter-phone" className="text-xs font-semibold">
+										Phone Number {!isInternalVoting ? "*" : "(Optional)"}
+									</Label>
+									<div className="relative">
+										<Phone className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+										<Input
+											id="voter-phone"
+											type="tel"
+											placeholder="024 123 4567"
+											value={voterPhone}
+											onChange={(e) => setVoterPhone(e.target.value)}
+											className="pl-9 h-9 text-xs"
+											required={!isInternalVoting}
+											disabled={loading}
+										/>
+									</div>
+									<p className="text-[10px] text-muted-foreground">
+										Required for mobile money prompt and vote confirmation.
+									</p>
+								</div>
+
+								{/* Email Address (Optional below) */}
 								<div className="space-y-2">
 									<Label htmlFor="voter-email" className="text-xs font-semibold">
-										Email Address {!isInternalVoting && !isFree ? "*" : "(Optional)"}
+										Email Address (Optional)
 									</Label>
 									<div className="relative">
 										<Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
 										<Input
 											id="voter-email"
 											type="email"
-											placeholder="kwame@example.com"
+											placeholder="kwame@example.com (optional)"
 											value={voterEmail}
 											onChange={(e) => setVoterEmail(e.target.value)}
 											className="pl-9 h-9 text-xs"
-											required={!isInternalVoting && !isFree}
 											disabled={loading}
 										/>
 									</div>
-									{!isInternalVoting && !isFree ? (
-										<p className="text-[10px] text-muted-foreground">
-											Required for your payment receipt and confirmation.
-										</p>
-									) : (
-										<p className="text-[10px] text-muted-foreground">
-											Optional for receiving a ballot confirmation receipt.
-										</p>
-									)}
+									<p className="text-[10px] text-muted-foreground">
+										Optional for receiving an email ballot receipt.
+									</p>
 								</div>
 							</div>
 						)}

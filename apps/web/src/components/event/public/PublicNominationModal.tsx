@@ -27,6 +27,7 @@ import {
 	X,
 	CreditCard,
 	Sparkles,
+	Phone,
 } from "lucide-react";
 import AddFilesIcon from "@/assets/add-files.svg";
 import { toast } from "sonner";
@@ -70,6 +71,7 @@ export function PublicNominationModal({
 	const [candidateEmail, setCandidateEmail] = useState("");
 	const [candidateBio, setCandidateBio] = useState("");
 	const [nominatorName, setNominatorName] = useState("");
+	const [nominatorPhone, setNominatorPhone] = useState("");
 	const [nominatorEmail, setNominatorEmail] = useState("");
 
 	const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -92,6 +94,7 @@ export function PublicNominationModal({
 		setCandidateEmail("");
 		setCandidateBio("");
 		setNominatorName("");
+		setNominatorPhone("");
 		setNominatorEmail("");
 		setPendingFile(null);
 		setPreviewUrl(null);
@@ -118,14 +121,23 @@ export function PublicNominationModal({
 	};
 
 	const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+	const isValidPhone = (val: string) => {
+		const cleaned = val.replace(/[\s\-\(\)]/g, "");
+		return cleaned.length >= 9 && /^[+]?[0-9]{9,15}$/.test(cleaned);
+	};
 
 	const isCandidateNameValid = candidateName.trim().length >= 2;
 	const isCandidateEmailValid = !candidateEmail.trim() || isValidEmail(candidateEmail);
-	const isNominatorEmailValid = isPaid
-		? isValidEmail(nominatorEmail)
-		: !nominatorEmail.trim() || isValidEmail(nominatorEmail);
+	const isNominatorPhoneValid = isPaid
+		? isValidPhone(nominatorPhone)
+		: !nominatorPhone.trim() || isValidPhone(nominatorPhone);
+	const isNominatorEmailValid = !nominatorEmail.trim() || isValidEmail(nominatorEmail);
 
-	const isFormValid = isCandidateNameValid && isCandidateEmailValid && isNominatorEmailValid;
+	const isFormValid =
+		isCandidateNameValid &&
+		isCandidateEmailValid &&
+		isNominatorPhoneValid &&
+		isNominatorEmailValid;
 
 	// ── Step 1: Submit Form to Review / Confirm Dialog ──
 	const handleFormSubmit = (e: React.FormEvent) => {
@@ -138,12 +150,12 @@ export function PublicNominationModal({
 			toast.error("Please enter a valid candidate email address.");
 			return;
 		}
-		if (isPaid && !isValidEmail(nominatorEmail)) {
-			toast.error("A valid email address is required for paid nomination receipts.");
+		if (isPaid && !isValidPhone(nominatorPhone)) {
+			toast.error("A valid phone number is required for payment confirmation.");
 			return;
 		}
 		if (nominatorEmail.trim() && !isValidEmail(nominatorEmail)) {
-			toast.error("Please enter a valid email address.");
+			toast.error("Please enter a valid email address or leave it empty.");
 			return;
 		}
 
@@ -183,6 +195,7 @@ export function PublicNominationModal({
 					nomineeBio: cleanBio,
 					nomineeImageUrl: finalUploadedUrl || undefined,
 					nominatorName: nominatorName.trim() || undefined,
+					nominatorPhone: nominatorPhone.trim() || undefined,
 					nominatorEmail: nominatorEmail.trim() || undefined,
 					orgSlug,
 					eventSlug,
@@ -358,7 +371,7 @@ export function PublicNominationModal({
 								Your Details (Nominator)
 							</h5>
 
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+							<div className="space-y-3">
 								<div className="space-y-1.5">
 									<Label htmlFor="nominator-name" className="text-xs">
 										Your Name (Optional)
@@ -373,25 +386,42 @@ export function PublicNominationModal({
 									/>
 								</div>
 
-								<div className="space-y-1.5">
-									<Label htmlFor="nominator-email" className="text-xs">
-										Your Email {isPaid ? "*" : "(Optional)"}
-									</Label>
-									<Input
-										id="nominator-email"
-										type="email"
-										placeholder="jane@example.com"
-										value={nominatorEmail}
-										onChange={(e) => setNominatorEmail(e.target.value)}
-										className="h-9 text-xs"
-										required={isPaid}
-										disabled={isPending || isUploading}
-									/>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									<div className="space-y-1.5">
+										<Label htmlFor="nominator-phone" className="text-xs">
+											Your Phone Number {isPaid ? "*" : "(Optional)"}
+										</Label>
+										<Input
+											id="nominator-phone"
+											type="tel"
+											placeholder="024 123 4567"
+											value={nominatorPhone}
+											onChange={(e) => setNominatorPhone(e.target.value)}
+											className="h-9 text-xs"
+											required={isPaid}
+											disabled={isPending || isUploading}
+										/>
+									</div>
+
+									<div className="space-y-1.5">
+										<Label htmlFor="nominator-email" className="text-xs">
+											Your Email (Optional)
+										</Label>
+										<Input
+											id="nominator-email"
+											type="email"
+											placeholder="jane@example.com (optional)"
+											value={nominatorEmail}
+											onChange={(e) => setNominatorEmail(e.target.value)}
+											className="h-9 text-xs"
+											disabled={isPending || isUploading}
+										/>
+									</div>
 								</div>
 							</div>
 							{isPaid && (
 								<p className="text-[11px] text-muted-foreground">
-									Required for your payment receipt and nomination exit key.
+									Phone number is required for payment confirmation.
 								</p>
 							)}
 						</div>

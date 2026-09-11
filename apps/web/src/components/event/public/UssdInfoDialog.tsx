@@ -85,7 +85,7 @@ export function UssdInfoDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md p-6  gap-6 overflow-hidden">
+			<DialogContent className="sm:max-w-md gap-6 overflow-hidden">
 				<DialogHeader className="text-center sm:text-center space-y-2">
 					<DialogTitle className="text-xl font-black uppercase tracking-tight text-foreground font-millik">
 						Offline Ticketing &amp; Voting

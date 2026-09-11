@@ -104,7 +104,7 @@ export function CategoryDetailModal({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-6 border-border/80">
+			<DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
 						<Vote className="size-5 text-primary" />

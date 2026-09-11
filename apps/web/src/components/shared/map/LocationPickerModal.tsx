@@ -419,7 +419,7 @@ export function LocationPickerModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-w-2xl sm:max-w-3xl p-0 gap-0 overflow-hidden border border-border shadow-2xl rounded-2xl">
+			<DialogContent className="max-w-2xl sm:max-w-3xl p-0 gap-0 overflow-hidden">
 				<DialogHeader className="p-4 sm:p-5 border-b border-border bg-card/60">
 					<DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
 						<MapPin className="size-5 text-primary" />

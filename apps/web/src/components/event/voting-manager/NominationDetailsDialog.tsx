@@ -67,7 +67,7 @@ export function NominationDetailsDialog({
 
 	return (
 		<Dialog open={!!selectedOption} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="sm:max-w-lg max-h-[85vh] overflow-hidden flex flex-col p-6">
+			<DialogContent className="sm:max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
 				<DialogHeader className="shrink-0 space-y-1">
 					<div className="flex items-center justify-between gap-2 pr-6">
 						<DialogTitle className="text-xl font-black uppercase tracking-tight">

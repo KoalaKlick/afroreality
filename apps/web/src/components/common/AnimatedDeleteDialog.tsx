@@ -47,7 +47,7 @@ export function AnimatedDeleteDialog({
 
 	return (
 		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-			<AlertDialogContent className="max-w-md bg-card border-border p-6 shadow-xl">
+			<AlertDialogContent className="max-w-md">
 				<AlertDialogHeader>
 					<div className="flex items-start gap-3">
 						<div className="size-10 rounded-xl bg-destructive/15 flex items-center justify-center text-destructive shrink-0 mt-0.5">

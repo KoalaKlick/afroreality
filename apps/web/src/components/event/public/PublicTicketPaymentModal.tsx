@@ -111,15 +111,29 @@ export function PublicTicketPaymentModal({
 	const isFree = totalAmount === 0;
 
 	const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
-	const isEmailValid = email.trim() ? isValidEmail(email) : false;
+	const isValidPhone = (val: string) => {
+		const cleaned = val.replace(/[\s\-\(\)]/g, "");
+		return cleaned.length >= 9 && /^[+]?[0-9]{9,15}$/.test(cleaned);
+	};
+
+	const isEmailValid = !email.trim() || isValidEmail(email);
+	const isPhoneValid = isValidPhone(phone);
 	const isNameValid = buyerName.trim().length >= 2;
 	const isQuantityValid = quantity >= minPerOrder && quantity <= maxPerOrder;
-	const isFormValid = isNameValid && isEmailValid && isQuantityValid;
+	const isFormValid = isNameValid && isPhoneValid && isEmailValid && isQuantityValid;
 
 	async function handleSubmitPayment(e: React.FormEvent) {
 		e.preventDefault();
-		if (!isNameValid || !isEmailValid) {
-			toast.error("Please enter a valid name and email address.");
+		if (!isNameValid) {
+			toast.error("Please enter attendee full name.");
+			return;
+		}
+		if (!isPhoneValid) {
+			toast.error("Please enter a valid phone number (e.g. 024 123 4567).");
+			return;
+		}
+		if (email.trim() && !isValidEmail(email)) {
+			toast.error("Please enter a valid email address or leave it empty.");
 			return;
 		}
 
@@ -134,8 +148,8 @@ export function PublicTicketPaymentModal({
 					ticketTypeId: selectedTicket.id,
 					quantity,
 					buyerName: buyerName.trim(),
-					buyerEmail: email.trim(),
-					buyerPhone: phone.trim() || undefined,
+					buyerPhone: phone.trim(),
+					buyerEmail: email.trim() || undefined,
 				},
 			});
 
@@ -168,7 +182,7 @@ export function PublicTicketPaymentModal({
 
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="sm:max-w-md p-6" style={computedBrandVars}>
+			<DialogContent className="sm:max-w-md" style={computedBrandVars}>
 				<DialogHeader>
 					<DialogTitle className="text-xl font-bold">
 						{step === "success"
@@ -256,30 +270,8 @@ export function PublicTicketPaymentModal({
 							</div>
 
 							<div className="space-y-1.5">
-								<Label htmlFor="buyer-email" className="text-xs">
-									Email Address *
-								</Label>
-								<div className="relative">
-									<Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-									<Input
-										id="buyer-email"
-										type="email"
-										placeholder="kwame@example.com"
-										value={email}
-										onChange={(e) => setEmail(e.target.value)}
-										className="pl-9 h-9 text-xs"
-										required
-										disabled={loading}
-									/>
-								</div>
-								<p className="text-[10px] text-muted-foreground">
-									Tickets and QR codes will be delivered to this email.
-								</p>
-							</div>
-
-							<div className="space-y-1.5">
 								<Label htmlFor="buyer-phone" className="text-xs">
-									Phone Number (Optional)
+									Phone Number *
 								</Label>
 								<div className="relative">
 									<Phone className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
@@ -290,9 +282,34 @@ export function PublicTicketPaymentModal({
 										value={phone}
 										onChange={(e) => setPhone(e.target.value)}
 										className="pl-9 h-9 text-xs"
+										required
 										disabled={loading}
 									/>
 								</div>
+								<p className="text-[10px] text-muted-foreground">
+									Required for payment prompt and SMS ticket confirmation.
+								</p>
+							</div>
+
+							<div className="space-y-1.5">
+								<Label htmlFor="buyer-email" className="text-xs">
+									Email Address (Optional)
+								</Label>
+								<div className="relative">
+									<Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+									<Input
+										id="buyer-email"
+										type="email"
+										placeholder="kwame@example.com (optional)"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										className="pl-9 h-9 text-xs"
+										disabled={loading}
+									/>
+								</div>
+								<p className="text-[10px] text-muted-foreground">
+									Optional. A copy of your tickets will also be sent here if provided.
+								</p>
 							</div>
 						</div>
 

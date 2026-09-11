@@ -40,14 +40,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 	};
 
 	return (
-		<SidebarProvider>
+		<SidebarProvider className="h-svh max-h-svh overflow-hidden">
 			<AppSidebar
 				user={serializeJsonSafe(sidebarUser)}
 				organizations={serializeJsonSafe(organizations)}
 				activeOrganizationId={organizations[0]?.id ?? null}
 				pendingInvitations={serializeJsonSafe(pendingInvitations)}
 			/>
-			<SidebarInset className="font-sans min-h-svh flex flex-1 flex-col bg-background min-w-0 max-w-full overflow-x-hidden">
+			<SidebarInset className="font-sans h-svh max-h-svh flex flex-1 flex-col bg-background min-w-0 max-w-full overflow-hidden">
 				{/* The Header */}
 				<AppHeader pendingInvitations={serializeJsonSafe(pendingInvitations)} />
 

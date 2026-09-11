@@ -122,9 +122,6 @@ function PaymentCallbackContent() {
 		<main className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
 			<div className="w-full max-w-md">
 				<div className="bg-card text-card-foreground rounded-2xl shadow-2xl border border-border overflow-hidden backdrop-blur-md">
-					{/* Brand Gradient Strip */}
-					<div className="h-1.5 bg-linear-to-r from-[#009A44] via-[#FFD100] to-[#CE1126]" />
-
 					<div className="p-8 flex flex-col items-center text-center">
 						{/* ── 1. Verifying State ── */}
 						{state === "verifying" && (
@@ -179,7 +176,7 @@ function PaymentCallbackContent() {
 													Number(meta.voteCount || 1) > 1 ? "s" : ""
 												} for "${meta.nomineeName || "your nominee"}" recorded successfully.`
 											: isNominationPayment
-												? `Nomination for "${meta.nomineeName || "your nominee"}" submitted successfully. A confirmation receipt and exit key have been emailed to you.`
+												? `Nomination for "${meta.nomineeName || "your nominee"}" submitted successfully.`
 												: "Your payment has been completed and verified successfully."}
 								</p>
 
@@ -194,51 +191,50 @@ function PaymentCallbackContent() {
 												{Number(payment.amount).toFixed(2)}
 											</span>
 										</div>
-										{reference && (
-											<div className="flex justify-between items-center text-[11px] pt-1.5 border-t border-border/40">
-												<span className="text-muted-foreground">Reference</span>
-												<span className="font-mono text-muted-foreground text-[10px]">
-													{reference}
+										{isVotePayment && meta.voteCount && (
+											<div className="flex justify-between items-center text-xs pt-1.5 border-t border-border/40">
+												<span className="text-muted-foreground font-medium">
+													Votes Recorded
+												</span>
+												<span className="font-bold text-foreground">
+													{meta.voteCount} {Number(meta.voteCount) === 1 ? "Vote" : "Votes"}
+												</span>
+											</div>
+										)}
+										{isTicketPayment && meta.quantity && (
+											<div className="flex justify-between items-center text-xs pt-1.5 border-t border-border/40">
+												<span className="text-muted-foreground font-medium">
+													Tickets
+												</span>
+												<span className="font-bold text-foreground">
+													{meta.quantity} Pass{Number(meta.quantity) > 1 ? "es" : ""}
 												</span>
 											</div>
 										)}
 									</div>
 								)}
 
-								<div className="flex flex-col gap-2.5 w-full">
+								<div className="flex items-center justify-center gap-2 pt-2">
 									{isTicketPayment && ticketViewUrl && (
 										<Button
 											asChild
-											variant="brand-cta"
-											className="w-full h-11 font-bold shadow-md shadow-[#009A44]/20"
+											size="sm"
+											className="h-8 px-4 text-xs font-semibold"
 										>
 											<Link href={ticketViewUrl}>
-												<Ticket className="w-4 h-4 mr-2" />
-												View & Download Ticket
+												<Ticket className="w-3.5 h-3.5 mr-1.5" />
+												View Ticket
 											</Link>
 										</Button>
 									)}
 
 									<Button
 										asChild
-										variant={
-											isTicketPayment && ticketViewUrl ? "outline" : "brand-cta"
-										}
-										className="w-full h-11 font-semibold"
+										size="sm"
+										variant={isTicketPayment && ticketViewUrl ? "outline" : "default"}
+										className="h-8 px-5 text-xs font-semibold"
 									>
-										<Link href={destinationUrl}>
-											{isVotePayment ? (
-												<>
-													<Vote className="w-4 h-4 mr-2" />
-													Back to Category
-												</>
-											) : (
-												<>
-													<Home className="w-4 h-4 mr-2" />
-													Back to Event
-												</>
-											)}
-										</Link>
+										<Link href={destinationUrl}>Close</Link>
 									</Button>
 								</div>
 							</>
