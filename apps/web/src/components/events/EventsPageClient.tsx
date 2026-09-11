@@ -104,10 +104,10 @@ export function EventsPageClient({
 	}, [initialOrganizers, searchQuery]);
 
 	return (
-		<div className="min-h-screen bg-secondary-100 overflow-x-hidden">
-			<main className="pt-6 sm:pt-8">
+		<div className="min-h-screen bg-sepia-50 overflow-x-hidden">
+			<main className="pt-1 sm:pt-2">
 				{/* Hero Section */}
-				<section className="relative py-6 sm:py-8 overflow-hidden">
+				<section className="relative pb-8 sm:pb-12 overflow-hidden">
 					<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-6">
 						{/* Tab Switcher (Preline Clean Style) */}
 						<div className="flex justify-start mb-5 sm:mb-6">

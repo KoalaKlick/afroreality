@@ -79,15 +79,20 @@ export function LandingNavbar() {
 				<nav className="mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex h-16 items-center justify-between">
 						{/* Logo */}
-						<Link href="/" className="flex items-center gap-2">
+						<Link
+							href="/"
+							className="group inline-flex items-center text-[1.35rem] sm:text-2xl font-extrabold tracking-tight text-foreground select-none"
+						>
+							<span>FE</span>
 							<Image
 								src="/logo.svg"
 								alt={`${PROJ_NAME} Logo`}
-								width={120}
-								height={36}
-								className="h-8 w-auto object-contain"
+								width={36}
+								height={26}
+								className="h-6 sm:h-7 w-auto object-contain mx-0.5 transition-transform duration-200 group-hover:scale-105"
 								priority
 							/>
+							<span>TIVA</span>
 						</Link>
 
 						{/* Desktop Navigation */}
