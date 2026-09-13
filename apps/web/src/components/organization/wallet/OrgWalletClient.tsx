@@ -10,6 +10,8 @@ import {
 	Landmark,
 	Search,
 	Wallet as WalletIcon,
+	Lock,
+	ShieldAlert,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -167,6 +169,10 @@ export function OrgWalletClient({
 		parsedAmount <= availableBalance;
 
 	function handleOpenWithdrawal() {
+		if (wallet?.isLocked) {
+			toast.error("Withdrawals are disabled because this wallet has been frozen by platform administration.");
+			return;
+		}
 		if (!hasPayoutAccount) {
 			toast.error("Please configure your payout account before requesting a withdrawal.");
 			setIsPayoutDrawerOpen(true);
@@ -262,15 +268,48 @@ export function OrgWalletClient({
 							<Button
 								size="sm"
 								onClick={handleOpenWithdrawal}
-								disabled={availableBalance <= 0}
-								className="gap-1.5 shadow-xs"
+								disabled={availableBalance <= 0 || !!wallet?.isLocked}
+								className={`gap-1.5 shadow-xs ${wallet?.isLocked ? "opacity-60 cursor-not-allowed" : ""}`}
+								title={wallet?.isLocked ? "Withdrawals suspended while wallet is frozen" : undefined}
 							>
-								<ArrowDownToLine className="size-4" />
-								Request Withdrawal
+								{wallet?.isLocked ? (
+									<Lock className="size-4 text-destructive" />
+								) : (
+									<ArrowDownToLine className="size-4" />
+								)}
+								{wallet?.isLocked ? "Withdrawals Frozen" : "Request Withdrawal"}
 							</Button>
 						)}
 					</div>
 				</div>
+
+				{/* Wallet Locked / Frozen Notice Banner */}
+				{wallet?.isLocked && (
+					<div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-xs animate-in fade-in duration-200">
+						<ShieldAlert className="size-5 shrink-0 mt-0.5" />
+						<div className="space-y-1 flex-1">
+							<div className="font-bold text-sm text-destructive flex items-center gap-2">
+								<span>Wallet Payouts Restricted</span>
+								<Badge variant="destructive" className="text-[10px] uppercase tracking-wider font-extrabold">
+									Platform Freeze
+								</Badge>
+							</div>
+							<p className="text-foreground/90 font-medium leading-relaxed">
+								This wallet has been administratively frozen by Fextiva Platform Administration.
+								Outbound withdrawals and automated payouts are temporarily suspended.
+							</p>
+							{wallet.lockReason && (
+								<div className="mt-1.5 p-2.5 rounded bg-background/90 border border-destructive/30 text-[11px] font-semibold text-foreground">
+									<span className="text-destructive font-bold uppercase text-[9px] tracking-wider block">Official Reason:</span>
+									{wallet.lockReason}
+								</div>
+							)}
+							<p className="text-[11px] text-muted-foreground pt-1">
+								For questions or compliance assistance, please contact support@fextiva.com.
+							</p>
+						</div>
+					</div>
+				)}
 
 				{/* Destination Account Notification / Info */}
 				{hasPayoutAccount ? (

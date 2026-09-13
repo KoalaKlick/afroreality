@@ -108,7 +108,7 @@ export function LandingPartners() {
 							</div>
 							<div className="flex flex-col justify-center px-3.5 sm:px-5 py-2">
 								<div className="flex items-center gap-1.5 sm:gap-2">
-									<span className="font-bold text-xs sm:text-base md:text-lg text-foreground group-hover:text-primary transition-colors tracking-tight">
+									<span className="font-bold text-xs sm:text-base md:text-lg text-muted-foreground group-hover:text-primary transition-colors tracking-tight">
 										{partner.name}
 									</span>
 								</div>

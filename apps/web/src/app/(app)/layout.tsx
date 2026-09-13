@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/header/AppHeader";
 import { requireAppAccess } from "@/lib/auth-guards";
 import { getSafeUser } from "@/lib/dal/auth";
 import { getPendingInvitationsForEmail } from "@/lib/server-functions/organization-join";
+import { getPlatformNotificationsForUser } from "@/lib/server-functions/notifications";
 import { prisma } from "@repo/db";
 import { serializeJsonSafe } from "@/lib/utils";
 
@@ -29,7 +30,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 		role: m.role,
 	}));
 
-	const pendingInvitations = await getPendingInvitationsForEmail().catch(() => []);
+	const [pendingInvitations, platformAlerts] = await Promise.all([
+		getPendingInvitationsForEmail().catch(() => []),
+		getPlatformNotificationsForUser().catch(() => []),
+	]);
 
 	const sidebarUser = {
 		name: user?.fullName || state.fullName || "User",
@@ -49,7 +53,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 			/>
 			<SidebarInset className="font-sans h-svh max-h-svh flex flex-1 flex-col bg-background min-w-0 max-w-full overflow-hidden">
 				{/* The Header */}
-				<AppHeader pendingInvitations={serializeJsonSafe(pendingInvitations)} />
+				<AppHeader
+					pendingInvitations={serializeJsonSafe(pendingInvitations)}
+					alerts={serializeJsonSafe(platformAlerts)}
+				/>
 
 				{/* The Page Slot Pattern */}
 				<main className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-6 bg-muted/20 min-w-0 max-w-full">

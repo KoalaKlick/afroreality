@@ -36,7 +36,7 @@ export function EventVotingCategories({
 			<div>
 				<div className="flex items-center gap-3 mb-10">
 					<Vote className="size-8 text-primary" />
-					<h2 className="text-3xl font-black uppercase font tracking-tight text-foreground">
+					<h2 className="text-3xl font-black uppercase font tracking-tight text-muted-foreground">
 						Vote Categories.
 					</h2>
 				</div>

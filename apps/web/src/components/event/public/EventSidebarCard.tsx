@@ -80,7 +80,13 @@ export function EventSidebarCard({
 	} = formatEventDisplay(event);
 
 	return (
-		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">
+		<div className="rounded-2xl bg-card overflow-hidden flex flex-col h-full max-h-full
+		"
+		style={{
+				backgroundColor:
+					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+			}}
+		>
 			{/* Banner / Cover - Stays Fixed */}
 			<div className="relative h-44 shrink-0 w-full overflow-hidden bg-muted">
 				{bannerImage ? (

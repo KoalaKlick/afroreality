@@ -4,7 +4,7 @@
 // Exact match of the reference project.
 
 import type { LucideIcon } from "lucide-react";
-import { Building2, Calendar, CreditCard, Home } from "lucide-react";
+import { Building2, Calendar, CreditCard, Home, ShieldCheck, Users, CalendarCheck, Wallet } from "lucide-react";
 
 export type OrganizationInfo = {
 	id: string;
@@ -43,11 +43,11 @@ export const navMain: NavItem[] = [
 			},
 		],
 	},
-	{
-		title: "Billing",
-		url: "/organization/billing",
-		icon: CreditCard,
-	},
+	// {
+	// 	title: "Billing",
+	// 	url: "/organization/billing",
+	// 	icon: CreditCard,
+	// },
 	{
 		title: "Organization",
 		url: "/organization/manage",
@@ -68,3 +68,28 @@ export const navMain: NavItem[] = [
 		],
 	},
 ];
+
+export const navSuperAdmin: NavItem[] = [
+	{
+		title: "Overview",
+		url: "/super",
+		icon: ShieldCheck,
+	},
+	{
+		title: "Organizers & Members",
+		url: "/super/organizers",
+		icon: Users,
+	},
+	{
+		title: "Events Oversight",
+		url: "/super/events",
+		icon: CalendarCheck,
+	},
+	{
+		title: "Wallets & Payouts",
+		url: "/super/wallets",
+		icon: Wallet,
+	},
+];
+
+

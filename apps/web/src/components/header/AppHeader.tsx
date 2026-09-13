@@ -16,13 +16,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { NotificationInvitation } from "@/components/shared/NotificationsSheet";
+import type { PlatformNotificationAlert } from "@/lib/server-functions/notifications";
 
 interface AppHeaderProps {
 	readonly pendingInvitations?: NotificationInvitation[];
+	readonly alerts?: PlatformNotificationAlert[];
 	readonly actions?: React.ReactNode;
 }
 
-export function AppHeader({ pendingInvitations = [], actions }: AppHeaderProps) {
+export function AppHeader({ pendingInvitations = [], alerts = [], actions }: AppHeaderProps) {
 	const pathname = usePathname();
 	const [searchOpen, setSearchOpen] = useState(false);
 
@@ -150,7 +152,7 @@ export function AppHeader({ pendingInvitations = [], actions }: AppHeaderProps) 
 					className="sm:w-48 md:w-64 lg:w-72"
 				/>
 
-				<NotificationBell pendingInvitations={pendingInvitations} />
+				<NotificationBell pendingInvitations={pendingInvitations} alerts={alerts} />
 
 				{actions && <div className="flex items-center gap-1.5 sm:gap-2">{actions}</div>}
 			</div>

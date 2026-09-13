@@ -74,6 +74,8 @@ export interface Wallet {
   currency: string;
   pendingCredits?: number;
   pendingDebits?: number;
+  isLocked?: boolean;
+  lockReason?: string | null;
   payoutAccount?: PayoutAccount | null;
   payouts?: PayoutRecord[];
 }

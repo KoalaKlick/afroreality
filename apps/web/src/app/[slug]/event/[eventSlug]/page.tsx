@@ -294,7 +294,7 @@ export default async function PublicEventPage({
 					{/* Right Column: Content Feed */}
 					<div className="col-span-8 space-y-6">
 						{isVoting && (
-							<div id="voting" className="rounded-2xl bg-card overflow-hidden">
+							<div id="voting" className="rounded-t-2xl bg-card overflow-hidden">
 								<EventVotingCategories
 									categories={votingCategories}
 									orgSlug={orgSlug}
@@ -306,7 +306,7 @@ export default async function PublicEventPage({
 						{isTicketed && (
 							<div
 								id="tickets"
-								className="rounded-2xl border bg-card p-8 transition-colors"
+								className="rounded-t-2xl border bg-card p-8 transition-colors"
 								style={{
 									backgroundColor:
 										"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
@@ -326,8 +326,14 @@ export default async function PublicEventPage({
 
 						{/* Event Photos Showcase for Desktop */}
 						{((event as any).galleryImages?.length > 0) && (
-							<div className="rounded-2xl border bg-card p-6 space-y-4">
-								<div className="flex items-center justify-between">
+							<div className="rounded-b-2xl bg-card space-y-4">
+								<div className="p-6"
+								style={{
+									backgroundColor:
+										"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+								}}
+								>
+	<div className="flex items-center justify-between">
 									<h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
 										<ImageIcon className="size-5 text-primary" />
 										Event Photos
@@ -340,6 +346,9 @@ export default async function PublicEventPage({
 									images={(event as any).galleryImages}
 									maxDisplay={5}
 								/>
+
+								</div>
+							
 							</div>
 						)}
 					</div>
