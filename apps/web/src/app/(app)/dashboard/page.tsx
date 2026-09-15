@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { cookies } from "next/headers";
 import { getDashboardOverview } from "@/lib/dal/dashboard";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { serializeJsonSafe } from "@/lib/utils";
+import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,9 @@ export default async function DashboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const activeOrgId = typeof params?.org === "string" ? params.org : undefined;
+  const cookieStore = await cookies();
+  const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE_NAME)?.value;
+  const activeOrgId = typeof params?.org === "string" ? params.org : cookieOrg;
   const data = await getDashboardOverview(activeOrgId);
 
   const fallbackStats = {

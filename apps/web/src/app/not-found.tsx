@@ -4,11 +4,14 @@ import Link from "next/link";
 import { ArrowLeft, Compass, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotFoundIllustration } from "@/components/common/NotFoundIllustration";
+import { LandingNavbar } from "@/components/Landing/LandingNavbar";
+import { LandingFooter } from "@/components/Landing/LandingFooter";
 
 export default function NotFound() {
     return (
-        <main className="relative flex min-h-svh w-full flex-col items-center justify-center overflow-hidden px-4 py-16 text-center">
+        <main className="relative flex min-h-svh w-full flex-col  overflow-hidden px-4 py-16 text-center">
             {/* Soft brand glow behind the illustration */}
+                    <LandingNavbar />
             <div
                 className="pointer-events-none absolute inset-0 -z-10"
                 style={{
@@ -56,6 +59,7 @@ export default function NotFound() {
                     </div>
                 </div>
             </div>
+            <LandingFooter />
         </main>
     );
 }

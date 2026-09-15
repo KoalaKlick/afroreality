@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check, Clock, X, AlertTriangle, Minus, Ban, Play, Calendar, Crown, ShieldCheck, User, ThumbsUp, Ticket, Layers, Megaphone } from "lucide-react"
+import { Check, Clock, X, AlertTriangle, Minus, Ban, Play, Calendar, Crown, ShieldCheck, User, ThumbsUp, Ticket, Layers, Megaphone, Lock } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 type StatusVariant =
@@ -34,6 +34,8 @@ type StatusVariant =
     | 'voting'
     | 'hybrid'
     | 'standard'
+    | 'restricted'
+    | 'restored'
 
 interface StatusConfig {
     icon: LucideIcon
@@ -276,6 +278,22 @@ const statusConfigs: Record<StatusVariant, StatusConfig> = {
         borderColor: "",
         bgColor: "",
         defaultText: "Standard",
+    },
+    restricted: {
+        icon: Lock,
+        iconBgColor: "bg-rose-600",
+        textColor: "",
+        borderColor: "",
+        bgColor: "",
+        defaultText: "Restricted",
+    },
+    restored: {
+        icon: Check,
+        iconBgColor: "bg-[#38C793]",
+        textColor: "",
+        borderColor: "",
+        bgColor: "",
+        defaultText: "Restored",
     },
 }
 

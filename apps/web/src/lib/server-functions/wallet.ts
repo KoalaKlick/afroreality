@@ -226,6 +226,8 @@ export async function getOrgWallet({
 				totalPayouts: totalDebitSum,
 				pendingCredits: pendingClearanceEarnings,
 				pendingDebits: pendingDebitsNum,
+				isLocked: !!wallet.isLocked,
+				lockReason: wallet.lockReason ?? null,
 			});
 		}
 	} catch (reconcileErr) {
@@ -253,6 +255,8 @@ export async function getOrgWallet({
 		totalPayouts: pendingDebitsNum,
 		pendingCredits: pendingCreditsNum,
 		pendingDebits: pendingDebitsNum,
+		isLocked: !!wallet.isLocked,
+		lockReason: wallet.lockReason ?? null,
 	});
 }
 

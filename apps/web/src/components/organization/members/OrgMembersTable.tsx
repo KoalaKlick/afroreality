@@ -8,13 +8,23 @@ import {
 	getSortedRowModel,
 } from "@tanstack/react-table";
 import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+	Loader2,
 	Search,
 	Shield,
 	ShieldCheck,
 	UserMinus,
 	Users,
 } from "lucide-react";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { DataTableColumnHeader } from "@/components/common/data-table-column-header";
 import { DataTablePagination } from "@/components/common/data-table-pagination";
@@ -73,6 +83,15 @@ export function OrgMembersTable({
 	const { canManageMembers } = usePermissions();
 	const [isPending, startTransition] = useTransition();
 
+	// Local members list state for instant optimistic updates
+	const [membersList, setMembersList] = useState<OrgMember[]>(members);
+	const [memberToRemove, setMemberToRemove] = useState<OrgMember | null>(null);
+	const [isRemoving, setIsRemoving] = useState(false);
+
+	useEffect(() => {
+		setMembersList(members);
+	}, [members]);
+
 	// Search and Filter state
 	const [searchQuery, setSearchQuery] = useState("");
 	const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -96,28 +115,35 @@ export function OrgMembersTable({
 		[organizationId, router],
 	);
 
-	const handleRemove = useCallback(
-		(targetUserId: string, name: string | null) => {
-			if (!confirm(`Are you sure you want to remove ${name ?? "this member"}?`))
-				return;
-			startTransition(async () => {
-				try {
-					await removeOrgMember({ data: { organizationId, targetUserId } });
-					toast.success("Member removed.");
-					await router.refresh();
-				} catch (error) {
-					toast.error(
-						error instanceof Error ? error.message : "Failed to remove member.",
-					);
-				}
+	const handleConfirmRemove = async () => {
+		if (!memberToRemove) return;
+		setIsRemoving(true);
+		try {
+			await removeOrgMember({
+				data: {
+					id: memberToRemove.id,
+					organizationId,
+					targetUserId: memberToRemove.userId,
+				},
 			});
-		},
-		[organizationId, router],
-	);
+			setMembersList((prev) => prev.filter((m) => m.id !== memberToRemove.id));
+			toast.success(
+				`${memberToRemove.user?.fullName || memberToRemove.user?.email || "Member"} removed and notified via email.`,
+			);
+			setMemberToRemove(null);
+			router.refresh();
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Failed to remove member.",
+			);
+		} finally {
+			setIsRemoving(false);
+		}
+	};
 
 	// Filtered list
 	const filteredMembers = useMemo(() => {
-		return members.filter((member) => {
+		return membersList.filter((member) => {
 			// Role Filter
 			if (roleFilter !== "all" && member.role !== roleFilter) {
 				return false;
@@ -135,7 +161,7 @@ export function OrgMembersTable({
 
 			return true;
 		});
-	}, [members, searchQuery, roleFilter]);
+	}, [membersList, searchQuery, roleFilter]);
 
 	const columns = useMemo<ColumnDef<OrgMember>[]>(
 		() => [
@@ -235,11 +261,9 @@ export function OrgMembersTable({
 							<Button
 								size="sm"
 								variant="ghost"
-								className="text-destructive hover:text-destructive"
-								onClick={() =>
-									handleRemove(member.userId, member.user?.fullName)
-								}
-								disabled={isPending}
+								className="text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+								onClick={() => setMemberToRemove(member)}
+								disabled={isPending || (isRemoving && memberToRemove?.id === member.id)}
 								title="Remove Member"
 							>
 								<UserMinus className="h-4 w-4" />
@@ -249,7 +273,7 @@ export function OrgMembersTable({
 				},
 			},
 		],
-		[currentUserId, handleRoleChange, handleRemove, isPending, canManageMembers],
+		[currentUserId, handleRoleChange, isPending, canManageMembers, isRemoving, memberToRemove],
 	);
 
 	const table = useDataTable(filteredMembers, columns, {
@@ -259,62 +283,114 @@ export function OrgMembersTable({
 	});
 
 	return (
-		<Card>
-			<CardContent className="pt-6 space-y-4">
-				{/* Search & Filter Toolbar */}
-				<div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-					<div className="relative w-full sm:w-72">
-						<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-						<Input
-							type="search"
-							placeholder="Search members by name, email..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-8 text-sm h-9 bg-background"
+		<>
+			<Card>
+				<CardContent className="pt-6 space-y-4">
+					{/* Search & Filter Toolbar */}
+					<div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+						<div className="relative w-full sm:w-72">
+							<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+							<Input
+								type="search"
+								placeholder="Search members by name, email..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="pl-8 text-sm h-9 bg-background"
+							/>
+						</div>
+
+						<div className="flex items-center gap-2 w-full sm:w-auto">
+							<Select value={roleFilter} onValueChange={setRoleFilter}>
+								<SelectTrigger className="h-9 w-full sm:w-36 text-xs bg-background">
+									<SelectValue placeholder="All Roles" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All Roles</SelectItem>
+									<SelectItem value="owner">Owner</SelectItem>
+									<SelectItem value="admin">Admin</SelectItem>
+									<SelectItem value="member">Member</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+					</div>
+
+					{/* Table Container */}
+					<div className="rounded-md border bg-card overflow-hidden">
+						<DataTable
+							table={table}
+							columnsCount={columns.length}
+							emptyState={
+								<EmptyState
+									variant="users"
+									title={searchQuery || roleFilter !== "all" ? "No matching members" : "No members"}
+									description={
+										searchQuery || roleFilter !== "all"
+											? "No team members matched your search or role filter."
+											: "There are no members in this organization yet."
+									}
+								/>
+							}
 						/>
 					</div>
 
-					<div className="flex items-center gap-2 w-full sm:w-auto">
-						<Select value={roleFilter} onValueChange={setRoleFilter}>
-							<SelectTrigger className="h-9 w-full sm:w-36 text-xs bg-background">
-								<SelectValue placeholder="All Roles" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Roles</SelectItem>
-								<SelectItem value="owner">Owner</SelectItem>
-								<SelectItem value="admin">Admin</SelectItem>
-								<SelectItem value="member">Member</SelectItem>
-							</SelectContent>
-						</Select>
+					<div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+						<p className="text-xs text-muted-foreground">
+							Showing {table.getPaginationRowModel().rows.length} of {total} member(s)
+						</p>
+						<DataTablePagination table={table} />
 					</div>
-				</div>
+				</CardContent>
+			</Card>
 
-				{/* Table Container */}
-				<div className="rounded-md border bg-card overflow-hidden">
-					<DataTable
-						table={table}
-						columnsCount={columns.length}
-						emptyState={
-							<EmptyState
-								variant="users"
-								title={searchQuery || roleFilter !== "all" ? "No matching members" : "No members"}
-								description={
-									searchQuery || roleFilter !== "all"
-										? "No team members matched your search or role filter."
-										: "There are no members in this organization yet."
-								}
-							/>
-						}
-					/>
-				</div>
-
-				<div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-					<p className="text-xs text-muted-foreground">
-						Showing {table.getPaginationRowModel().rows.length} of {total} member(s)
-					</p>
-					<DataTablePagination table={table} />
-				</div>
-			</CardContent>
-		</Card>
+			{/* Remove Member Confirmation Dialog */}
+			<AlertDialog
+				open={!!memberToRemove}
+				onOpenChange={(open) => {
+					if (!open && !isRemoving) setMemberToRemove(null);
+				}}
+			>
+				<AlertDialogContent className="sm:max-w-md">
+					<AlertDialogHeader className="space-y-3">
+						<div className="size-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
+							<UserMinus className="size-5" />
+						</div>
+						<AlertDialogTitle className="text-lg font-semibold">
+							Remove Team Member
+						</AlertDialogTitle>
+						<AlertDialogDescription className="text-sm leading-relaxed text-muted-foreground">
+							Are you sure you want to remove{" "}
+							<strong className="text-foreground font-semibold">
+								{memberToRemove?.user?.fullName || memberToRemove?.user?.email || "this member"}
+							</strong>{" "}
+							from the organization?
+							<br />
+							<br />
+							They will immediately lose access to this organization&apos;s dashboard, events, and resources. An email notification will be sent to{" "}
+							<span className="font-mono text-foreground font-medium">{memberToRemove?.user?.email}</span>.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter className="gap-2 sm:gap-0 mt-2">
+						<AlertDialogCancel disabled={isRemoving} className="cursor-pointer">
+							Cancel
+						</AlertDialogCancel>
+						<Button
+							variant="destructive"
+							disabled={isRemoving}
+							onClick={handleConfirmRemove}
+							className="gap-1.5 cursor-pointer shadow-none"
+						>
+							{isRemoving ? (
+								<>
+									<Loader2 className="size-3.5 animate-spin" />
+									<span>Removing...</span>
+								</>
+							) : (
+								<span>Remove Member</span>
+							)}
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 }

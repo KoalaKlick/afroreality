@@ -1,6 +1,6 @@
 "use client";
 // src/components/event/creation/EventStep2DateLocation.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import {
 	Navigation,
 } from "lucide-react";
 import { createEventStep2Schema } from "@/lib/validations/event";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SelectionCard } from "./SelectionCard";
@@ -128,29 +129,67 @@ export function EventStep2DateLocation({
 	const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string[]>>({});
 
-	function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault();
+	// Guarantee document pointer events are reset whenever map modal closes
+	useEffect(() => {
+		if (!isMapModalOpen && typeof document !== "undefined") {
+			document.body.style.pointerEvents = "";
+		}
+	}, [isMapModalOpen]);
+
+	function handleSubmit(e?: React.FormEvent) {
+		if (e) {
+			e.preventDefault();
+		}
 		setErrors({});
 
+		let validStartDate: string | undefined = undefined;
+		if (startDate && startDate.trim()) {
+			const d = new Date(startDate);
+			if (!isNaN(d.getTime())) {
+				validStartDate = d.toISOString();
+			}
+		}
+
+		let validEndDate: string | undefined = undefined;
+		if (endDate && endDate.trim()) {
+			const d = new Date(endDate);
+			if (!isNaN(d.getTime())) {
+				validEndDate = d.toISOString();
+			}
+		}
+
+		const trimmedAddress = venueAddress ? venueAddress.slice(0, 500) : undefined;
+		const trimmedCity = venueCity ? venueCity.slice(0, 100) : undefined;
+		const trimmedCountry = venueCountry ? venueCountry.slice(0, 100) : "Ghana";
+
+		const numLat =
+			latitude !== null && latitude !== undefined && !isNaN(Number(latitude))
+				? Number(latitude)
+				: null;
+		const numLng =
+			longitude !== null && longitude !== undefined && !isNaN(Number(longitude))
+				? Number(longitude)
+				: null;
+
 		const payload = {
-			startDate: startDate ? new Date(startDate).toISOString() : undefined,
-			endDate: endDate ? new Date(endDate).toISOString() : undefined,
-			timezone,
+			startDate: validStartDate,
+			endDate: validEndDate,
+			timezone: timezone || "Africa/Accra",
 			isVirtual,
-			virtualLink: virtualLink || undefined,
-			venueName: venueName || undefined,
-			venueAddress: venueAddress || undefined,
-			venueCity: venueCity || undefined,
-			venueCountry,
-			latitude,
-			longitude,
+			virtualLink: virtualLink?.trim() || undefined,
+			venueName: venueName?.trim() || undefined,
+			venueAddress: trimmedAddress,
+			venueCity: trimmedCity,
+			venueCountry: trimmedCountry,
+			latitude: numLat,
+			longitude: numLng,
 		};
 
 		const parsed = createEventStep2Schema.safeParse(payload);
 		if (parsed.success) {
 			onSuccess({
-				startDate: startDate ? new Date(startDate).toISOString() : undefined,
-				endDate: endDate ? new Date(endDate).toISOString() : undefined,
+				startDate: validStartDate,
+				endDate: validEndDate,
 				timezone: parsed.data.timezone,
 				isVirtual: parsed.data.isVirtual,
 				virtualLink: parsed.data.virtualLink,
@@ -164,11 +203,16 @@ export function EventStep2DateLocation({
 		} else {
 			const formatted = parsed.error.flatten().fieldErrors;
 			setErrors(formatted as Record<string, string[]>);
+			const firstError =
+				Object.values(formatted)[0]?.[0] ||
+				"Please review the required fields before continuing.";
+			toast.error(firstError);
 		}
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-6 @container">
+		<>
+			<form onSubmit={handleSubmit} noValidate className="space-y-6 @container">
 			{/* Event Format */}
 			<Card>
 				<CardHeader>
@@ -443,36 +487,43 @@ export function EventStep2DateLocation({
 					<Button type="button" variant="outline" onClick={onSkip}>
 						Skip for Now
 					</Button>
-					<Button type="submit">
+					<Button
+						type="submit"
+						onClick={(e) => {
+							// Allow standard form submit or invoke directly
+							handleSubmit(e);
+						}}
+					>
 						Continue
 						<ArrowRight className="ml-2 size-4" />
 					</Button>
 				</div>
 			</div>
-
-			{/* Location Picker Modal */}
-			<LocationPickerModal
-				isOpen={isMapModalOpen}
-				onClose={() => setIsMapModalOpen(false)}
-				initialLatitude={latitude}
-				initialLongitude={longitude}
-				initialAddress={venueAddress}
-				initialCity={venueCity}
-				initialCountry={venueCountry}
-				onConfirm={(location) => {
-					setLatitude(location.latitude);
-					setLongitude(location.longitude);
-					if (location.city && !venueCity) {
-						setVenueCity(location.city);
-					}
-					if (location.address && !venueAddress) {
-						setVenueAddress(location.address);
-					}
-					if (location.country && (!venueCountry || venueCountry === "Ghana")) {
-						setVenueCountry(location.country);
-					}
-				}}
-			/>
 		</form>
-	);
+
+		{/* Location Picker Modal */}
+		<LocationPickerModal
+			isOpen={isMapModalOpen}
+			onClose={() => setIsMapModalOpen(false)}
+			initialLatitude={latitude}
+			initialLongitude={longitude}
+			initialAddress={venueAddress}
+			initialCity={venueCity}
+			initialCountry={venueCountry}
+			onConfirm={(location) => {
+				setLatitude(location.latitude);
+				setLongitude(location.longitude);
+				if (location.city && !venueCity) {
+					setVenueCity(location.city);
+				}
+				if (location.address && !venueAddress) {
+					setVenueAddress(location.address);
+				}
+				if (location.country && (!venueCountry || venueCountry === "Ghana")) {
+					setVenueCountry(location.country);
+				}
+			}}
+		/>
+	</>
+);
 }

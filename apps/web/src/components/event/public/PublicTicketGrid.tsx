@@ -116,7 +116,7 @@ export function PublicTicketGrid({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center rounded-2xl bg-card">
         <NoTicketIllustration className="size-44 mb-4 opacity-85" />
-        <h4 className="text-xl font-bold uppercase tracking-tight mb-1">
+        <h4 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground mb-1">
           No Tickets Available
         </h4>
         <p className="text-xs text-muted-foreground max-w-sm mx-auto">
@@ -139,12 +139,12 @@ export function PublicTicketGrid({
               key={ticket.id}
               type="button"
               onClick={() => setSelectedTicket(ticket)}
-              className="group text-left transition-all h-full flex flex-col justify-between"
+              className="group text-left transition-all w-full h-full flex flex-col justify-between"
             >
               <div className="space-y-4 h-full flex flex-col justify-between w-full">
                 <TicketRenderer
                   variant={ticket.designVariant}
-                  className="mx-auto"
+                  className="w-full mx-auto"
                   primaryColor={primaryColor}
                   secondaryColor={secondaryColor}
                   logoUrl={organization.logoUrl}

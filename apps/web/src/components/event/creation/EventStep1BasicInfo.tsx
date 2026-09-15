@@ -369,6 +369,7 @@ export function EventStep1BasicInfo({
 							value={description}
 							onChange={(val) => setDescription(val)}
 							placeholder="Tell people what your event is about..."
+							allowImages={false}
 						/>
 						{errors.description && (
 							<p className="text-sm text-destructive">{errors.description[0]}</p>

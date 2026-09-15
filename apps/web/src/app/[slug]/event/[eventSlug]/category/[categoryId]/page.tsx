@@ -226,15 +226,14 @@ export default async function PublicCategoryPage({
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
 						<div className="flex flex-wrap items-center gap-2">
 							<Badge
-								variant="secondary"
-								className="text-xs bg-primary/10 text-primary border-primary/20 font-bold"
+								className="text-xs font-bold rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none"
 							>
 								Voting Category
 							</Badge>
 							{isInternalVoting && (
 								<Badge
 									variant="outline"
-									className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1"
+									className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1 rounded-sm"
 								>
 									<Lock className="size-3" /> Member Ballot
 								</Badge>
@@ -250,21 +249,6 @@ export default async function PublicCategoryPage({
 								<RichTextDisplay content={category.description} />
 							</div>
 						)}
-
-						{/* Event Social Links in Category Header */}
-						<SocialLinksList
-							socialLinks={socialLinks}
-							labelPrefix="Follow:"
-							iconSize="sm"
-							className="pt-2"
-						/>
-
-						{/* Sponsors in Category Header */}
-						<SponsorsList
-							sponsors={sponsors}
-							labelPrefix="Sponsors & Partners:"
-							className="pt-2"
-						/>
 					</div>
 				</section>
 
@@ -278,81 +262,60 @@ export default async function PublicCategoryPage({
 					}}
 				>
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+						<div className="mb-6">
+							<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
+								Nominees &amp; Candidates
+							</h2>
+							<p className="text-xs text-muted-foreground mt-0.5">
+								Cast your votes or submit a public nomination below.
+							</p>
+						</div>
 						{nomineeContent}
 					</div>
 				</main>
 
-				<Section maxWidth="7xl" className="py-14 border-t bg-background">
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-						<div id="about-category" className="space-y-6 scroll-mt-24">
-							<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-								<Trophy className="size-5 text-primary" />
-								<span>About Category.</span>
-							</h3>
-							<div className="text-xs text-muted-foreground leading-relaxed">
-								{category.description ? (
-									<RichTextDisplay content={category.description} />
-								) : (
-									<p className="italic text-muted-foreground/60">
-										Help your favorite nominee win by casting your vote!
-									</p>
-								)}
-							</div>
-							<div className="pt-4 border-t border-dashed">
-								<Link
-									href={`/${orgSlug}/event/${eventSlug}/#details`}
-									className="inline-flex items-center text-xs font-bold text-primary hover:underline gap-1"
-								>
-									<span>View full event details</span>
-									<ChevronRight className="size-3.5" />
-								</Link>
-							</div>
-						</div>
-
-						<div className="space-y-6">
-							<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-								<Trophy className="size-5 text-primary" />
-								<span>Sponsors.</span>
-							</h3>
-							{sponsors.length > 0 ? (
-								<div className="flex flex-wrap gap-2.5">
-									{sponsors.slice(0, 15).map((sponsor: any) => {
-										const imgKey = sponsor.logoUrl || sponsor.logo;
-										const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
-										return (
-											<div
-												key={sponsor.id || sponsor.name}
-												className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help"
-												title={sponsor.name}
-											>
-												{imgUrl ? (
-													<img
-														src={imgUrl}
-														alt={sponsor.name}
-														className="object-contain max-h-full max-w-full"
-													/>
-												) : (
-													<span className="text-[6px] font-bold text-center leading-none truncate uppercase tracking-tighter">
-														{sponsor.name}
-													</span>
-												)}
-											</div>
-										);
-									})}
+				{(sponsors.length > 0 || galleryLinks.length > 0 || socialLinks.length > 0) && (
+					<Section maxWidth="7xl" className="py-14 border-t bg-background">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+							{sponsors.length > 0 && (
+								<div className="space-y-4">
+									<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
+										<Trophy className="size-4 text-primary" />
+										<span>Official Sponsors</span>
+									</h3>
+									<div className="flex flex-wrap gap-2.5">
+										{sponsors.slice(0, 15).map((sponsor: any) => {
+											const imgKey = sponsor.logoUrl || sponsor.logo;
+											const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
+											return (
+												<div
+													key={sponsor.id || sponsor.name}
+													className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help"
+													title={sponsor.name}
+												>
+													{imgUrl ? (
+														<img
+															src={imgUrl}
+															alt={sponsor.name}
+															className="object-contain max-h-full max-w-full"
+														/>
+													) : (
+														<span className="text-[6px] font-bold text-center leading-none truncate uppercase tracking-tighter">
+															{sponsor.name}
+														</span>
+													)}
+												</div>
+											);
+										})}
+									</div>
 								</div>
-							) : (
-								<p className="text-xs text-muted-foreground italic leading-relaxed">
-									Partnering for event excellence.
-								</p>
 							)}
-						</div>
 
-						<div className="space-y-8">
 							{galleryLinks.length > 0 && (
 								<div className="space-y-4">
-									<h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-										<ExternalLink className="size-5 text-primary" />
-										<span>External Photo Albums.</span>
+									<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
+										<ExternalLink className="size-4 text-primary" />
+										<span>External Photo Albums</span>
 									</h3>
 									<div className="space-y-2.5">
 										{galleryLinks.map((link: any) => {
@@ -387,9 +350,9 @@ export default async function PublicCategoryPage({
 							)}
 
 							{socialLinks.length > 0 && (
-								<div className="space-y-4 pt-4 border-t border-dashed">
-									<h3 className="text-xs font-bold uppercase tracking-widest text-primary">
-										Event Socials.
+								<div className="space-y-4">
+									<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground">
+										Event Socials
 									</h3>
 									<div className="flex flex-wrap gap-2.5">
 										{socialLinks.map((link: any) => {
@@ -413,8 +376,8 @@ export default async function PublicCategoryPage({
 								</div>
 							)}
 						</div>
-					</div>
-				</Section>
+					</Section>
+				)}
 			</div>
 
 			{/* Large Screen View (xl+) */}
@@ -443,8 +406,8 @@ export default async function PublicCategoryPage({
 							}}
 						>
 							<div className="mb-6">
-								<h2 className="text-2xl font-black uppercase tracking-tight">
-									Nominees &amp; Candidates.
+								<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
+									Nominees &amp; Candidates
 								</h2>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									Cast your votes or submit a public nomination below.

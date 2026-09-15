@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, ChevronsUpDown, Plus } from "lucide-react";
-import { useState } from "react";
+import { Building2, Check, ChevronsUpDown, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
 import { CreateOrgDrawer } from "@/components/create-org-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -19,7 +19,10 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import type { OrganizationInfo } from "@/lib/constants/navigation";
+import { setActiveOrganization } from "@/lib/server-functions/organization";
+import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
 
 const PROJ_NAME = "fextiva";
 
@@ -60,21 +63,52 @@ export function OrganizationSwitcher({
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
+	const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
+
+	const searchOrg = searchParams.get("org");
+	const effectiveOrgId =
+		(selectedOrgId && organizations.some((o) => o.id === selectedOrgId) ? selectedOrgId : null) ??
+		(searchOrg && organizations.some((o) => o.id === searchOrg) ? searchOrg : null) ??
+		(activeOrganizationId && organizations.some((o) => o.id === activeOrganizationId) ? activeOrganizationId : null) ??
+		organizations[0]?.id ??
+		null;
 
 	const activeOrg =
-		organizations.find((org) => org.id === activeOrganizationId) ??
+		organizations.find((org) => org.id === effectiveOrgId) ??
 		organizations[0] ??
 		null;
 
-	const handleOrgSelect = (org: OrganizationInfo | null) => {
-		onOrganizationChange?.(org?.id ?? null);
-		const params = new URLSearchParams(searchParams.toString());
-		if (org?.id) {
-			params.set("org", org.id);
-		} else {
-			params.delete("org");
+	// Keep local state in sync when URL or props change
+	useEffect(() => {
+		if (searchOrg && organizations.some((o) => o.id === searchOrg)) {
+			setSelectedOrgId(searchOrg);
+		} else if (activeOrganizationId && organizations.some((o) => o.id === activeOrganizationId)) {
+			setSelectedOrgId(activeOrganizationId);
 		}
-		router.push("?" + params.toString());
+	}, [searchOrg, activeOrganizationId, organizations]);
+
+	const handleOrgSelect = async (org: OrganizationInfo | null) => {
+		if (!org) return;
+		setSelectedOrgId(org.id);
+		onOrganizationChange?.(org.id);
+
+		// 1. Immediately set client-side cookie so subsequent requests have it
+		document.cookie = `${ACTIVE_ORG_COOKIE_NAME}=${org.id}; path=/; max-age=31536000; SameSite=Lax`;
+
+		// 2. Set server-side cookie and revalidate layout
+		try {
+			await setActiveOrganization(org.id);
+		} catch (error) {
+			console.error("Failed to set active organization on server:", error);
+		}
+
+		// 3. Update query params on the URL
+		const params = new URLSearchParams(searchParams.toString());
+		params.set("org", org.id);
+
+		// 4. Push updated URL and revalidate server components
+		router.push(`?${params.toString()}`);
+		router.refresh();
 	};
 
 	return (
@@ -128,7 +162,10 @@ export function OrganizationSwitcher({
 										<DropdownMenuItem
 											key={org.id}
 											onClick={() => handleOrgSelect(org)}
-											className="gap-2 p-2 cursor-pointer"
+											className={cn(
+												"gap-2 p-2 cursor-pointer transition-colors",
+												org.id === activeOrg?.id && "bg-accent/60 font-semibold",
+											)}
 										>
 											<Avatar className="size-7 rounded-md">
 												<AvatarImage
@@ -150,6 +187,9 @@ export function OrganizationSwitcher({
 														: ""}
 												</span>
 											</div>
+											{org.id === activeOrg?.id && (
+												<Check className="ml-auto size-4 text-primary shrink-0" />
+											)}
 										</DropdownMenuItem>
 									))}
 									<DropdownMenuSeparator />

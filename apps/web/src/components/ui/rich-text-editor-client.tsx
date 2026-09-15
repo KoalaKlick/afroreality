@@ -33,6 +33,7 @@ export interface RichTextEditorProps {
 	minimal?: boolean;
 	minHeight?: string;
 	maxImages?: number;
+	allowImages?: boolean;
 	className?: string;
 	disabled?: boolean;
 }
@@ -72,6 +73,7 @@ export function RichTextEditor({
 	minimal = false,
 	minHeight,
 	maxImages = MAX_IMAGES,
+	allowImages = true,
 	className,
 	disabled = false,
 }: RichTextEditorProps) {
@@ -121,11 +123,15 @@ export function RichTextEditor({
 				},
 				link: false,
 			}),
-			ImageExtension.configure({
-				HTMLAttributes: {
-					className: "rounded-md max-w-[60%] h-auto my-4",
-				},
-			}),
+			...(allowImages
+				? [
+						ImageExtension.configure({
+							HTMLAttributes: {
+								className: "rounded-md max-w-[60%] h-auto my-4",
+							},
+						}),
+				  ]
+				: []),
 			LinkExtension.configure({
 				openOnClick: false,
 				HTMLAttributes: {
@@ -316,28 +322,30 @@ export function RichTextEditor({
 						>
 							<LinkIcon className="size-4" />
 						</ToolbarButton>
-						<ToolbarButton
-							active={false}
-							onClick={() => fileInputRef.current?.click()}
-							label={
-								isAtImageLimit
-									? `Image limit reached (${maxImages}/${maxImages})`
-									: "Insert image"
-							}
-							disabled={isDisabled || isUploading || isAtImageLimit}
-						>
-							<ImageIcon className="size-4" />
-							<span
-								className={cn(
-									"absolute -top-1.5 -right-1.5 text-[9px] font-bold min-w-4 h-4 flex items-center justify-center rounded-full",
+						{allowImages && maxImages > 0 && (
+							<ToolbarButton
+								active={false}
+								onClick={() => fileInputRef.current?.click()}
+								label={
 									isAtImageLimit
-										? "bg-destructive text-destructive-foreground"
-										: "bg-muted-foreground/20 text-muted-foreground",
-								)}
+										? `Image limit reached (${maxImages}/${maxImages})`
+										: "Insert image"
+								}
+								disabled={isDisabled || isUploading || isAtImageLimit}
 							>
-								{imageCount}/{maxImages}
-							</span>
-						</ToolbarButton>
+								<ImageIcon className="size-4" />
+								<span
+									className={cn(
+										"absolute -top-1.5 -right-1.5 text-[9px] font-bold min-w-4 h-4 flex items-center justify-center rounded-full",
+										isAtImageLimit
+											? "bg-destructive text-destructive-foreground"
+											: "bg-muted-foreground/20 text-muted-foreground",
+									)}
+								>
+									{imageCount}/{maxImages}
+								</span>
+							</ToolbarButton>
+						)}
 					</>
 				)}
 			</div>
@@ -361,7 +369,7 @@ export function RichTextEditor({
 				/>
 			</div>
 
-			{!minimal && !isDisabled && (
+			{!minimal && !isDisabled && allowImages && maxImages > 0 && (
 				<input
 					ref={fileInputRef}
 					type="file"

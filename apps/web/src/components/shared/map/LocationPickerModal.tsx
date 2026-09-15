@@ -264,8 +264,13 @@ export function LocationPickerModal({
 	}, [isOpen]);
 
 	// Handle location search with OSM Nominatim
-	const handleSearch = async (e?: React.FormEvent) => {
-		if (e) e.preventDefault();
+	const handleSearch = async (
+		e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent,
+	) => {
+		if (e) {
+			e.preventDefault();
+			e.stopPropagation();
+		}
 		if (!searchQuery.trim()) return;
 
 		setIsSearching(true);
@@ -388,6 +393,17 @@ export function LocationPickerModal({
 		);
 	};
 
+	// Reset any pointer-events lock on document body when closed
+	useEffect(() => {
+		if (!isOpen && typeof document !== "undefined") {
+			document.body.style.pointerEvents = "";
+			const timer = setTimeout(() => {
+				document.body.style.pointerEvents = "";
+			}, 50);
+			return () => clearTimeout(timer);
+		}
+	}, [isOpen]);
+
 	// Clear pin
 	const handleClearPin = () => {
 		setCoords(null);
@@ -400,26 +416,52 @@ export function LocationPickerModal({
 
 	// Confirm selection
 	const handleConfirm = () => {
-		if (coords) {
-			onConfirm({
-				latitude: coords.lat,
-				longitude: coords.lng,
-				address: resolvedAddress,
-				city,
-				country,
-			});
-		} else {
-			onConfirm({
-				latitude: null,
-				longitude: null,
-			});
-		}
+		const payload = coords
+			? {
+					latitude: coords.lat,
+					longitude: coords.lng,
+					address: resolvedAddress,
+					city,
+					country,
+				}
+			: {
+					latitude: null,
+					longitude: null,
+				};
 		onClose();
+		setTimeout(() => {
+			onConfirm(payload);
+			if (typeof document !== "undefined") {
+				document.body.style.pointerEvents = "";
+			}
+		}, 0);
+	};
+
+	const handleOpenChange = (open: boolean) => {
+		if (!open) {
+			onClose();
+			if (typeof document !== "undefined") {
+				setTimeout(() => {
+					document.body.style.pointerEvents = "";
+				}, 50);
+			}
+		}
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="max-w-2xl sm:max-w-3xl p-0 gap-0 overflow-hidden">
+		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
+			<DialogContent
+				className="max-w-2xl sm:max-w-3xl p-0 gap-0 overflow-hidden"
+				onPointerDownOutside={(e) => e.preventDefault()}
+				onInteractOutside={(e) => e.preventDefault()}
+				onCloseAutoFocus={(e) => {
+					e.preventDefault();
+					if (typeof document !== "undefined") {
+						document.body.style.pointerEvents = "";
+					}
+				}}
+				onClick={(e) => e.stopPropagation()}
+			>
 				<DialogHeader className="p-4 sm:p-5 border-b border-border bg-card/60">
 					<DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
 						<MapPin className="size-5 text-primary" />
@@ -432,20 +474,28 @@ export function LocationPickerModal({
 
 				{/* Search & Location Bar */}
 				<div className="p-3 bg-muted/40 border-b border-border flex flex-col sm:flex-row gap-2 relative z-20">
-					<form onSubmit={handleSearch} className="flex-1 flex gap-1.5 relative">
+					<div className="flex-1 flex gap-1.5 relative">
 						<div className="relative flex-1">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 							<Input
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										e.stopPropagation();
+										handleSearch(e);
+									}
+								}}
 								placeholder="Search venue, landmark, or street name..."
 								className="pl-9 h-9 text-xs bg-background"
 							/>
 						</div>
 						<Button
-							type="submit"
+							type="button"
 							size="sm"
 							variant="secondary"
+							onClick={(e) => handleSearch(e)}
 							disabled={isSearching}
 							className="h-9 px-3 text-xs font-medium"
 						>
@@ -470,7 +520,7 @@ export function LocationPickerModal({
 								))}
 							</div>
 						)}
-					</form>
+					</div>
 
 					<Button
 						type="button"

@@ -168,6 +168,7 @@ export function EventSettingsTab({
 									setFormData((p) => ({ ...p, description: val }))
 								}
 								placeholder="Describe what attendees can expect..."
+								allowImages={false}
 							/>
 							<div className="flex justify-end gap-2">
 								<Button

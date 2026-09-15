@@ -1,10 +1,12 @@
 export const dynamic = "force-dynamic";
 
 import React from "react";
+import { cookies } from "next/headers";
 import { requireSession } from "@/lib/session";
 import { getEventsList, getEventStats } from "@/lib/dal/event";
 import { MyEventsClient } from "@/components/event/core/MyEventsClient";
 import { serializeJsonSafe } from "@/lib/utils";
+import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
 
 export const metadata = {
 	title: "My Events - fextiva",
@@ -20,7 +22,10 @@ export default async function MyEventsPage({
 	const params = await searchParams;
 	const status = typeof params.status === "string" ? params.status : undefined;
 	const search = typeof params.search === "string" ? params.search : undefined;
-	const org = typeof params.org === "string" ? params.org : undefined;
+
+	const cookieStore = await cookies();
+	const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE_NAME)?.value;
+	const org = typeof params.org === "string" ? params.org : cookieOrg;
 
 	const [events, stats] = await Promise.all([
 		getEventsList(session.userId, { status, search, orgId: org }),

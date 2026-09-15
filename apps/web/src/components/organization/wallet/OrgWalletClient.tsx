@@ -359,6 +359,7 @@ export function OrgWalletClient({
 					organizationId={organization.id}
 					availableBalance={availableBalance}
 					pendingBalance={pendingBalance}
+					isLocked={!!wallet?.isLocked}
 					totalRevenue={
 						typeof (wallet as any)?.totalInflows === "number"
 							? Number((wallet as any).totalInflows)

@@ -99,8 +99,8 @@ export function StandardEventContent({
 							Standard Event
 						</Badge>
 					</div>
-					<h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight mb-3 font-millik">
-						Schedule &amp; Outline Coming Soon.
+					<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground mb-3">
+						Schedule &amp; Outline Coming Soon
 					</h3>
 					<p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6">
 						The organizer has not published the full timeline, session outline, or interactive discussion topics for this event yet. Check back soon for the complete schedule!
@@ -145,19 +145,20 @@ export function StandardEventContent({
 					<div className="space-y-1">
 						<div className="flex items-center gap-2">
 							<Badge
-								variant="secondary"
-								className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border-primary/20"
+								className="text-xs font-bold rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none"
 							>
 								Event Outline
 							</Badge>
 							{event.category && (
-								<Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider">
+								<Badge
+									className="text-xs font-bold rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none"
+								>
 									{event.category}
 								</Badge>
 							)}
 						</div>
-						<h2 className="text-2xl font-black uppercase tracking-tight text-foreground font-millik">
-							About This Event.
+						<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
+							About This Event
 						</h2>
 					</div>
 
@@ -245,9 +246,9 @@ export function StandardEventContent({
 								<Sparkles className="size-3" /> Interactive Flow
 							</Badge>
 						</div>
-						<h3 className="text-xl font-black uppercase tracking-tight text-foreground flex items-center gap-2 font-millik">
-							<ListTree className="size-5 text-primary" />
-							Event Timeline &amp; Interactive Topics
+						<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2">
+							<ListTree className="size-4 text-primary" />
+							<span>Event Timeline &amp; Interactive Topics</span>
 						</h3>
 					</div>
 				</div>

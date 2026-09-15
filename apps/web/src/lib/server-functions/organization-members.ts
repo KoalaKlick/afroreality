@@ -2,7 +2,7 @@
 
 import { prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
-import { sendOrganizationInvitationEmail } from "../email/auth";
+import { sendOrganizationInvitationEmail, sendMemberRemovedEmail } from "../email/auth";
 import { requireSession } from "../session";
 import { serializeJsonSafe } from "../utils";
 
@@ -93,27 +93,61 @@ export async function inviteOrgMember({ data }: { data: any }): Promise<any> {
 export const inviteOrganizationMember = inviteOrgMember;
 
 export async function removeOrgMember({ data }: { data: any }): Promise<any> {
-	await requireSession();
+	const session = await requireSession();
 	const id = data.id || data.memberId;
 	const userId = data.targetUserId || data.userId;
 	const orgId = data.organizationId;
 
-	let whereClause: any;
+	// 1. Locate the member record to verify existence and gather details for email
+	let memberToDelete: any = null;
 	if (id) {
-		whereClause = { id };
-	} else if (orgId && userId) {
-		whereClause = {
-			organizationId_userId: {
-				organizationId: orgId,
-				userId: userId,
+		memberToDelete = await prisma.teamMember.findUnique({
+			where: { id },
+			include: {
+				user: { select: { id: true, fullName: true, email: true } },
+				organization: { select: { id: true, name: true } },
 			},
-		};
-	} else {
-		throw new Error("Member identifier is required to remove member.");
+		});
+	} else if (orgId && userId) {
+		memberToDelete = await prisma.teamMember.findUnique({
+			where: {
+				organizationId_userId: {
+					organizationId: orgId,
+					userId: userId,
+				},
+			},
+			include: {
+				user: { select: { id: true, fullName: true, email: true } },
+				organization: { select: { id: true, name: true } },
+			},
+		});
 	}
 
-	await prisma.teamMember.delete({ where: whereClause });
+	if (!memberToDelete) {
+		throw new Error("Team member not found or already removed.");
+	}
+
+	if (memberToDelete.role === "owner") {
+		throw new Error("Cannot remove the organization owner.");
+	}
+
+	// 2. Delete member record
+	await prisma.teamMember.delete({
+		where: { id: memberToDelete.id },
+	});
+
+	// 3. Send email to the removed member
+	if (memberToDelete.user?.email) {
+		sendMemberRemovedEmail({
+			email: memberToDelete.user.email,
+			memberName: memberToDelete.user.fullName,
+			organizationName: memberToDelete.organization?.name || "the organization",
+			removerName: session.fullName || undefined,
+		}).catch((err) => console.error("Error sending member removed email:", err));
+	}
+
 	revalidatePath("/organization/members");
+	revalidatePath("/(app)/organization/members", "page");
 	return { success: true };
 }
 

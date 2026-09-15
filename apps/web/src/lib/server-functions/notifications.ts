@@ -78,9 +78,8 @@ export async function getPlatformNotificationsForUser(): Promise<PlatformNotific
 					type: "wallet_frozen",
 					severity: "critical",
 					title: `Wallet frozen (${w.organization.name})`,
-					message: reasonText
-						? `Reason: ${reasonText}`
-						: "Your wallet payouts have been paused by platform administration.",
+					message:
+						"Wallet payouts and outbound transfers for this organization have been paused by platform administration.",
 					reason: reasonText || null,
 					organization: {
 						id: w.organization.id,

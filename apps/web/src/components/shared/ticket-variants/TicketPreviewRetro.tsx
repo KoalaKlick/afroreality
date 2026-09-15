@@ -263,13 +263,13 @@ export function TicketCardRetro({
 
   return (
     <div
-      className={cn("cursor-pointer select-none", className)}
+      className={cn("cursor-pointer select-none w-full max-w-[560px] @container", className)}
       style={{ perspective: 1200 }}
     >
       <TicketClipPath id={clipId} />
 
       <div
-        className="relative w-full max-w-[560px] h-[210px]"
+        className="relative w-full aspect-[560/210] min-h-[190px]"
         onClick={() => setFlipped((f) => !f)}
       >
         <div

@@ -80,15 +80,15 @@ export function EventSidebarCard({
 	} = formatEventDisplay(event);
 
 	return (
-		<div className="rounded-2xl bg-card overflow-hidden flex flex-col h-full max-h-full
-		"
-		style={{
+		<div
+			className="rounded-2xl bg-card overflow-hidden flex flex-col h-full max-h-full border border-border/60 shadow-xs"
+			style={{
 				backgroundColor:
 					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
 			}}
 		>
-			{/* Banner / Cover - Stays Fixed */}
-			<div className="relative h-44 shrink-0 w-full overflow-hidden bg-muted">
+			{/* Banner / Cover with Overlay Title & Org Logo */}
+			<div className="relative h-48 sm:h-52 shrink-0 w-full overflow-hidden bg-muted">
 				{bannerImage ? (
 					<img
 						src={bannerImage}
@@ -103,39 +103,45 @@ export function EventSidebarCard({
 					/>
 				)}
 
+				{/* Top-left Event Type Pill */}
 				<div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
 					<Badge className="text-[10px] font-bold uppercase bg-background/90 text-foreground backdrop-blur-md border border-border rounded-sm">
 						{event.type || "Event"}
 					</Badge>
 				</div>
+
+				{/* Bottom Gradient Backdrop for Title & Org info */}
+				<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+
+				{/* Floating Header Info inside Banner to save vertical space */}
+				<div className="absolute bottom-3 left-3 right-3 z-10 space-y-1.5">
+					<Link
+						href={`/${orgSlug}`}
+						className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background/90 hover:bg-background text-foreground backdrop-blur-md border border-border/80 text-[11px] font-semibold transition-all shadow-xs group w-fit max-w-full"
+					>
+						{logoImage ? (
+							<img
+								src={logoImage}
+								alt={event.organization.name}
+								className="size-3.5 rounded-full object-cover border border-border/50 shrink-0"
+							/>
+						) : (
+							<Building2 className="size-3 text-primary shrink-0" />
+						)}
+						<span className="truncate group-hover:text-primary transition-colors max-w-[200px]">
+							{event.organization.name}
+						</span>
+					</Link>
+
+					<h1 className="text-lg sm:text-xl font-black uppercase tracking-tight text-white leading-tight font-millik drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+						{event.title}
+					</h1>
+				</div>
 			</div>
 
-			{/* Info & Meta Header - Stays Fixed */}
-			<div className="p-6 flex flex-col flex-1 min-h-0 space-y-5 overflow-hidden">
+			{/* Info & Meta Header */}
+			<div className="p-5 sm:p-6 flex flex-col flex-1 min-h-0 space-y-4 overflow-hidden">
 				<div className="space-y-3 shrink-0">
-					{/* Org Link & Event Title */}
-					<div className="space-y-2">
-						<Link
-							href={`/${orgSlug}`}
-							className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-primary transition-colors group"
-						>
-							{logoImage ? (
-								<img
-									src={logoImage}
-									alt={event.organization.name}
-									className="size-4 rounded-full object-cover border"
-								/>
-							) : (
-								<Building2 className="size-3.5" />
-							)}
-							<span className="truncate">{event.organization.name}</span>
-						</Link>
-
-						<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug font-millik">
-							{event.title}
-						</h1>
-					</div>
-
 					{/* Event Meta Details */}
 					<div className="space-y-2 text-xs text-muted-foreground">
 						{formattedDate && (
@@ -146,23 +152,14 @@ export function EventSidebarCard({
 								</span>
 							</div>
 						)}
-						<div className="flex items-center gap-2.5">
-							{event.isVirtual ? (
-								<Globe className="size-3.5 text-primary shrink-0" />
-							) : (
-								<MapPin className="size-3.5 text-primary shrink-0" />
-							)}
-							<span className="truncate">{locationText}</span>
-						</div>
 					</div>
 
 					{/* Category & Tags */}
 					{(event.category || (event.tags && event.tags.length > 0)) && (
-						<div className="flex flex-wrap items-center gap-1.5 pt-1">
+						<div className="flex flex-wrap items-center gap-1.5 pt-0.5">
 							{event.category && (
 								<Badge
-									variant="secondary"
-									className="text-xs font-semibold rounded-sm px-2 py-0.5 border"
+									className="text-xs font-bold rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none"
 								>
 									{event.category}
 								</Badge>
@@ -180,8 +177,8 @@ export function EventSidebarCard({
 				<div className="flex-1 min-h-0 overflow-y-auto pr-1.5 space-y-5 custom-scrollbar">
 					{/* About Event */}
 					<div className="space-y-2">
-						<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
-							About the Event.
+						<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground">
+							About the Event
 						</h3>
 						<div className="text-xs text-muted-foreground leading-relaxed">
 							{event.description ? (
@@ -201,15 +198,19 @@ export function EventSidebarCard({
 						event.longitude !== null &&
 						event.longitude !== undefined && (
 							<div className="space-y-2 pt-3 border-t border-dashed">
-								<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
-									<MapPin className="size-3.5 text-primary" />
-									<span>Venue Map.</span>
+								<h3 className="text-xs font-medium    text-muted-foreground flex items-center gap-2">
+									<span className="uppercase tracking-widest font-millik">Venue Map</span>
+								<span className="text-[11px] font-normal text-muted-foreground truncate flex items-center gap-1">
+									<MapPin className="size-3 text-primary shrink-0" />
+									{locationText}
+								</span>
 								</h3>
+								
 								<EventLocationDisplayMap
 									latitude={event.latitude}
 									longitude={event.longitude}
 									venueName={event.venueName}
-									heightClass="aspect-video"
+									heightClass="aspect-[7/2]"
 								/>
 							</div>
 						)}
@@ -217,8 +218,8 @@ export function EventSidebarCard({
 					{/* Event Social Links */}
 					{socialLinks.length > 0 && (
 						<div className="space-y-2.5 pt-3 border-t border-dashed">
-							<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
-								Event Socials.
+							<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground">
+								Event Socials
 							</h3>
 							<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
 						</div>
@@ -227,9 +228,9 @@ export function EventSidebarCard({
 					{/* External Photo Albums */}
 					{galleryLinks.length > 0 && (
 						<div className="space-y-2.5 pt-3 border-t border-dashed">
-							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
+							<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-1.5">
 								<ExternalLink className="size-3.5 text-primary" />
-								<span>External Albums.</span>
+								<span>External Albums</span>
 							</h3>
 							<div className="space-y-2">
 								{galleryLinks.map((link: any) => {
@@ -264,9 +265,8 @@ export function EventSidebarCard({
 					{/* Sponsors */}
 					{sponsors.length > 0 && (
 						<div className="space-y-2.5 pt-3 border-t border-dashed">
-							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
-								<Trophy className="size-3.5 text-primary" />
-								<span>Official Sponsors.</span>
+							<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-1.5">
+								<span>Official Sponsors</span>
 							</h3>
 							<SponsorsList sponsors={sponsors} />
 						</div>

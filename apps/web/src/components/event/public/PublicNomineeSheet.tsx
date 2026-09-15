@@ -107,7 +107,7 @@ export function NomineeGrid({
 		return (
 			<div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl bg-card">
 				<NoNomineeIllustration className="w-48 h-auto mb-4 opacity-85" />
-				<h4 className="text-xl font-bold uppercase tracking-tight mb-1">No Nominees Yet</h4>
+				<h4 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground mb-1">No Nominees Yet</h4>
 				<p className="text-xs text-muted-foreground max-w-sm mt-1">
 					Nominees have not been announced or approved for this category yet. Check back soon!
 				</p>
@@ -385,9 +385,9 @@ export function PublicNomineeSheet({
 		<div className="space-y-8 @container">
 			{/* Public Nomination Banner */}
 			{category.allowPublicNomination && !isEnded && (
-				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-lg bg-card text-foreground">
+				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-xl bg-card border border-border/60 text-foreground shadow-xs">
 					<div className="space-y-1 text-center sm:text-left">
-						<h4 className="font-black text-sm uppercase tracking-tight flex items-center justify-center sm:justify-start gap-2">
+						<h4 className="text-xs font-medium font-millik uppercase tracking-widest text-muted-foreground flex items-center justify-center sm:justify-start gap-2">
 							<Sparkles className="size-4 text-primary" />
 							<span>Nominate a Candidate</span>
 						</h4>

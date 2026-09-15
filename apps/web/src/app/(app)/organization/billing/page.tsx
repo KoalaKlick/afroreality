@@ -20,6 +20,9 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
+import { cookies } from "next/headers";
+import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
+
 export default async function OrgBillingPage({
 	searchParams,
 }: {
@@ -33,8 +36,10 @@ export default async function OrgBillingPage({
 		notFound();
 	}
 
+	const cookieStore = await cookies();
+	const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE_NAME)?.value;
 	const activeOrgId =
-		typeof params.org === "string" ? params.org : orgs[0]?.id;
+		(typeof params.org === "string" ? params.org : cookieOrg) || orgs[0]?.id;
 	const organization = await getOrganizationById(activeOrgId, session.userId);
 
 	if (!organization) {

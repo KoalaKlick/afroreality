@@ -2,9 +2,35 @@
 
 import { prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { requireSession } from "../session";
 import { serializeJsonSafe } from "../utils";
 import { requireOrgRole } from "./auth-helpers";
+import { ACTIVE_ORG_COOKIE_NAME } from "../constants/config";
+
+export async function setActiveOrganization(orgId: string): Promise<void> {
+	const session = await requireSession();
+	const membership = await prisma.teamMember.findFirst({
+		where: {
+			userId: session.userId,
+			organizationId: orgId,
+		},
+	});
+
+	if (!membership) {
+		throw new Error("You are not a member of this organization");
+	}
+
+	const cookieStore = await cookies();
+	cookieStore.set(ACTIVE_ORG_COOKIE_NAME, orgId, {
+		path: "/",
+		maxAge: 60 * 60 * 24 * 365,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+	});
+
+	revalidatePath("/(app)", "layout");
+}
 
 export async function getUserOrganizations(): Promise<any[]> {
 	const session = await requireSession();

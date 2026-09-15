@@ -4,6 +4,7 @@
 // Adapted from fextiva-app/shared/constants/config.ts.
 
 export const AUTH_COOKIE_NAME = "auth_token";
+export const ACTIVE_ORG_COOKIE_NAME = "fextiva_active_org";
 
 export const AUTH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24; // 1 day
 

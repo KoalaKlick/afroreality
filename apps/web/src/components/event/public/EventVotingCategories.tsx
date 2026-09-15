@@ -34,10 +34,9 @@ export function EventVotingCategories({
 			}}
 		>
 			<div>
-				<div className="flex items-center gap-3 mb-10">
-					<Vote className="size-8 text-primary" />
-					<h2 className="text-3xl font-black uppercase font tracking-tight text-muted-foreground">
-						Vote Categories.
+				<div className="flex items-center gap-3 mb-4">
+					<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
+						Vote Categories
 					</h2>
 				</div>
 
@@ -127,8 +126,8 @@ export function EventVotingCategories({
 				) : (
 					<div className="flex flex-col items-center justify-center py-12 text-center">
 						<NoCategoryIllustration className="size-56 mb-6 opacity-80" />
-						<h4 className="text-xl font-bold uppercase tracking-tight mb-2">
-							No categories yet.
+						<h4 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground mb-2">
+							No Categories Yet
 						</h4>
 						<p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
 							Voting categories haven&apos;t been set up for this event yet. Check back soon!

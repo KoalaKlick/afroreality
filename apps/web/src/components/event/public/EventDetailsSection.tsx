@@ -3,6 +3,7 @@
 import { Section } from "@/components/Landing/shared/Section";
 import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
+import { SponsorsList } from "@/components/shared/SponsorsList";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { EventGallery } from "@/components/shared/EventGallery";
 import { EventLocationDisplayMap } from "@/components/shared/map";
@@ -26,6 +27,7 @@ interface EventDetailsSectionProps {
 	readonly venueCity?: string | null;
 	readonly venueCountry?: string | null;
 	readonly isVirtual?: boolean;
+	readonly showAboutSection?: boolean;
 }
 
 export function EventDetailsSection({
@@ -43,6 +45,7 @@ export function EventDetailsSection({
 	venueCity,
 	venueCountry,
 	isVirtual = false,
+	showAboutSection = true,
 }: EventDetailsSectionProps) {
 	const hasCoordinates =
 		!isVirtual &&
@@ -51,6 +54,16 @@ export function EventDetailsSection({
 		longitude !== null &&
 		longitude !== undefined;
 
+	const hasRightContent =
+		galleryLinks.length > 0 ||
+		galleryImages.length > 0 ||
+		sponsors.length > 0;
+
+	// If neither about, coordinates, nor right content exist, don't render an empty section
+	if (!showAboutSection && !hasCoordinates && !hasRightContent) {
+		return null;
+	}
+
 	return (
 		<Section
 			maxWidth="7xl"
@@ -58,41 +71,50 @@ export function EventDetailsSection({
 		>
 			<div className="mx-auto">
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-					{/* Left: About (2 columns if gallery exists, otherwise full width) */}
-					<div className={galleryLinks.length > 0 || galleryImages.length > 0 ? "md:col-span-2 space-y-8 scroll-mt-10" : "md:col-span-3 space-y-8 scroll-mt-10"} id="details">
-						<div className="space-y-4">
-							<h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
-								About the Event.
-							</h2>
-							<div className="text-sm text-foreground leading-relaxed">
-								{description ? (
-									<RichTextDisplay content={description} />
-								) : (
-									<p className="italic text-muted-foreground">
-										No description provided for this event.
-									</p>
+					{/* Left: About and/or Venue Map */}
+					<div
+						className={
+							hasRightContent
+								? "md:col-span-2 space-y-8 scroll-mt-10"
+								: "md:col-span-3 space-y-8 scroll-mt-10"
+						}
+						id="details"
+					>
+						{showAboutSection && (
+							<div className="space-y-4">
+								<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
+									About the Event
+								</h2>
+								<div className="text-sm text-foreground leading-relaxed">
+									{description ? (
+										<RichTextDisplay content={description} />
+									) : (
+										<p className="italic text-muted-foreground">
+											No description provided for this event.
+										</p>
+									)}
+								</div>
+
+								{(category || (tags && tags.length > 0)) && (
+									<div className="flex flex-wrap items-center gap-1.5 pt-2">
+										{category && (
+											<Badge className="font-bold text-xs rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none">
+												{category}
+											</Badge>
+										)}
+										{tags && tags.length > 0 && tags.map((tag) => (
+											<TagPill key={tag} tag={tag} size="sm" variant="secondary" />
+										))}
+									</div>
 								)}
 							</div>
-
-							{(category || (tags && tags.length > 0)) && (
-								<div className="flex flex-wrap items-center gap-1.5 pt-2">
-									{category && (
-										<Badge variant="secondary" className="font-semibold text-xs rounded-sm px-2.5 py-0.5 border">
-											{category}
-										</Badge>
-									)}
-									{tags && tags.length > 0 && tags.map((tag) => (
-										<TagPill key={tag} tag={tag} size="sm" variant="secondary" />
-									))}
-								</div>
-							)}
-						</div>
+						)}
 
 						{hasCoordinates && (
-							<div className="space-y-4 pt-4 border-t border-border">
-								<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
-									<MapPin className="size-5 text-primary" />
-									<span>Event Venue &amp; Map.</span>
+							<div className={showAboutSection ? "space-y-4 pt-4 border-t border-border" : "space-y-4"}>
+								<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
+									<MapPin className="size-4 text-primary" />
+									<span>Event Venue &amp; Map</span>
 								</h3>
 								<EventLocationDisplayMap
 									latitude={latitude}
@@ -103,14 +125,14 @@ export function EventDetailsSection({
 						)}
 					</div>
 
-					{/* Right: Media & External Albums */}
-					{(galleryLinks.length > 0 || galleryImages.length > 0) && (
+					{/* Right: Media, External Albums & Sponsors */}
+					{hasRightContent && (
 						<div className="space-y-10">
 							{galleryImages.length > 0 && (
 								<div className="space-y-4">
 									<div>
-										<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2.5">
-											<ImageIcon className="size-5 text-primary" />
+										<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
+											<ImageIcon className="size-4 text-primary" />
 											<span>Event Photos</span>
 										</h3>
 										<p className="text-xs text-muted-foreground mt-0.5">
@@ -120,11 +142,12 @@ export function EventDetailsSection({
 									<EventGallery images={galleryImages} maxDisplay={5} />
 								</div>
 							)}
+
 							{galleryLinks.length > 0 && (
 								<div className="space-y-4">
 									<div>
-										<h3 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2.5">
-											<ExternalLink className="size-5 text-primary" />
+										<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
+											<ExternalLink className="size-4 text-primary" />
 											<span>External Photo Albums</span>
 										</h3>
 										<p className="text-xs text-muted-foreground mt-0.5">
@@ -161,6 +184,21 @@ export function EventDetailsSection({
 											);
 										})}
 									</div>
+								</div>
+							)}
+
+							{sponsors.length > 0 && (
+								<div className="space-y-4">
+									<div>
+										<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
+											<Trophy className="size-4 text-primary" />
+											<span>Official Sponsors</span>
+										</h3>
+										<p className="text-xs text-muted-foreground mt-0.5">
+											Partners &amp; supporters for this event
+										</p>
+									</div>
+									<SponsorsList sponsors={sponsors} labelPrefix="" />
 								</div>
 							)}
 						</div>

@@ -107,9 +107,9 @@ export default async function PublicEventPage({
 		<div className="space-y-6">
 			{ticketTypes.length > 0 ? (
 				<>
-					<div className="flex flex-col gap-2">
-						<h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
-							Get Tickets.
+					<div className="flex flex-col gap-1 mb-2">
+						<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
+							Get Tickets
 						</h2>
 						<p className="text-xs text-muted-foreground">
 							Select your ticket tier below and complete payment securely.
@@ -156,8 +156,8 @@ export default async function PublicEventPage({
 			) : (
 				<div className="flex flex-col items-center justify-center py-12 text-center">
 					<NoTicketIllustration className="size-40 mb-4 opacity-80" />
-					<h2 className="text-2xl font-black uppercase tracking-tight mb-2">
-						No Ticket Tiers Yet.
+					<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground mb-2">
+						No Ticket Tiers Yet
 					</h2>
 					<p className="text-xs text-muted-foreground max-w-sm mx-auto">
 						Ticket tiers haven&apos;t been configured for this event yet. Please check back later.
@@ -265,6 +265,7 @@ export default async function PublicEventPage({
 					venueCity={event.venueCity}
 					venueCountry={event.venueCountry}
 					isVirtual={event.isVirtual}
+					showAboutSection={!isStandard}
 				/>
 			</div>
 
@@ -334,9 +335,9 @@ export default async function PublicEventPage({
 								}}
 								>
 	<div className="flex items-center justify-between">
-									<h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
-										<ImageIcon className="size-5 text-primary" />
-										Event Photos
+									<h3 className="text-xl font-medium font-millik uppercase text-muted-foreground flex  gap-2 items-center-safe">
+										{/* <ImageIcon className="size-5 text-primary" /> */}
+										Event Highlight
 									</h3>
 									<span className="text-xs font-semibold text-muted-foreground">
 										Highlights &amp; Showcase

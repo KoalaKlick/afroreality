@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Check, Clock, X, AlertTriangle, Minus, Ban, Play, Calendar, Crown, ShieldCheck, User } from "lucide-react"
+import { Check, Clock, X, AlertTriangle, Minus, Ban, Play, Calendar, Crown, ShieldCheck, User, Lock } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 type StatusVariant =
@@ -30,6 +30,8 @@ type StatusVariant =
     | 'owner'
     | 'admin'
     | 'member'
+    | 'restricted'
+    | 'restored'
 
 interface StatusConfig {
     icon: LucideIcon
@@ -240,6 +242,22 @@ const statusConfigs: Record<StatusVariant, StatusConfig> = {
         borderColor: "bg-tertiary-50",
         bgColor: "",
         defaultText: "Member",
+    },
+    restricted: {
+        icon: Lock,
+        iconBgColor: "bg-rose-600",
+        textColor: "text-rose-600 dark:text-rose-400",
+        borderColor: "border-rose-200 dark:border-rose-900/50",
+        bgColor: "bg-rose-50/50 dark:bg-rose-950/20",
+        defaultText: "Restricted",
+    },
+    restored: {
+        icon: Check,
+        iconBgColor: "bg-[#38C793]",
+        textColor: "text-emerald-600 dark:text-emerald-400",
+        borderColor: "border-emerald-200 dark:border-emerald-900/50",
+        bgColor: "bg-emerald-50/50 dark:bg-emerald-950/20",
+        defaultText: "Restored",
     },
 }
 

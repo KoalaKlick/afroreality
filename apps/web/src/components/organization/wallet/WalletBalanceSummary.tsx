@@ -10,6 +10,7 @@ interface WalletBalanceSummaryProps {
 	readonly totalRevenue?: number;
 	readonly totalWithdrawn?: number;
 	readonly currency?: string;
+	readonly isLocked?: boolean;
 }
 
 export function WalletBalanceSummary({
@@ -18,6 +19,7 @@ export function WalletBalanceSummary({
 	totalRevenue = 0,
 	totalWithdrawn = 0,
 	currency = "GHS",
+	isLocked = false,
 }: WalletBalanceSummaryProps) {
 	const balanceIcon = currency === "EUR" ? statIcons.euro : statIcons.cedi;
 
@@ -28,7 +30,7 @@ export function WalletBalanceSummary({
 				label={SHARED_FINANCIAL_STATS.availableBalance.label}
 				value={`${currency} ${availableBalance.toFixed(2)}`}
 				iconSrc={balanceIcon}
-				description="Ready for withdrawal / payout"
+				description={isLocked ? "Payouts suspended (Frozen)" : "Ready for withdrawal / payout"}
 			/>
 
 			{/* 2. Pending Clearance */}

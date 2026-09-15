@@ -26,7 +26,7 @@ interface SponsorsListProps {
 
 export function SponsorsList({
 	sponsors,
-	labelPrefix = "Official Sponsors & Partners:",
+	labelPrefix = "",
 	className = "",
 	maxDisplay = 10,
 }: SponsorsListProps) {

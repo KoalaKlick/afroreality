@@ -73,9 +73,15 @@ export function CategorySidebarCard({
 	const templateImg = getEventImageUrl(category.templateImage) || eventBannerImg;
 
 	return (
-		<div className="rounded-2xl border bg-card overflow-hidden flex flex-col h-full max-h-full">
-			{/* Template / Cover Header - Stays Fixed */}
-			<div className="relative h-36 shrink-0 w-full overflow-hidden bg-muted/30">
+		<div
+			className="rounded-2xl bg-card overflow-hidden flex flex-col h-full max-h-full border border-border/60 shadow-xs"
+			style={{
+				backgroundColor:
+					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
+			}}
+		>
+			{/* Banner / Cover with Overlay Title & Event Badge */}
+			<div className="relative h-48 sm:h-52 shrink-0 w-full overflow-hidden bg-muted">
 				{templateImg ? (
 					<img
 						src={templateImg}
@@ -89,60 +95,64 @@ export function CategorySidebarCard({
 						tertiaryColor={event.organization.tertiaryColor}
 					/>
 				)}
-			</div>
 
-			<div className="p-6 flex flex-col flex-1 min-h-0 space-y-5 overflow-hidden">
-				{/* Back link & Event context - Stays Fixed */}
-				<div className="space-y-3 shrink-0">
-					<Button asChild variant="ghost" size="sm" className="h-8 -ml-2 gap-1.5 text-xs">
+				{/* Top-left Back link & status badge */}
+				<div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
+					<Button asChild variant="ghost" size="sm" className="h-7 px-2.5 gap-1.5 text-xs bg-background/90 text-foreground backdrop-blur-md border border-border rounded-sm hover:bg-background shadow-xs">
 						<Link href={`/${orgSlug}/event/${eventSlug}`}>
 							<ArrowLeft className="size-3.5" /> Back to Event
 						</Link>
 					</Button>
 
-					<div className="space-y-1">
-						<div className="flex flex-wrap items-center gap-2">
-				
-							{isInternalVoting && (
-								<Badge
-									variant="outline"
-									className="text-[10px] text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1"
-								>
-									<Lock className="size-3" /> Member Ballot
-								</Badge>
-							)}
-						</div>
-
-						<h1 className="text-xl font-black uppercase tracking-tight text-foreground leading-snug font-millik">
-							{category.name}
-						</h1>
-
-						<Link
-							href={`/${orgSlug}/event/${eventSlug}`}
-							className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5 pt-1"
+					{isInternalVoting && (
+						<Badge
+							variant="outline"
+							className="text-[10px] text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1 bg-background/90 backdrop-blur-md h-7 rounded-sm shadow-xs"
 						>
-							{orgLogo ? (
-								<img
-									src={orgLogo}
-									alt={event.organization.name}
-									className="size-3.5 rounded-full object-cover border"
-								/>
-							) : (
-								<Building2 className="size-3" />
-							)}
-							<span className="truncate">{event.title}</span>
-						</Link>
-					</div>
+							<Lock className="size-3" /> Member Ballot
+						</Badge>
+					)}
 				</div>
 
+				{/* Bottom Gradient Backdrop for Title & Info */}
+				<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+
+				{/* Floating Header Info inside Banner to save vertical space */}
+				<div className="absolute bottom-3 left-3 right-3 z-10 space-y-1.5">
+					<Link
+						href={`/${orgSlug}/event/${eventSlug}`}
+						className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background/90 hover:bg-background text-foreground backdrop-blur-md border border-border/80 text-[11px] font-semibold transition-all shadow-xs group w-fit max-w-full"
+					>
+						{orgLogo ? (
+							<img
+								src={orgLogo}
+								alt={event.organization.name}
+								className="size-3.5 rounded-full object-cover border border-border/50 shrink-0"
+							/>
+						) : (
+							<Building2 className="size-3 text-primary shrink-0" />
+						)}
+						<span className="truncate group-hover:text-primary transition-colors max-w-[200px]">
+							{event.title}
+						</span>
+					</Link>
+
+					<h1 className="text-lg sm:text-xl font-black uppercase tracking-tight text-white leading-tight font-millik drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+						{category.name}
+					</h1>
+				</div>
+			</div>
+
+			{/* Info & Scrollable Body */}
+			<div className="p-5 sm:p-6 flex flex-col flex-1 min-h-0 space-y-4 overflow-hidden">
 				<PanAfricanDivider className="shrink-0" />
 
 				{/* Scrollable Body: About Category, Socials, Sponsors */}
 				<div className="flex-1 min-h-0 overflow-y-auto pr-1.5 space-y-5 custom-scrollbar">
 					{/* About Category */}
 					<div className="space-y-2">
-						<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
-							About Category.
+						<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground">
+							About Category
 						</h3>
 						<div className="text-xs text-muted-foreground leading-relaxed">
 							{category.description ? (
@@ -158,8 +168,8 @@ export function CategorySidebarCard({
 					{/* Event Socials */}
 					{socialLinks.length > 0 && (
 						<div className="space-y-2.5 pt-3 border-t border-dashed">
-							<h3 className="text-xs font-black uppercase tracking-widest text-foreground">
-								Event Socials.
+							<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground">
+								Event Socials
 							</h3>
 							<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
 						</div>
@@ -168,9 +178,9 @@ export function CategorySidebarCard({
 					{/* Sponsors */}
 					{sponsors.length > 0 && (
 						<div className="space-y-2.5 pt-3 border-t border-dashed">
-							<h3 className="text-xs font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
+							<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-1.5">
 								<Trophy className="size-3.5 text-primary" />
-								<span>Sponsors.</span>
+								<span>Official Sponsors</span>
 							</h3>
 							<SponsorsList sponsors={sponsors} labelPrefix="" />
 						</div>

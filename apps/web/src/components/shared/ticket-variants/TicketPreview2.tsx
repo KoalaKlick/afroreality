@@ -595,14 +595,14 @@ export function TicketCard2({
 
   return (
     <div
-      className={`cursor-pointer select-none @container ${className ?? ""}`}
+      className={`cursor-pointer select-none w-full max-w-[560px] @container ${className ?? ""}`}
       style={{ perspective: 1200 }}
     >
       <TicketClipPath id={clipId} />
       <TicketClipPath id={ghostClipId} />
 
       <div
-        className="relative w-full max-w-[560px] h-[210px]"
+        className="relative w-full aspect-[560/210] min-h-[190px]"
         onClick={() => setFlipped((f) => !f)}
       >
         {stacked &&

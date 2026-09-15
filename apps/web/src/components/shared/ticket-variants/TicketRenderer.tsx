@@ -31,12 +31,18 @@ export function TicketRenderer({
   variant = "classic",
   ...props
 }: TicketRendererProps) {
-  switch (variant) {
+  const normalizedVariant = (variant || "classic").toLowerCase().trim();
+  switch (normalizedVariant) {
     case "geo":
+    case "geometric":
       return <TicketCardGeo {...props} />;
     case "retro":
+    case "metro":
+    case "vintage":
       return <TicketCardRetro {...props} />;
     case "modern":
+    case "pass":
+    case "card2":
       return <TicketCard2 {...props} />;
     case "classic":
     default:

@@ -405,3 +405,46 @@ export async function sendEventVotingKeyEmail({
     return { success: false, error: error.message };
   }
 }
+
+export async function sendMemberRemovedEmail({
+  email,
+  memberName,
+  organizationName,
+  removerName,
+}: {
+  email: string;
+  memberName?: string | null;
+  organizationName: string;
+  removerName?: string | null;
+}) {
+  try {
+    const admin = removerName ? `by ${escapeHtml(removerName)}` : "by an organization administrator";
+    const body = `
+      ${greeting(memberName || undefined)}
+      ${paragraphs(
+        `This is to inform you that your membership in <strong>${escapeHtml(organizationName)}</strong> has been revoked ${admin} on fextiva.`,
+        "You will no longer have access to this organization's dashboard, events, team settings, or administrative resources.",
+        "If you believe this was done in error, please contact your organization administrator."
+      )}
+      ${muted("This is an automated administrative notification from fextiva.")}
+    `;
+
+    const html = emailShell({
+      preview: `You have been removed from ${organizationName}`,
+      body,
+    });
+
+    const info = await transporter.sendMail({
+      from: `"${mailFromName}" <${mailFromEmail}>`,
+      to: email,
+      subject: `Notice: You have been removed from ${organizationName} on fextiva`,
+      html,
+    });
+
+    console.log("[EMAIL] Member removed email sent to", email, "messageId:", info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error: any) {
+    console.error("[EMAIL] Failed to send member removed email:", error);
+    return { success: false, error: error.message };
+  }
+}
