@@ -385,7 +385,7 @@ export function PublicNomineeSheet({
 		<div className="space-y-8 @container">
 			{/* Public Nomination Banner */}
 			{category.allowPublicNomination && !isEnded && (
-				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-xl bg-card border border-border/60 text-foreground shadow-xs">
+				<div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-xl bg-card text-foreground shadow-xs">
 					<div className="space-y-1 text-center sm:text-left">
 						<h4 className="text-xs font-medium font-millik uppercase tracking-widest text-muted-foreground flex items-center justify-center sm:justify-start gap-2">
 							<Sparkles className="size-4 text-primary" />
@@ -418,7 +418,7 @@ export function PublicNomineeSheet({
 						orgSlug={orgSlug}
 						eventSlug={eventSlug}
 						trigger={
-							<Button className="shrink-0 text-xs font-bold uppercase tracking-wider">
+							<Button className="shrink-0 text-xs font-">
 								Nominate Candidate
 							</Button>
 						}

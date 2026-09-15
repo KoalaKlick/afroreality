@@ -114,7 +114,7 @@ export function EventDetailsSection({
 							<div className={showAboutSection ? "space-y-4 pt-4 border-t border-border" : "space-y-4"}>
 								<h3 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">
 									<MapPin className="size-4 text-primary" />
-									<span>Event Venue &amp; Map</span>
+									<span>Event Venue & Map</span>
 								</h3>
 								<EventLocationDisplayMap
 									latitude={latitude}
