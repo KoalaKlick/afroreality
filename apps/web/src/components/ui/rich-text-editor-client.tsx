@@ -73,7 +73,7 @@ export function RichTextEditor({
 	minimal = false,
 	minHeight,
 	maxImages = MAX_IMAGES,
-	allowImages = true,
+	allowImages = false,
 	className,
 	disabled = false,
 }: RichTextEditorProps) {

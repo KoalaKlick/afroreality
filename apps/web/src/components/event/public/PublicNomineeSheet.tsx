@@ -418,7 +418,7 @@ export function PublicNomineeSheet({
 						orgSlug={orgSlug}
 						eventSlug={eventSlug}
 						trigger={
-							<Button className="shrink-0 text-xs font-">
+							<Button className="shrink-0">
 								Nominate Candidate
 							</Button>
 						}
