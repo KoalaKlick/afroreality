@@ -137,7 +137,7 @@ export function EventTransactionsSheet({
 				variant="brand"
 				className="w-full sm:max-w-3xl flex flex-col h-full p-0"
 			>
-				<SheetHeader className="shrink-0 px-6 py-6 border-b border-border/60">
+				<SheetHeader className="shrink-0 px-6 pt-6 border-b border-border/60">
 					<div className="flex items-center gap-3">
 						<div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 ring-1 ring-primary/20">
 							{activeTab === "votes" ? (

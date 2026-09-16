@@ -401,26 +401,22 @@ export function NotificationsSheet<T extends NotificationInvitation = Notificati
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent side="right" className="w-full sm:max-w-md font-poppins flex flex-col p-0">
-				<SheetHeader className="p-5 border-b border-white/10">
-					<div className="flex items-center justify-between pr-8">
-						<div className="flex items-center gap-2.5">
-							<div className="size-8 rounded-lg bg-[#e88722]/15 border border-[#e88722]/30 flex items-center justify-center shrink-0">
-								<Bell className="size-4 text-[#f88722]" />
-							</div>
-							<SheetTitle className="text-base font-bold text-[#f7f1df]">Notifications</SheetTitle>
+				<SheetHeader className="p-5 border-b border-border/40">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-2">
+							<SheetTitle className="text-base font-semibold">Notifications</SheetTitle>
 						</div>
 						{allNotifications.length > 0 && (
-							<span className="text-[11px] font-semibold text-white/90 bg-white/10 border border-white/15 px-2 py-0.5 rounded-full shadow-xs">
+							<span className="text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
 								{allNotifications.length}
 							</span>
 						)}
 					</div>
-					<SheetDescription className="text-xs text-white/70">
+					<SheetDescription className="text-xs text-muted-foreground">
 						Team invitations and organization alerts.
 					</SheetDescription>
 				</SheetHeader>
 
-				<PanAfricanDivider />
 
 				<SheetBody className="flex-1 overflow-y-auto p-0 px-0 md:px-0 py-0 divide-y divide-border/60">
 					{allNotifications.length === 0 ? (

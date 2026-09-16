@@ -61,7 +61,7 @@ function SheetContent({
 			<SheetPrimitive.Content
 				data-slot="sheet-content"
 				className={cn(
-					"fixed z-50 flex flex-col p-0 bg-background shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500",
+					"fixed z-50 flex flex-col p-6 bg-background shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500",
 					side === "right" &&
 						"inset-y-0 right-0 h-full w-full max-w-full sm:max-w-md border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
 					side === "left" &&
@@ -76,7 +76,7 @@ function SheetContent({
 			>
 				{children}
 				{showCloseButton && (
-					<SheetPrimitive.Close className="absolute top-4 right-4 z-30 rounded-full p-1.5 text-white/75 hover:text-white hover:bg-white/10 ring-offset-background transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none cursor-pointer">
+					<SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary cursor-pointer">
 						<XIcon className="size-4" />
 						<span className="sr-only">Close</span>
 					</SheetPrimitive.Close>
@@ -88,86 +88,22 @@ function SheetContent({
 
 function SheetHeader({
 	className,
-	variant = "sidebar",
-	children,
-	style,
+	variant = "afro",
 	...props
 }: React.ComponentProps<"div"> & {
-	variant?: "sidebar" | "plain";
+	variant?: "afro" | "plain";
 }) {
-	if (variant === "plain") {
-		return (
-			<div
-				data-slot="sheet-header"
-				data-variant="plain"
-				className={cn("flex flex-col gap-1.5 p-6", className)}
-				style={style}
-				{...props}
-			>
-				{children}
-			</div>
-		);
-	}
-
 	return (
 		<div
 			data-slot="sheet-header"
-			data-variant="sidebar"
 			className={cn(
-				"relative overflow-hidden shrink-0 border-b border-white/10 p-5 sm:p-6 text-white select-none",
-				"[&_[data-slot=sheet-title]]:text-[#f7f1df] [&_[data-slot=sheet-title]]:font-bold",
-				"[&_[data-slot=sheet-description]]:text-white/70 [&_[data-slot=sheet-description]]:text-xs",
+				"flex flex-col gap-1.5",
+				variant === "afro" &&
+					"bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(220,38,38,0.16),transparent_26%)] bg-background",
 				className,
 			)}
-			style={{
-				background:
-					"linear-gradient(180deg, #0d0c0a 0%, #080706 50%, #040302 100%)",
-				...style,
-			}}
 			{...props}
-		>
-			{/* Multi-glow background effects identical to live AfroTix sidebar */}
-			<div
-				className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
-				aria-hidden="true"
-			>
-				{/* Top-right soft radial glow in brand orange */}
-				<div
-					className="absolute -top-12 -right-12 h-36 w-36 rounded-full opacity-25 blur-2xl"
-					style={{
-						background:
-							"radial-gradient(circle, #e88722 0%, transparent 70%)",
-					}}
-				/>
-				{/* Bottom-left subtle emerald glow */}
-				<div
-					className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full opacity-20 blur-2xl"
-					style={{
-						background:
-							"radial-gradient(circle, #53967a 0%, transparent 70%)",
-					}}
-				/>
-				{/* Center micro ambient warmth */}
-				<div
-					className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-32 rounded-full opacity-15 blur-2xl"
-					style={{
-						background:
-							"radial-gradient(circle, #ca0808 0%, transparent 70%)",
-					}}
-				/>
-				{/* Fine grid texture */}
-				<div
-					className="absolute inset-0 opacity-[0.035]"
-					style={{
-						backgroundImage:
-							"linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
-						backgroundSize: "24px 24px",
-					}}
-				/>
-			</div>
-
-			<div className="relative z-10 flex flex-col gap-1.5 w-full">{children}</div>
-		</div>
+		/>
 	);
 }
 
@@ -175,7 +111,7 @@ function SheetBody({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="sheet-body"
-			className={cn("flex-1 px-4 md:px-6 py-4", className)}
+			className={cn("flex-1 px-2 md:px-2 py-2", className)}
 			{...props}
 		/>
 	);
