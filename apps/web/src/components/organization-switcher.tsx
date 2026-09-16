@@ -23,8 +23,8 @@ import { cn } from "@/lib/utils";
 import type { OrganizationInfo } from "@/lib/constants/navigation";
 import { setActiveOrganization } from "@/lib/server-functions/organization";
 import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
-
-const PROJ_NAME = "fextiva";
+import { PROJ_NAME } from "@/lib/constants/branding";
+import { FextivaLogo } from "@/components/shared/FextivaLogo";
 
 function getInitials(name: string): string {
 	return name
@@ -118,33 +118,20 @@ export function OrganizationSwitcher({
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<SidebarMenuButton
-								size="lg"
-								className="rounded-md border border-border/40 bg-accent/40 hover:bg-accent/70 transition-colors px-3 backdrop-blur-sm data-[state=open]:bg-accent/70"
+								size="xl"
+								className="rounded-md py-3 bg-[radial-gradient(circle_at_top_left,rgba(147,30,21,0.26),transparent_28%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(22,163,74,0.0),transparent_26%)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors outline-none focus:outline-none focus:ring-0 focus-within:outline-none focus-within:ring-0 duration-300 px-3 backdrop-blur-sm data-[state=open]:bg-black/5 dark:data-[state=open]:bg-white/5"
 							>
-								<div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-									{activeOrg?.logoUrl ? (
-										<Avatar className="size-8 rounded-lg">
-											<AvatarImage
-												src={activeOrg.logoUrl}
-												alt={activeOrg.name}
-											/>
-											<AvatarFallback className="rounded-lg text-xs font-semibold">
-												{getInitials(activeOrg.name)}
-											</AvatarFallback>
-										</Avatar>
-									) : (
-										<Building2 className="size-4" />
-									)}
-								</div>
 								<div className="grid flex-1 text-left text-sm leading-tight min-w-0">
-									<span className="truncate font-semibold">
-										{activeOrg ? activeOrg.name : `${PROJ_NAME} Platform`}
-									</span>
-									<span className="truncate text-xs text-muted-foreground">
-										{activeOrg ? `@${activeOrg.slug}` : "Personal"}
+									<FextivaLogo
+										className="h-5 w-auto shrink-0"
+										showWordmark={true}
+										wordmarkClassName="text-sm font-extrabold"
+									/>
+									<span className="truncate text-xs text-foreground/70 mt-0.5">
+										{activeOrg ? `@${activeOrg.slug}` : `${PROJ_NAME} Platform`}
 									</span>
 								</div>
-								<ChevronsUpDown className="ml-auto size-4" />
+								<ChevronsUpDown className="ml-auto size-4 shrink-0" />
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent

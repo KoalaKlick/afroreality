@@ -16,7 +16,7 @@ export default async function PromoterPage() {
   return (
     <>
       <PageHeader breadcrumbs={[{ label: "Promoter Dashboard" }]} />
-      <div className="flex flex-1 flex-col gap-6 p-6 max-w-4xl mx-auto w-full">
+      <div className="flex flex-1 flex-col gap-6 max-w-4xl mx-auto w-full">
         <Card>
           <CardHeader>
             <CardTitle>fextiva Promoter Network</CardTitle>

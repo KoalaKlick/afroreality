@@ -53,26 +53,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 	};
 
 	return (
-		<SidebarProvider className="h-svh max-h-svh overflow-hidden">
+		<SidebarProvider>
 			<AppSidebar
 				user={serializeJsonSafe(sidebarUser)}
 				organizations={serializeJsonSafe(organizations)}
 				activeOrganizationId={activeOrganizationId}
 				pendingInvitations={serializeJsonSafe(pendingInvitations)}
 			/>
-			<SidebarInset className="font-sans h-svh max-h-svh flex flex-1 flex-col bg-background min-w-0 max-w-full overflow-hidden">
+			<SidebarInset className="font-sans min-h-svh flex flex-1 flex-col">
 				{/* The Header */}
 				<AppHeader
 					pendingInvitations={serializeJsonSafe(pendingInvitations)}
 					alerts={serializeJsonSafe(platformAlerts)}
 				/>
 
-				{/* The Page Slot Pattern */}
-				<main className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-6 bg-muted/20 min-w-0 max-w-full">
-					<div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 min-w-0">
+				{/* Page Main Content */}
+				<div className="relative flex-1 flex flex-col p-4 sm:p-6 md:p-8">
+					<div className="flex flex-1 flex-col gap-6">
 						{children}
 					</div>
-				</main>
+				</div>
 			</SidebarInset>
 		</SidebarProvider>
 	);

@@ -401,19 +401,21 @@ export function NotificationsSheet<T extends NotificationInvitation = Notificati
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent side="right" className="w-full sm:max-w-md font-poppins flex flex-col p-0">
-				<SheetHeader className="p-5 border-b border-border/40">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<Bell className="size-4.5 text-primary" />
-							<SheetTitle className="text-base font-semibold">Notifications</SheetTitle>
+				<SheetHeader className="p-5 border-b border-white/10">
+					<div className="flex items-center justify-between pr-8">
+						<div className="flex items-center gap-2.5">
+							<div className="size-8 rounded-lg bg-[#e88722]/15 border border-[#e88722]/30 flex items-center justify-center shrink-0">
+								<Bell className="size-4 text-[#f88722]" />
+							</div>
+							<SheetTitle className="text-base font-bold text-[#f7f1df]">Notifications</SheetTitle>
 						</div>
 						{allNotifications.length > 0 && (
-							<span className="text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+							<span className="text-[11px] font-semibold text-white/90 bg-white/10 border border-white/15 px-2 py-0.5 rounded-full shadow-xs">
 								{allNotifications.length}
 							</span>
 						)}
 					</div>
-					<SheetDescription className="text-xs text-muted-foreground">
+					<SheetDescription className="text-xs text-white/70">
 						Team invitations and organization alerts.
 					</SheetDescription>
 				</SheetHeader>

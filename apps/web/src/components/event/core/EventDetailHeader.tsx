@@ -259,8 +259,8 @@ export function EventDetailHeader({
 					className="hidden"
 				/>
 
-				{/* Unified Hero Card with Clean Light Primary-50 Background, No Shadow, No Border Bottom */}
-				<div className="relative rounded-t-2xl rounded-b-none border-t border-x border-b-0 border-border bg-primary-50/70 dark:bg-primary-950/20 overflow-hidden shadow-none">
+				{/* Unified Hero Card with Clean bg-background */}
+				<div className="relative rounded-2xl border border-border bg-background overflow-hidden shadow-none">
 					{/* Audit Trail — top-right corner */}
 					<button
 						type="button"
@@ -273,8 +273,8 @@ export function EventDetailHeader({
 					</button>
 					{/* Card Content: Flier sits flush at bottom, details beside */}
 					<div className="flex flex-col md:flex-row items-stretch md:items-end gap-6 pl-5 pt-5 sm:pl-7 sm:pt-7 pr-5 sm:pr-7 pb-5 sm:pb-7 md:pb-0">
-						{/* Event Flier (Flush with bottom, rounded top, no bottom roundness, border-background) */}
-						<div className="relative shrink-0 w-36 sm:w-44 md:w-52 h-36 sm:h-44 md:h-56 rounded-t-2xl rounded-b-none border-t border-x border-b-0 border-background bg-background overflow-hidden shadow-none group/flier self-start md:self-end">
+						{/* Event Flier (Flush with bottom, rounded top, no bottom roundness) */}
+						<div className="relative shrink-0 w-36 sm:w-44 md:w-52 h-36 sm:h-44 md:h-56 rounded-t-2xl rounded-b-none border-t border-x border-b-0 border-border/60 bg-muted/20 overflow-hidden shadow-none group/flier self-start md:self-end">
 							{flierDisplayUrl ? (
 								<>
 									<img
@@ -553,12 +553,12 @@ export function EventDetailHeader({
 						<Tabs value={activeTab} onValueChange={onTabChange}>
 							<TabsList
 								variant="brand"
-								className="grid grid-cols-2 sm:flex sm:inline-flex w-full sm:w-auto"
+								className="w-full grid grid-cols-2 sm:flex sm:w-full bg-background border border-border rounded-xl p-1 min-h-11 sm:h-12 shadow-xs"
 							>
 								<TabsTrigger
 									variant="brand"
 									value="overview"
-									className="gap-2 rounded"
+									className="gap-2 rounded-lg"
 								>
 									<LayoutDashboard className="size-4" />
 									Overview
@@ -568,7 +568,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="tickets"
-										className="gap-2 rounded"
+										className="gap-2 rounded-lg"
 									>
 										<Ticket className="size-4" />
 										Tickets ({ticketCount})
@@ -579,7 +579,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="verification"
-										className="gap-2 rounded"
+										className="gap-2 rounded-lg"
 									>
 										<QrCode className="size-4" />
 										Verification
@@ -590,7 +590,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="voting"
-										className="gap-2 rounded"
+										className="gap-2 rounded-lg"
 									>
 										<Vote className="size-4" />
 										Voting ({votingCount})
@@ -601,7 +601,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="members"
-										className="gap-2 rounded"
+										className="gap-2 rounded-lg"
 									>
 										<Users className="size-4" />
 										Members
@@ -611,7 +611,7 @@ export function EventDetailHeader({
 								<TabsTrigger
 									variant="brand"
 									value="settings"
-									className="gap-2 rounded"
+									className="gap-2 rounded-lg"
 								>
 									<Settings className="size-4" />
 									Settings

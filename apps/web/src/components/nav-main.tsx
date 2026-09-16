@@ -157,7 +157,7 @@ export function NavMain({
 														asChild
 														isActive={isUrlActive(subItem.url)}
 														className={cn(
-															"rounded-md text-sm font-medium transition-all duration-200 hover:text-foreground data-[active=true]:font-semibold data-[active=true]:text-foreground",
+															"rounded-md text-sm font-medium text-foreground transition-all duration-200 hover:text-foreground data-[active=true]:font-semibold data-[active=true]:text-foreground",
 															color.subHover,
 															color.subActive,
 														)}
