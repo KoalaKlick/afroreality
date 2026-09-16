@@ -58,7 +58,7 @@ export function LandingPartners() {
 	return (
 		<section
 			ref={containerRef}
-			className="relative pt-4 pb-0 sm:pt-6 sm:pb-0 md:pt-6 md:pb-0 overflow-hidden select-none bg-transparent"
+			className="relative py-8 sm:py-12 md:py-10 overflow-hidden select-none bg-background"
 			aria-label="African Payment and Telecom Partners"
 		>
 			{/* Greek Key Pattern Background in Brand Secondary */}
@@ -73,7 +73,7 @@ export function LandingPartners() {
 			<div className="relative z-10 w-full overflow-hidden">
 				<motion.div
 					style={{ x }}
-					className="flex items-center whitespace-nowrap will-change-transform transform-gpu py-1 pl-0 pr-4"
+					className="flex items-center whitespace-nowrap will-change-transform transform-gpu py-3 pl-0 pr-4"
 				>
 					{/* THE "PUSHER" - Starting end bleeds offscreen to the left; only the rounded right end is visible with all text */}
 					<div

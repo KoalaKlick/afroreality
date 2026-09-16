@@ -61,7 +61,7 @@ export default async function HomePage() {
 	return (
 		<div className="min-h-screen w-full overflow-x-clip space-y-20 bg-sepia-50 text-foreground">
 			<LandingNavbar />
-			<main className="space-y-10 [&>*:nth-child(2)]:!mt-4 [&>*:nth-child(3)]:!mt-0 [&>*:nth-child(3)]:!m-0">
+			<main className="space-y-10 [&>*:nth-child(3)]:!mt-0">
 				<LandingHero />
 				<LandingPartners />
 				<LandingEventsSection
