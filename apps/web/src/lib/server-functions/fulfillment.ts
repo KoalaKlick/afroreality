@@ -2,6 +2,10 @@ import { prisma } from "@repo/db";
 import { createTicketToken } from "@/lib/ticket-crypto";
 import { generateNomineeCode } from "@/lib/server-functions/voting-options";
 import { sendNominationConfirmationEmail } from "@/lib/email/nomination";
+import {
+	sendTicketWhatsAppNotification,
+	sendVoteReceiptWhatsAppNotification,
+} from "@/lib/services/whatsapp";
 
 export interface FulfillmentResult {
 	success: boolean;
@@ -135,6 +139,25 @@ export async function fulfillSuccessfulPayment({
 						}));
 					}
 				}
+
+				// Send WhatsApp ticket notification
+				const buyerPhone = metadata.buyerPhone || metadata.phone || metadata.attendeePhone || null;
+				if (buyerPhone && generatedTickets.length > 0) {
+					try {
+						const event = await prisma.event.findUnique({
+							where: { id: eventId },
+							select: { title: true },
+						});
+						await sendTicketWhatsAppNotification({
+							phone: buyerPhone,
+							attendeeName: buyerName,
+							eventTitle: event?.title || "Fextiva Event",
+							ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
+						});
+					} catch (waErr) {
+						console.error("[WhatsApp] Error sending ticket confirmation:", waErr);
+					}
+				}
 			}
 		}
 
@@ -172,6 +195,26 @@ export async function fulfillSuccessfulPayment({
 						votesCount: { increment: voteCount },
 					},
 				});
+
+				// Send WhatsApp vote confirmation
+				if (voterPhone) {
+					try {
+						const option = await prisma.votingOption.findUnique({
+							where: { id: optionId },
+							include: { category: true },
+						});
+						await sendVoteReceiptWhatsAppNotification({
+							phone: voterPhone,
+							voterName: metadata.voterName || undefined,
+							nomineeName: option?.optionText || "Nominee",
+							categoryName: option?.category?.name || undefined,
+							votesCount: voteCount,
+							reference,
+						});
+					} catch (waErr) {
+						console.error("[WhatsApp] Error sending vote receipt:", waErr);
+					}
+				}
 			}
 		}
 

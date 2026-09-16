@@ -5,6 +5,8 @@ export interface Env {
 	ARKESEL_API_KEY?: string;
 	HUBTEL_CLIENT_ID?: string;
 	HUBTEL_CLIENT_SECRET?: string;
+	WHATSAPP_API_TOKEN?: string;
+	WHATSAPP_PHONE_NUMBER_ID?: string;
 }
 
 export default {
@@ -45,6 +47,39 @@ export default {
 								recipients: [phone],
 							}),
 						});
+					}
+
+					// Send notification via WhatsApp Cloud API
+					if (phone && env.WHATSAPP_API_TOKEN && env.WHATSAPP_PHONE_NUMBER_ID) {
+						try {
+							const cleanPhone = phone.replace(/[^0-9]/g, "");
+							const normalizedPhone =
+								cleanPhone.startsWith("0") && cleanPhone.length === 10
+									? `233${cleanPhone.slice(1)}`
+									: cleanPhone;
+
+							await fetch(
+								`https://graph.facebook.com/v22.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+								{
+									method: "POST",
+									headers: {
+										Authorization: `Bearer ${env.WHATSAPP_API_TOKEN}`,
+										"Content-Type": "application/json",
+									},
+									body: JSON.stringify({
+										messaging_product: "whatsapp",
+										recipient_type: "individual",
+										to: normalizedPhone,
+										type: "text",
+										text: {
+											body: `🎟️ *Fextiva Payment Received*\n\nYour payment for reference *${reference}* has been successfully processed.\n\nThank you for choosing Fextiva!`,
+										},
+									}),
+								},
+							);
+						} catch (waErr) {
+							console.error("WhatsApp Delivery Error:", waErr);
+						}
 					}
 				}
 
