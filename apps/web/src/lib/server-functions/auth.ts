@@ -71,10 +71,15 @@ export async function loginAction({
   const cleanId = identifier.toLowerCase().trim();
 
   try {
-    const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "kgyan19lf@gmail.com").toLowerCase().trim();
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || "MeYou123";
+    const superAdminEmail = process.env.SUPER_ADMIN_EMAIL?.toLowerCase().trim();
+    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
 
-    if (cleanId === superAdminEmail && password === superAdminPassword) {
+    if (
+      superAdminEmail &&
+      superAdminPassword &&
+      cleanId === superAdminEmail &&
+      password === superAdminPassword
+    ) {
       let superUser = await prisma.profile.findFirst({
         where: {
           OR: [{ email: superAdminEmail }, { username: "superadmin" }],
