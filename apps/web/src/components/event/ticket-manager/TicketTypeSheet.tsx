@@ -77,6 +77,15 @@ interface TicketTypeSheetProps {
 	readonly onSaved?: () => void;
 }
 
+function sanitizeNumberInput(value: string): string {
+	if (!value) return "";
+	// Strip leading zeros if followed by another digit (e.g. "05" -> "5", but keep "0.")
+	if (/^0\d/.test(value)) {
+		return value.replace(/^0+/, "");
+	}
+	return value;
+}
+
 export function TicketTypeSheet({
 	eventId,
 	organizationId,
@@ -86,16 +95,16 @@ export function TicketTypeSheet({
 	editingTicket,
 	onSaved,
 }: TicketTypeSheetProps) {
-	const [isPending, startTransition] = useTransition();
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
-		price: DEFAULT_TICKET_PRICE,
+		price: (DEFAULT_TICKET_PRICE ? String(DEFAULT_TICKET_PRICE) : "0") as string | number,
 		quantityTotal: "" as string | number,
 		salesStart: "",
 		salesEnd: "",
-		maxPerOrder: 10,
-		minPerOrder: 1,
+		maxPerOrder: 10 as string | number,
+		minPerOrder: 1 as string | number,
 		status: "available",
 		primaryColor: "#009A44",
 		secondaryColor: "#CE1126",
@@ -107,7 +116,10 @@ export function TicketTypeSheet({
 			setFormData({
 				name: editingTicket.name,
 				description: editingTicket.description ?? "",
-				price: editingTicket.price ?? DEFAULT_TICKET_PRICE,
+				price:
+					editingTicket.price !== undefined && editingTicket.price !== null
+						? String(editingTicket.price)
+						: "0",
 				quantityTotal: editingTicket.quantityTotal ?? "",
 				salesStart: editingTicket.salesStart
 					? new Date(editingTicket.salesStart).toISOString().slice(0, 16)
@@ -127,7 +139,7 @@ export function TicketTypeSheet({
 			setFormData({
 				name: "",
 				description: "",
-				price: DEFAULT_TICKET_PRICE,
+				price: DEFAULT_TICKET_PRICE ? String(DEFAULT_TICKET_PRICE) : "0",
 				quantityTotal: "",
 				salesStart: "",
 				salesEnd: "",
@@ -141,14 +153,16 @@ export function TicketTypeSheet({
 		}
 	}, [editingTicket, open]);
 
-	function handleSubmit(e: React.FormEvent) {
+	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
+		if (isSubmitting) return;
+
 		if (!formData.name.trim()) {
 			toast.error("Ticket name is required");
 			return;
 		}
 
-		const priceNum = Number(formData.price);
+		const priceNum = formData.price === "" ? 0 : Number(formData.price);
 		if (Number.isNaN(priceNum) || priceNum < 0) {
 			toast.error("Ticket price cannot be negative");
 			return;
@@ -160,13 +174,13 @@ export function TicketTypeSheet({
 			return;
 		}
 
-		const minOrder = Number(formData.minPerOrder);
+		const minOrder = formData.minPerOrder === "" ? 1 : Number(formData.minPerOrder);
 		if (Number.isNaN(minOrder) || minOrder < 1) {
 			toast.error("Minimum order quantity must be at least 1");
 			return;
 		}
 
-		const maxOrder = Number(formData.maxPerOrder);
+		const maxOrder = formData.maxPerOrder === "" ? 10 : Number(formData.maxPerOrder);
 		if (Number.isNaN(maxOrder) || maxOrder < minOrder) {
 			toast.error(
 				"Maximum order quantity cannot be less than minimum order quantity",
@@ -182,62 +196,63 @@ export function TicketTypeSheet({
 			}
 		}
 
-		startTransition(async () => {
-			try {
-				if (editingTicket) {
-					await updateTicketType({
-						data: {
-							id: editingTicket.id,
-							organizationId,
-							name: formData.name,
-							description: formData.description || null,
-							price: Number(formData.price) || 0,
-							quantityTotal: formData.quantityTotal
-								? Number(formData.quantityTotal)
-								: null,
-							salesStart: formData.salesStart || null,
-							salesEnd: formData.salesEnd || null,
-							maxPerOrder: Number(formData.maxPerOrder) || 10,
-							minPerOrder: Number(formData.minPerOrder) || 1,
-							status: formData.status as any,
-							primaryColor: formData.primaryColor,
-							secondaryColor: formData.secondaryColor,
-							designVariant: formData.designVariant as any,
-							color: formData.primaryColor,
-						},
-					});
-					toast.success("Ticket tier updated successfully");
-				} else {
-					await createTicketType({
-						data: {
-							eventId,
-							organizationId,
-							name: formData.name,
-							description: formData.description || undefined,
-							price: Number(formData.price) || 0,
-							currency: "GHS",
-							quantityTotal: formData.quantityTotal
-								? Number(formData.quantityTotal)
-								: undefined,
-							salesStart: formData.salesStart || undefined,
-							salesEnd: formData.salesEnd || undefined,
-							maxPerOrder: Number(formData.maxPerOrder) || 10,
-							minPerOrder: Number(formData.minPerOrder) || 1,
-							primaryColor: formData.primaryColor,
-							secondaryColor: formData.secondaryColor,
-							designVariant: formData.designVariant as any,
-							color: formData.primaryColor,
-						},
-					});
-					toast.success("Ticket tier created successfully");
-				}
-
-				onOpenChange(false);
-				if (onSaved) onSaved();
-			} catch (err) {
-				toast.error(getErrorMessage(err));
+		setIsSubmitting(true);
+		try {
+			if (editingTicket) {
+				await updateTicketType({
+					data: {
+						id: editingTicket.id,
+						organizationId,
+						name: formData.name,
+						description: formData.description || null,
+						price: priceNum,
+						quantityTotal: formData.quantityTotal
+							? Number(formData.quantityTotal)
+							: null,
+						salesStart: formData.salesStart || null,
+						salesEnd: formData.salesEnd || null,
+						maxPerOrder: maxOrder,
+						minPerOrder: minOrder,
+						status: formData.status as any,
+						primaryColor: formData.primaryColor,
+						secondaryColor: formData.secondaryColor,
+						designVariant: formData.designVariant as any,
+						color: formData.primaryColor,
+					},
+				});
+				toast.success("Ticket tier updated successfully");
+			} else {
+				await createTicketType({
+					data: {
+						eventId,
+						organizationId,
+						name: formData.name,
+						description: formData.description || undefined,
+						price: priceNum,
+						currency: "GHS",
+						quantityTotal: formData.quantityTotal
+							? Number(formData.quantityTotal)
+							: undefined,
+						salesStart: formData.salesStart || undefined,
+						salesEnd: formData.salesEnd || undefined,
+						maxPerOrder: maxOrder,
+						minPerOrder: minOrder,
+						primaryColor: formData.primaryColor,
+						secondaryColor: formData.secondaryColor,
+						designVariant: formData.designVariant as any,
+						color: formData.primaryColor,
+					},
+				});
+				toast.success("Ticket tier created successfully");
 			}
-		});
+
+			onOpenChange(false);
+			if (onSaved) onSaved();
+		} catch (err) {
+			toast.error(getErrorMessage(err));
+		} finally {
+			setIsSubmitting(false);
+		}
 	}
 
 	return (
@@ -309,12 +324,14 @@ export function TicketTypeSheet({
 										min={MIN_TICKET_PRICE}
 										step="0.01"
 										value={formData.price}
+										onFocus={(e) => e.target.select()}
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
-												price: parseFloat(e.target.value) || 0,
+												price: sanitizeNumberInput(e.target.value),
 											}))
 										}
+										placeholder="0.00"
 										required
 									/>
 									<p className="text-[10px] text-muted-foreground">
@@ -330,10 +347,11 @@ export function TicketTypeSheet({
 										type="number"
 										min="1"
 										value={formData.quantityTotal}
+										onFocus={(e) => e.target.select()}
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
-												quantityTotal: e.target.value,
+												quantityTotal: sanitizeNumberInput(e.target.value),
 											}))
 										}
 										placeholder="Unlimited"
@@ -359,10 +377,11 @@ export function TicketTypeSheet({
 											min="1"
 											max="100"
 											value={formData.minPerOrder}
+											onFocus={(e) => e.target.select()}
 											onChange={(e) =>
 												setFormData((prev) => ({
 													...prev,
-													minPerOrder: parseInt(e.target.value, 10) || 1,
+													minPerOrder: sanitizeNumberInput(e.target.value),
 												}))
 											}
 										/>
@@ -376,10 +395,11 @@ export function TicketTypeSheet({
 											min="1"
 											max="100"
 											value={formData.maxPerOrder}
+											onFocus={(e) => e.target.select()}
 											onChange={(e) =>
 												setFormData((prev) => ({
 													...prev,
-													maxPerOrder: parseInt(e.target.value, 10) || 10,
+													maxPerOrder: sanitizeNumberInput(e.target.value),
 												}))
 											}
 										/>
@@ -600,12 +620,12 @@ export function TicketTypeSheet({
 							type="button"
 							variant="outline"
 							onClick={() => onOpenChange(false)}
-							disabled={isPending}
+							disabled={isSubmitting}
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isPending}>
-							{isPending ? (
+						<Button type="submit" disabled={isSubmitting}>
+							{isSubmitting ? (
 								<>
 									<Loader2 className="mr-2 size-4 animate-spin" />
 									Saving...

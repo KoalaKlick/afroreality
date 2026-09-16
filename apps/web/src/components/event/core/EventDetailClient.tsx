@@ -36,6 +36,8 @@ export function EventDetailClient({
 	const [activeTab, setActiveTab] = useState("overview");
 	const [isTicketSheetOpen, setIsTicketSheetOpen] = useState(false);
 	const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
+	const [editingTicket, setEditingTicket] = useState<any | null>(null);
+	const [editingCategory, setEditingCategory] = useState<any | null>(null);
 
 	const isTicketed = event.type === "ticketed" || event.type === "hybrid";
 	const isVoting = event.type === "voting" || event.type === "hybrid";
@@ -62,8 +64,6 @@ export function EventDetailClient({
 				isVoting={isVoting}
 				ticketCount={ticketTypes.length}
 				votingCount={votingCategories.length}
-				onAddTicket={() => setIsTicketSheetOpen(true)}
-				onAddCategory={() => setIsCategorySheetOpen(true)}
 				showMembers={showMembers}
 			/>
 
@@ -88,7 +88,15 @@ export function EventDetailClient({
 							onRefresh={() => void router.refresh()}
 							canEdit={canEdit}
 							isSheetOpen={isTicketSheetOpen}
-							onSheetOpenChange={setIsTicketSheetOpen}
+							onSheetOpenChange={(open) => {
+								setIsTicketSheetOpen(open);
+								if (!open) setEditingTicket(null);
+							}}
+							editingTicket={editingTicket}
+							onEditTicket={(ticket) => {
+								setEditingTicket(ticket);
+								setIsTicketSheetOpen(true);
+							}}
 						/>
 					</TabsContent>
 				)}
@@ -107,7 +115,15 @@ export function EventDetailClient({
 							onRefresh={() => void router.refresh()}
 							canEdit={canEdit}
 							isSheetOpen={isCategorySheetOpen}
-							onSheetOpenChange={setIsCategorySheetOpen}
+							onSheetOpenChange={(open) => {
+								setIsCategorySheetOpen(open);
+								if (!open) setEditingCategory(null);
+							}}
+							editingCategory={editingCategory}
+							onEditCategory={(cat) => {
+								setEditingCategory(cat);
+								setIsCategorySheetOpen(true);
+							}}
 						/>
 					</TabsContent>
 				)}

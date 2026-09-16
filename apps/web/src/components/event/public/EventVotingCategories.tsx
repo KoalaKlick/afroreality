@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Vote, Users, ChevronRight } from "lucide-react";
+import { Vote, Users, ChevronRight, Clock } from "lucide-react";
 import { Section } from "@/components/Landing/shared/Section";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
@@ -12,6 +12,8 @@ interface EventVotingCategoriesProps {
 	readonly categories: any[];
 	readonly orgSlug: string;
 	readonly eventSlug: string;
+	readonly isUpcoming?: boolean;
+	readonly startDate?: string | Date | null;
 }
 
 function stripHtml(html?: string | null): string {
@@ -23,6 +25,8 @@ export function EventVotingCategories({
 	categories,
 	orgSlug,
 	eventSlug,
+	isUpcoming = false,
+	startDate,
 }: EventVotingCategoriesProps) {
 	return (
 		<Section
@@ -39,6 +43,18 @@ export function EventVotingCategories({
 						Vote Categories
 					</h2>
 				</div>
+
+				{isUpcoming && startDate && (
+					<div className="mb-4 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 flex items-center gap-2.5 text-amber-700 dark:text-amber-400">
+						<Clock className="size-4 shrink-0" />
+						<p className="text-xs font-bold uppercase tracking-wider">
+							Voting has not started yet &mdash; opens on {new Date(startDate).toLocaleString("en-GH", {
+								dateStyle: "medium",
+								timeStyle: "short",
+							})}.
+						</p>
+					</div>
+				)}
 
 				{categories.length > 0 ? (
 					<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-6">

@@ -311,6 +311,24 @@ async function handleVotingFlow(
 	tokens: string[],
 	phoneNumber: string,
 ): Promise<string> {
+	const now = new Date();
+	if (event.startDate && new Date(event.startDate) > now) {
+		const startStr = new Date(event.startDate).toLocaleDateString("en-GH", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		});
+		return `END Voting has not started yet. Voting opens on ${startStr}.`;
+	}
+
+	if (
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(event.endDate && new Date(event.endDate) < now)
+	) {
+		return "END Voting for this event has ended.";
+	}
+
 	const categories = (event.votingCategories || []).sort(
 		(a: any, b: any) => (a.orderIdx ?? 0) - (b.orderIdx ?? 0),
 	);
@@ -381,11 +399,38 @@ async function handleTicketFlow(
 	tokens: string[],
 	phoneNumber: string,
 ): Promise<string> {
-	const tickets = (event.ticketTypes || [])
-		.filter((t: any) => t.status === "available")
+	const now = new Date();
+	if (
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(event.endDate && new Date(event.endDate) < now)
+	) {
+		return "END Ticket sales for this event have ended.";
+	}
+
+	const allAvailable = (event.ticketTypes || []).filter((t: any) => t.status === "available");
+	const tickets = allAvailable
+		.filter((t: any) => {
+			if (t.salesStart && new Date(t.salesStart) > now) return false;
+			if (t.salesEnd && new Date(t.salesEnd) < now) return false;
+			return true;
+		})
 		.sort((a: any, b: any) => (a.orderIdx ?? 0) - (b.orderIdx ?? 0));
 
-	if (tickets.length === 0) return "END No tickets available.";
+	if (tickets.length === 0) {
+		const upcoming = allAvailable.filter((t: any) => t.salesStart && new Date(t.salesStart) > now);
+		if (upcoming.length > 0) {
+			const earliest = upcoming.sort(
+				(a: any, b: any) => new Date(a.salesStart).getTime() - new Date(b.salesStart).getTime(),
+			)[0];
+			const startStr = new Date(earliest.salesStart).toLocaleDateString("en-GH", {
+				month: "short",
+				day: "numeric",
+			});
+			return `END Ticket sales have not started yet. Sales open on ${startStr}.`;
+		}
+		return "END No tickets available.";
+	}
 
 	const tktSelection = getPaginatedSelection(tokens);
 	if (tktSelection.selectedIndex === null) {

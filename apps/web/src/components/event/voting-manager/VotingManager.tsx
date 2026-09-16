@@ -13,6 +13,8 @@ interface VotingManagerProps {
 	readonly canEdit?: boolean;
 	readonly isSheetOpen?: boolean;
 	readonly onSheetOpenChange?: (open: boolean) => void;
+	readonly editingCategory?: CategoryItem | null;
+	readonly onEditCategory?: (cat: CategoryItem | null) => void;
 }
 
 export function VotingManager({
@@ -22,6 +24,8 @@ export function VotingManager({
 	canEdit = true,
 	isSheetOpen,
 	onSheetOpenChange,
+	editingCategory,
+	onEditCategory,
 }: VotingManagerProps) {
 	return (
 		<div className="space-y-6">
@@ -33,6 +37,8 @@ export function VotingManager({
 				canEdit={canEdit}
 				isSheetOpen={isSheetOpen}
 				onSheetOpenChange={onSheetOpenChange}
+				editingCategory={editingCategory}
+				onEditCategory={onEditCategory}
 			/>
 		</div>
 	);

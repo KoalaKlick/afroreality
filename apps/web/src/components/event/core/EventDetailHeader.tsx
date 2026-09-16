@@ -16,7 +16,6 @@ import {
 	Loader2,
 	MapPin,
 	Pencil,
-	Plus,
 	QrCode,
 	Settings,
 	Share2,
@@ -75,8 +74,6 @@ interface EventDetailHeaderProps {
 	readonly isVoting?: boolean;
 	readonly ticketCount?: number;
 	readonly votingCount?: number;
-	readonly onAddTicket?: () => void;
-	readonly onAddCategory?: () => void;
 	readonly showMembers?: boolean;
 }
 
@@ -110,8 +107,6 @@ export function EventDetailHeader({
 	isVoting = false,
 	ticketCount = 0,
 	votingCount = 0,
-	onAddTicket,
-	onAddCategory,
 	showMembers = false,
 }: EventDetailHeaderProps) {
 	const router = useRouter();
@@ -443,28 +438,6 @@ export function EventDetailHeader({
 							<div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
 								{/* Left: Action Buttons */}
 								<div className="flex flex-wrap items-center gap-2.5">
-									{/* Primary Add Actions */}
-									{canEdit && isTicketed && onAddTicket && (
-										<Button
-											size="sm"
-											onClick={onAddTicket}
-											className="gap-1.5 shadow-xs"
-										>
-											<Plus className="size-4" />
-											Add Ticket Tier
-										</Button>
-									)}
-									{canEdit && isVoting && onAddCategory && (
-										<Button
-											size="sm"
-											onClick={onAddCategory}
-											className="gap-1.5 shadow-xs"
-										>
-											<Plus className="size-4" />
-											Add Category
-										</Button>
-									)}
-
 									{/* Share Button */}
 									<Button
 										variant="outline"

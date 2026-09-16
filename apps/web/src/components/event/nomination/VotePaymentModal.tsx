@@ -48,6 +48,8 @@ interface VotePaymentModalProps {
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
 	readonly brandVars?: React.CSSProperties;
+	readonly isUpcoming?: boolean;
+	readonly startDate?: string | Date | null;
 }
 
 type ModalStep = "checkout" | "processing" | "success" | "error";
@@ -61,6 +63,8 @@ export function VotePaymentModal({
 	categoryId,
 	votingMode = "general",
 	brandVars,
+	isUpcoming = false,
+	startDate,
 }: VotePaymentModalProps) {
 	const router = useRouter();
 	const isInternalVoting = votingMode === "internal";
@@ -339,17 +343,34 @@ export function VotePaymentModal({
 							</div>
 						)}
 
+						{isUpcoming && (
+							<div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-xs text-amber-700 dark:text-amber-400 text-center">
+								Voting for this event has not started yet.
+								{startDate && (
+									<>
+										{" "}Voting opens on{" "}
+										{new Date(startDate).toLocaleString("en-GH", {
+											dateStyle: "medium",
+											timeStyle: "short",
+										})}.
+									</>
+								)}
+							</div>
+						)}
+
 						<Button
 							type="submit"
 							className="w-full font-bold text-xs h-10 gap-2"
-							disabled={loading || !isFormValid}
+							disabled={loading || !isFormValid || isUpcoming}
 						>
 							<Vote className="size-4" />
-							{isInternalVoting
-								? "Cast Confidential Ballot"
-								: isFree
-									? "Submit Free Vote"
-									: `Pay GHS ${totalAmount.toFixed(2)} for ${voteCount} ${voteCount === 1 ? "Vote" : "Votes"}`}
+							{isUpcoming
+								? "Voting Not Started Yet"
+								: isInternalVoting
+									? "Cast Confidential Ballot"
+									: isFree
+										? "Submit Free Vote"
+										: `Pay GHS ${totalAmount.toFixed(2)} for ${voteCount} ${voteCount === 1 ? "Vote" : "Votes"}`}
 						</Button>
 					</form>
 				)}

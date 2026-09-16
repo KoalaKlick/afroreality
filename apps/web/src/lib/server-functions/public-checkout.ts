@@ -105,6 +105,32 @@ export async function initiatePublicTicketCheckout({
 			};
 		}
 
+		const now = new Date();
+		if (ticketType.salesStart && now < new Date(ticketType.salesStart)) {
+			const startsFormatted = new Date(ticketType.salesStart).toLocaleString("en-GH", {
+				dateStyle: "medium",
+				timeStyle: "short",
+			});
+			return {
+				success: false,
+				error: `Ticket sales for "${ticketType.name}" have not started yet. Sales start on ${startsFormatted}.`,
+			};
+		}
+
+		if (ticketType.salesEnd && now > new Date(ticketType.salesEnd)) {
+			return {
+				success: false,
+				error: `Ticket sales for "${ticketType.name}" have ended.`,
+			};
+		}
+
+		if (ticketType.event?.status === "cancelled" || ticketType.event?.status === "ended") {
+			return {
+				success: false,
+				error: "Ticket sales for this event are closed.",
+			};
+		}
+
 		// Check capacity / limit
 		if (ticketType.quantityTotal != null) {
 			const remaining = ticketType.quantityTotal - ticketType.quantitySold;
@@ -350,6 +376,30 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			return {
 				success: false,
 				error: "Nominee not found in this category.",
+			};
+		}
+
+		const event = category.event;
+		const now = new Date();
+		if (event.startDate && now < new Date(event.startDate)) {
+			const startsFormatted = new Date(event.startDate).toLocaleString("en-GH", {
+				dateStyle: "medium",
+				timeStyle: "short",
+			});
+			return {
+				success: false,
+				error: `Voting for this event has not started yet. Voting opens on ${startsFormatted}.`,
+			};
+		}
+
+		if (
+			event.status === "ended" ||
+			event.status === "cancelled" ||
+			(event.endDate && now > new Date(event.endDate))
+		) {
+			return {
+				success: false,
+				error: "Voting for this event has ended.",
 			};
 		}
 

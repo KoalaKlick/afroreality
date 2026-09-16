@@ -49,6 +49,8 @@ interface TicketListProps {
 	readonly canEdit?: boolean;
 	readonly isSheetOpen?: boolean;
 	readonly onSheetOpenChange?: (open: boolean) => void;
+	readonly editingTicket?: TicketTypeItem | null;
+	readonly onEditTicket?: (ticket: TicketTypeItem | null) => void;
 }
 
 interface TicketStatProps {
@@ -88,22 +90,49 @@ export function TicketList({
 	canEdit = true,
 	isSheetOpen,
 	onSheetOpenChange,
+	editingTicket,
+	onEditTicket,
 }: TicketListProps) {
-	const [editingTicket, setEditingTicket] = useState<TicketTypeItem | null>(
-		null,
-	);
+	const [internalEditingTicket, setInternalEditingTicket] =
+		useState<TicketTypeItem | null>(null);
+	const [internalIsSheetOpen, setInternalIsSheetOpen] = useState(false);
 	const [ticketToDelete, setTicketToDelete] = useState<TicketTypeItem | null>(
 		null,
 	);
 	const [isDeleting, startTransition] = useTransition();
 
+	const currentEditingTicket =
+		editingTicket !== undefined ? editingTicket : internalEditingTicket;
+	const sheetOpen = isSheetOpen !== undefined ? isSheetOpen : internalIsSheetOpen;
+
+	function setTicket(ticket: TicketTypeItem | null) {
+		if (onEditTicket) {
+			onEditTicket(ticket);
+		} else {
+			setInternalEditingTicket(ticket);
+		}
+	}
+
 	const primaryColor = organization?.primaryColor || "#009A44";
 	const secondaryColor = organization?.secondaryColor || "#CE1126";
 	const organizationName = organization?.name || "fextiva";
 
+	function handleSheetOpenChange(open: boolean) {
+		setInternalIsSheetOpen(open);
+		if (!open) {
+			setTicket(null);
+		}
+		onSheetOpenChange?.(open);
+	}
+
 	function handleEdit(ticket: TicketTypeItem) {
-		setEditingTicket(ticket);
-		onSheetOpenChange?.(true);
+		setTicket(ticket);
+		handleSheetOpenChange(true);
+	}
+
+	function handleAddTicket() {
+		setTicket(null);
+		handleSheetOpenChange(true);
 	}
 
 	function handleDelete() {
@@ -138,10 +167,7 @@ export function TicketList({
 					{canEdit && (
 						<Button
 							size="sm"
-							onClick={() => {
-								setEditingTicket(null);
-								onSheetOpenChange?.(true);
-							}}
+							onClick={handleAddTicket}
 						>
 							<Plus className="size-4 mr-2" />
 							Add Ticket Tier
@@ -149,11 +175,33 @@ export function TicketList({
 					)}
 				</Card>
 			) : (
-				<div className="grid gap-4">
+				<div className="space-y-4">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+						<div>
+							<h3 className="text-lg font-bold text-foreground">
+								Ticket Tiers
+							</h3>
+							<p className="text-xs text-muted-foreground">
+								{ticketTypes.length} {ticketTypes.length === 1 ? "tier" : "tiers"} configured
+							</p>
+						</div>
+						{canEdit && (
+							<Button
+								size="sm"
+								onClick={handleAddTicket}
+								className="gap-1.5 font-semibold text-xs"
+							>
+								<Plus className="size-3.5" />
+								Add Ticket Tier
+							</Button>
+						)}
+					</div>
+
+					<div className="grid gap-4">
 					{ticketTypes.map((ticket) => (
 						<div
 							key={ticket.id}
-							className="group rounded-md border bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-xs"
+							className="group rounded-md border bg-white p-4 transition-all hover:-translate-y-0.5 hover:shadow-xs"
 						>
 							<div className="grid gap-6 lg:grid-cols-[400px_minmax(0,1fr)] lg:items-center">
 								<div className="mx-auto lg:mx-0 w-full">
@@ -329,6 +377,7 @@ export function TicketList({
 							</div>
 						</div>
 					))}
+					</div>
 				</div>
 			)}
 
@@ -336,10 +385,11 @@ export function TicketList({
 				eventId={eventId}
 				organizationId={organizationId}
 				flierImage={flierImage}
-				open={isSheetOpen ?? false}
-				onOpenChange={onSheetOpenChange ?? (() => {})}
-				editingTicket={editingTicket}
+				open={sheetOpen}
+				onOpenChange={handleSheetOpenChange}
+				editingTicket={currentEditingTicket}
 				onSaved={() => {
+					setTicket(null);
 					onRefresh?.();
 				}}
 			/>

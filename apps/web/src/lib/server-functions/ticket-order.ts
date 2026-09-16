@@ -11,9 +11,31 @@ export async function createTicketOrder({ data }: { data: any }): Promise<any> {
     const order = await prisma.$transaction(async (tx) => {
       const ticketType = await tx.ticketType.findUnique({
         where: { id: data.ticketTypeId },
+        include: { event: true },
       });
       if (!ticketType || ticketType.eventId !== data.eventId) {
         throw new Error("Invalid ticket type");
+      }
+
+      if (ticketType.status !== "available") {
+        throw new Error("This ticket tier is currently not available for purchase.");
+      }
+
+      const now = new Date();
+      if (ticketType.salesStart && now < new Date(ticketType.salesStart)) {
+        const startsFormatted = new Date(ticketType.salesStart).toLocaleString("en-GH", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        });
+        throw new Error(`Ticket sales for "${ticketType.name}" have not started yet (starts ${startsFormatted}).`);
+      }
+
+      if (ticketType.salesEnd && now > new Date(ticketType.salesEnd)) {
+        throw new Error(`Ticket sales for "${ticketType.name}" have ended.`);
+      }
+
+      if (ticketType.event?.status === "cancelled" || ticketType.event?.status === "ended") {
+        throw new Error("Ticket sales for this event are closed.");
       }
 
       const sold = await tx.ticket.count({

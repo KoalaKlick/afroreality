@@ -1,36 +1,18 @@
 "use client";
-import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
-import { RichTextDisplay } from "@/components/ui/rich-text-display";
 
 import { useState } from "react";
-import { Calendar, Lock, Tag, Ticket as TicketIcon } from "lucide-react";
+import { Ticket as TicketIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { NoTicketIllustration } from "@/components/common/NoTicketIllustration";
 import { TicketRenderer } from "@/components/shared/ticket-variants/TicketRenderer";
+import { StatusBadge } from "@/components/common/status-badge";
 import { PublicTicketPaymentModal } from "@/components/event/public/PublicTicketPaymentModal";
+import {
+  PublicTicketDetailSheet,
+  type PublicTicket,
+} from "@/components/event/public/PublicTicketDetailSheet";
 
-interface PublicTicket {
-  readonly id: string;
-  readonly name: string;
-  readonly description: string | null;
-  readonly price: number;
-  readonly currency: string;
-  readonly quantityTotal: number | null;
-  readonly quantitySold: number;
-  readonly salesEnd: string | null;
-  readonly status: string;
-  readonly orderIdx: number;
-  readonly color?: string | null;
-  readonly primaryColor?: string | null;
-  readonly secondaryColor?: string | null;
-  readonly designVariant?: string | null;
-}
+export type { PublicTicket };
 
 interface PublicTicketGridProps {
   readonly tickets: PublicTicket[];
@@ -63,16 +45,24 @@ function formatAmount(amount: number, currency: string) {
   return amount === 0
     ? "Free"
     : new Intl.NumberFormat("en-GH", {
-      style: "currency",
-      currency,
-    }).format(amount);
+        style: "currency",
+        currency,
+      }).format(amount);
 }
 
-function formatDate(value: string | null) {
+function formatDate(value?: string | null) {
   if (!value) return "Open";
   return new Date(value).toLocaleString("en-GH", {
     dateStyle: "medium",
     timeStyle: "short",
+  });
+}
+
+function formatShortDate(value?: string | null) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-GH", {
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -84,12 +74,8 @@ export function PublicTicketGrid({
   event,
   organization,
 }: PublicTicketGridProps) {
-  const [selectedTicket, setSelectedTicket] = useState<PublicTicket | null>(
-    null,
-  );
-  const [ticketToPurchase, setTicketToPurchase] = useState<PublicTicket | null>(
-    null,
-  );
+  const [selectedTicket, setSelectedTicket] = useState<PublicTicket | null>(null);
+  const [ticketToPurchase, setTicketToPurchase] = useState<PublicTicket | null>(null);
 
   const venue = event.isVirtual
     ? event.virtualLink || "Virtual event"
@@ -97,14 +83,13 @@ export function PublicTicketGrid({
 
   const dateTime = event.startDate
     ? new Date(event.startDate).toLocaleString("en-GH", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    })
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
     : "Date to be announced";
 
   const orgPrimary = organization.primaryColor || "var(--color-brand-primary)";
-  const orgSecondary =
-    organization.secondaryColor || "var(--color-brand-tertiary)";
+  const orgSecondary = organization.secondaryColor || "var(--color-brand-tertiary)";
 
   const brandVars = {
     "--color-brand-primary": organization.primaryColor || "#009A44",
@@ -130,18 +115,53 @@ export function PublicTicketGrid({
     <>
       <div className="grid gap-6 lg:grid-cols-2">
         {tickets.map((ticket) => {
-          const primaryColor =
-            ticket.primaryColor || ticket.color || orgPrimary;
+          const primaryColor = ticket.primaryColor || ticket.color || orgPrimary;
           const secondaryColor = ticket.secondaryColor || orgSecondary;
 
+          const now = Date.now();
+          const isUpcoming = Boolean(ticket.salesStart && new Date(ticket.salesStart).getTime() > now);
+          const isSalesEnded = Boolean(ticket.salesEnd && new Date(ticket.salesEnd).getTime() < now);
+          const isSoldOut =
+            ticket.quantityTotal !== null &&
+            ticket.quantityTotal - ticket.quantitySold <= 0;
+
+          const isDisabled =
+            isEnded ||
+            isUpcoming ||
+            isSalesEnded ||
+            ticket.status !== "available" ||
+            isSoldOut;
+
+          const buttonLabel = isEnded
+            ? "Closed"
+            : isUpcoming
+              ? `Opens ${formatShortDate(ticket.salesStart)}`
+              : isSalesEnded
+                ? "Ended"
+                : isSoldOut
+                  ? "Sold Out"
+                  : ticket.status !== "available"
+                    ? "Unavailable"
+                    : Number(ticket.price) === 0
+                      ? "Get Free"
+                      : `Buy (GHS ${Number(ticket.price).toFixed(2)})`;
+
           return (
-            <button
+            <div
               key={ticket.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => setSelectedTicket(ticket)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelectedTicket(ticket);
+                }
+              }}
               className="group text-left transition-all w-full h-full flex flex-col justify-between"
             >
-              <div className="space-y-4 h-full flex flex-col justify-between w-full">
+              <div className="space-y-3.5 h-full flex flex-col justify-between w-full">
+                {/* Visual Ticket Preview */}
                 <TicketRenderer
                   variant={ticket.designVariant}
                   className="w-full mx-auto"
@@ -159,165 +179,72 @@ export function PublicTicketGrid({
                   stacked={false}
                 />
 
-                <div className="flex items-center justify-between gap-3 px-1">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                {/* Price and Cute Action Button */}
+                <div className="flex items-center justify-between gap-3 px-1 pt-2 border-t border-border/40">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground truncate">
                       Price <span className="text-brand-primary-600">({ticket.name})</span>
                     </p>
-                    <p className="mt-1 text-xl font-black">
+                    <p className="mt-0.5 text-xl font-black">
                       {formatAmount(Number(ticket.price), ticket.currency)}
                     </p>
                   </div>
-                  {ticket.status !== "available" && (
-                    <span
-                      className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white"
-                      style={{
-                        background:
-                          ticket.status === "sold_out"
-                            ? "#1f2937"
-                            : `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {ticket.status !== "available" && !isUpcoming && !isSalesEnded && (
+                      <StatusBadge
+                        variant={ticket.status === "sold_out" ? "closed" : "restricted"}
+                        text={ticket.status === "hidden" ? "Members only" : ticket.status.replace("_", " ")}
+                        size="sm"
+                      />
+                    )}
+
+                    {/* Cute Direct Buy Button (matching the Vote button style) */}
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTicketToPurchase(ticket);
                       }}
+                      className="text-xs font-bold gap-1.5 h-8 px-3.5"
+                      disabled={isDisabled}
                     >
-                      {ticket.status === "hidden"
-                        ? "Members only"
-                        : ticket.status.replace("_", " ")}
-                    </span>
-                  )}
+                      <TicketIcon className="size-3.5" />
+                      <span>{buttonLabel}</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
 
-      <Sheet
+      {/* Ticket Details Sheet (Modular, clean, un-carded) */}
+      <PublicTicketDetailSheet
+        ticket={selectedTicket}
         open={!!selectedTicket}
         onOpenChange={(open) => {
           if (!open) setSelectedTicket(null);
         }}
-      >
-        <SheetContent
-          className="flex h-full w-full flex-col gap-0 p-0 sm:max-w-lg"
-          style={brandVars}
-        >
-          {selectedTicket && (
-            <>
-              <SheetHeader className="border-b px-6 py-4">
-                <SheetTitle className="text-left text-xl font-black uppercase tracking-tight">
-                  {selectedTicket.name}
-                </SheetTitle>
-              </SheetHeader>
+        onSelectForPurchase={(ticket) => {
+          setTicketToPurchase(ticket);
+          setSelectedTicket(null);
+        }}
+        isEnded={isEnded}
+        event={{
+          id: event.id,
+          title: event.title,
+          flierImage: event.flierImage,
+          bannerImage: event.bannerImage,
+        }}
+        organization={organization}
+        dateTime={dateTime}
+        venue={venue}
+        brandVars={brandVars}
+      />
 
-              <div className="flex-1 overflow-y-auto px-6 py-6">
-                <div className="space-y-6">
-                  <TicketRenderer
-                    variant={selectedTicket.designVariant}
-                    className="mx-auto"
-                    primaryColor={
-                      selectedTicket.primaryColor ||
-                      selectedTicket.color ||
-                      orgPrimary
-                    }
-                    secondaryColor={
-                      selectedTicket.secondaryColor || orgSecondary
-                    }
-                    logoUrl={organization.logoUrl}
-                    flierImage={event.flierImage}
-                    bannerImage={event.bannerImage}
-                    organizationName={organization.name}
-                    eventName={event.title}
-                    ticketType={selectedTicket.name}
-                    dateTime={dateTime}
-                    venue={venue}
-                    ticketCode={`TIER-${selectedTicket.orderIdx + 1}`}
-                    stacked={false}
-                  />
-
-                  <div className="rounded-md border bg-muted/20 p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                      Price
-                    </p>
-                    <p className="mt-2 text-2xl font-black">
-                      {formatAmount(
-                        Number(selectedTicket.price),
-                        selectedTicket.currency,
-                      )}
-                    </p>
-                  </div>
-
-                  {selectedTicket.description && (
-                    <div className="space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                        Details
-                      </p>
-                      <RichTextDisplay content={selectedTicket.description} className="text-sm leading-6 text-muted-foreground" />
-                    </div>
-                  )}
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-md border bg-card p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                        <Tag className="size-3.5" />
-                        Status
-                      </div>
-                      <p className="mt-2 text-sm font-semibold capitalize">
-                        {selectedTicket.status === "hidden"
-                          ? "Members only"
-                          : selectedTicket.status.replace("_", " ")}
-                      </p>
-                    </div>
-
-                    <div className="rounded-md border bg-card p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                        <TicketIcon className="size-3.5" />
-                        Availability
-                      </div>
-                      <p className="mt-2 text-sm font-semibold">
-                        {selectedTicket.quantityTotal
-                          ? `${Math.max(selectedTicket.quantityTotal - selectedTicket.quantitySold, 0)} left`
-                          : "Open stock"}
-                      </p>
-                    </div>
-
-                    <div className="rounded-md border bg-card p-4 sm:col-span-2">
-                      <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                        <Calendar className="size-3.5" />
-                        Sales End
-                      </div>
-                      <p className="mt-2 text-sm font-semibold">
-                        {formatDate(selectedTicket.salesEnd)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <SheetFooter className="border-t bg-background p-6">
-                <Button
-                  variant="brand-cta"
-                  size="lg"
-                  className="w-full"
-                  disabled={
-                    isEnded ||
-                    selectedTicket.status !== "available" ||
-                    (selectedTicket.quantityTotal !== null &&
-                      selectedTicket.quantityTotal -
-                      selectedTicket.quantitySold <=
-                      0)
-                  }
-                  onClick={() => {
-                    setTicketToPurchase(selectedTicket);
-                    setSelectedTicket(null);
-                  }}
-                >
-                  {isEnded ? "Event Ended — Sales Closed" : "Purchase Ticket"}
-                </Button>
-              </SheetFooter>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-
+      {/* Public Ticket Payment Modal */}
       <PublicTicketPaymentModal
         ticket={ticketToPurchase}
         open={!!ticketToPurchase}

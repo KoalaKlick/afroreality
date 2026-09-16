@@ -47,6 +47,8 @@ interface CategoryListProps {
 	readonly canEdit?: boolean;
 	readonly isSheetOpen?: boolean;
 	readonly onSheetOpenChange?: (open: boolean) => void;
+	readonly editingCategory?: CategoryItem | null;
+	readonly onEditCategory?: (cat: CategoryItem | null) => void;
 }
 
 export function CategoryList({
@@ -57,9 +59,33 @@ export function CategoryList({
 	canEdit = true,
 	isSheetOpen,
 	onSheetOpenChange,
+	editingCategory,
+	onEditCategory,
 }: CategoryListProps) {
-	const [editingCat, setEditingCat] = useState<CategoryItem | null>(null);
+	const [internalEditingCat, setInternalEditingCat] =
+		useState<CategoryItem | null>(null);
+	const [internalIsSheetOpen, setInternalIsSheetOpen] = useState(false);
 	const [catToDelete, setCatToDelete] = useState<CategoryItem | null>(null);
+
+	const currentEditingCat =
+		editingCategory !== undefined ? editingCategory : internalEditingCat;
+	const sheetOpen = isSheetOpen !== undefined ? isSheetOpen : internalIsSheetOpen;
+
+	function handleSheetOpenChange(open: boolean) {
+		setInternalIsSheetOpen(open);
+		if (!open) {
+			setCategory(null);
+		}
+		onSheetOpenChange?.(open);
+	}
+
+	function setCategory(cat: CategoryItem | null) {
+		if (onEditCategory) {
+			onEditCategory(cat);
+		} else {
+			setInternalEditingCat(cat);
+		}
+	}
 
 	const [isOptSheetOpen, setIsOptSheetOpen] = useState(false);
 	const [activeCategoryForOption, setActiveCategoryForOption] =
@@ -97,8 +123,8 @@ export function CategoryList({
 	}
 
 	function handleEditCategory(cat: CategoryItem) {
-		setEditingCat(cat);
-		onSheetOpenChange?.(true);
+		setCategory(cat);
+		handleSheetOpenChange(true);
 	}
 
 	function handleAddOption(cat: CategoryItem) {
@@ -248,8 +274,8 @@ export function CategoryList({
 						)}
 						<Button
 							onClick={() => {
-								setEditingCat(null);
-								onSheetOpenChange?.(true);
+								setCategory(null);
+								handleSheetOpenChange(true);
 							}}
 							size="sm"
 							className="gap-1.5 font-semibold text-xs"
@@ -272,8 +298,8 @@ export function CategoryList({
 					{canEdit && (
 						<Button
 							onClick={() => {
-								setEditingCat(null);
-								onSheetOpenChange?.(true);
+								setCategory(null);
+								handleSheetOpenChange(true);
 							}}
 							className="gap-1.5"
 						>
@@ -448,11 +474,12 @@ export function CategoryList({
 
 			<CategorySheet
 				eventId={eventId}
-				open={isSheetOpen ?? false}
-				onOpenChange={onSheetOpenChange ?? (() => {})}
-				editingCategory={editingCat}
+				open={sheetOpen}
+				onOpenChange={handleSheetOpenChange}
+				editingCategory={currentEditingCat}
 				votingMode={votingMode}
 				onSaved={() => {
+					setCategory(null);
 					onRefresh?.();
 				}}
 			/>

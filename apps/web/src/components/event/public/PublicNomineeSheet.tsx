@@ -49,6 +49,8 @@ interface NomineeGridProps {
 	readonly brandVars?: React.CSSProperties;
 	readonly orgSlug?: string;
 	readonly eventSlug?: string;
+	readonly isUpcoming?: boolean;
+	readonly startDate?: string | Date | null;
 }
 
 export function NomineeGrid({
@@ -64,6 +66,8 @@ export function NomineeGrid({
 	brandVars,
 	orgSlug = "",
 	eventSlug = "",
+	isUpcoming = false,
+	startDate,
 }: NomineeGridProps) {
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [voteModalOpen, setVoteModalOpen] = useState(false);
@@ -114,6 +118,14 @@ export function NomineeGrid({
 			</div>
 		);
 	}
+
+	const formatStart = (val?: string | Date | null) => {
+		if (!val) return "";
+		return new Date(val).toLocaleDateString("en-GH", {
+			month: "short",
+			day: "numeric",
+		});
+	};
 
 	return (
 		<div className="@container">
@@ -203,17 +215,19 @@ export function NomineeGrid({
 										handleOpenVoteModal(nominee);
 									}}
 									className="text-xs font-bold gap-1.5 h-8 flex-1"
-									disabled={isEnded}
+									disabled={isEnded || isUpcoming}
 								>
 									<Vote className="size-3.5" />
 									<span>
 										{isEnded
 											? "Voting Closed"
-											: votingMode === "internal"
-												? "Cast Ballot"
-												: isFree
-													? "Vote Free"
-													: `Vote (GHS ${votePrice.toFixed(2)})`}
+											: isUpcoming
+												? `Opens ${formatStart(startDate)}`
+												: votingMode === "internal"
+													? "Cast Ballot"
+													: isFree
+														? "Vote Free"
+														: `Vote (GHS ${votePrice.toFixed(2)})`}
 									</span>
 								</Button>
 							</div>
@@ -298,7 +312,7 @@ export function NomineeGrid({
 								<div className="flex items-center gap-3 pt-4 border-t border-border/80 mt-auto shrink-0">
 									<Button
 										className="flex-1 font-bold gap-2 h-11"
-										disabled={isEnded}
+										disabled={isEnded || isUpcoming}
 										onClick={() => {
 											setSheetOpen(false);
 											setVoteModalOpen(true);
@@ -308,11 +322,13 @@ export function NomineeGrid({
 										<span>
 											{isEnded
 												? "Voting Closed"
-												: votingMode === "internal"
-													? "Cast Ballot"
-													: isFree
-														? "Vote Free"
-														: `Vote for ${selectedNominee.optionText} (GHS ${votePrice.toFixed(2)})`}
+												: isUpcoming
+													? `Voting Opens ${formatStart(startDate)}`
+													: votingMode === "internal"
+														? "Cast Ballot"
+														: isFree
+															? "Vote Free"
+															: `Vote for ${selectedNominee.optionText} (GHS ${votePrice.toFixed(2)})`}
 										</span>
 									</Button>
 									<Button
@@ -345,6 +361,8 @@ export function NomineeGrid({
 					orgSlug={orgSlug}
 					eventSlug={eventSlug}
 					brandVars={brandVars}
+					isUpcoming={isUpcoming}
+					startDate={startDate}
 				/>
 			)}
 		</div>
@@ -366,6 +384,8 @@ interface PublicNomineeSheetProps {
 	};
 	readonly eventId: string;
 	readonly isEnded?: boolean;
+	readonly isUpcoming?: boolean;
+	readonly startDate?: string | Date | null;
 	readonly votingMode?: string;
 	readonly brandVars?: React.CSSProperties;
 	readonly orgSlug: string;
@@ -376,6 +396,8 @@ export function PublicNomineeSheet({
 	category,
 	eventId,
 	isEnded = false,
+	isUpcoming = false,
+	startDate,
 	votingMode = "general",
 	brandVars,
 	orgSlug,
@@ -435,6 +457,8 @@ export function PublicNomineeSheet({
 				categoryName={category.name}
 				votingMode={votingMode}
 				isEnded={isEnded}
+				isUpcoming={isUpcoming}
+				startDate={startDate}
 				showTotalVotesPublicly={category.showTotalVotesPublicly ?? true}
 				templateConfig={category.templateConfig}
 				brandVars={brandVars}

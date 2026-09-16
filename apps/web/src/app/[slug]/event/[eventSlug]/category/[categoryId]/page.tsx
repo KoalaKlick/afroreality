@@ -18,6 +18,7 @@ import {
 	Lock,
 	ImageIcon,
 	ExternalLink,
+	Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,10 @@ export default async function PublicCategoryPage({
 		event.status === "cancelled" ||
 		(Boolean(event.endDate) && new Date(event.endDate).getTime() < Date.now());
 
+	const isUpcoming = Boolean(
+		event.startDate && new Date(event.startDate).getTime() > Date.now()
+	);
+
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
 
 	const brandVars = {
@@ -158,6 +163,8 @@ export default async function PublicCategoryPage({
 			}}
 			eventId={event.id}
 			isEnded={isEnded}
+			isUpcoming={isUpcoming}
+			startDate={event.startDate}
 			votingMode={event.votingMode || "general"}
 			brandVars={brandVars}
 			orgSlug={orgSlug}
@@ -221,6 +228,18 @@ export default async function PublicCategoryPage({
 						</Button>
 					</div>
 				</header>
+
+				{isUpcoming && event.startDate && (
+					<div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
+						<Clock className="size-4 shrink-0" />
+						<p className="text-xs font-bold uppercase tracking-wider">
+							Voting has not started yet &mdash; opens on {new Date(event.startDate).toLocaleString("en-GH", {
+								dateStyle: "medium",
+								timeStyle: "short",
+							})}.
+						</p>
+					</div>
+				)}
 
 				<section className="border-b border-border/80 bg-muted/30 py-10">
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
@@ -398,6 +417,17 @@ export default async function PublicCategoryPage({
 
 					{/* Right Column: Nominees Feed */}
 					<div className="col-span-8 space-y-6 @container/content">
+						{isUpcoming && event.startDate && (
+							<div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 flex items-center gap-2.5 text-amber-700 dark:text-amber-400">
+								<Clock className="size-4 shrink-0" />
+								<p className="text-xs font-bold uppercase tracking-wider">
+									Voting has not started yet &mdash; opens on {new Date(event.startDate).toLocaleString("en-GH", {
+										dateStyle: "medium",
+										timeStyle: "short",
+									})}.
+								</p>
+							</div>
+						)}
 						<div
 							className="rounded-2xl bg-card p-8 transition-colors"
 							style={{

@@ -77,7 +77,7 @@ export function CategorySheet({
 	onSaved,
 }: CategorySheetProps) {
 	const isInternal = votingMode === "internal";
-	const [isPending, startTransition] = useTransition();
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const { isUploading, upload } = useImageUpload({
@@ -90,12 +90,20 @@ export function CategorySheet({
 		},
 	});
 
+function sanitizeNumberInput(value: string): string {
+	if (!value) return "";
+	if (/^0\d/.test(value)) {
+		return value.replace(/^0+/, "");
+	}
+	return value;
+}
+
 	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
 		templateImage: "" as string | null,
-		votePrice: isInternal ? 0 : DEFAULT_VOTE_PRICE,
-		nominationPrice: 0,
+		votePrice: (isInternal ? "0" : String(DEFAULT_VOTE_PRICE)) as string | number,
+		nominationPrice: "0" as string | number,
 		maxVotesPerUser: isInternal ? 1 : 10,
 		allowPublicNomination: false,
 		requireApproval: true,
@@ -126,10 +134,12 @@ export function CategorySheet({
 				name: editingCategory.name,
 				description: editingCategory.description ?? "",
 				templateImage: editingCategory.templateImage ?? null,
-				votePrice: isInternal ? 0 : Number(editingCategory.votePrice ?? 0),
+				votePrice: isInternal
+					? "0"
+					: String(editingCategory.votePrice ?? 0),
 				nominationPrice: isInternal
-					? 0
-					: Number(editingCategory.nominationPrice ?? 0),
+					? "0"
+					: String(editingCategory.nominationPrice ?? 0),
 				maxVotesPerUser: isInternal ? 1 : 10,
 				allowPublicNomination: editingCategory.allowPublicNomination ?? false,
 				requireApproval: editingCategory.requireApproval ?? true,
@@ -144,8 +154,8 @@ export function CategorySheet({
 				name: "",
 				description: "",
 				templateImage: null,
-				votePrice: isInternal ? 0 : DEFAULT_VOTE_PRICE,
-				nominationPrice: 0,
+				votePrice: isInternal ? "0" : String(DEFAULT_VOTE_PRICE),
+				nominationPrice: "0",
 				maxVotesPerUser: isInternal ? 1 : 10,
 				allowPublicNomination: false,
 				requireApproval: true,
@@ -167,15 +177,19 @@ export function CategorySheet({
 		}
 	};
 
-	function handleSubmit(e: React.FormEvent) {
+	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		if (!formData.name.trim()) {
 			toast.error("Category name is required");
 			return;
 		}
 
-		const votePriceNum = isInternal ? 0 : Math.max(0, Number(formData.votePrice) || 0);
-		const nomPriceNum = isInternal ? 0 : Math.max(0, Number(formData.nominationPrice) || 0);
+		const votePriceNum = isInternal
+			? 0
+			: Math.max(0, formData.votePrice === "" ? 0 : Number(formData.votePrice) || 0);
+		const nomPriceNum = isInternal
+			? 0
+			: Math.max(0, formData.nominationPrice === "" ? 0 : Number(formData.nominationPrice) || 0);
 
 		if (!isInternal && votePriceNum < MIN_VOTE_PRICE) {
 			toast.error(
@@ -184,67 +198,70 @@ export function CategorySheet({
 			return;
 		}
 
-		startTransition(async () => {
-			try {
-				const existingTemplateConfig = editingCategory?.templateConfig || {};
-				const updatedTemplateConfig = {
-					...existingTemplateConfig,
-					resultDisplayType: formData.resultDisplayType,
-				};
+		if (isSubmitting) return;
 
-				const cleanDescription =
-					formData.description && formData.description.replace(/<[^>]*>/g, "").trim()
-						? formData.description.trim()
-						: null;
+		setIsSubmitting(true);
+		try {
+			const existingTemplateConfig = editingCategory?.templateConfig || {};
+			const updatedTemplateConfig = {
+				...existingTemplateConfig,
+				resultDisplayType: formData.resultDisplayType,
+			};
 
-				if (editingCategory) {
-					await updateVotingCategory({
-						data: {
-							id: editingCategory.id,
-							name: formData.name,
-							description: cleanDescription || undefined,
-							templateImage: formData.templateImage || null,
-							templateConfig: updatedTemplateConfig,
-							votePrice: votePriceNum,
-							nominationPrice: nomPriceNum,
-							allowMultiple: false,
-							allowPublicNomination: formData.allowPublicNomination,
-							requireApproval: formData.requireApproval,
-							showTotalVotesPublicly: formData.showTotalVotesPublicly,
-							showFinalImage: formData.showFinalImage,
-							nominationDeadline: formData.nominationDeadline || null,
-							votingMode: isInternal ? "internal" : "general",
-						},
-					});
-					toast.success("Category updated successfully");
-				} else {
-					await createVotingCategory({
-						data: {
-							eventId,
-							name: formData.name,
-							description: cleanDescription || undefined,
-							templateImage: formData.templateImage || undefined,
-							templateConfig: updatedTemplateConfig,
-							votePrice: votePriceNum,
-							nominationPrice: nomPriceNum,
-							allowMultiple: false,
-							allowPublicNomination: formData.allowPublicNomination,
-							requireApproval: formData.requireApproval,
-							showTotalVotesPublicly: formData.showTotalVotesPublicly,
-							showFinalImage: formData.showFinalImage,
-							nominationDeadline: formData.nominationDeadline || undefined,
-							votingMode: isInternal ? "internal" : "general",
-						},
-					});
-					toast.success("Category created successfully");
-				}
+			const cleanDescription =
+				formData.description && formData.description.replace(/<[^>]*>/g, "").trim()
+					? formData.description.trim()
+					: null;
 
-				onOpenChange(false);
-				if (onSaved) onSaved();
-			} catch (err) {
-				toast.error(getErrorMessage(err));
+			if (editingCategory) {
+				await updateVotingCategory({
+					data: {
+						id: editingCategory.id,
+						name: formData.name,
+						description: cleanDescription || undefined,
+						templateImage: formData.templateImage || null,
+						templateConfig: updatedTemplateConfig,
+						votePrice: votePriceNum,
+						nominationPrice: nomPriceNum,
+						allowMultiple: false,
+						allowPublicNomination: formData.allowPublicNomination,
+						requireApproval: formData.requireApproval,
+						showTotalVotesPublicly: formData.showTotalVotesPublicly,
+						showFinalImage: formData.showFinalImage,
+						nominationDeadline: formData.nominationDeadline || null,
+						votingMode: isInternal ? "internal" : "general",
+					},
+				});
+				toast.success("Category updated successfully");
+			} else {
+				await createVotingCategory({
+					data: {
+						eventId,
+						name: formData.name,
+						description: cleanDescription || undefined,
+						templateImage: formData.templateImage || undefined,
+						templateConfig: updatedTemplateConfig,
+						votePrice: votePriceNum,
+						nominationPrice: nomPriceNum,
+						allowMultiple: false,
+						allowPublicNomination: formData.allowPublicNomination,
+						requireApproval: formData.requireApproval,
+						showTotalVotesPublicly: formData.showTotalVotesPublicly,
+						showFinalImage: formData.showFinalImage,
+						nominationDeadline: formData.nominationDeadline || undefined,
+						votingMode: isInternal ? "internal" : "general",
+					},
+				});
+				toast.success("Category created successfully");
 			}
-		});
+
+			onOpenChange(false);
+			if (onSaved) onSaved();
+		} catch (err) {
+			toast.error(getErrorMessage(err));
+		} finally {
+			setIsSubmitting(false);
+		}
 	}
 
 	const templateDisplayUrl = formData.templateImage
@@ -376,10 +393,11 @@ export function CategorySheet({
 										min={MIN_VOTE_PRICE}
 										placeholder={`${MIN_VOTE_PRICE.toFixed(2)} (minimum for general voting)`}
 										value={formData.votePrice}
+										onFocus={(e) => e.target.select()}
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
-												votePrice: Number(e.target.value),
+												votePrice: sanitizeNumberInput(e.target.value),
 											}))
 										}
 									/>
@@ -498,10 +516,11 @@ export function CategorySheet({
 											min="0"
 											placeholder="0.00 (Leave 0 for Free submission)"
 											value={formData.nominationPrice}
+											onFocus={(e) => e.target.select()}
 											onChange={(e) =>
 												setFormData((prev) => ({
 													...prev,
-													nominationPrice: Number(e.target.value),
+													nominationPrice: sanitizeNumberInput(e.target.value),
 												}))
 											}
 										/>
@@ -549,12 +568,12 @@ export function CategorySheet({
 							type="button"
 							variant="outline"
 							onClick={() => onOpenChange(false)}
-							disabled={isPending || isUploading}
+							disabled={isSubmitting || isUploading}
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isPending || isUploading}>
-							{(isPending || isUploading) && (
+						<Button type="submit" disabled={isSubmitting || isUploading}>
+							{(isSubmitting || isUploading) && (
 								<Loader2 className="mr-2 size-4 animate-spin" />
 							)}
 							{editingCategory ? "Save Changes" : "Create Category"}

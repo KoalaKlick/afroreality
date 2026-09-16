@@ -21,6 +21,8 @@ interface TicketManagerProps {
 	readonly canEdit?: boolean;
 	readonly isSheetOpen?: boolean;
 	readonly onSheetOpenChange?: (open: boolean) => void;
+	readonly editingTicket?: TicketTypeItem | null;
+	readonly onEditTicket?: (ticket: TicketTypeItem | null) => void;
 }
 
 export function TicketManager({
@@ -30,6 +32,8 @@ export function TicketManager({
 	canEdit = true,
 	isSheetOpen,
 	onSheetOpenChange,
+	editingTicket,
+	onEditTicket,
 }: TicketManagerProps) {
 	return (
 		<div className="space-y-6">
@@ -45,6 +49,8 @@ export function TicketManager({
 				canEdit={canEdit}
 				isSheetOpen={isSheetOpen}
 				onSheetOpenChange={onSheetOpenChange}
+				editingTicket={editingTicket}
+				onEditTicket={onEditTicket}
 			/>
 		</div>
 	);

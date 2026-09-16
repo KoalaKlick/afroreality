@@ -66,6 +66,9 @@ export default async function PublicEventPage({
 		event.status === "cancelled" ||
 		(Boolean(event.endDate) && new Date(event.endDate).getTime() < Date.now());
 
+	const isVotingStarted =
+		!event.startDate || new Date(event.startDate).getTime() <= Date.now();
+
 	// Merge event & organization social links so organizer handles repeat on the event page
 	const socialLinksMap = new Map<string, any>();
 	const normalizeUrl = (url: string) => {
@@ -120,6 +123,10 @@ export default async function PublicEventPage({
 						tickets={ticketTypes.map((ticket: any) => ({
 							...ticket,
 							price: Number(ticket.price),
+							salesStart:
+								ticket.salesStart instanceof Date
+									? ticket.salesStart.toISOString()
+									: ticket.salesStart ?? null,
 							salesEnd:
 								ticket.salesEnd instanceof Date
 									? ticket.salesEnd.toISOString()
@@ -215,6 +222,8 @@ export default async function PublicEventPage({
 							categories={votingCategories}
 							orgSlug={orgSlug}
 							eventSlug={eventSlug}
+							isUpcoming={!isVotingStarted}
+							startDate={event.startDate}
 						/>
 					</>
 				)}
@@ -300,6 +309,8 @@ export default async function PublicEventPage({
 									categories={votingCategories}
 									orgSlug={orgSlug}
 									eventSlug={eventSlug}
+									isUpcoming={!isVotingStarted}
+									startDate={event.startDate}
 								/>
 							</div>
 						)}

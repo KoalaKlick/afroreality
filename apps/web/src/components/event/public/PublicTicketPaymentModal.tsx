@@ -38,6 +38,8 @@ interface PublicTicketPaymentModalProps {
 		readonly status: string;
 		readonly maxPerOrder?: number;
 		readonly minPerOrder?: number;
+		readonly salesStart?: string | null;
+		readonly salesEnd?: string | null;
 	} | null;
 	readonly open: boolean;
 	readonly onOpenChange: (open: boolean) => void;
@@ -116,11 +118,17 @@ export function PublicTicketPaymentModal({
 		return cleaned.length >= 9 && /^[+]?[0-9]{9,15}$/.test(cleaned);
 	};
 
+	const isUpcoming = Boolean(
+		selectedTicket.salesStart && new Date(selectedTicket.salesStart).getTime() > Date.now()
+	);
+	const isSalesEnded = Boolean(
+		selectedTicket.salesEnd && new Date(selectedTicket.salesEnd).getTime() < Date.now()
+	);
 	const isEmailValid = !email.trim() || isValidEmail(email);
 	const isPhoneValid = isValidPhone(phone);
 	const isNameValid = buyerName.trim().length >= 2;
 	const isQuantityValid = quantity >= minPerOrder && quantity <= maxPerOrder;
-	const isFormValid = isNameValid && isPhoneValid && isEmailValid && isQuantityValid;
+	const isFormValid = isNameValid && isPhoneValid && isEmailValid && isQuantityValid && !isUpcoming && !isSalesEnded;
 
 	async function handleSubmitPayment(e: React.FormEvent) {
 		e.preventDefault();
@@ -313,15 +321,35 @@ export function PublicTicketPaymentModal({
 							</div>
 						</div>
 
+						{isUpcoming && (
+							<div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-xs text-amber-700 dark:text-amber-400 text-center">
+								Ticket sales have not started yet. Sales open on{" "}
+								{new Date(selectedTicket.salesStart!).toLocaleString("en-GH", {
+									dateStyle: "medium",
+									timeStyle: "short",
+								})}.
+							</div>
+						)}
+
+						{isSalesEnded && (
+							<div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive text-center">
+								Ticket sales for this tier have ended.
+							</div>
+						)}
+
 						<Button
 							type="submit"
 							className="w-full font-bold text-xs h-10 gap-2"
 							disabled={loading || !isFormValid}
 						>
 							<Lock className="size-3.5" />
-							{isFree
-								? "Claim Free Ticket"
-								: `Pay GHS ${totalAmount.toFixed(2)} Securely`}
+							{isUpcoming
+								? "Sales Not Started Yet"
+								: isSalesEnded
+									? "Sales Ended"
+									: isFree
+										? "Claim Free Ticket"
+										: `Pay GHS ${totalAmount.toFixed(2)} Securely`}
 						</Button>
 					</form>
 				)}
