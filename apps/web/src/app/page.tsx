@@ -61,16 +61,23 @@ export default async function HomePage() {
 	return (
 		<div className="min-h-screen w-full overflow-x-clip space-y-20 bg-sepia-50 text-foreground">
 			<LandingNavbar />
-			<main className="space-y-10 [&>*:nth-child(3)]:!mt-0">
+			<main>
 				<LandingHero />
+				<div className="h-20 sm:h-24 md:h-28" />
 				<LandingPartners />
+			
 				<LandingEventsSection
 					initialEvents={eventsResult.events as TawnyEventData[]}
 				/>
+					<div className="h-20 sm:h-24 md:h-28" />
 				<LandingFeatures />
+					<div className="h-20 sm:h-24 md:h-28" />
 				<LandingHowItWorks />
+					<div className="h-20 sm:h-24 md:h-28" />
 				<LandingPricing />
+					<div className="h-20 sm:h-24 md:h-28" />
 				<LandingTestimonials />
+					<div className="h-20 sm:h-24 md:h-28" />
 				<LandingStats stats={stats} />
 				<LandingFAQ />
 				<LandingCTA />
