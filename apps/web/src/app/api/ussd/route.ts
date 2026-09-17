@@ -465,16 +465,61 @@ async function handleTicketFlow(
 	);
 }
 
+async function submitPaystackOtp(
+	session: any,
+	otp: string,
+): Promise<string> {
+	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
+	if (!paystackSecret) {
+		return "END OTP verification is not configured.";
+	}
+
+	try {
+		const res = await fetch("https://api.paystack.co/charge/submit_otp", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${paystackSecret}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				otp,
+				reference: session.reference,
+			}),
+		});
+
+		const data = (await res.json()) as any;
+		if (data.status && data.data?.status === "success") {
+			await prisma.ussdSession.update({
+				where: { id: session.id },
+				data: { status: "completed" },
+			});
+			return "END Payment successful! Thank you for your support.";
+		}
+
+		if (data.data?.status === "failed") {
+			await prisma.ussdSession.update({
+				where: { id: session.id },
+				data: { status: "cancelled" },
+			});
+			return `END Payment failed: ${data.data?.gateway_response || data.message || "Invalid OTP"}`;
+		}
+
+		return `END Payment is processing. Reference: ${session.reference}`;
+	} catch (err) {
+		console.error("Paystack OTP Error:", err);
+		return "END OTP verification failed. Please try again.";
+	}
+}
+
 // ─── Core USSD Router (provider-agnostic) ────────────────────────────────────
 // Both AT and Arkesel entrypoints call this after parsing their payloads.
 // Mirrors: _shared/ussd-handler.ts handleUssdRequest
 
 async function handleUssdCore(phoneNumber: string, text: string): Promise<string> {
-	// 1. Pending session / OTP resumption check (within last 5 mins)
 	const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
 	const pendingSession = await prisma.ussdSession.findFirst({
 		where: {
-			phoneNumber,
+			phoneNumber: normalizePhone(phoneNumber),
 			status: "pending",
 			createdAt: { gte: fiveMinsAgo },
 		},
@@ -493,6 +538,8 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 				data: { status: "cancelled" },
 			});
 			text = "";
+		} else if (otpAnswer) {
+			return await submitPaystackOtp(pendingSession, otpAnswer);
 		}
 	}
 

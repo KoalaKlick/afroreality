@@ -72,18 +72,30 @@ function getIconColorStyles(iconSrc: string): {
 	const color = base.split("-").pop();
 
 	const colorGlow: Record<string, string> = {
-		red: "radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.22), transparent 60%), linear-gradient(135deg, rgba(239, 68, 68, 0.04), transparent 50%)",
-		yellow: "radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.22), transparent 60%), linear-gradient(135deg, rgba(245, 158, 11, 0.04), transparent 50%)",
-		green: "radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.22), transparent 60%), linear-gradient(135deg, rgba(16, 185, 129, 0.04), transparent 50%)",
-		black: "radial-gradient(circle at bottom right, rgba(156, 163, 175, 0.16), transparent 60%), linear-gradient(135deg, rgba(156, 163, 175, 0.03), transparent 50%)",
+		red: "radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.22), transparent 60%)",
+		yellow:
+			"radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.22), transparent 60%)",
+		green:
+			"radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.22), transparent 60%)",
+		black:
+			"radial-gradient(circle at bottom right, rgba(156, 163, 175, 0.16), transparent 60%)",
+	};
+
+	const borderColor: Record<string, string> = {
+		red: "border-red-200/50 dark:border-red-500/20",
+		yellow: "border-amber-200/50 dark:border-amber-500/20",
+		green: "border-emerald-200/50 dark:border-emerald-500/20",
+		black: "border-gray-200/50 dark:border-gray-800/20",
 	};
 
 	const backgroundImage =
 		color && colorGlow[color] ? colorGlow[color] : undefined;
+	const border =
+		color && borderColor[color] ? borderColor[color] : "border-border";
 
 	return {
 		style: backgroundImage ? { backgroundImage } : {},
-		className: "",
+		className: border,
 	};
 }
 
@@ -128,9 +140,12 @@ export function StatCard({
 }: StatCardProps) {
 	const variantStyles = {
 		default: "bg-card",
-		success: "bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900",
-		warning: "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900",
-		danger: "bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900",
+		success:
+			"bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900",
+		warning:
+			"bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900",
+		danger:
+			"bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900",
 		info: "bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900",
 	};
 
@@ -155,7 +170,7 @@ export function StatCard({
 		return (
 			<Card
 				className={cn(
-					"relative p-4 sm:p-5 group overflow-hidden border-0 transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
+					"relative p-4 sm:p-5 group overflow-hidden border  transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
 					cardStyle,
 					className,
 					onClick && "cursor-pointer active:scale-[0.98]",
@@ -163,7 +178,7 @@ export function StatCard({
 				style={{ ...cardInlineStyle }}
 				onClick={onClick}
 			>
-				<CardContent className="p-0 flex-1 flex flex-col justify-between relative z-10 pr-10 sm:pr-12">
+				<CardContent className="p-0 flex-1 flex flex-col justify-between relative z-10 pr-10 sm:pr-12 !bg-transparent">
 					<div className="flex items-start justify-between gap-2">
 						<div className="space-y-1 sm:space-y-1.5 flex-1 min-w-0">
 							<p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
@@ -201,7 +216,7 @@ export function StatCard({
 					<img
 						src={iconSrc}
 						alt={label}
-						className="size-14 sm:size-16 object-contain opacity-95 dark:opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 select-none pointer-events-none absolute -bottom-2 -right-2 sm:-bottom-2.5 sm:-right-2.5 drop-shadow-sm z-0"
+						className="size-14 sm:size-16 object-contain opacity-50 dark:opacity-60 group-hover:opacity-90 group-hover:scale-105 transition-all duration-300 select-none pointer-events-none absolute -bottom-2 -right-2 sm:-bottom-2.5 sm:-right-2.5 drop-shadow-sm z-0"
 					/>
 				)}
 			</Card>
@@ -236,10 +251,10 @@ export function StatsGrid({
 	scrollOnMobile = true,
 }: StatsGridProps) {
 	const colClasses = {
-		2: "sm:grid-cols-2",
-		3: "sm:grid-cols-2 lg:grid-cols-3",
-		4: "sm:grid-cols-2 lg:grid-cols-4",
-		5: "sm:grid-cols-3 lg:grid-cols-5",
+		2: "grid-cols-1 sm:grid-cols-2",
+		3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+		4: "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4",
+		5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
 	};
 
 	if (scrollOnMobile) {
@@ -256,15 +271,8 @@ export function StatsGrid({
 		);
 	}
 
-	const regularColClasses = {
-		2: "grid-cols-1 sm:grid-cols-2",
-		3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-		4: "grid-cols-2 sm:grid-cols-2 lg:grid-cols-4",
-		5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
-	};
-
 	return (
-		<div className={cn("grid gap-4", regularColClasses[columns], className)}>
+		<div className={cn("grid gap-4", colClasses[columns], className)}>
 			{children}
 		</div>
 	);
