@@ -253,6 +253,23 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 												{formatAmount(totalBalance, currency)}
 											</span>
 										</div>
+
+										{typeof org.financials.pendingClearance === "number" && org.financials.pendingClearance > 0 && (
+											<div className="pt-0.5 space-y-0.5 text-[10px] text-muted-foreground border-t border-dashed border-border/60">
+												<div className="flex items-center justify-between">
+													<span>Available for Payout:</span>
+													<span className="font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+														{formatAmount(org.financials.availableBalance ?? 0, currency)}
+													</span>
+												</div>
+												<div className="flex items-center justify-between">
+													<span>Pending Clearance (T+1):</span>
+													<span className="font-mono text-amber-600 dark:text-amber-400 font-medium">
+														{formatAmount(org.financials.pendingClearance, currency)}
+													</span>
+												</div>
+											</div>
+										)}
 									</div>
 
 									{/* Creator / Owner */}

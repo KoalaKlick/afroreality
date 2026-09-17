@@ -5,6 +5,7 @@
 // event schedules/statuses/amounts, wallet balances, and company platform share vs organizer share.
 
 import { prisma } from "@repo/db";
+import { isTPlusOneSettled } from "@/lib/utils/settlement";
 
 export interface AdminOverviewStats {
 	totalOrganizers: number;
@@ -173,6 +174,22 @@ export async function getAdminOverviewData(): Promise<AdminOverviewStats> {
 
 	const ongoingEventsList: AdminOverviewStats["ongoingEvents"] = [];
 
+	// Build map of completed payments by event ID (includes tickets, votes, nominations, and custom payments)
+	const paymentsByEvent = new Map<string, { gross: number; platformFee: number; organizerReceives: number }[]>();
+	for (const p of payments) {
+		const meta = (p.metadata as any) || {};
+		const evId = meta.eventId || meta.event_id;
+		if (evId) {
+			const base = Number(meta.baseAmount ?? p.amount ?? 0);
+			const fee = Number(meta.platformFee ?? 0);
+			const orgRcv = Number(meta.organizerReceives ?? (base - fee));
+			if (!paymentsByEvent.has(evId)) {
+				paymentsByEvent.set(evId, []);
+			}
+			paymentsByEvent.get(evId)!.push({ gross: base, platformFee: fee, organizerReceives: orgRcv });
+		}
+	}
+
 	for (const ev of events) {
 		const st = ev.status as keyof typeof eventsByStatus;
 		if (eventsByStatus[st] !== undefined) {
@@ -193,30 +210,39 @@ export async function getAdminOverviewData(): Promise<AdminOverviewStats> {
 			let eventPlatformFee = 0;
 			let eventOrgReceives = 0;
 
-			// Ticket revenue — read metadata from the linked payment
-			for (const o of ev.ticketOrders) {
-				const base = Number(o.subtotal || 0);
-				const meta = (o as any).payment?.metadata as any;
-				if (meta) {
-					eventGross += Number(meta.baseAmount ?? base);
-					eventPlatformFee += Number(meta.platformFee ?? 0);
-					eventOrgReceives += Number(meta.organizerReceives ?? (base - Number(meta.platformFee ?? 0)));
-				} else {
-					eventGross += base;
+			if (paymentsByEvent.has(ev.id)) {
+				const evPayments = paymentsByEvent.get(ev.id)!;
+				for (const ep of evPayments) {
+					eventGross += ep.gross;
+					eventPlatformFee += ep.platformFee;
+					eventOrgReceives += ep.organizerReceives;
 				}
-			}
+			} else {
+				// Ticket revenue — read metadata from the linked payment
+				for (const o of ev.ticketOrders) {
+					const base = Number(o.subtotal || 0);
+					const meta = (o as any).payment?.metadata as any;
+					if (meta) {
+						eventGross += Number(meta.baseAmount ?? base);
+						eventPlatformFee += Number(meta.platformFee ?? 0);
+						eventOrgReceives += Number(meta.organizerReceives ?? (base - Number(meta.platformFee ?? 0)));
+					} else {
+						eventGross += base;
+					}
+				}
 
-			// Vote revenue — read metadata from the linked payment
-			for (const v of ev.votes) {
-				if (v.payment && v.payment.status === "completed") {
-					const meta = (v.payment.metadata as any) || {};
-					const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
-					const pFee = Number(meta.platformFee ?? 0);
-					const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
+				// Vote revenue — read metadata from the linked payment
+				for (const v of ev.votes) {
+					if (v.payment && v.payment.status === "completed") {
+						const meta = (v.payment.metadata as any) || {};
+						const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
+						const pFee = Number(meta.platformFee ?? 0);
+						const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
 
-					eventGross += base;
-					eventPlatformFee += pFee;
-					eventOrgReceives += orgRcv;
+						eventGross += base;
+						eventPlatformFee += pFee;
+						eventOrgReceives += orgRcv;
+					}
 				}
 			}
 
@@ -382,6 +408,9 @@ export interface AdminOrganizerItem {
 		grossRevenue: number;
 		ourPlatformShare: number;
 		organizerNetShare: number;
+		availableBalance?: number;
+		pendingClearance?: number;
+		walletBalance?: number;
 	};
 	wallet: {
 		id: string;
@@ -397,71 +426,111 @@ export interface AdminOrganizerItem {
 }
 
 export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
-	const orgs = await prisma.organization.findMany({
-		include: {
-			creator: {
-				select: {
-					id: true,
-					fullName: true,
-					email: true,
-					avatarUrl: true,
-				},
-			},
-			team: {
-				include: {
-					user: {
-						select: {
-							id: true,
-							fullName: true,
-							email: true,
-							phone: true,
-							avatarUrl: true,
-						},
+	const now = new Date();
+
+	const [orgs, allPayments] = await Promise.all([
+		prisma.organization.findMany({
+			include: {
+				creator: {
+					select: {
+						id: true,
+						fullName: true,
+						email: true,
+						avatarUrl: true,
 					},
 				},
-				orderBy: { joinedAt: "asc" },
-			},
-			wallets: {
-				orderBy: { createdAt: "desc" },
-				take: 1,
-			},
-			events: {
-				select: {
-					id: true,
-					title: true,
-					slug: true,
-					type: true,
-					status: true,
-					startDate: true,
-					endDate: true,
-					ticketOrders: {
-						where: { status: "completed" },
-						select: {
-							subtotal: true,
-							tickets: { select: { id: true } },
-							payment: {
-								select: { metadata: true },
+				team: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								fullName: true,
+								email: true,
+								phone: true,
+								avatarUrl: true,
 							},
 						},
 					},
-					votes: {
-						select: {
-							voteCount: true,
-							payment: {
-								select: {
-									amount: true,
-									status: true,
-									metadata: true,
+					orderBy: { joinedAt: "asc" },
+				},
+				wallets: {
+					orderBy: { createdAt: "desc" },
+					take: 1,
+					include: {
+						transactions: {
+							where: { status: "completed" },
+							select: {
+								type: true,
+								amount: true,
+								feeAmount: true,
+								completedAt: true,
+								createdAt: true,
+							},
+						},
+					},
+				},
+				events: {
+					select: {
+						id: true,
+						title: true,
+						slug: true,
+						type: true,
+						status: true,
+						startDate: true,
+						endDate: true,
+						ticketOrders: {
+							where: { status: "completed" },
+							select: {
+								subtotal: true,
+								tickets: { select: { id: true } },
+								payment: {
+									select: { metadata: true },
+								},
+							},
+						},
+						votes: {
+							select: {
+								voteCount: true,
+								payment: {
+									select: {
+										amount: true,
+										status: true,
+										metadata: true,
+									},
 								},
 							},
 						},
 					},
+					orderBy: { createdAt: "desc" },
 				},
-				orderBy: { createdAt: "desc" },
 			},
-		},
-		orderBy: { createdAt: "desc" },
-	});
+			orderBy: { createdAt: "desc" },
+		}),
+		prisma.payment.findMany({
+			where: { status: "completed" },
+			select: {
+				amount: true,
+				currency: true,
+				metadata: true,
+			},
+		}),
+	]);
+
+	// Index completed payments by event ID (includes tickets, votes, nominations, and custom payments)
+	const paymentsByEvent = new Map<string, { gross: number; platformFee: number; organizerReceives: number }[]>();
+	for (const p of allPayments) {
+		const meta = (p.metadata as any) || {};
+		const evId = meta.eventId || meta.event_id;
+		if (evId) {
+			const base = Number(meta.baseAmount ?? p.amount ?? 0);
+			const fee = Number(meta.platformFee ?? 0);
+			const orgRcv = Number(meta.organizerReceives ?? (base - fee));
+			if (!paymentsByEvent.has(evId)) {
+				paymentsByEvent.set(evId, []);
+			}
+			paymentsByEvent.get(evId)!.push({ gross: base, platformFee: fee, organizerReceives: orgRcv });
+		}
+	}
 
 	return orgs.map((org) => {
 		const wallet = org.wallets[0] || null;
@@ -471,8 +540,8 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 			ended = 0,
 			draft = 0;
 
-		let orgGross = 0;
-		let orgPlatformFeeTotal = 0;
+		let eventsGrossTotal = 0;
+		let eventsFeeTotal = 0;
 
 		const eventsList = org.events.map((ev) => {
 			if (ev.status === "published") published++;
@@ -485,27 +554,36 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 			let evPlatformFee = 0;
 			let evOrgReceives = 0;
 
-			for (const o of ev.ticketOrders) {
-				const base = Number(o.subtotal || 0);
-				const meta = (o as any).payment?.metadata as any;
-				if (meta) {
-					evGross += Number(meta.baseAmount ?? base);
-					evPlatformFee += Number(meta.platformFee ?? 0);
-					evOrgReceives += Number(meta.organizerReceives ?? (base - Number(meta.platformFee ?? 0)));
-				} else {
-					evGross += base;
+			if (paymentsByEvent.has(ev.id)) {
+				const evPayments = paymentsByEvent.get(ev.id)!;
+				for (const ep of evPayments) {
+					evGross += ep.gross;
+					evPlatformFee += ep.platformFee;
+					evOrgReceives += ep.organizerReceives;
 				}
-			}
+			} else {
+				for (const o of ev.ticketOrders) {
+					const base = Number(o.subtotal || 0);
+					const meta = (o as any).payment?.metadata as any;
+					if (meta) {
+						evGross += Number(meta.baseAmount ?? base);
+						evPlatformFee += Number(meta.platformFee ?? 0);
+						evOrgReceives += Number(meta.organizerReceives ?? (base - Number(meta.platformFee ?? 0)));
+					} else {
+						evGross += base;
+					}
+				}
 
-			for (const v of ev.votes) {
-				if (v.payment && v.payment.status === "completed") {
-					const meta = (v.payment.metadata as any) || {};
-					const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
-					const pFee = Number(meta.platformFee ?? 0);
-					const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
-					evGross += base;
-					evPlatformFee += pFee;
-					evOrgReceives += orgRcv;
+				for (const v of ev.votes) {
+					if (v.payment && v.payment.status === "completed") {
+						const meta = (v.payment.metadata as any) || {};
+						const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
+						const pFee = Number(meta.platformFee ?? 0);
+						const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
+						evGross += base;
+						evPlatformFee += pFee;
+						evOrgReceives += orgRcv;
+					}
 				}
 			}
 
@@ -522,8 +600,8 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 				? Number(evOrgReceives.toFixed(2))
 				: Number((evGross - eventOurShare).toFixed(2));
 
-			orgGross += evGross;
-			orgPlatformFeeTotal += eventOurShare;
+			eventsGrossTotal += evGross;
+			eventsFeeTotal += eventOurShare;
 
 			return {
 				id: ev.id,
@@ -539,6 +617,39 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 				organizerShare: eventOrgShare,
 			};
 		});
+
+		// Calculate organization financials directly from wallet transactions (single source of truth matching org wallet)
+		const creditTxns = wallet?.transactions?.filter((t) => t.type === "credit") || [];
+		let orgGross = 0;
+		let orgPlatformFeeTotal = 0;
+		let orgNetShare = 0;
+		let clearedEarnings = 0;
+		let pendingClearance = 0;
+
+		if (creditTxns.length > 0) {
+			orgNetShare = Math.round(creditTxns.reduce((sum, t) => sum + Number(t.amount || 0), 0) * 100) / 100;
+			orgPlatformFeeTotal = Math.round(creditTxns.reduce((sum, t) => sum + Number(t.feeAmount || 0), 0) * 100) / 100;
+			orgGross = Math.round((orgNetShare + orgPlatformFeeTotal) * 100) / 100;
+
+			for (const t of creditTxns) {
+				const txDate = t.completedAt || t.createdAt || now;
+				const amt = Number(t.amount || 0);
+				if (isTPlusOneSettled(txDate, now)) {
+					clearedEarnings += amt;
+				} else {
+					pendingClearance += amt;
+				}
+			}
+		} else {
+			orgGross = Math.round(eventsGrossTotal * 100) / 100;
+			orgPlatformFeeTotal = Math.round(eventsFeeTotal * 100) / 100;
+			orgNetShare = Math.round((orgGross - orgPlatformFeeTotal) * 100) / 100;
+			clearedEarnings = orgNetShare;
+		}
+
+		const pendingDebits = Number(wallet?.pendingDebits || 0);
+		const availableBalance = Math.round(Math.max(0, clearedEarnings - pendingDebits) * 100) / 100;
+		const roundedPendingClearance = Math.round(pendingClearance * 100) / 100;
 
 		return {
 			id: org.id,
@@ -572,7 +683,10 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 			financials: {
 				grossRevenue: orgGross,
 				ourPlatformShare: orgPlatformFeeTotal,
-				organizerNetShare: Number((orgGross - orgPlatformFeeTotal).toFixed(2)),
+				organizerNetShare: orgNetShare,
+				availableBalance,
+				pendingClearance: roundedPendingClearance,
+				walletBalance: Number(wallet?.balance || 0),
 			},
 			wallet: wallet
 				? {
@@ -634,55 +748,82 @@ export interface AdminEventItem {
 		totalVotes: number;
 		revenue: number;
 	};
+	nominationRevenue?: number;
 	totalGrossRevenue: number;
 	ourPlatformShare: number;
 	organizerNetRevenue: number;
 }
 
 export async function getAdminEventsList(): Promise<AdminEventItem[]> {
-	const events = await prisma.event.findMany({
-		include: {
-			organization: {
-				select: {
-					id: true,
-					name: true,
-					slug: true,
-					logoUrl: true,
-					contactEmail: true,
-					phone: true,
-				},
-			},
-			creator: {
-				select: {
-					fullName: true,
-					email: true,
-				},
-			},
-			ticketOrders: {
-				where: { status: "completed" },
-				select: {
-					subtotal: true,
-					tickets: { select: { id: true } },
-					payment: {
-						select: { metadata: true },
+	const [events, allPayments] = await Promise.all([
+		prisma.event.findMany({
+			include: {
+				organization: {
+					select: {
+						id: true,
+						name: true,
+						slug: true,
+						logoUrl: true,
+						contactEmail: true,
+						phone: true,
 					},
 				},
-			},
-			votes: {
-				select: {
-					voteCount: true,
-					payment: {
-						select: {
-							amount: true,
-							status: true,
-							metadata: true,
+				creator: {
+					select: {
+						fullName: true,
+						email: true,
+					},
+				},
+				ticketOrders: {
+					where: { status: "completed" },
+					select: {
+						subtotal: true,
+						tickets: { select: { id: true } },
+						payment: {
+							select: { metadata: true },
+						},
+					},
+				},
+				votes: {
+					select: {
+						voteCount: true,
+						payment: {
+							select: {
+								amount: true,
+								status: true,
+								metadata: true,
+							},
 						},
 					},
 				},
 			},
-		},
-		orderBy: { createdAt: "desc" },
-	});
+			orderBy: { createdAt: "desc" },
+		}),
+		prisma.payment.findMany({
+			where: { status: "completed" },
+			select: {
+				amount: true,
+				currency: true,
+				metadata: true,
+			},
+		}),
+	]);
+
+	// Index completed payments by event ID (includes tickets, votes, nominations, and custom payments)
+	const paymentsByEvent = new Map<string, { gross: number; platformFee: number; organizerReceives: number; purpose?: string }[]>();
+	for (const p of allPayments) {
+		const meta = (p.metadata as any) || {};
+		const evId = meta.eventId || meta.event_id;
+		if (evId) {
+			const base = Number(meta.baseAmount ?? p.amount ?? 0);
+			const fee = Number(meta.platformFee ?? 0);
+			const orgRcv = Number(meta.organizerReceives ?? (base - fee));
+			if (!paymentsByEvent.has(evId)) {
+				paymentsByEvent.set(evId, []);
+			}
+			paymentsByEvent.get(evId)!.push({ gross: base, platformFee: fee, organizerReceives: orgRcv, purpose: meta.purpose });
+		}
+	}
 
 	return events.map((ev) => {
 		// Read exact amounts from payment metadata (single source of truth)
@@ -691,19 +832,49 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 		let totalOrgReceives = 0;
 		let ticketRev = 0;
 		let votingRev = 0;
+		let nominationRev = 0;
 
-		for (const o of ev.ticketOrders) {
-			const base = Number(o.subtotal || 0);
-			const meta = (o as any).payment?.metadata as any;
-			if (meta) {
-				const metaBase = Number(meta.baseAmount ?? base);
-				totalGross += metaBase;
-				ticketRev += metaBase;
-				totalPlatformFee += Number(meta.platformFee ?? 0);
-				totalOrgReceives += Number(meta.organizerReceives ?? (metaBase - Number(meta.platformFee ?? 0)));
-			} else {
-				totalGross += base;
-				ticketRev += base;
+		if (paymentsByEvent.has(ev.id)) {
+			const evPayments = paymentsByEvent.get(ev.id)!;
+			for (const ep of evPayments) {
+				totalGross += ep.gross;
+				totalPlatformFee += ep.platformFee;
+				totalOrgReceives += ep.organizerReceives;
+				if (ep.purpose === "ticket_purchase" || ep.purpose === "ticket") {
+					ticketRev += ep.gross;
+				} else if (ep.purpose === "nomination") {
+					nominationRev += ep.gross;
+				} else {
+					votingRev += ep.gross;
+				}
+			}
+		} else {
+			for (const o of ev.ticketOrders) {
+				const base = Number(o.subtotal || 0);
+				const meta = (o as any).payment?.metadata as any;
+				if (meta) {
+					const metaBase = Number(meta.baseAmount ?? base);
+					totalGross += metaBase;
+					ticketRev += metaBase;
+					totalPlatformFee += Number(meta.platformFee ?? 0);
+					totalOrgReceives += Number(meta.organizerReceives ?? (metaBase - Number(meta.platformFee ?? 0)));
+				} else {
+					totalGross += base;
+					ticketRev += base;
+				}
+			}
+
+			for (const v of ev.votes) {
+				if (v.payment && v.payment.status === "completed") {
+					const meta = (v.payment.metadata as any) || {};
+					const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
+					const pFee = Number(meta.platformFee ?? 0);
+					const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
+					totalGross += base;
+					votingRev += base;
+					totalPlatformFee += pFee;
+					totalOrgReceives += orgRcv;
+				}
 			}
 		}
 
@@ -711,19 +882,6 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 			(sum: number, o: { tickets: any[] }) => sum + (o.tickets?.length || 0),
 			0
 		);
-
-		for (const v of ev.votes) {
-			if (v.payment && v.payment.status === "completed") {
-				const meta = (v.payment.metadata as any) || {};
-				const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
-				const pFee = Number(meta.platformFee ?? 0);
-				const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
-				totalGross += base;
-				votingRev += base;
-				totalPlatformFee += pFee;
-				totalOrgReceives += orgRcv;
-			}
-		}
 
 		const totalVotes = ev.votes.reduce(
 			(sum: number, v: { voteCount: number }) => sum + Number(v.voteCount || 0),
@@ -771,6 +929,7 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 				totalVotes,
 				revenue: votingRev,
 			},
+			nominationRevenue: nominationRev,
 			totalGrossRevenue: totalGross,
 			ourPlatformShare,
 			organizerNetRevenue,
