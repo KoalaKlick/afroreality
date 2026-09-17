@@ -135,9 +135,9 @@ export function ProviderLogo({
 					)}
 					title="MTN Mobile Money"
 				>
-						<Image
+					<Image
 						src={MtnLogo}
-						alt="Telecel Cash"
+						alt="MTN Mobile Money"
 						className={cn(
 							"h-5 w-auto max-w-[50px] object-contain",
 							imageClassName,
