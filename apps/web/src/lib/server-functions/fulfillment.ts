@@ -146,13 +146,15 @@ export async function fulfillSuccessfulPayment({
 					try {
 						const event = await prisma.event.findUnique({
 							where: { id: eventId },
-							select: { title: true },
+							select: { title: true, flierImage: true, bannerImage: true },
 						});
 						await sendTicketWhatsAppNotification({
 							phone: buyerPhone,
 							attendeeName: buyerName,
 							eventTitle: event?.title || "Fextiva Event",
 							ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
+							ticketToken: generatedTickets[0]?.token || undefined,
+							bannerImageUrl: event?.flierImage || event?.bannerImage || undefined,
 						});
 					} catch (waErr) {
 						console.error("[WhatsApp] Error sending ticket confirmation:", waErr);

@@ -1,6 +1,8 @@
 // src/lib/services/whatsapp.ts
 // WhatsApp Cloud API Integration for Fextiva (Afroreality)
 
+import { getFrontendBaseUrl } from "@/lib/utils";
+
 const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN || "";
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
 const GRAPH_API_VERSION = "v22.0";
@@ -175,33 +177,65 @@ export async function sendTicketWhatsAppNotification({
 	eventTitle,
 	ticketCode,
 	ticketUrl,
+	ticketToken,
+	bannerImageUrl,
 }: {
 	phone: string;
 	attendeeName: string;
 	eventTitle: string;
 	ticketCode: string;
 	ticketUrl?: string;
+	ticketToken?: string;
+	bannerImageUrl?: string;
 }): Promise<SendWhatsAppResponse> {
+	const baseUrl = getFrontendBaseUrl();
+	const defaultLogoBanner = baseUrl.startsWith("http") && !baseUrl.includes("localhost")
+		? `${baseUrl}/android-chrome-512x512.png`
+		: "https://fextiva.com/android-chrome-512x512.png";
+
+	const components: WhatsAppTemplateComponent[] = [
+		{
+			type: "header",
+			parameters: [
+				{
+					type: "image",
+					image: { link: bannerImageUrl || defaultLogoBanner },
+				},
+			],
+		},
+		{
+			type: "body",
+			parameters: [
+				{ type: "text", text: attendeeName || "Attendee" },
+				{ type: "text", text: eventTitle },
+				{ type: "text", text: ticketCode },
+				{ type: "text", text: attendeeName || "Attendee" },
+			],
+		},
+	];
+
+	if (ticketToken || ticketCode) {
+		components.push({
+			type: "button",
+			sub_type: "url",
+			index: "0",
+			parameters: [
+				{ type: "text", text: ticketToken || ticketCode },
+			],
+		});
+	}
+
 	// First attempt template message if registered
 	const templateRes = await sendWhatsAppTemplateMessage({
 		to: phone,
-		templateName: "fextiva_ticket_confirmation",
-		languageCode: "en_US",
-		components: [
-			{
-				type: "body",
-				parameters: [
-					{ type: "text", text: attendeeName || "Attendee" },
-					{ type: "text", text: eventTitle },
-					{ type: "text", text: ticketCode },
-				],
-			},
-		],
+		templateName: "fextiva_ticket_confirmation_en",
+		languageCode: "en",
+		components,
 	});
 
 	// If template is pending or not yet approved, attempt standard text message fallback
 	if (!templateRes.success) {
-		const fallbackText = `🎟️ *Fextiva Ticket Confirmed*\n\nHi ${attendeeName || "there"},\nYour ticket for *${eventTitle}* is confirmed!\n\n*Ticket Code:* ${ticketCode}${ticketUrl ? `\n\nView Ticket: ${ticketUrl}` : ""}\n\nThank you for choosing Fextiva!`;
+		const fallbackText = `🎟️ *Fextiva Ticket Confirmed*\n\nHi ${attendeeName || "there"},\nYour ticket for *${eventTitle}* is confirmed!\n\n*Ticket ID:* ${ticketCode}${ticketUrl ? `\n\nView Ticket: ${ticketUrl}` : ""}\n\nThank you for choosing Fextiva!`;
 		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
 	}
 
@@ -229,14 +263,15 @@ export async function sendVoteReceiptWhatsAppNotification({
 	// First attempt template message if registered
 	const templateRes = await sendWhatsAppTemplateMessage({
 		to: phone,
-		templateName: "fextiva_vote_receipt",
-		languageCode: "en_US",
+		templateName: "fextiva_vote_receipt_en",
+		languageCode: "en",
 		components: [
 			{
 				type: "body",
 				parameters: [
 					{ type: "text", text: voterName || "Voter" },
 					{ type: "text", text: nomineeName },
+					{ type: "text", text: categoryName || "Official Selection" },
 					{ type: "text", text: String(votesCount) },
 					{ type: "text", text: reference },
 				],
