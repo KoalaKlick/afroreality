@@ -22,6 +22,8 @@ export default async function EventDetailPage({
   const { eventStats, ticketTypeSales, voteTrend, ticketTrend } =
     await getEventStatsAndTrends(id);
 
+  const canEdit = event.userRole === "owner" || event.userRole === "admin";
+
   return (
     <EventDetailClient
       event={event}
@@ -31,7 +33,7 @@ export default async function EventDetailPage({
       ticketTypeSales={ticketTypeSales}
       voteTrend={voteTrend}
       ticketTrend={ticketTrend}
-      canEdit={true}
+      canEdit={canEdit}
     />
   );
 }

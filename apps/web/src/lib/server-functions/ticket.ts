@@ -5,6 +5,8 @@ import { requireSession } from '../session';
 import { serializeJsonSafe } from '../utils';
 import { MIN_PAID_TICKET_PRICE } from '../constants/pricing';
 
+import { logEventActivity } from '../audit/audit-logger';
+
 export async function getEventTickets({ data }: { data: { organizationId?: string; eventId: string } }): Promise<any[]> {
   await requireSession();
   const tickets = await prisma.ticketType.findMany({
@@ -23,7 +25,7 @@ export async function getTicketTypes({ data }: { data: { eventId: string } }): P
 }
 
 export async function createTicketType({ data }: { data: any }): Promise<any> {
-  await requireSession();
+  const session = await requireSession();
 
   const quantityTotal = data.quantityTotal !== undefined && data.quantityTotal !== null
     ? (data.quantityTotal === '' ? null : Number(data.quantityTotal))
@@ -64,13 +66,38 @@ export async function createTicketType({ data }: { data: any }): Promise<any> {
     },
   });
 
+  // Log in Event Audit Trail
+  await logEventActivity({
+    eventId: data.eventId,
+    organizationId: data.organizationId,
+    userId: session.userId,
+    action: "ticket_created",
+    entityType: "ticket",
+    entityId: ticket.id,
+    description: `Created ticket tier "${ticket.name}" at ${ticket.currency} ${Number(ticket.price).toFixed(2)}${ticket.quantityTotal ? ` (${ticket.quantityTotal} capacity)` : " (Unlimited)"}`,
+    metadata: {
+      ticketId: ticket.id,
+      ticketName: ticket.name,
+      price: Number(ticket.price),
+      currency: ticket.currency,
+      quantityTotal: ticket.quantityTotal,
+    },
+  });
+
   revalidatePath(`/my-events/${data.eventId}`);
   return serializeJsonSafe(ticket);
 }
 
 export async function updateTicketType({ data }: { data: any }): Promise<any> {
-  await requireSession();
+  const session = await requireSession();
   const { id, eventId, organizationId, ...rest } = data;
+
+  const existing = await prisma.ticketType.findUnique({
+    where: { id },
+  });
+  if (!existing) {
+    throw new Error("Ticket not found");
+  }
 
   const updateData: any = {};
   if (rest.name !== undefined) updateData.name = rest.name.trim();
@@ -95,20 +122,95 @@ export async function updateTicketType({ data }: { data: any }): Promise<any> {
   if (rest.designVariant !== undefined) updateData.designVariant = rest.designVariant;
   if (rest.orderIdx !== undefined) updateData.orderIdx = Number(rest.orderIdx);
 
+  // Track price and other field differences for Audit Trail
+  const changes: Record<string, { from: any; to: any }> = {};
+  const isPriceChanged = rest.price !== undefined && Number(rest.price) !== Number(existing.price);
+
+  if (isPriceChanged) {
+    changes.price = {
+      from: `${existing.currency || 'GHS'} ${Number(existing.price).toFixed(2)}`,
+      to: `${(rest.currency || existing.currency) || 'GHS'} ${Number(rest.price).toFixed(2)}`,
+    };
+  }
+  if (rest.name !== undefined && rest.name.trim() !== existing.name) {
+    changes.name = { from: existing.name, to: rest.name.trim() };
+  }
+  if (rest.quantityTotal !== undefined && (rest.quantityTotal ? Number(rest.quantityTotal) : null) !== existing.quantityTotal) {
+    changes.quantityTotal = {
+      from: existing.quantityTotal ? `${existing.quantityTotal}` : "Unlimited",
+      to: rest.quantityTotal ? `${rest.quantityTotal}` : "Unlimited",
+    };
+  }
+  if (rest.status !== undefined && rest.status !== existing.status) {
+    changes.status = { from: existing.status, to: rest.status };
+  }
+
   const updated = await prisma.ticketType.update({
     where: { id },
     data: updateData,
   });
 
-  if (eventId) {
-    revalidatePath(`/my-events/${eventId}`);
+  const finalEventId = eventId || existing.eventId;
+
+  // Record Audit Trail
+  if (Object.keys(changes).length > 0) {
+    const action = isPriceChanged ? "ticket_price_changed" : "ticket_updated";
+    const description = isPriceChanged
+      ? `Updated price for ticket "${updated.name}" from ${changes.price!.from} to ${changes.price!.to}`
+      : `Updated ticket tier "${updated.name}" (${Object.keys(changes).join(", ")})`;
+
+    await logEventActivity({
+      eventId: finalEventId,
+      organizationId,
+      userId: session.userId,
+      action,
+      entityType: "ticket",
+      entityId: id,
+      description,
+      metadata: {
+        ticketId: id,
+        ticketName: updated.name,
+        changes,
+        isPriceChanged,
+      },
+    });
+  }
+
+  if (finalEventId) {
+    revalidatePath(`/my-events/${finalEventId}`);
   }
   return serializeJsonSafe(updated);
 }
 
 export async function deleteTicketType({ data }: { data: any }): Promise<any> {
-  await requireSession();
+  const session = await requireSession();
   const targetId = data.id || data.ticketTypeId;
+
+  const existing = await prisma.ticketType.findUnique({
+    where: { id: targetId },
+  });
+
   await prisma.ticketType.delete({ where: { id: targetId } });
+
+  if (existing) {
+    await logEventActivity({
+      eventId: existing.eventId,
+      userId: session.userId,
+      action: "ticket_deleted",
+      entityType: "ticket",
+      entityId: targetId,
+      description: `Deleted ticket tier "${existing.name}" (Price: ${existing.currency || 'GHS'} ${Number(existing.price).toFixed(2)})`,
+      metadata: {
+        ticketId: targetId,
+        ticketName: existing.name,
+        price: Number(existing.price),
+      },
+    });
+  }
+
+  if (existing?.eventId) {
+    revalidatePath(`/my-events/${existing.eventId}`);
+  }
+
   return { success: true };
 }

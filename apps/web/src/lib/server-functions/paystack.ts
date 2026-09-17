@@ -191,15 +191,14 @@ export async function createPaystackSubaccount({
 			},
 		});
 
-		const isOwner = org.createdBy === session.userId;
-		const isPrivileged =
-			isOwner ||
-			(membership && ["owner", "admin"].includes(membership.role.toLowerCase()));
+		const isOwner =
+			org.createdBy === session.userId ||
+			(membership && membership.role.toLowerCase() === "owner");
 
-		if (!isPrivileged) {
+		if (!isOwner) {
 			return {
 				success: false,
-				error: "Only the organization owner or admin can configure payout details.",
+				error: "Only the organization owner can configure payout details.",
 			};
 		}
 
@@ -339,16 +338,15 @@ export async function removePayoutAccount({
 			},
 		});
 
-		const isOwner = org.createdBy === session.userId;
-		const isPrivileged =
-			isOwner ||
-			(membership && ["owner", "admin"].includes(membership.role.toLowerCase()));
+		const isOwner =
+			org.createdBy === session.userId ||
+			(membership && membership.role.toLowerCase() === "owner");
 
-		if (!isPrivileged) {
+		if (!isOwner) {
 			return {
 				success: false,
-				message: "Only the organization owner or admin can remove payout details.",
-				error: "Only the organization owner or admin can remove payout details.",
+				message: "Only the organization owner can remove payout details.",
+				error: "Only the organization owner can remove payout details.",
 			};
 		}
 

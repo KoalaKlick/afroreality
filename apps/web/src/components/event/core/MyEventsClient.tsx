@@ -11,6 +11,7 @@ import { DeleteEventDialog } from "@/components/event/core/DeleteEventDialog";
 import type { EventItem } from "@/components/event/core/HorizontalEventCard";
 import type { EventStatsData } from "@/components/event/core/EventStats";
 import { deleteExistingEvent } from "@/lib/server-functions/event-mgmt";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface MyEventsClientProps {
 	readonly events: EventItem[];
@@ -19,6 +20,7 @@ interface MyEventsClientProps {
 
 export function MyEventsClient({ events, stats }: MyEventsClientProps) {
 	const router = useRouter();
+	const { canManageEvents } = usePermissions();
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [eventToDelete, setEventToDelete] = useState<EventItem | null>(null);
@@ -64,7 +66,7 @@ export function MyEventsClient({ events, stats }: MyEventsClientProps) {
 				onSearchChange={setSearch}
 				statusFilter={statusFilter}
 				onStatusFilterChange={setStatusFilter}
-				showCreateButton={true}
+				showCreateButton={canManageEvents}
 				onCreateClick={() => {
 					router.push("/my-events/create");
 				}}
@@ -81,7 +83,7 @@ export function MyEventsClient({ events, stats }: MyEventsClientProps) {
 						setSearch("");
 						setStatusFilter("all");
 					}}
-					onDelete={(evt) => setEventToDelete(evt)}
+					onDelete={canManageEvents ? (evt) => setEventToDelete(evt) : undefined}
 				/>
 			)}
 

@@ -11,6 +11,8 @@ import { cookies } from "next/headers";
 import { serializeJsonSafe } from "@/lib/utils";
 import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
 
+import { OrganizationProvider } from "@/lib/organization-context";
+
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -53,27 +55,33 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 	};
 
 	return (
-		<SidebarProvider>
-			<AppSidebar
-				user={serializeJsonSafe(sidebarUser)}
-				organizations={serializeJsonSafe(organizations)}
-				activeOrganizationId={activeOrganizationId}
-				pendingInvitations={serializeJsonSafe(pendingInvitations)}
-			/>
-			<SidebarInset className="font-sans min-h-svh flex flex-1 flex-col">
-				{/* The Header */}
-				<AppHeader
+		<OrganizationProvider
+			organizations={serializeJsonSafe(organizations)}
+			initialActiveOrgId={activeOrganizationId}
+		>
+			<SidebarProvider>
+				<AppSidebar
+					user={serializeJsonSafe(sidebarUser)}
+					organizations={serializeJsonSafe(organizations)}
+					activeOrganizationId={activeOrganizationId}
 					pendingInvitations={serializeJsonSafe(pendingInvitations)}
-					alerts={serializeJsonSafe(platformAlerts)}
 				/>
+				<SidebarInset className="font-sans min-h-svh flex flex-1 flex-col">
+					{/* The Header */}
+					<AppHeader
+						pendingInvitations={serializeJsonSafe(pendingInvitations)}
+						alerts={serializeJsonSafe(platformAlerts)}
+					/>
 
-				{/* Page Main Content */}
-				<div className="relative flex-1 flex flex-col p-4 sm:p-6 md:p-8">
-					<div className="flex flex-1 flex-col gap-6">
-						{children}
+					{/* Page Main Content */}
+					<div className="relative flex-1 flex flex-col p-4 sm:p-6 md:p-8">
+						<div className="flex flex-1 flex-col gap-6">
+							{children}
+						</div>
 					</div>
-				</div>
-			</SidebarInset>
-		</SidebarProvider>
+				</SidebarInset>
+			</SidebarProvider>
+		</OrganizationProvider>
 	);
 }
+

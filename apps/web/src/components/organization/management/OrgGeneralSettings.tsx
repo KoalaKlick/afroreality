@@ -66,7 +66,7 @@ function normalizeArray(
 
 export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 	const router = useRouter();
-	const { canManageSettings } = usePermissions();
+	const { canManageSettings } = usePermissions((organization as any).userRole);
 	const [isPending, startTransition] = useTransition();
 
 	const [lastSaved, setLastSaved] = useState(() => ({

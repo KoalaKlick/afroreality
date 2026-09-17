@@ -307,7 +307,22 @@ export async function getEventDetail(
 	});
 
 	if (!event) return null;
-	return serializeJsonSafe(event);
+
+	let userRole: string | null = null;
+	if (userId && event.organizationId) {
+		const membership = await prisma.teamMember.findUnique({
+			where: {
+				organizationId_userId: {
+					organizationId: event.organizationId,
+					userId,
+				},
+			},
+			select: { role: true },
+		});
+		userRole = membership?.role ?? null;
+	}
+
+	return serializeJsonSafe({ ...event, userRole });
 }
 
 export async function getEventStatsAndTrends(eventId: string) {

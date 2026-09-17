@@ -74,7 +74,7 @@ export function OrgWalletClient({
 	activityLogs = [],
 }: OrgWalletClientProps) {
 	const router = useRouter();
-	const { canWithdraw } = usePermissions();
+	const { canWithdraw, canManagePayouts } = usePermissions((organization as any).userRole);
 
 	// Search filter state
 	const [searchQuery, setSearchQuery] = useState("");

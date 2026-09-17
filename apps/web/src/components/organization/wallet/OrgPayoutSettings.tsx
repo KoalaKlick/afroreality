@@ -66,7 +66,7 @@ export function OrgPayoutSettings({ organization }: OrgPayoutSettingsProps) {
 		organization.paystackAccountName ?? "",
 	);
 
-	const { canManagePayouts } = usePermissions();
+	const { canManagePayouts } = usePermissions((organization as any).userRole);
 
 	const hasExistingPayout = !!(
 		payoutAccountName &&

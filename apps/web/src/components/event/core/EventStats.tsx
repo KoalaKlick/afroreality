@@ -170,7 +170,7 @@ export function StatCard({
 		return (
 			<Card
 				className={cn(
-					"relative p-4 sm:p-5 group overflow-hidden border  transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
+					"relative p-4 sm:p-5 group overflow-hidden border h-full  transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
 					cardStyle,
 					className,
 					onClick && "cursor-pointer active:scale-[0.98]",

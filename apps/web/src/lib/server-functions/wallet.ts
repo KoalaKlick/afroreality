@@ -310,7 +310,7 @@ export async function requestWalletWithdrawal({
 	};
 }): Promise<any> {
 	const session = await requireSession();
-	await requireOrgRole(data.organizationId, ["owner", "admin"]);
+	await requireOrgRole(data.organizationId, ["owner"]);
 
 	const wallet = await prisma.wallet.findFirst({
 		where: { organizationId: data.organizationId },

@@ -25,6 +25,7 @@ import { setActiveOrganization } from "@/lib/server-functions/organization";
 import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
 import { PROJ_NAME } from "@/lib/constants/branding";
 import { FextivaLogo } from "@/components/shared/FextivaLogo";
+import { useOrganization } from "@/lib/organization-context";
 
 function getInitials(name: string): string {
 	return name
@@ -62,6 +63,7 @@ export function OrganizationSwitcher({
 	const { isMobile } = useSidebar();
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const { setActiveOrgId } = useOrganization();
 	const [isCreateOrgOpen, setIsCreateOrgOpen] = useState(false);
 	const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
 
@@ -90,6 +92,7 @@ export function OrganizationSwitcher({
 	const handleOrgSelect = async (org: OrganizationInfo | null) => {
 		if (!org) return;
 		setSelectedOrgId(org.id);
+		setActiveOrgId?.(org.id);
 		onOrganizationChange?.(org.id);
 
 		// 1. Immediately set client-side cookie so subsequent requests have it

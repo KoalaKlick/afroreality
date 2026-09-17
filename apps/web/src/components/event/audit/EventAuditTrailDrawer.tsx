@@ -14,6 +14,10 @@ import {
 	Search,
 	ArrowRight,
 	X,
+	Tag,
+	DollarSign,
+	Coins,
+	Ticket,
 } from "lucide-react";
 import {
 	Sheet,
@@ -27,7 +31,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/image/Image";
 import {
 	getEventAuditTrail,
 	type EventAuditLogItem,
@@ -42,6 +46,66 @@ interface EventAuditTrailDrawerProps {
 
 function getActionConfig(action: string) {
 	switch (action) {
+		case "ticket_price_changed":
+			return {
+				label: "Ticket Price",
+				badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+				icon: Tag,
+			};
+		case "vote_price_changed":
+			return {
+				label: "Vote Price",
+				badgeClass: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+				icon: Coins,
+			};
+		case "nomination_price_changed":
+			return {
+				label: "Nomination Price",
+				badgeClass: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800",
+				icon: DollarSign,
+			};
+		case "category_price_changed":
+			return {
+				label: "Price Changed",
+				badgeClass: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+				icon: DollarSign,
+			};
+		case "ticket_created":
+			return {
+				label: "Ticket Created",
+				badgeClass: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800",
+				icon: PlusCircle,
+			};
+		case "ticket_updated":
+			return {
+				label: "Ticket Updated",
+				badgeClass: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+				icon: Edit3,
+			};
+		case "ticket_deleted":
+			return {
+				label: "Ticket Deleted",
+				badgeClass: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+				icon: Trash2,
+			};
+		case "category_created":
+			return {
+				label: "Category Added",
+				badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+				icon: PlusCircle,
+			};
+		case "category_updated":
+			return {
+				label: "Category Updated",
+				badgeClass: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+				icon: Edit3,
+			};
+		case "category_deleted":
+			return {
+				label: "Category Deleted",
+				badgeClass: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+				icon: Trash2,
+			};
 		case "nominee_created":
 			return {
 				label: "Created",
@@ -151,7 +215,7 @@ export function EventAuditTrailDrawer({
 }: EventAuditTrailDrawerProps) {
 	const [logs, setLogs] = useState<EventAuditLogItem[]>([]);
 	const [isPending, startTransition] = useTransition();
-	const [activeFilter, setActiveFilter] = useState<"all" | "nominees" | "status">("all");
+	const [activeFilter, setActiveFilter] = useState<"all" | "pricing" | "nominees" | "status">("all");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -175,6 +239,14 @@ export function EventAuditTrailDrawer({
 
 	const filteredLogs = useMemo(() => {
 		return logs.filter((log) => {
+			if (
+				activeFilter === "pricing" &&
+				!log.action.includes("price") &&
+				!log.action.startsWith("ticket_") &&
+				!log.action.startsWith("category_")
+			) {
+				return false;
+			}
 			if (activeFilter === "nominees" && !log.action.startsWith("nominee_")) {
 				return false;
 			}
@@ -193,6 +265,16 @@ export function EventAuditTrailDrawer({
 		});
 	}, [logs, activeFilter, searchQuery]);
 
+	const pricingCount = useMemo(
+		() =>
+			logs.filter(
+				(l) =>
+					l.action.includes("price") ||
+					l.action.startsWith("ticket_") ||
+					l.action.startsWith("category_"),
+			).length,
+		[logs],
+	);
 	const nomineesCount = useMemo(
 		() => logs.filter((l) => l.action.startsWith("nominee_")).length,
 		[logs],
@@ -256,6 +338,18 @@ export function EventAuditTrailDrawer({
 								</TabsTrigger>
 
 								<TabsTrigger
+									value="pricing"
+									className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
+								>
+									<span>Pricing</span>
+									{pricingCount > 0 && (
+										<span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+											{pricingCount}
+										</span>
+									)}
+								</TabsTrigger>
+
+								<TabsTrigger
 									value="nominees"
 									className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
 								>
@@ -285,7 +379,7 @@ export function EventAuditTrailDrawer({
 						<div className="relative flex-1 sm:max-w-xs">
 							<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
 							<Input
-								placeholder="Search actions, nominees, IPs or users..."
+								placeholder="Search actions, prices, nominees, IPs or users..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 								className="pl-8 h-8 text-xs bg-background rounded-sm"
@@ -317,7 +411,7 @@ export function EventAuditTrailDrawer({
 							<p className="text-xs max-w-xs mt-1">
 								{searchQuery
 									? "No activity matched your search filter."
-									: "Actions such as creating, updating, or deleting nominees and changing event status will be recorded here."}
+									: "Actions such as price changes, nominee updates, and event status changes will be recorded here."}
 							</p>
 						</div>
 					) : (
@@ -361,7 +455,7 @@ export function EventAuditTrailDrawer({
 
 													{/* Description + expandable changes */}
 													<td className="px-4 py-3 align-top max-w-[260px]">
-														<p className="text-foreground font-medium leading-snug line-clamp-2">
+														<p className="text-muted-foreground font-normal leading-snug line-clamp-2">
 															{log.description}
 														</p>
 														{/* Expandable field changes */}
@@ -398,16 +492,24 @@ export function EventAuditTrailDrawer({
 
 													{/* User */}
 													<td className="px-4 py-3 align-top whitespace-nowrap">
-														<div className="flex items-center gap-2">
-															<Avatar className="size-5 border">
-																<AvatarImage src={log.user?.avatarUrl || ""} />
-																<AvatarFallback className="text-[10px]">
-																	{log.user?.fullName?.charAt(0) || "S"}
-																</AvatarFallback>
-															</Avatar>
-															<span className="font-medium text-foreground/80 truncate max-w-[120px]">
-																{log.user?.fullName || log.user?.email || "System"}
-															</span>
+														<div className="flex items-center gap-2.5">
+															<Avatar
+																src={log.user?.avatarUrl}
+																alt={log.user?.fullName || log.user?.email || "User"}
+																width={32}
+																height={32}
+																className="h-8 w-8 rounded-lg shrink-0 border border-border/60"
+															/>
+															<div className="flex flex-col min-w-0">
+																<span className="font-semibold text-foreground truncate max-w-[130px]">
+																	{log.user?.fullName || (log.user?.email ? log.user.email.split("@")[0] : "System")}
+																</span>
+																{log.user?.email && (
+																	<span className="text-[10px] text-muted-foreground truncate max-w-[130px]">
+																		{log.user.email}
+																	</span>
+																)}
+															</div>
 														</div>
 													</td>
 
