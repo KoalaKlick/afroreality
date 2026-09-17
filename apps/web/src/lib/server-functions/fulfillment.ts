@@ -141,7 +141,12 @@ export async function fulfillSuccessfulPayment({
 				}
 
 				// Send WhatsApp ticket notification
-				const buyerPhone = metadata.buyerPhone || metadata.phone || metadata.attendeePhone || null;
+				const buyerPhone =
+					metadata.buyerPhone ||
+					metadata.phone ||
+					metadata.phone_number ||
+					metadata.attendeePhone ||
+					null;
 				if (buyerPhone && generatedTickets.length > 0) {
 					try {
 						const event = await prisma.event.findUnique({
@@ -173,7 +178,8 @@ export async function fulfillSuccessfulPayment({
 			const categoryId = metadata.categoryId;
 			const eventId = metadata.eventId;
 			const voteCount = Math.max(1, Number(metadata.voteCount) || Number(metadata.quantity) || 1);
-			const voterPhone = metadata.voterPhone || metadata.phone || null;
+			const voterPhone =
+				metadata.voterPhone || metadata.phone || metadata.phone_number || null;
 			const voterEmail = metadata.voterEmail || payment.email || null;
 
 			if (optionId && eventId) {

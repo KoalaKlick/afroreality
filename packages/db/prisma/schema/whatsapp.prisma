@@ -1,0 +1,20 @@
+model WhatsAppMessageLog {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  messageId       String?   @unique @map("message_id")
+  recipientPhone  String    @map("recipient_phone")
+  templateName    String?   @map("template_name")
+  category        String?   @default("UTILITY")
+  status          String    @default("sent")
+  pricingCategory String?   @map("pricing_category")
+  isBillable      Boolean   @default(true) @map("is_billable")
+  estimatedCost   Decimal?  @default(0.007) @map("estimated_cost") @db.Decimal(10, 4)
+  errorMessage    String?   @map("error_message")
+  rawPayload      Json?     @map("raw_payload")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status], map: "idx_whatsapp_logs_status")
+  @@index([recipientPhone], map: "idx_whatsapp_logs_recipient")
+  @@index([createdAt], map: "idx_whatsapp_logs_created_at")
+  @@map("whatsapp_message_logs")
+}

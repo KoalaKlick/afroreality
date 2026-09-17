@@ -556,6 +556,8 @@ export interface AdminEventItem {
 	virtualLink: string | null;
 	maxAttendees: number | null;
 	registrationDeadline: string | null;
+	hasUssd: boolean;
+	ussdCode: string | null;
 	createdAt: string;
 	organization: {
 		id: string;
@@ -667,6 +669,8 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 			registrationDeadline: ev.registrationDeadline
 				? ev.registrationDeadline.toISOString()
 				: null,
+			hasUssd: Boolean(ev.hasUssd),
+			ussdCode: ev.ussdCode || null,
 			createdAt: ev.createdAt.toISOString(),
 			organization: ev.organization,
 			creator: ev.creator,

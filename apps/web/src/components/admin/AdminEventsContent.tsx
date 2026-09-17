@@ -14,12 +14,14 @@ import {
 	Ban,
 	Coins,
 	DollarSign,
+	PhoneCall,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
 	Sheet,
 	SheetContent,
@@ -37,7 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatAmount } from "@/lib/utils";
 import type { AdminEventItem } from "@/lib/dal/admin";
-import { adminUpdateEventStatus } from "@/lib/server-functions/admin";
+import { adminUpdateEventStatus, adminToggleEventUssd } from "@/lib/server-functions/admin";
 
 interface AdminEventsContentProps {
 	events: AdminEventItem[];
@@ -45,6 +47,7 @@ interface AdminEventsContentProps {
 }
 
 export function AdminEventsContent({ events, initialStatus = "all" }: AdminEventsContentProps) {
+	const [eventList, setEventList] = useState<AdminEventItem[]>(events);
 	const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
 	const [typeFilter, setTypeFilter] = useState<string>("all");
 	const [searchQuery, setSearchQuery] = useState("");
@@ -59,7 +62,32 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 
 	const now = new Date();
 
-	const filteredEvents = events.filter((ev) => {
+	const handleToggleUssd = (eventId: string, currentVal: boolean) => {
+		const newVal = !currentVal;
+		setEventList((prev) =>
+			prev.map((e) => (e.id === eventId ? { ...e, hasUssd: newVal } : e))
+		);
+		if (selectedEvent && selectedEvent.id === eventId) {
+			setSelectedEvent((prev) => (prev ? { ...prev, hasUssd: newVal } : null));
+		}
+
+		startTransition(async () => {
+			const res = await adminToggleEventUssd({ eventId, hasUssd: newVal });
+			if (res.success) {
+				toast.success(res.message);
+			} else {
+				setEventList((prev) =>
+					prev.map((e) => (e.id === eventId ? { ...e, hasUssd: currentVal } : e))
+				);
+				if (selectedEvent && selectedEvent.id === eventId) {
+					setSelectedEvent((prev) => (prev ? { ...prev, hasUssd: currentVal } : null));
+				}
+				toast.error(res.error || "Failed to update USSD setting");
+			}
+		});
+	};
+
+	const filteredEvents = eventList.filter((ev) => {
 		if (statusFilter !== "all" && ev.status !== statusFilter) return false;
 		if (typeFilter !== "all" && ev.type !== typeFilter) return false;
 		if (searchQuery) {
@@ -266,6 +294,38 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 									</div>
 								</div>
 
+								{/* USSD Mobile Gateway Feature Toggle */}
+								<div className="flex items-center justify-between p-2 bg-muted/30 border border-border text-xs rounded-none shadow-none">
+									<div className="flex items-center gap-1.5 min-w-0 pr-2">
+										<PhoneCall className={`h-3.5 w-3.5 shrink-0 ${ev.hasUssd ? "text-emerald-500" : "text-muted-foreground"}`} />
+										<div className="min-w-0">
+											<span className="font-semibold text-foreground block text-[11px] leading-tight">
+												USSD Gateway
+											</span>
+											<span className="text-[10px] text-muted-foreground font-mono truncate block">
+												{ev.hasUssd ? (ev.ussdCode ? `*384*77340*${ev.ussdCode}#` : "Active") : "Disabled"}
+											</span>
+										</div>
+									</div>
+									<div className="flex items-center gap-2 shrink-0">
+										<Badge
+											variant="outline"
+											className={`text-[9px] font-bold uppercase rounded-none shadow-none px-1.5 py-0 ${
+												ev.hasUssd
+													? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+													: "bg-muted text-muted-foreground border-border"
+											}`}
+										>
+											{ev.hasUssd ? "ON" : "OFF"}
+										</Badge>
+										<Switch
+											checked={ev.hasUssd}
+											disabled={isPending}
+											onCheckedChange={() => handleToggleUssd(ev.id, ev.hasUssd)}
+										/>
+									</div>
+								</div>
+
 								{/* Amount & Share Performance Strip */}
 								<div className="p-2.5 bg-muted/20 border border-border space-y-1 rounded-none shadow-none text-xs">
 									<div className="flex items-center justify-between">
@@ -461,6 +521,38 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 											<span className="block text-[10px] uppercase font-bold">Venue Name / City</span>
 											<span className="font-semibold text-foreground">
 												{selectedEvent.venueName || selectedEvent.venueCity || "Ghana"}
+											</span>
+										</div>
+									</div>
+								</div>
+
+								{/* USSD Gateway Detailed Configuration Box */}
+								<div className="p-4 border border-border bg-card space-y-3 rounded-none shadow-none">
+									<div className="flex items-center justify-between">
+										<h4 className="font-bold text-foreground uppercase tracking-wider text-[11px] flex items-center gap-2">
+											<PhoneCall className="h-3.5 w-3.5 text-primary" />
+											USSD Mobile Dialer Controls
+										</h4>
+										<Switch
+											checked={selectedEvent.hasUssd}
+											disabled={isPending}
+											onCheckedChange={() => handleToggleUssd(selectedEvent.id, selectedEvent.hasUssd)}
+										/>
+									</div>
+									<p className="text-muted-foreground text-xs">
+										Allow users to dial via basic mobile phones to purchase tickets or cast votes without internet data.
+									</p>
+									<div className="grid grid-cols-2 gap-3 text-muted-foreground pt-1 border-t border-border">
+										<div>
+											<span className="block text-[10px] uppercase font-bold">Access Status</span>
+											<span className={`font-semibold ${selectedEvent.hasUssd ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+												{selectedEvent.hasUssd ? "Active & Dialable" : "Deactivated by Super Admin"}
+											</span>
+										</div>
+										<div>
+											<span className="block text-[10px] uppercase font-bold">Assigned USSD String</span>
+											<span className="font-mono text-foreground font-semibold">
+												{selectedEvent.ussdCode ? `*384*77340*${selectedEvent.ussdCode}#` : "*384*77340#"}
 											</span>
 										</div>
 									</div>

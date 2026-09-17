@@ -337,3 +337,67 @@ export async function removePlatformAdminUser(data: { email: string }): Promise<
 	}
 }
 
+/**
+ * Super Admin action to toggle USSD dialer access for an event on or off.
+ */
+export async function adminToggleEventUssd(data: {
+	eventId: string;
+	hasUssd: boolean;
+	ussdCode?: string | null;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const adminState = await requirePlatformAdmin();
+		const event = await prisma.event.findUnique({
+			where: { id: data.eventId },
+			select: { id: true, title: true, hasUssd: true, ussdCode: true, organizationId: true },
+		});
+
+		if (!event) {
+			return { success: false, error: "Event not found" };
+		}
+
+		let assignedCode = event.ussdCode;
+		if (data.hasUssd && !assignedCode) {
+			const count = await prisma.event.count({
+				where: { ussdCode: { not: null } },
+			});
+			assignedCode = String(100 + count);
+		}
+
+		await prisma.event.update({
+			where: { id: data.eventId },
+			data: {
+				hasUssd: data.hasUssd,
+				ussdCode: data.hasUssd ? assignedCode : event.ussdCode,
+			},
+		});
+
+		await prisma.activityLog
+			.create({
+				data: {
+					organizationId: event.organizationId,
+					userId: adminState.userId,
+					action: data.hasUssd
+						? "event.ussd_enabled_by_super_admin"
+						: "event.ussd_disabled_by_super_admin",
+					entityType: "event",
+					entityId: event.id,
+					description: `USSD access ${data.hasUssd ? "enabled" : "disabled"} for "${event.title}" by super admin`,
+					metadata: { adminEmail: adminState.email, ussdCode: assignedCode },
+				},
+			})
+			.catch(() => {});
+
+		revalidatePath("/super");
+		revalidatePath("/super/events");
+
+		return {
+			success: true,
+			message: `USSD service ${data.hasUssd ? "activated" : "deactivated"} for "${event.title}".`,
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_TOGGLE_EVENT_USSD_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to update USSD configuration" };
+	}
+}
+

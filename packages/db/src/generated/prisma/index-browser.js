@@ -673,6 +673,22 @@ exports.Prisma.VoteScalarFieldEnum = {
   voterId: 'voterId'
 };
 
+exports.Prisma.WhatsAppMessageLogScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  recipientPhone: 'recipientPhone',
+  templateName: 'templateName',
+  category: 'category',
+  status: 'status',
+  pricingCategory: 'pricingCategory',
+  isBillable: 'isBillable',
+  estimatedCost: 'estimatedCost',
+  errorMessage: 'errorMessage',
+  rawPayload: 'rawPayload',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -908,7 +924,8 @@ exports.Prisma.ModelName = {
   VotingCategory: 'VotingCategory',
   VotingOption: 'VotingOption',
   NomineeChangeRequest: 'NomineeChangeRequest',
-  Vote: 'Vote'
+  Vote: 'Vote',
+  WhatsAppMessageLog: 'WhatsAppMessageLog'
 };
 
 /**

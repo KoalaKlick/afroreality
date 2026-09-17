@@ -14,9 +14,10 @@
     "db:reset": "pnpm --filter @repo/db db:reset",
     "db:studio": "pnpm --filter @repo/db db:studio",
     "db:seed": "pnpm --filter @repo/db db:seed",
-    "deploy:workers:all": "pnpm deploy:worker:ussd && pnpm deploy:worker:paystack && pnpm deploy:worker:delivery",
+    "deploy:workers:all": "pnpm deploy:worker:ussd && pnpm deploy:worker:paystack && pnpm deploy:worker:whatsapp && pnpm deploy:worker:delivery",
     "deploy:worker:ussd": "cd workers/ussd && wrangler deploy",
     "deploy:worker:paystack": "cd workers/paystack-webhook && wrangler deploy",
+    "deploy:worker:whatsapp": "cd workers/whatsapp-webhook && wrangler deploy",
     "deploy:worker:delivery": "cd workers/background-delivery && wrangler deploy"
   },
   "devDependencies": {

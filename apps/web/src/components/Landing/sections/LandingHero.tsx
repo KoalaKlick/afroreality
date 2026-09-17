@@ -90,7 +90,7 @@ export function LandingHero() {
 
 			{/* ── Three Images + Floating Cards Section ── */}
 			<div className="relative z-10 w-full max-w-5xl mx-auto px-2 sm:px-4">
-				<div className="relative h-[430px] sm:h-[40px] md:h-[540px] xl:h-auto xl:flex xl:items-end xl:justify-between xl:gap-6">
+				<div className="relative h-[370px] sm:h-[480px] md:h-[540px] xl:h-auto xl:flex xl:items-end xl:justify-between xl:gap-6">
 					{/* Left — Guitar Man with Arch Shape */}
 					<div className="absolute bottom-0 left-[2%] sm:left-[6%] w-[26%] sm:w-[23%] md:w-[21%] xl:static xl:shrink-0 xl:w-[19%] transition-all duration-300">
 						<div className="relative aspect-[768/1376] rounded-[3.5rem] sm:rounded-[5rem] md:rounded-[6rem] xl:rounded-[7rem] overflow-hidden shadow-lg border border-white/60 bg-[#eeece8]">

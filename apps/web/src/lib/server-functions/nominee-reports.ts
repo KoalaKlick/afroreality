@@ -27,7 +27,7 @@ export interface NomineeReportSettings {
 
 const SETTING_KEY = "nominee_whatsapp_reports";
 
-export const DEFAULT_NOMINEE_REPORT_SETTINGS: NomineeReportSettings = {
+const DEFAULT_NOMINEE_REPORT_SETTINGS: NomineeReportSettings = {
 	enabled: false,
 	interval: "daily",
 	preferredHourUtc: 9, // 9:00 AM UTC

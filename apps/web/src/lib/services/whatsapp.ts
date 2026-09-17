@@ -2,6 +2,7 @@
 // WhatsApp Cloud API Integration for Fextiva (Afroreality)
 
 import { getFrontendBaseUrl } from "@/lib/utils";
+import { prisma } from "@repo/db";
 
 const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN || "";
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
@@ -84,6 +85,19 @@ export async function sendWhatsAppTextMessage({
 
 		if (!res.ok || data.error) {
 			console.error("[WhatsApp] Failed to send text message:", data.error);
+			try {
+				await prisma.whatsAppMessageLog.create({
+					data: {
+						recipientPhone: formattedPhone,
+						templateName: "direct_text",
+						category: "SERVICE",
+						status: "failed",
+						isBillable: false,
+						errorMessage: data.error?.message || "Failed to send WhatsApp message",
+						rawPayload: data,
+					},
+				});
+			} catch (_) {}
 			return {
 				success: false,
 				error: data.error?.message || "Failed to send WhatsApp message",
@@ -91,9 +105,27 @@ export async function sendWhatsAppTextMessage({
 			};
 		}
 
+		const messageId = data.messages?.[0]?.id;
+		if (messageId) {
+			try {
+				await prisma.whatsAppMessageLog.create({
+					data: {
+						messageId,
+						recipientPhone: formattedPhone,
+						templateName: "direct_text",
+						category: "SERVICE",
+						status: "sent",
+						isBillable: true,
+						estimatedCost: 0.007,
+						rawPayload: data,
+					},
+				});
+			} catch (_) {}
+		}
+
 		return {
 			success: true,
-			messageId: data.messages?.[0]?.id,
+			messageId,
 			raw: data,
 		};
 	} catch (error: any) {
@@ -150,6 +182,19 @@ export async function sendWhatsAppTemplateMessage({
 
 		if (!res.ok || data.error) {
 			console.error("[WhatsApp] Failed to send template message:", data.error);
+			try {
+				await prisma.whatsAppMessageLog.create({
+					data: {
+						recipientPhone: formattedPhone,
+						templateName,
+						category: "UTILITY",
+						status: "failed",
+						isBillable: false,
+						errorMessage: data.error?.message || "Failed to send WhatsApp template",
+						rawPayload: data,
+					},
+				});
+			} catch (_) {}
 			return {
 				success: false,
 				error: data.error?.message || "Failed to send WhatsApp template",
@@ -157,9 +202,27 @@ export async function sendWhatsAppTemplateMessage({
 			};
 		}
 
+		const messageId = data.messages?.[0]?.id;
+		if (messageId) {
+			try {
+				await prisma.whatsAppMessageLog.create({
+					data: {
+						messageId,
+						recipientPhone: formattedPhone,
+						templateName,
+						category: "UTILITY",
+						status: "sent",
+						isBillable: true,
+						estimatedCost: 0.007,
+						rawPayload: data,
+					},
+				});
+			} catch (_) {}
+		}
+
 		return {
 			success: true,
-			messageId: data.messages?.[0]?.id,
+			messageId,
 			raw: data,
 		};
 	} catch (error: any) {
@@ -311,10 +374,10 @@ export async function sendNomineeReportWhatsAppNotification({
 	const formattedVotes = typeof votesCount === "number" ? votesCount.toLocaleString() : votesCount;
 	const formattedRank = String(rank);
 
-	// First attempt template message
-	const templateRes = await sendWhatsAppTemplateMessage({
+	// First attempt approved utility template (fextiva_nominee_update_en)
+	let templateRes = await sendWhatsAppTemplateMessage({
 		to: phone,
-		templateName: "fextiva_nominee_report_en",
+		templateName: "fextiva_nominee_update_en",
 		languageCode: "en",
 		components: [
 			{
@@ -330,11 +393,98 @@ export async function sendNomineeReportWhatsAppNotification({
 		],
 	});
 
-	// If template is pending review or fails, fallback to clean text message
+	// If pending/failed, try previous nominee template as secondary fallback
 	if (!templateRes.success) {
-		const fallbackText = `📊 *Voting Progress Update*\n\nHello ${nomineeName},\nHere is your live voting update for *${eventTitle}* in category *${categoryName || "General"}*:\n\n*Current Votes:* ${formattedVotes}\n*Current Rank:* #${formattedRank}\n\nKeep sharing your voting link to rally more votes!${leaderboardUrl ? `\n\nLeaderboard: ${leaderboardUrl}` : ""}\n\nThank you for participating on Fextiva.`;
+		templateRes = await sendWhatsAppTemplateMessage({
+			to: phone,
+			templateName: "fextiva_nominee_report_en",
+			languageCode: "en",
+			components: [
+				{
+					type: "body",
+					parameters: [
+						{ type: "text", text: nomineeName },
+						{ type: "text", text: eventTitle },
+						{ type: "text", text: categoryName || "General" },
+						{ type: "text", text: formattedVotes },
+						{ type: "text", text: formattedRank },
+					],
+				},
+			],
+		});
+	}
+
+	// If both templates fail, fallback to clean text message
+	if (!templateRes.success) {
+		const fallbackText = `📊 *Voting Status Update*\n\nHello ${nomineeName},\nHere is your account status update for *${eventTitle}* in category *${categoryName || "General"}*:\n\n*Total Votes Recorded:* ${formattedVotes}\n*Current Category Rank:* #${formattedRank}\n\nThis is an automated performance report from Fextiva.${leaderboardUrl ? `\n\nLeaderboard: ${leaderboardUrl}` : ""}`;
 		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
 	}
 
 	return templateRes;
+}
+
+/**
+ * Process inbound Meta WhatsApp Cloud API status webhook callback.
+ * Updates message delivery/read status, captures billable conversation metrics,
+ * and maintains aggregate platform usage numbers.
+ */
+export async function processWhatsAppWebhook(body: any): Promise<{
+	processedCount: number;
+	statusesUpdated: number;
+}> {
+	if (!body || body.object !== "whatsapp_business_account") {
+		return { processedCount: 0, statusesUpdated: 0 };
+	}
+
+	let processedCount = 0;
+	let statusesUpdated = 0;
+
+	for (const entry of body.entry || []) {
+		for (const change of entry.changes || []) {
+			const value = change.value;
+			if (!value) continue;
+
+			// Handle message statuses (sent, delivered, read, failed)
+			const statuses = value.statuses || [];
+			for (const item of statuses) {
+				processedCount++;
+				const messageId = item.id;
+				const statusStr = item.status; // "sent" | "delivered" | "read" | "failed"
+				const recipientPhone = item.recipient_id;
+				const pricingCategory =
+					item.pricing?.category || item.conversation?.origin?.type || "utility";
+				const isBillable = item.pricing?.billable ?? true;
+				const errorMsg =
+					item.errors?.[0]?.message || item.errors?.[0]?.title || null;
+
+				try {
+					await prisma.whatsAppMessageLog.upsert({
+						where: { messageId },
+						create: {
+							messageId,
+							recipientPhone: recipientPhone || "unknown",
+							status: statusStr,
+							pricingCategory,
+							isBillable,
+							estimatedCost: pricingCategory === "marketing" ? 0.025 : 0.007,
+							errorMessage: errorMsg,
+							rawPayload: item,
+						},
+						update: {
+							status: statusStr,
+							pricingCategory,
+							isBillable,
+							errorMessage: errorMsg,
+							rawPayload: item,
+						},
+					});
+					statusesUpdated++;
+				} catch (err) {
+					console.error("[WhatsApp Webhook] Failed to upsert log for:", messageId, err);
+				}
+			}
+		}
+	}
+
+	return { processedCount, statusesUpdated };
 }
