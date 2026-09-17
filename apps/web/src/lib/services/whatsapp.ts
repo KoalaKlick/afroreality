@@ -362,6 +362,13 @@ export async function sendNomineeReportWhatsAppNotification({
 	votesCount,
 	rank,
 	leaderboardUrl,
+	categoryUrl,
+	categoryPath,
+	eventSlug,
+	categoryId,
+	orgSlug,
+	bannerImageUrl,
+	showRank = true,
 }: {
 	phone: string;
 	nomineeName: string;
@@ -369,75 +376,172 @@ export async function sendNomineeReportWhatsAppNotification({
 	categoryName?: string;
 	votesCount: number | string;
 	rank: number | string;
+	showRank?: boolean;
 	leaderboardUrl?: string;
+	categoryUrl?: string;
+	categoryPath?: string;
+	eventSlug?: string;
+	categoryId?: string;
+	orgSlug?: string;
+	bannerImageUrl?: string;
 }): Promise<SendWhatsAppResponse> {
-	const formattedVotes = typeof votesCount === "number" ? votesCount.toLocaleString() : votesCount;
-	const formattedRank = String(rank);
+	const formattedVotes = typeof votesCount === "number" ? votesCount.toLocaleString() : String(votesCount);
+	const formattedRank = showRank ? (String(rank).startsWith("#") ? String(rank) : `#${rank}`) : "Confidential";
 
-	// First attempt approved utility template (fextiva_nominee_status_en)
-	let templateRes = await sendWhatsAppTemplateMessage({
-		to: phone,
-		templateName: "fextiva_nominee_status_en",
-		languageCode: "en",
-		components: [
+	const baseUrl = getFrontendBaseUrl();
+	const defaultLogoBanner =
+		baseUrl.startsWith("http") && !baseUrl.includes("localhost")
+			? `${baseUrl}/android-chrome-512x512.png`
+			: "https://fextiva.com/android-chrome-512x512.png";
+
+	// The public portal path for this nominee's category
+	// e.g. "afrofest/event/awards-2026/category/cm123..." or shortlink "c/cm123..."
+	const publicCategoryPath =
+		categoryPath ||
+		(orgSlug && eventSlug && categoryId
+			? `${orgSlug}/event/${eventSlug}/category/${categoryId}`
+			: categoryId
+				? `c/${categoryId}`
+				: orgSlug && eventSlug
+					? `${orgSlug}/event/${eventSlug}`
+					: categoryUrl
+						? categoryUrl.replace(/^https?:\/\/[^\/]+\//, "")
+						: eventSlug || "");
+
+	// Dynamic parameter for the "View Progress" button (replaces {{1}} in https://fextiva.com/{{1}})
+	const buttonParam = publicCategoryPath;
+
+	// When organizer hides standings/positions, first attempt the 4-variable utility template (fextiva_nominee_summary_en)
+	if (!showRank) {
+		const noRankComponents: WhatsAppTemplateComponent[] = [
+			{
+				type: "header",
+				parameters: [
+					{
+						type: "image",
+						image: { link: bannerImageUrl || defaultLogoBanner },
+					},
+				],
+			},
 			{
 				type: "body",
 				parameters: [
 					{ type: "text", text: nomineeName },
 					{ type: "text", text: eventTitle },
-					{ type: "text", text: categoryName || "General" },
+					{ type: "text", text: categoryName || "Official Selection" },
 					{ type: "text", text: formattedVotes },
-					{ type: "text", text: formattedRank },
 				],
 			},
-		],
-	});
+		];
 
-	// If pending/failed, try previous nominee update template as secondary fallback
-	if (!templateRes.success) {
-		templateRes = await sendWhatsAppTemplateMessage({
+		if (buttonParam) {
+			noRankComponents.push({
+				type: "button",
+				sub_type: "url",
+				index: "0",
+				parameters: [{ type: "text", text: buttonParam }],
+			});
+		}
+
+		let noRankRes = await sendWhatsAppTemplateMessage({
 			to: phone,
-			templateName: "fextiva_nominee_update_en",
+			templateName: "fextiva_nominee_summary_en",
 			languageCode: "en",
-			components: [
+			components: noRankComponents,
+		});
+
+		if (!noRankRes.success) {
+			const noHeader = noRankComponents.filter((c) => c.type !== "header");
+			const retryNoHeader = await sendWhatsAppTemplateMessage({
+				to: phone,
+				templateName: "fextiva_nominee_summary_en",
+				languageCode: "en",
+				components: noHeader,
+			});
+			if (retryNoHeader.success) {
+				noRankRes = retryNoHeader;
+			}
+		}
+
+		if (noRankRes.success) {
+			return noRankRes;
+		}
+	}
+
+	// Primary template components (structured with Header image, Body variables, and URL button)
+	const componentsWithHeader: WhatsAppTemplateComponent[] = [
+		{
+			type: "header",
+			parameters: [
 				{
-					type: "body",
-					parameters: [
-						{ type: "text", text: nomineeName },
-						{ type: "text", text: eventTitle },
-						{ type: "text", text: categoryName || "General" },
-						{ type: "text", text: formattedVotes },
-						{ type: "text", text: formattedRank },
-					],
+					type: "image",
+					image: { link: bannerImageUrl || defaultLogoBanner },
 				},
 			],
+		},
+		{
+			type: "body",
+			parameters: [
+				{ type: "text", text: nomineeName },
+				{ type: "text", text: eventTitle },
+				{ type: "text", text: categoryName || "Official Selection" },
+				{ type: "text", text: formattedVotes },
+				{ type: "text", text: formattedRank },
+			],
+		},
+	];
+
+	if (buttonParam) {
+		componentsWithHeader.push({
+			type: "button",
+			sub_type: "url",
+			index: "0",
+			parameters: [{ type: "text", text: buttonParam }],
 		});
 	}
 
-	// If pending/failed, try previous nominee template as secondary fallback
-	if (!templateRes.success) {
+	// Candidate template names to try in order (fextiva_nominee_progress_en is new primary)
+	const candidateTemplates = [
+		"fextiva_nominee_progress_en",
+		"fextiva_nominee_activity_en",
+		"fextiva_nominee_status_en",
+		"fextiva_nominee_update_en",
+		"fextiva_nominee_report_en",
+	];
+
+	let templateRes: SendWhatsAppResponse = { success: false, error: "Not initiated" };
+
+	for (const tName of candidateTemplates) {
+		// 1. Try with Header + Body + Button
 		templateRes = await sendWhatsAppTemplateMessage({
 			to: phone,
-			templateName: "fextiva_nominee_report_en",
+			templateName: tName,
 			languageCode: "en",
-			components: [
-				{
-					type: "body",
-					parameters: [
-						{ type: "text", text: nomineeName },
-						{ type: "text", text: eventTitle },
-						{ type: "text", text: categoryName || "General" },
-						{ type: "text", text: formattedVotes },
-						{ type: "text", text: formattedRank },
-					],
-				},
-			],
+			components: componentsWithHeader,
 		});
+		if (templateRes.success) break;
+
+		// 2. Try without Media Header (in case template was registered as text-only)
+		const componentsWithoutHeader = componentsWithHeader.filter((c) => c.type !== "header");
+		templateRes = await sendWhatsAppTemplateMessage({
+			to: phone,
+			templateName: tName,
+			languageCode: "en",
+			components: componentsWithoutHeader,
+		});
+		if (templateRes.success) break;
 	}
 
-	// If both templates fail, fallback to clean text message
+	// 5. If all templates fail or pending approval, fallback to clean, nicely formatted direct text message
 	if (!templateRes.success) {
-		const fallbackText = `📊 *Voting Status Update*\n\nHello ${nomineeName},\nHere is your account status update for *${eventTitle}* in category *${categoryName || "General"}*:\n\n*Total Votes Recorded:* ${formattedVotes}\n*Current Category Rank:* #${formattedRank}\n\nThis is an automated performance report from Fextiva.${leaderboardUrl ? `\n\nLeaderboard: ${leaderboardUrl}` : ""}`;
+		const progressUrl =
+			categoryUrl ||
+			(publicCategoryPath ? `https://fextiva.com/${publicCategoryPath}` : leaderboardUrl) ||
+			"https://fextiva.com";
+		const rankLine = showRank
+			? `\n• *Account Placement Index:* ${formattedRank}`
+			: `\n• *Account Placement Index:* Confidential (Gala Reveal)`;
+		const fallbackText = `📋 *Account Confirmation Update*\n\nHello ${nomineeName},\n\nHere is your account confirmation update for *${eventTitle}* (Category: *${categoryName || "Official Selection"}*):\n\n• *Recorded Vote Transactions:* ${formattedVotes}${rankLine}\n\nYou can verify your activity on the Fextiva portal.\n\n🔗 *View Category & Standings:* ${progressUrl}`;
 		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
 	}
 

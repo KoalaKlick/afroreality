@@ -148,10 +148,18 @@ export async function dispatchNomineeReportsNow({
 				id: true,
 				title: true,
 				slug: true,
+				bannerImage: true,
+				flierImage: true,
+				organization: {
+					select: {
+						slug: true,
+					},
+				},
 				votingCategories: {
 					select: {
 						id: true,
 						name: true,
+						showTotalVotesPublicly: true,
 						votingOptions: {
 							where: {
 								status: "approved",
@@ -192,15 +200,28 @@ export async function dispatchNomineeReportsNow({
 			eventTitle: string;
 			categoryName: string;
 			votesCount: number;
-			rank: number;
+			rank: number | string;
+			showRank: boolean;
 			leaderboardUrl: string;
+			categoryUrl: string;
+			categoryPath: string;
+			eventSlug: string;
+			categoryId?: string;
+			orgSlug: string;
+			bannerImageUrl?: string;
 		}> = [];
 
 		for (const ev of activeEvents) {
-			const leaderboardUrl = `https://fextiva.com/e/${ev.slug}`;
+			const orgSlug = ev.organization?.slug || "org";
+			const bannerImageUrl = ev.bannerImage || ev.flierImage || undefined;
 
 			// 1. Process categorized options
 			for (const cat of ev.votingCategories) {
+				const showRank = cat.showTotalVotesPublicly ?? true;
+				// Category public URL: https://fextiva.com/${orgSlug}/event/${ev.slug}/category/${cat.id}
+				const categoryPath = `${orgSlug}/event/${ev.slug}/category/${cat.id}`;
+				const categoryUrl = `https://fextiva.com/${categoryPath}`;
+
 				// Rank options in descending order of votesCount
 				const sortedOptions = [...cat.votingOptions].sort(
 					(a, b) => b.votesCount - a.votesCount
@@ -216,14 +237,24 @@ export async function dispatchNomineeReportsNow({
 						eventTitle: ev.title,
 						categoryName: cat.name,
 						votesCount: opt.votesCount,
-						rank: idx + 1,
-						leaderboardUrl,
+						rank: showRank ? idx + 1 : "Confidential",
+						showRank,
+						leaderboardUrl: categoryUrl,
+						categoryUrl,
+						categoryPath,
+						eventSlug: ev.slug,
+						categoryId: cat.id,
+						orgSlug,
+						bannerImageUrl,
 					});
 				});
 			}
 
 			// 2. Process uncategorized options (if any)
 			if (ev.votingOptions.length > 0) {
+				const eventPath = `${orgSlug}/event/${ev.slug}`;
+				const eventUrl = `https://fextiva.com/${eventPath}`;
+
 				const sortedUncategorized = [...ev.votingOptions].sort(
 					(a, b) => b.votesCount - a.votesCount
 				);
@@ -239,7 +270,13 @@ export async function dispatchNomineeReportsNow({
 						categoryName: "Official Selection",
 						votesCount: opt.votesCount,
 						rank: idx + 1,
-						leaderboardUrl,
+						showRank: true,
+						leaderboardUrl: eventUrl,
+						categoryUrl: eventUrl,
+						categoryPath: eventPath,
+						eventSlug: ev.slug,
+						orgSlug,
+						bannerImageUrl,
 					});
 				});
 			}
@@ -287,7 +324,14 @@ export async function dispatchNomineeReportsNow({
 					categoryName: task.categoryName,
 					votesCount: task.votesCount,
 					rank: task.rank,
-					leaderboardUrl: task.leaderboardUrl,
+					showRank: task.showRank,
+					leaderboardUrl: task.categoryUrl,
+					categoryUrl: task.categoryUrl,
+					categoryPath: task.categoryPath,
+					eventSlug: task.eventSlug,
+					categoryId: task.categoryId,
+					orgSlug: task.orgSlug,
+					bannerImageUrl: task.bannerImageUrl,
 				});
 
 				if (res.success) {

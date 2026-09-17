@@ -447,7 +447,7 @@ export function NomineeReportsContent({
 										</Badge>
 									</div>
 									<CardDescription className="text-xs">
-										Template: <code className="font-mono text-primary">fextiva_nominee_status_en</code>
+										Template: <code className="font-mono text-primary">fextiva_nominee_progress_en</code>
 									</CardDescription>
 								</CardHeader>
 
@@ -472,54 +472,136 @@ export function NomineeReportsContent({
 
 										{/* Message Bubble */}
 										<div className="p-3 bg-[#efeae2] dark:bg-[#0b141a] space-y-2">
-											<div className="bg-white dark:bg-[#1f2c34] rounded-lg p-3 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50 text-xs leading-relaxed space-y-2">
-												<p className="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-1.5 flex items-center gap-1.5">
-													<ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-													Voting Status Update
-												</p>
-												<p>
-													Hello <strong>Ama Serwaa</strong>, here is your account status update for{" "}
-													<strong>AfroFest Awards 2026</strong> in category <strong>Best Vocalist</strong>.
-												</p>
-												<div className="bg-slate-50 dark:bg-slate-900/80 rounded p-2 space-y-1 font-mono text-[11px] border border-slate-200/60 dark:border-slate-800">
-													<div className="flex justify-between">
-														<span className="text-muted-foreground">Total Votes Recorded:</span>
-														<strong className="text-emerald-600 dark:text-emerald-400">1,420</strong>
-													</div>
-													<div className="flex justify-between">
-														<span className="text-muted-foreground">Current Category Rank:</span>
-														<strong className="text-primary font-bold">#2</strong>
+											<div className="bg-white dark:bg-[#1f2c34] rounded-lg overflow-hidden text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50 text-xs leading-relaxed">
+												{/* Header Banner Image (Matching Ticket Confirmation Template Structure) */}
+												<div className="relative h-28 w-full bg-linear-to-r from-emerald-700 via-teal-800 to-slate-900 flex flex-col justify-end p-2.5 text-white">
+													<div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
+													<div className="relative z-10">
+														<Badge className="bg-emerald-500/90 text-white text-[9px] px-1.5 py-0 h-4 border-none font-medium mb-1 inline-flex">
+															OFFICIAL UPDATE
+														</Badge>
+														<p className="font-bold text-xs leading-tight drop-shadow-sm truncate">
+															Miss Mumford Awards 2026
+														</p>
+														<p className="text-[10px] text-white/80 drop-shadow-sm">
+															Fextiva Verification Portal
+														</p>
 													</div>
 												</div>
-												<p className="text-[11px] text-muted-foreground pt-1 italic">
-													This is an automated performance report from Fextiva.
-												</p>
-												<p className="text-[9px] text-muted-foreground text-right">
-													09:00 AM ✓✓
-												</p>
+
+												{/* Formatted Content */}
+												<div className="p-3 space-y-2.5">
+													<p className="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-1.5 flex items-center gap-1.5 text-[11px]">
+														<ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+														Account Confirmation Update
+													</p>
+
+													<p className="text-slate-700 dark:text-slate-200">
+														Hello <strong>Sarah</strong>, here is your account confirmation update for{" "}
+														<strong>Miss Mumford</strong> (Category: <strong>Most Influential</strong>).
+													</p>
+
+													{/* Structured Metrics Box */}
+													<div className="bg-slate-50 dark:bg-slate-900/80 rounded-md p-2.5 space-y-1.5 font-mono text-[11px] border border-slate-200/60 dark:border-slate-800">
+														<div className="flex items-center justify-between">
+															<span className="text-muted-foreground font-sans">
+																• Recorded Vote Transactions:
+															</span>
+															<strong className="text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+																150
+															</strong>
+														</div>
+														<div className="flex items-center justify-between">
+															<span className="text-muted-foreground font-sans">
+																• Account Placement Index:
+															</span>
+															<strong className="text-primary font-bold text-xs">#2</strong>
+														</div>
+													</div>
+
+													<p className="text-[11px] text-muted-foreground pt-0.5">
+														You can verify your activity on the Fextiva portal.
+													</p>
+
+													<p className="text-[9px] text-muted-foreground text-right">
+														09:00 AM <span className="text-blue-500 font-bold">✓✓</span>
+													</p>
+												</div>
 											</div>
 
 											{/* Interactive URL Button */}
-											<div className="bg-white dark:bg-[#1f2c34] rounded-lg py-2 text-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 shadow-xs border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center gap-1.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+											<div className="bg-white dark:bg-[#1f2c34] rounded-lg py-2.5 text-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 shadow-xs border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center gap-1.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
 												<ExternalLink className="h-3.5 w-3.5" />
-												View Leaderboard
+												View Progress
 											</div>
 										</div>
 									</div>
 
 									{/* Metadata summary */}
-									<div className="mt-4 pt-3 border-t border-border/60 text-xs text-muted-foreground space-y-1">
+									<div className="mt-4 pt-3 border-t border-border/60 text-xs text-muted-foreground space-y-1.5">
 										<div className="flex justify-between">
-											<span>WABA Number:</span>
-											<span className="font-mono font-medium text-foreground">+233 50 989 7757</span>
+											<span>Template Category:</span>
+											<span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+												<ShieldCheck className="h-3.5 w-3.5 inline" />
+												Utility (Free Tier / ~0.007 USD)
+											</span>
 										</div>
 										<div className="flex justify-between">
-											<span>Language Code:</span>
-											<span className="font-mono font-medium text-foreground">en (English)</span>
+											<span>Interactive Button:</span>
+											<span className="font-mono font-medium text-foreground">Dynamic URL (View Progress)</span>
 										</div>
 										<div className="flex justify-between">
-											<span>Category / Pricing:</span>
-											<span className="font-medium text-emerald-600 dark:text-emerald-400">Utility (Free tier / ~0.007 USD)</span>
+											<span>Anti-Marketing Classification:</span>
+											<span className="text-foreground">Pure Transactional & Account Status</span>
+										</div>
+									</div>
+
+									{/* Meta WABA Configuration Helper */}
+									<div className="mt-4 p-3 rounded-lg bg-muted/40 border border-border/60 text-xs space-y-2">
+										<div className="flex items-center justify-between">
+											<span className="font-semibold text-foreground text-[11px] uppercase tracking-wider">
+												Meta Business Manager Template
+											</span>
+											<Button
+												variant="ghost"
+												size="sm"
+												className="h-7 text-xs gap-1 px-2"
+												onClick={() =>
+													handleCopy(
+														`Hello {{1}}, here is your account confirmation update for {{2}} (Category: {{3}}).\n\n• Recorded Vote Transactions: {{4}}\n• Account Placement Index: #{{5}}\n\nYou can verify your activity on the Fextiva portal.`,
+														"Meta Template Body"
+													)
+												}
+											>
+												{copiedField === "Meta Template Body" ? (
+													<Check className="h-3.5 w-3.5 text-emerald-500" />
+												) : (
+													<Copy className="h-3.5 w-3.5" />
+												)}
+												Copy Body Text
+											</Button>
+										</div>
+										<pre className="p-2.5 rounded bg-slate-900 text-slate-200 text-[11px] font-mono leading-relaxed whitespace-pre-wrap select-all">
+{`Hello {{1}}, here is your account confirmation update for {{2}} (Category: {{3}}).
+
+• Recorded Vote Transactions: {{4}}
+• Account Placement Index: #{{5}}
+
+You can verify your activity on the Fextiva portal.`}
+										</pre>
+										<div className="text-[10px] text-muted-foreground space-y-1">
+											<p>
+												<strong>Header:</strong> Media (Image) or None | <strong>Button:</strong> Visit Website (Dynamic URL)
+											</p>
+											<p>
+												<strong>Dynamic Website URL:</strong> <code className="font-mono text-primary font-semibold">https://fextiva.com/&#123;&#123;1&#125;&#125;</code> (or shortlink <code className="font-mono text-primary">https://fextiva.com/c/&#123;&#123;1&#125;&#125;</code>)
+											</p>
+											<p>
+												<strong>Button Text:</strong> <code className="font-mono font-medium">View Progress</code> (or <code className="font-mono font-medium">View Category</code>)
+											</p>
+											<p className="text-[10px] text-emerald-600 dark:text-emerald-400">
+												Directs nominees straight to their public portal category page: <code className="font-mono text-[10px]">https://fextiva.com/[org]/event/[event]/category/[id]</code>
+											</p>
 										</div>
 									</div>
 								</CardContent>
