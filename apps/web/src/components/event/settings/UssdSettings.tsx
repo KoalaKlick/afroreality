@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
 	Smartphone,
-	CheckCircle2,
 	Copy,
 	Loader2,
 	Info,
@@ -122,7 +121,6 @@ export function UssdSettings({
 			<div className="flex items-start justify-between mb-4">
 				<div className="space-y-1">
 					<h3 className="text-base font-semibold flex items-center gap-2 text-foreground">
-						<Smartphone className="size-5 text-primary" />
 						USSD Integration (Offline Ticketing &amp; Live Voting)
 					</h3>
 					<p className="text-xs text-muted-foreground">
@@ -135,10 +133,9 @@ export function UssdSettings({
 				{hasUssd && ussdCode ? (
 					<div className="space-y-4">
 						{/* Active Banner */}
-						<div className="bg-primary/5 border border-primary/20 rounded-xl p-4 sm:p-5">
+						<div className="bg-primary/5 rounded-xl p-4 sm:p-5">
 							<div className="flex items-center justify-between gap-3 mb-3">
 								<div className="flex items-center gap-2">
-									<CheckCircle2 className="size-5 text-primary" />
 									<p className="font-bold text-sm text-primary">USSD Channel Active</p>
 								</div>
 								<span className="text-[11px] font-mono font-bold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
@@ -152,7 +149,7 @@ export function UssdSettings({
 
 							{/* Dial Code Display */}
 							<div className="flex flex-wrap items-center gap-2.5">
-								<div className="bg-background border border-border/80 rounded-xl px-4 py-2.5 font-mono text-base sm:text-lg flex-1 min-w-[200px] text-center font-bold tracking-wider select-all text-foreground shadow-xs">
+								<div className="bg-background rounded-lg px-4 py-2.5 text-base sm:text-lg flex-1 min-w-[200px] text-center font-semibold tracking-wider select-all text-foreground">
 									{dialCode}
 								</div>
 

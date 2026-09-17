@@ -266,14 +266,14 @@ export function EventVerificationTab({ event }: EventVerificationTabProps) {
 			</div>
 
 			{/* Scanner Launch Bar */}
-			<div className="rounded-2xl border bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+			<div className="rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
 				<div className="flex items-center gap-3">
 					<div className="size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
 						<QrCode className="size-5" />
 					</div>
 					<div>
 						<h4 className="font-bold text-sm text-foreground">
-							Live Gate Scanner &amp; Door Verification
+							Live Gate Scanner & Door Verification
 						</h4>
 						<p className="text-xs text-muted-foreground">
 							Open the high-speed QR and Ticket Code scanner on door tablet or mobile devices.
@@ -289,7 +289,7 @@ export function EventVerificationTab({ event }: EventVerificationTabProps) {
 			</div>
 
 			{/* Attendee Roster Card with Reused Search Bar, DataTable and DataTablePagination */}
-			<Card className="border bg-card">
+			<Card className="bg-card">
 				<CardHeader className="p-5 border-b space-y-4">
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 						<div>

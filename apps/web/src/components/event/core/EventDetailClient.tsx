@@ -95,7 +95,9 @@ export function EventDetailClient({
 							editingTicket={editingTicket}
 							onEditTicket={(ticket) => {
 								setEditingTicket(ticket);
-								setIsTicketSheetOpen(true);
+								if (ticket) {
+									setIsTicketSheetOpen(true);
+								}
 							}}
 						/>
 					</TabsContent>
@@ -122,7 +124,9 @@ export function EventDetailClient({
 							editingCategory={editingCategory}
 							onEditCategory={(cat) => {
 								setEditingCategory(cat);
-								setIsCategorySheetOpen(true);
+								if (cat) {
+									setIsCategorySheetOpen(true);
+								}
 							}}
 						/>
 					</TabsContent>

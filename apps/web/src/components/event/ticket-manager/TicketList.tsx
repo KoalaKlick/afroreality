@@ -389,7 +389,7 @@ export function TicketList({
 				onOpenChange={handleSheetOpenChange}
 				editingTicket={currentEditingTicket}
 				onSaved={() => {
-					setTicket(null);
+					handleSheetOpenChange(false);
 					onRefresh?.();
 				}}
 			/>

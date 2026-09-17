@@ -105,7 +105,7 @@ export function TransactionsTable({
 				cell: ({ row }) => {
 					const category = row.original.category;
 					return (
-						<span className="text-xs font-medium text-foreground">
+						<span className="text-xs font-medium text-muted-foreground">
 							{categoryLabels[category] ?? category}
 						</span>
 					);
@@ -139,7 +139,7 @@ export function TransactionsTable({
 
 					return (
 						<div className="flex flex-col max-w-sm truncate">
-							<span className="text-xs font-medium text-foreground truncate">
+							<span className="text-xs text-muted-foreground truncate">
 								{displayDesc}
 							</span>
 						</div>

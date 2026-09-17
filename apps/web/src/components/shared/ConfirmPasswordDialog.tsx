@@ -198,9 +198,8 @@ export function ConfirmPasswordDialog({
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
+				<DialogHeader className="">
 					<DialogTitle className="flex items-center gap-2">
-						<ShieldCheck className="h-5 w-5 text-primary" />
 						{title}
 					</DialogTitle>
 					<DialogDescription>{description}</DialogDescription>

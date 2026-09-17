@@ -466,9 +466,6 @@ export function OrgWalletClient({
 				>
 					<SheetHeader className="shrink-0">
 						<div className="flex items-center gap-2.5">
-							<div className="size-9 rounded-lg bg-primary-100 dark:bg-primary-950/50 text-primary flex items-center justify-center shrink-0">
-								<Landmark className="size-5" />
-							</div>
 							<div>
 								<SheetTitle className="text-lg font-bold">
 									Payout Account Settings
@@ -504,7 +501,7 @@ export function OrgWalletClient({
 
 					<div className="space-y-4 py-2">
 						{/* Available Balance & Settlement Status Banner */}
-						<div className="bg-primary-50/70 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50 rounded-lg p-3 space-y-1.5">
+						<div className="bg-primary-50/70 dark:bg-primary-950/30 dark:border-primary-900/50 rounded-lg p-3 space-y-1.5">
 							<div className="flex items-center justify-between">
 								<div className="text-xs text-muted-foreground">Available to Withdraw (Cleared):</div>
 								<div className="font-mono font-bold text-sm text-foreground">
@@ -528,7 +525,6 @@ export function OrgWalletClient({
 						{hasPayoutAccount && (
 							<div className="rounded-lg border border-border bg-card p-3 space-y-1 text-xs">
 								<div className="font-semibold text-muted-foreground flex items-center gap-1.5">
-									<CheckCircle2 className="size-3.5 text-emerald-500" />
 									Disbursing To:
 								</div>
 								<div className="font-medium text-foreground">
@@ -589,9 +585,8 @@ export function OrgWalletClient({
 						</div>
 
 						{/* T+1 Settlement Policy Note */}
-						<div className="text-[11px] text-muted-foreground bg-muted/40 rounded-lg p-2.5 space-y-1 border border-border/50">
+						<div className="text-[11px] text-muted-foreground bg-muted/40 rounded-lg p-2.5 space-y-1 ">
 							<div className="font-medium text-foreground flex items-center gap-1.5">
-								<Clock className="size-3 text-primary" />
 								Paystack Settlement & Clearance (T+1)
 							</div>
 							<p className="leading-normal">

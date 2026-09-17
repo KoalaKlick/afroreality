@@ -274,13 +274,13 @@ export function EventDetailHeader({
 					{/* Card Content: Flier sits flush at bottom, details beside */}
 					<div className="flex flex-col md:flex-row items-stretch md:items-end gap-6 pl-5 pt-5 sm:pl-7 sm:pt-7 pr-5 sm:pr-7 pb-5 sm:pb-7 md:pb-0">
 						{/* Event Flier (Flush with bottom, rounded top, no bottom roundness) */}
-						<div className="relative shrink-0 w-36 sm:w-44 md:w-52 h-36 sm:h-44 md:h-56 rounded-t-2xl rounded-b-none border-t border-x border-b-0 border-border/60 bg-muted/20 overflow-hidden shadow-none group/flier self-start md:self-end">
+						<div className="relative shrink-0 w-36 sm:w-44 md:w-52 h-36 sm:h-44 md:h-56 rounded-t-lg rounded-b-none border-t border-x border-b-0 border-border/60 bg-muted/20 overflow-hidden shadow-none group/flier self-start md:self-end">
 							{flierDisplayUrl ? (
 								<>
 									<img
 										src={flierDisplayUrl}
 										alt={event.title}
-										className="size-full object-cover rounded-t-2xl rounded-b-none"
+										className="size-full object-cover rounded-b-none"
 									/>
 									{canEdit && (
 										<>
@@ -288,7 +288,7 @@ export function EventDetailHeader({
 												type="button"
 												onClick={() => flierInputRef.current?.click()}
 												disabled={isUploadingFlier}
-												className="absolute inset-0 bg-black/50 opacity-0 group-hover/flier:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-t-2xl rounded-b-none"
+												className="absolute inset-0 bg-black/50 opacity-0 group-hover/flier:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-t-lg rounded-b-none"
 												aria-label="Change flier"
 											>
 												{isUploadingFlier ? (

@@ -608,7 +608,7 @@ export function CategoryList({
 				editingCategory={currentEditingCat}
 				votingMode={votingMode}
 				onSaved={() => {
-					setCategory(null);
+					handleSheetOpenChange(false);
 					onRefresh?.();
 				}}
 			/>
