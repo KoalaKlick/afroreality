@@ -46,6 +46,7 @@ import { OrgPayoutSettings } from "./OrgPayoutSettings";
 import { PayoutsHistoryTable } from "./PayoutsHistoryTable";
 import { TransactionsTable } from "./TransactionsTable";
 import { WalletBalanceSummary } from "./WalletBalanceSummary";
+import { ProviderLogo } from "@/components/shared/ProviderLogo";
 
 interface OrgWalletClientProps {
 	readonly organization: {
@@ -523,15 +524,21 @@ export function OrgWalletClient({
 
 						{/* Destination Account Summary */}
 						{hasPayoutAccount && (
-							<div className="rounded-lg border border-border bg-card p-3 space-y-1 text-xs">
-								<div className="font-semibold text-muted-foreground flex items-center gap-1.5">
-									Disbursing To:
-								</div>
-								<div className="font-medium text-foreground">
-									{organization.paystackAccountName}
-								</div>
-								<div className="font-mono text-muted-foreground">
-									{organization.paystackAccountNumber} ({organization.paystackBankCode})
+							<div className="rounded-lg border border-border bg-card p-3 flex items-center gap-3 text-xs">
+								<ProviderLogo
+									bankCode={organization.paystackBankCode}
+									className="size-8 shrink-0"
+								/>
+								<div className="space-y-0.5 min-w-0 flex-1">
+									<div className="font-semibold text-muted-foreground">
+										Disbursing To:
+									</div>
+									<div className="font-medium text-foreground truncate">
+										{organization.paystackAccountName}
+									</div>
+									<div className="font-mono text-muted-foreground text-[11px]">
+										{organization.paystackAccountNumber} ({organization.paystackBankCode})
+									</div>
 								</div>
 							</div>
 						)}

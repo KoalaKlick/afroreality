@@ -6,8 +6,8 @@ import {
 	getPaginationRowModel,
 	getSortedRowModel,
 } from "@tanstack/react-table";
-import { Building2 } from "lucide-react";
 import { useMemo } from "react";
+import { ProviderLogo, getProviderFriendlyName } from "@/components/shared/ProviderLogo";
 import { DataTableColumnHeader } from "@/components/common/data-table-column-header";
 import { DataTablePagination } from "@/components/common/data-table-pagination";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -81,15 +81,17 @@ export function PayoutsHistoryTable({
 				),
 				cell: ({ row }) => {
 					const item = row.original;
-					const bank = item.bankName || item.bankCode || "Bank/MoMo";
+					const bank = getProviderFriendlyName(item.bankName, item.bankCode);
 					const accNum = item.accountNumber || "—";
 					const accName = item.accountName || item.recipientName || "";
 
 					return (
-						<div className="flex items-center gap-2">
-							<div className="size-7 rounded-md bg-secondary-100 dark:bg-secondary-950/50 text-secondary flex items-center justify-center shrink-0">
-								<Building2 className="size-3.5" />
-							</div>
+						<div className="flex items-center gap-2.5">
+							<ProviderLogo
+								bankCode={item.bankCode}
+								bankName={item.bankName}
+								className="size-7 shrink-0"
+							/>
 							<div className="flex flex-col min-w-0">
 								<span className="text-xs font-medium text-foreground truncate">
 									{bank} • <span className="font-mono">{accNum}</span>
