@@ -12,6 +12,7 @@ import {
 	UserCheck,
 	ArrowLeft,
 	Sparkles,
+	MessageSquare,
 } from "lucide-react";
 import {
 	Sidebar,
@@ -54,6 +55,11 @@ const navItems = [
 		title: "Events Oversight",
 		href: "/super/events",
 		icon: CalendarCheck,
+	},
+	{
+		title: "Nominee Reports",
+		href: "/super/reports",
+		icon: MessageSquare,
 	},
 	{
 		title: "Wallets & Payouts",

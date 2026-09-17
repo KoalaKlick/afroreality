@@ -21,7 +21,7 @@ export function LandingHero() {
 		>
 			{/* ── Headline ── */}
 			<div className="relative z-20 text-center space-y-4 max-w-3xl pt-10 mx-auto">
-				<h1 className="font-millik text-[2.4rem] sm:text-4xl md:text-5xl leading-[1.05] tracking-tight">
+				<h1 className="font-millik text-[2rem] sm:text-4xl md:text-5xl leading-[1.05] tracking-tight">
 					<span className="bg-gradient-to-r from-primary-700 via-primary-500 to-secondary-500 bg-clip-text text-transparent">
 						Your Event. Your Brand.
 					</span>
@@ -35,7 +35,7 @@ export function LandingHero() {
 					<DrippingSvg className="h-6 sm:h-8 md:h-10 w-auto" aria-hidden="true" />
 				</div>
 
-				<p className="max-w-xl mx-auto text-foreground/70 text-base sm:text-lg leading-relaxed">
+				<p className="max-w-xl mx-auto text-foreground/70 text-sm sm:text-lg leading-relaxed">
 					Launch free events for brand reach, sell tickets
 					with instant payouts, or run trusted live voting.
 					Fully branded with your colours and logo.
@@ -44,14 +44,14 @@ export function LandingHero() {
 				<div className="flex flex-cl xs:flex-row items-center justify-center gap-3.5 pt-3">
 					<Link
 						href="/events"
-						className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary-600 px-8 py-3 text-sm sm:text-base font-semibold text-white shadow-lg shadow-primary-600/25 transition-all duration-300 hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30 active:scale-[0.98]"
+						className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary-600 px-4 sm:px-8 py-2 text-sm sm:text-base font-semibold text-white shadow-lg shadow-primary-600/25 transition-all duration-300 hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30 active:scale-[0.98]"
 					>
 						Explore Events
 						<ArrowRight className="size-4.5 transition-transform duration-200 group-hover:translate-x-1" />
 					</Link>
 					<Link
 						href="/register"
-						className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-foreground/15 bg-white px-7 py-3 text-sm sm:text-base font-semibold text-foreground shadow-sm transition-all duration-300 hover:border-foreground/30 hover:bg-stone-50 active:scale-[0.98]"
+						className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-foreground/15 bg-white px-7 py-2 text-sm sm:text-base font-semibold text-foreground shadow-sm transition-all duration-300 hover:border-foreground/30 hover:bg-stone-50 active:scale-[0.98]"
 					>
 						<span className="flex size-5 items-center justify-center rounded-full bg-tertiary-600 text-white shadow-xs">
 							<Play className="size-2.5 fill-background" />
@@ -61,7 +61,7 @@ export function LandingHero() {
 				</div>
 
 				<div className=" items-center justify-center pt-2 hidden xl:flex">
-					<div className="inline-flex items-center justify-center gap-3 rounded-full border border-foreground/10 bg-white px-5 py-2 sm:py-2.5 shadow-sm">
+					<div className="inline-flex  items-center justify-center gap-3 rounded-full border border-foreground/10 bg-white px-5 py-2 sm:py-2.5 shadow-sm">
 						<div className="flex -space-x-2">
 							{AVATAR_INITIALS.map((av) => (
 								<span
@@ -90,7 +90,7 @@ export function LandingHero() {
 
 			{/* ── Three Images + Floating Cards Section ── */}
 			<div className="relative z-10 w-full max-w-5xl mx-auto px-2 sm:px-4">
-				<div className="relative h-[430px] sm:h-[490px] md:h-[540px] xl:h-auto xl:flex xl:items-end xl:justify-between xl:gap-6">
+				<div className="relative h-[430px] sm:h-[40px] md:h-[540px] xl:h-auto xl:flex xl:items-end xl:justify-between xl:gap-6">
 					{/* Left — Guitar Man with Arch Shape */}
 					<div className="absolute bottom-0 left-[2%] sm:left-[6%] w-[26%] sm:w-[23%] md:w-[21%] xl:static xl:shrink-0 xl:w-[19%] transition-all duration-300">
 						<div className="relative aspect-[768/1376] rounded-[3.5rem] sm:rounded-[5rem] md:rounded-[6rem] xl:rounded-[7rem] overflow-hidden shadow-lg border border-white/60 bg-[#eeece8]">
@@ -168,7 +168,7 @@ export function LandingHero() {
 					</div>
 				</div>
 				<div className=" items-center justify-center pt-2 flex xl:hidden">
-					<div className="inline-flex items-center justify-center gap-3 rounded-full border border-foreground/10 bg-white px-5 py-2 sm:py-2.5 shadow-sm">
+					<div className="inline-flex flex-wrap items-center justify-center gap-x-3  rounded-full border border-foreground/10 bg-white px-5 py-2 sm:py-2.5 shadow-sm">
 						<div className="flex -space-x-2">
 							{AVATAR_INITIALS.map((av) => (
 								<span

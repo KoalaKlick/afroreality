@@ -648,6 +648,18 @@ model FeeConfiguration {
   @@map("fee_configurations")
 }
 
+model PlatformSetting {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String   @unique
+  value       Json
+  description String?
+  updatedBy   String?  @map("updated_by")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("platform_settings")
+}
+
 model Promoter {
   id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId            String         @unique @map("user_id")

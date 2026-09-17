@@ -287,3 +287,54 @@ export async function sendVoteReceiptWhatsAppNotification({
 
 	return templateRes;
 }
+
+/**
+ * Helper to send scheduled or on-demand nominee voting progress report
+ */
+export async function sendNomineeReportWhatsAppNotification({
+	phone,
+	nomineeName,
+	eventTitle,
+	categoryName,
+	votesCount,
+	rank,
+	leaderboardUrl,
+}: {
+	phone: string;
+	nomineeName: string;
+	eventTitle: string;
+	categoryName?: string;
+	votesCount: number | string;
+	rank: number | string;
+	leaderboardUrl?: string;
+}): Promise<SendWhatsAppResponse> {
+	const formattedVotes = typeof votesCount === "number" ? votesCount.toLocaleString() : votesCount;
+	const formattedRank = String(rank);
+
+	// First attempt template message
+	const templateRes = await sendWhatsAppTemplateMessage({
+		to: phone,
+		templateName: "fextiva_nominee_report_en",
+		languageCode: "en",
+		components: [
+			{
+				type: "body",
+				parameters: [
+					{ type: "text", text: nomineeName },
+					{ type: "text", text: eventTitle },
+					{ type: "text", text: categoryName || "General" },
+					{ type: "text", text: formattedVotes },
+					{ type: "text", text: formattedRank },
+				],
+			},
+		],
+	});
+
+	// If template is pending review or fails, fallback to clean text message
+	if (!templateRes.success) {
+		const fallbackText = `📊 *Voting Progress Update*\n\nHello ${nomineeName},\nHere is your live voting update for *${eventTitle}* in category *${categoryName || "General"}*:\n\n*Current Votes:* ${formattedVotes}\n*Current Rank:* #${formattedRank}\n\nKeep sharing your voting link to rally more votes!${leaderboardUrl ? `\n\nLeaderboard: ${leaderboardUrl}` : ""}\n\nThank you for participating on Fextiva.`;
+		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
+	}
+
+	return templateRes;
+}

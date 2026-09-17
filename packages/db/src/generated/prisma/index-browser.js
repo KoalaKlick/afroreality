@@ -432,6 +432,16 @@ exports.Prisma.FeeConfigurationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PlatformSettingScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  description: 'description',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.PromoterScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -884,6 +894,7 @@ exports.Prisma.ModelName = {
   Payment: 'Payment',
   Payout: 'Payout',
   FeeConfiguration: 'FeeConfiguration',
+  PlatformSetting: 'PlatformSetting',
   Promoter: 'Promoter',
   Referral: 'Referral',
   Commission: 'Commission',
