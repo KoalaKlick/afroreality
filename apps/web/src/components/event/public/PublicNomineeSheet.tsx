@@ -239,7 +239,7 @@ export function NomineeGrid({
 			{/* Nominee Profile Quick-View Sheet / Drawer */}
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 				<SheetContent
-					className="sm:max-w-md p-6 overflow-y-auto flex flex-col justify-between"
+					className="sm:max-w-md p-0 overflow-hidden flex flex-col justify-between"
 					style={brandVars}
 				>
 					{selectedNominee && (() => {
@@ -252,8 +252,8 @@ export function NomineeGrid({
 								: 0;
 
 						return (
-							<div className="space-y-6 flex-1 flex flex-col">
-								<SheetHeader className="text-left space-y-1">
+							<div className="flex-1 flex flex-col min-h-0">
+								<SheetHeader className="shrink-0 text-left space-y-1">
 									<SheetTitle className="text-2xl font-black uppercase tracking-tight">
 										{selectedNominee.optionText}
 									</SheetTitle>
@@ -264,6 +264,8 @@ export function NomineeGrid({
 										</div>
 									)}
 								</SheetHeader>
+
+								<div className="flex-1 overflow-y-auto p-6 space-y-6">
 
 								<div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-muted border border-border/60 shadow-sm flex items-center justify-center shrink-0">
 									{selectedNominee.imageUrl ? (
@@ -340,6 +342,7 @@ export function NomineeGrid({
 									>
 										<Share2 className="size-4" />
 									</Button>
+								</div>
 								</div>
 							</div>
 						);

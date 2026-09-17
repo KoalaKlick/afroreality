@@ -72,16 +72,16 @@ function getIconColorStyles(iconSrc: string): {
 	const color = base.split("-").pop();
 
 	const colorGlow: Record<string, string> = {
-		red: "radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.25), transparent 60%)",
-		yellow: "radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.25), transparent 60%)",
-		green: "radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.25), transparent 60%)",
-		black: "radial-gradient(circle at bottom right, rgba(156, 163, 175, 0.18), transparent 60%)",
+		red: "radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.22), transparent 60%), linear-gradient(135deg, rgba(239, 68, 68, 0.04), transparent 50%)",
+		yellow: "radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.22), transparent 60%), linear-gradient(135deg, rgba(245, 158, 11, 0.04), transparent 50%)",
+		green: "radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.22), transparent 60%), linear-gradient(135deg, rgba(16, 185, 129, 0.04), transparent 50%)",
+		black: "radial-gradient(circle at bottom right, rgba(156, 163, 175, 0.16), transparent 60%), linear-gradient(135deg, rgba(156, 163, 175, 0.03), transparent 50%)",
 	};
 
 	const borderColor: Record<string, string> = {
-		red: "border-red-500/20 dark:border-red-500/30",
-		yellow: "border-amber-500/20 dark:border-amber-500/30",
-		green: "border-emerald-500/20 dark:border-emerald-500/30",
+		red: "border-red-500/25 dark:border-red-500/30",
+		yellow: "border-amber-500/30 dark:border-amber-500/35",
+		green: "border-emerald-500/30 dark:border-emerald-500/35",
 		black: "border-border",
 	};
 
@@ -172,7 +172,7 @@ export function StatCard({
 				style={{ ...cardInlineStyle }}
 				onClick={onClick}
 			>
-				<CardContent className="p-0 flex-1 flex flex-col justify-between relative z-10">
+				<CardContent className="p-0 flex-1 flex flex-col justify-between relative z-10 pr-10 sm:pr-12">
 					<div className="flex items-start justify-between gap-2">
 						<div className="space-y-1 sm:space-y-1.5 flex-1 min-w-0">
 							<p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
@@ -210,7 +210,7 @@ export function StatCard({
 					<img
 						src={iconSrc}
 						alt={label}
-						className="size-16 sm:size-24 object-contain opacity-40 dark:opacity-45 group-hover:opacity-85 group-hover:scale-110 transition-all duration-300 select-none pointer-events-none absolute -bottom-2 -right-2 sm:-bottom-3 sm:-right-3"
+						className="size-14 sm:size-16 object-contain opacity-95 dark:opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 select-none pointer-events-none absolute -bottom-2 -right-2 sm:-bottom-2.5 sm:-right-2.5 drop-shadow-sm z-0"
 					/>
 				)}
 			</Card>

@@ -218,18 +218,19 @@ export function TicketCardRetro({
     >
       <DotPattern color={primaryColor} />
       <TicketOutline color={primaryShades[200]} />
-      <div className="w-full h-full flex items-center justify-center p-6">
-        <div className="flex flex-col items-center gap-2">
-          <div className="border-4 border-black p-2 bg-white rotate-[-1deg]">
+      <div className="w-full h-full flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="border-4 border-black p-2.5 bg-white rotate-[-1deg] shadow-xs">
             {qrPayload ? (
-              <QRCode
-                value={qrPayload}
-                size={exportMode ? 100 : 100}
+              <QRCode 
+                value={qrPayload} 
+                size={exportMode ? 132 : 122} 
                 fgColor="#1a1a1a"
                 bgColor="#ffffff"
+                level="M"
               />
             ) : (
-              <div className="w-24 h-24 bg-muted animate-pulse" />
+              <div className="w-28 h-28 bg-muted animate-pulse" />
             )}
           </div>
           <div className="text-center space-y-1">

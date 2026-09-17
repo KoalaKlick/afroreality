@@ -137,7 +137,7 @@ export function EventTransactionsSheet({
 				variant="brand"
 				className="w-full sm:max-w-3xl flex flex-col h-full p-0"
 			>
-				<SheetHeader className="shrink-0 px-6 pt-6 border-b border-border/60">
+				<SheetHeader className="shrink-0">
 					<div className="flex items-center gap-3">
 						<div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 ring-1 ring-primary/20">
 							{activeTab === "votes" ? (
@@ -171,44 +171,45 @@ export function EventTransactionsSheet({
 							</SheetDescription>
 						</div>
 					</div>
-
-					<div className="pt-4 flex items-center justify-between">
-						<Tabs
-							value={activeTab}
-							onValueChange={(v) => {
-								setActiveTab(v as any);
-								setPage(1);
-								setSearchQuery("");
-							}}
-							className="w-full"
-						>
-							<TabsList variant="brand" className="h-9 w-full sm:w-auto">
-								<TabsTrigger variant="brand" value="revenue" className="text-xs gap-1.5 flex-1 sm:flex-initial">
-									<Banknote className="size-3.5" />
-									<span>Revenue</span>
-								</TabsTrigger>
-								{isTicketedType && (
-									<TabsTrigger variant="brand" value="tickets" className="text-xs gap-1.5 flex-1 sm:flex-initial">
-										<TicketIcon className="size-3.5" />
-										<span>Tickets ({ticketData.total})</span>
-									</TabsTrigger>
-								)}
-								{isVotingType && (
-									<>
-										<TabsTrigger variant="brand" value="votes" className="text-xs gap-1.5 flex-1 sm:flex-initial">
-											<VoteIcon className="size-3.5" />
-											<span>Votes ({voteData.total})</span>
-										</TabsTrigger>
-										<TabsTrigger variant="brand" value="nominations" className="text-xs gap-1.5 flex-1 sm:flex-initial">
-											<Award className="size-3.5" />
-											<span>Nominations ({nominationData.total})</span>
-										</TabsTrigger>
-									</>
-								)}
-							</TabsList>
-						</Tabs>
-					</div>
 				</SheetHeader>
+
+				{/* Toolbar: Tabs */}
+				<div className="px-6 py-3 border-b bg-background/50 shrink-0">
+					<Tabs
+						value={activeTab}
+						onValueChange={(v) => {
+							setActiveTab(v as any);
+							setPage(1);
+							setSearchQuery("");
+						}}
+						className="w-full sm:w-auto"
+					>
+						<TabsList className="h-9 w-full sm:w-auto p-1.5 gap-1.5 rounded-sm bg-muted/60">
+							<TabsTrigger value="revenue" className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm">
+								<Banknote className="size-3.5" />
+								<span>Revenue</span>
+							</TabsTrigger>
+							{isTicketedType && (
+								<TabsTrigger value="tickets" className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm">
+									<TicketIcon className="size-3.5" />
+									<span>Tickets ({ticketData.total})</span>
+								</TabsTrigger>
+							)}
+							{isVotingType && (
+								<>
+									<TabsTrigger value="votes" className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm">
+										<VoteIcon className="size-3.5" />
+										<span>Votes ({voteData.total})</span>
+									</TabsTrigger>
+									<TabsTrigger value="nominations" className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm">
+										<Award className="size-3.5" />
+										<span>Nominations ({nominationData.total})</span>
+									</TabsTrigger>
+								</>
+							)}
+						</TabsList>
+					</Tabs>
+				</div>
 
 				{/* Body Content */}
 				<div className="flex-1 overflow-y-auto p-6">

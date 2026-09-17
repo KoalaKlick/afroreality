@@ -415,21 +415,26 @@ function BackFace({
           Scan to Verify
         </div>
         <div
-          className="flex items-center justify-center p-1.5 rounded-sm"
+          className="flex items-center justify-center p-2 rounded-md bg-white shadow-xs"
           style={{
-            background: primaryShades[100],
-            border: `1px solid ${primaryShades[800]}`,
+            background: "#ffffff",
+            border: `1px solid ${primaryShades[200] || primaryColor}`,
           }}
         >
-          <div className={exportMode ? "w-28 h-28" : "w-16 h-16"}>
+          <div
+            style={{
+              width: exportMode ? 130 : 118,
+              height: exportMode ? 130 : 118,
+            }}
+          >
             {qrPayload ? (
               <QRCode
                 value={qrPayload}
                 size={512}
                 style={{ height: "100%", width: "100%", imageRendering: "pixelated" }}
                 fgColor={primaryColor}
-                bgColor="transparent"
-                level="H"
+                bgColor="#ffffff"
+                level="M"
               />
             ) : (
               <QrCode className="w-full h-full opacity-50" style={{ color: primaryColor }} />

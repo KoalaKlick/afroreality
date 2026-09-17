@@ -111,10 +111,10 @@ export function PublicRegistrationForm({
 			</SheetTrigger>
 
 			<SheetContent
-				className="sm:max-w-md p-6 overflow-y-auto"
+				className="sm:max-w-md p-0 overflow-hidden flex flex-col"
 				style={brandVars}
 			>
-				<SheetHeader>
+				<SheetHeader className="shrink-0">
 					<SheetTitle className="text-lg font-bold">
 						Register for Event
 					</SheetTitle>
@@ -124,7 +124,8 @@ export function PublicRegistrationForm({
 					</SheetDescription>
 				</SheetHeader>
 
-				{uniqueCode ? (
+				<div className="flex-1 overflow-y-auto p-6">
+					{uniqueCode ? (
 					<div className="py-8 text-center space-y-5">
 						<div className="size-14 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto dark:bg-green-950/50 dark:text-green-400">
 							<CheckCircle2 className="size-8" />
@@ -243,6 +244,7 @@ export function PublicRegistrationForm({
 						</Button>
 					</form>
 				)}
+				</div>
 			</SheetContent>
 		</Sheet>
 	);

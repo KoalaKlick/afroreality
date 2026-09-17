@@ -393,12 +393,15 @@ export function TicketCard({
         label={buyerName.slice(0, 12)} 
       />
 
-      <div className="flex-1 flex items-center gap-6 px-6 py-4">
-        <div className="flex flex-col items-center gap-1.5 shrink-0">
+      <div className="flex-1 flex items-center gap-6 px-5 py-2.5">
+        <div className="flex flex-col items-center gap-1 shrink-0">
           <div
-            className="rounded-none flex items-center justify-center bg-white p-1 size-16"
+            className="rounded-md flex items-center justify-center bg-white p-2 shadow-xs border"
             style={{ 
-              backgroundColor: primaryShades[50] || "#ffffff",
+              width: exportMode ? 132 : 124,
+              height: exportMode ? 132 : 124,
+              backgroundColor: "#ffffff",
+              borderColor: primaryShades[200] || primaryColor,
               imageRendering: "pixelated"
             }}
           >
@@ -408,15 +411,15 @@ export function TicketCard({
                 size={512}
                 style={{ height: "100%", width: "100%", imageRendering: "pixelated" }}
                 fgColor={primaryColor}
-                bgColor="transparent"
-                level="H"
+                bgColor="#ffffff"
+                level="M"
               />
             ) : (
-              <QrCode className="size-8" style={{ color: primaryColor }} />
+              <QrCode className="size-16" style={{ color: primaryColor }} />
             )}
           </div>
           <div
-            className="text-[8px] font-black tracking-[0.1em] uppercase opacity-60 text-center"
+            className="text-[8px] font-black tracking-[0.12em] uppercase opacity-70 text-center mt-0.5"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             Scan to verify

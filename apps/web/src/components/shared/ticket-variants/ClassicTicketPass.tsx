@@ -2,6 +2,7 @@
 // src/components/shared/ticket-variants/ClassicTicketPass.tsx
 
 import { QrCode } from "lucide-react";
+import QRCode from "react-qr-code";
 import { useId, useState } from "react";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades } from "@/lib/utils/color-generator";
@@ -218,6 +219,7 @@ export function ClassicTicketPass({
 	exportMode = false,
 	exportSide = "both",
 	buyerName = "Valued Guest",
+	qrPayload,
 }: ClassicTicketProps) {
 	const [flipped, setFlipped] = useState(false);
 
@@ -373,16 +375,37 @@ export function ClassicTicketPass({
 				label={buyerName.slice(0, 12)}
 			/>
 
-			<div className="flex-1 flex items-center gap-6 px-6 py-4">
-				<div className="flex flex-col items-center gap-1.5 shrink-0">
+			<div className="flex-1 flex items-center gap-6 px-5 py-2.5">
+				<div className="flex flex-col items-center gap-1 shrink-0">
 					<div
-						className="size-16 rounded flex items-center justify-center bg-white p-1"
-						style={{ backgroundColor: primaryShades[50] || "#F0FDF4" }}
+						className="rounded-md flex items-center justify-center bg-white p-2 shadow-xs border"
+						style={{
+							width: exportMode ? 132 : 124,
+							height: exportMode ? 132 : 124,
+							backgroundColor: "#ffffff",
+							borderColor: primaryShades[200] || primaryColor,
+							imageRendering: "pixelated",
+						}}
 					>
-						<QrCode className="size-12" style={{ color: primaryColor }} />
+						{qrPayload ? (
+							<QRCode
+								value={qrPayload}
+								size={512}
+								style={{
+									height: "100%",
+									width: "100%",
+									imageRendering: "pixelated",
+								}}
+								fgColor={primaryColor}
+								bgColor="#ffffff"
+								level="M"
+							/>
+						) : (
+							<QrCode className="size-16" style={{ color: primaryColor }} />
+						)}
 					</div>
 					<div
-						className="text-[8px] font-black tracking-[0.1em] uppercase opacity-40 text-center"
+						className="text-[8px] font-black tracking-[0.12em] uppercase opacity-70 text-center mt-0.5"
 						style={{
 							fontFamily: "'Courier New', monospace",
 							color: primaryColor,

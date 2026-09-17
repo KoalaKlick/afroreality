@@ -113,3 +113,28 @@ export async function deleteVotingCategory({ data }: { data: { id: string } }): 
   await prisma.votingCategory.delete({ where: { id: data.id } });
   return { success: true };
 }
+
+export async function reorderVotingCategories({
+  data,
+}: {
+  data: { eventId?: string; categoryIds: string[] };
+}): Promise<{ success: boolean }> {
+  await requireSession();
+  if (!data.categoryIds || data.categoryIds.length === 0) {
+    return { success: true };
+  }
+
+  await prisma.$transaction(
+    data.categoryIds.map((id, index) =>
+      prisma.votingCategory.update({
+        where: { id },
+        data: { orderIdx: index },
+      })
+    )
+  );
+
+  if (data.eventId) {
+    revalidatePath(`/my-events/${data.eventId}`);
+  }
+  return { success: true };
+}

@@ -308,19 +308,22 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 								</div>
 							</SheetHeader>
 
-							<div className="p-6 flex-1">
-								<Tabs defaultValue="members" className="w-full rounded-none shadow-none">
-									<TabsList className="grid grid-cols-3 mb-6 bg-muted/50 rounded-none shadow-none border border-border p-0">
-										<TabsTrigger value="members" className="text-xs font-semibold rounded-none shadow-none">
+							<Tabs defaultValue="members" className="w-full flex-1 flex flex-col min-h-0 rounded-none shadow-none">
+								<div className="px-6 py-3 border-b bg-background/50 shrink-0">
+									<TabsList className="h-9 w-full sm:w-auto p-1 bg-muted/60">
+										<TabsTrigger value="members" className="text-xs font-semibold px-3 flex-1 sm:flex-initial">
 											Members ({selectedOrg.members.length})
 										</TabsTrigger>
-										<TabsTrigger value="events" className="text-xs font-semibold rounded-none shadow-none">
+										<TabsTrigger value="events" className="text-xs font-semibold px-3 flex-1 sm:flex-initial">
 											Events ({selectedOrg.eventsSummary.total})
 										</TabsTrigger>
-										<TabsTrigger value="wallet" className="text-xs font-semibold rounded-none shadow-none">
+										<TabsTrigger value="wallet" className="text-xs font-semibold px-3 flex-1 sm:flex-initial">
 											Share & Wallet
 										</TabsTrigger>
 									</TabsList>
+								</div>
+
+								<div className="p-6 flex-1 overflow-y-auto">
 
 									{/* 1. Members Tab */}
 									<TabsContent value="members" className="space-y-4">
@@ -586,8 +589,8 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 											</div>
 										)}
 									</TabsContent>
-								</Tabs>
-							</div>
+								</div>
+							</Tabs>
 						</>
 					)}
 				</SheetContent>

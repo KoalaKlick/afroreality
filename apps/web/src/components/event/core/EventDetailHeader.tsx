@@ -390,20 +390,6 @@ export function EventDetailHeader({
 								</div>
 							)}
 
-							{/* Organization & Slug */}
-							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-								{organization?.name && (
-									<span className="font-semibold text-foreground/80">
-										{organization.name}
-									</span>
-								)}
-								{event.slug && (
-									<span className="font-mono text-muted-foreground">
-										/{event.slug}
-									</span>
-								)}
-							</div>
-
 							{/* Date & Location Rows */}
 							<div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground pt-0.5">
 								{dateStr && (
@@ -553,12 +539,12 @@ export function EventDetailHeader({
 						<Tabs value={activeTab} onValueChange={onTabChange}>
 							<TabsList
 								variant="brand"
-								className="w-full grid grid-cols-2 sm:flex sm:w-full bg-background border border-border rounded-xl p-1 min-h-11 sm:h-12 shadow-xs"
+								className="w-full flex overflow-x-auto no-scrollbar sm:inline-flex items-center bg-background border border-border rounded-sm p-1 h-11 sm:h-12 shadow-xs gap-1"
 							>
 								<TabsTrigger
 									variant="brand"
 									value="overview"
-									className="gap-2 rounded-lg"
+									className="gap-2 rounded-sm"
 								>
 									<LayoutDashboard className="size-4" />
 									Overview
@@ -568,7 +554,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="tickets"
-										className="gap-2 rounded-lg"
+										className="gap-2 rounded-sm"
 									>
 										<Ticket className="size-4" />
 										Tickets ({ticketCount})
@@ -579,7 +565,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="verification"
-										className="gap-2 rounded-lg"
+										className="gap-2 rounded-sm"
 									>
 										<QrCode className="size-4" />
 										Verification
@@ -590,7 +576,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="voting"
-										className="gap-2 rounded-lg"
+										className="gap-2 rounded-sm"
 									>
 										<Vote className="size-4" />
 										Voting ({votingCount})
@@ -601,7 +587,7 @@ export function EventDetailHeader({
 									<TabsTrigger
 										variant="brand"
 										value="members"
-										className="gap-2 rounded-lg"
+										className="gap-2 rounded-sm"
 									>
 										<Users className="size-4" />
 										Members
@@ -611,7 +597,7 @@ export function EventDetailHeader({
 								<TabsTrigger
 									variant="brand"
 									value="settings"
-									className="gap-2 rounded-lg"
+									className="gap-2 rounded-sm"
 								>
 									<Settings className="size-4" />
 									Settings

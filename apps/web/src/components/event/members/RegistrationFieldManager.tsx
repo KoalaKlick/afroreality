@@ -217,8 +217,8 @@ export function RegistrationFieldManager({
 				)}
 			</Button>
 
-			<SheetContent className="w-full sm:max-w-lg flex flex-col h-full p-0">
-				<SheetHeader className="p-6 pb-0">
+			<SheetContent className="w-full sm:max-w-lg flex flex-col h-full p-0 overflow-hidden">
+				<SheetHeader className="shrink-0">
 					<SheetTitle>Registration Form Fields</SheetTitle>
 					<SheetDescription>
 						Configure the fields that appear on the public registration form.

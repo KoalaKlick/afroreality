@@ -391,6 +391,7 @@ function BackSide({
   ticketCode,
   organizationName,
   buyerName,
+  exportMode = false,
 }: {
   primaryShades: ColorShades;
   secondaryShades: ColorShades;
@@ -400,6 +401,7 @@ function BackSide({
   ticketCode: string;
   organizationName: string;
   buyerName: string;
+  exportMode?: boolean;
 }) {
   const barWidths = [3, 1.5, 1.5, 3, 1.5, 2, 1.5, 3, 1.5, 1.5, 3, 2, 1.5, 3, 1.5, 2, 3, 1.5, 3, 1.5, 2, 3, 1.5, 1.5, 3, 2, 3, 1.5, 1.5, 3];
   const barHeights = [38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38];
@@ -413,19 +415,22 @@ function BackSide({
     >
       <Stub side="left" primaryShades={primaryShades} label={buyerName.slice(0, 12)} />
 
-      <div className="flex-1 flex items-center gap-6 px-6 py-4 relative">
+      <div className="flex-1 flex items-center gap-6 px-5 py-2.5 relative">
         <CornerOrnament corner="tl" color={primaryShades[500]} />
         <CornerOrnament corner="bl" color={primaryShades[500]} />
         <CornerOrnament corner="tr" color={primaryShades[500]} />
         <CornerOrnament corner="br" color={primaryShades[500]} />
 
-        <div className="flex flex-col items-center gap-1.5 shrink-0 relative z-10">
+        <div className="flex flex-col items-center gap-1 shrink-0 relative z-10">
           <div
-            className="flex items-center justify-center p-1.5 size-16"
+            className="flex items-center justify-center p-2 bg-white shadow-xs border"
             style={{
-              backgroundColor: primaryShades[100] || "#ffffff",
+              width: exportMode ? 132 : 124,
+              height: exportMode ? 132 : 124,
+              backgroundColor: "#ffffff",
+              borderColor: primaryShades[200] || primaryColor,
               imageRendering: "pixelated",
-              borderRadius: 2,
+              borderRadius: 4,
             }}
           >
             {qrPayload ? (
@@ -434,18 +439,18 @@ function BackSide({
                 size={512}
                 style={{ height: "100%", width: "100%", imageRendering: "pixelated" }}
                 fgColor={primaryShades[700]}
-                bgColor="transparent"
-                level="H"
+                bgColor="#ffffff"
+                level="M"
               />
             ) : (
               <QrCode
-                className="size-8"
+                className="size-16"
                 style={{ color: primaryShades[600] }}
               />
             )}
           </div>
           <div
-            className="text-[8px] font-black tracking-[0.1em] uppercase opacity-50 text-center"
+            className="text-[8px] font-black tracking-[0.12em] uppercase opacity-70 text-center mt-0.5"
             style={{ fontFamily: "'Courier New', monospace", color: primaryShades[600] }}
           >
             Scan to verify
@@ -569,6 +574,7 @@ export function TicketCardGeo({
               ticketCode={ticketCode}
               organizationName={organizationName}
               buyerName={buyerName}
+              exportMode={true}
             />
           </div>
         )}

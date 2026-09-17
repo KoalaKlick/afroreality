@@ -13,13 +13,17 @@ import {
 	Globe,
 	Search,
 	ArrowRight,
+	X,
 } from "lucide-react";
 import {
 	Sheet,
 	SheetContent,
 	SheetDescription,
+	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -189,100 +193,125 @@ export function EventAuditTrailDrawer({
 		});
 	}, [logs, activeFilter, searchQuery]);
 
+	const nomineesCount = useMemo(
+		() => logs.filter((l) => l.action.startsWith("nominee_")).length,
+		[logs],
+	);
+	const statusCount = useMemo(
+		() => logs.filter((l) => l.action.includes("status")).length,
+		[logs],
+	);
+
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent
 				side="right"
-				variant="brand"
-				className="w-full sm:max-w-3xl overflow-y-auto p-0 flex flex-col h-full bg-background"
+				className="w-full sm:max-w-4xl p-0 flex flex-col h-full overflow-hidden"
 			>
 				{/* Drawer Header */}
-				<div className="p-5 pb-4 border-b border-border/70 bg-muted/20">
-					<div className="flex items-start justify-between gap-4">
-						<div className="flex items-center gap-3">
-							<div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-								<ShieldCheck className="size-5" />
-							</div>
-							<div>
-								<SheetTitle className="text-lg font-bold">
-									Event Audit Trail
-								</SheetTitle>
-								<SheetDescription className="text-xs text-muted-foreground mt-0.5">
-									{eventTitle ? `Tracking history for "${eventTitle}"` : "Complete immutable action history with machine IP tracking."}
-								</SheetDescription>
-							</div>
+				<SheetHeader className="shrink-0">
+					<div className="flex items-center justify-between gap-3">
+						<div>
+							<SheetTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+								<ShieldCheck className="size-5 text-primary" />
+								<span>Event Audit Trail</span>
+							</SheetTitle>
+							<SheetDescription className="text-xs text-muted-foreground mt-1">
+								{eventTitle ? `Tracking history for "${eventTitle}"` : "Complete immutable action history with machine IP tracking."}
+							</SheetDescription>
 						</div>
+
 						<Button
 							variant="outline"
-							size="icon"
-							className="size-8 shrink-0"
+							size="sm"
+							className="h-8 gap-1.5 text-xs rounded-sm shrink-0"
 							onClick={fetchLogs}
 							disabled={isPending}
 							title="Refresh logs"
 						>
 							<RefreshCw className={`size-3.5 ${isPending ? "animate-spin" : ""}`} />
+							<span className="hidden sm:inline">Refresh</span>
 						</Button>
 					</div>
+				</SheetHeader>
 
-					{/* Search and Filters */}
-					<div className="mt-4 space-y-2.5">
-						<div className="relative">
-							<Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+				{/* Toolbar: Tabs & Search Filter */}
+				<div className="px-6 py-3 border-b bg-background/50 space-y-3 shrink-0">
+					<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+						{/* Status Filter Tabs */}
+						<Tabs
+							value={activeFilter}
+							onValueChange={(val) => setActiveFilter(val as any)}
+							className="w-full sm:w-auto"
+						>
+							<TabsList className="h-9 w-full sm:w-auto p-1.5 gap-1.5 rounded-sm">
+								<TabsTrigger
+									value="all"
+									className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
+								>
+									<span>All</span>
+									<span className="px-1.5 py-0.2 rounded-full text-[10px] bg-muted text-muted-foreground font-mono font-bold">
+										{logs.length}
+									</span>
+								</TabsTrigger>
+
+								<TabsTrigger
+									value="nominees"
+									className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
+								>
+									<span>Nominees</span>
+									{nomineesCount > 0 && (
+										<span className="px-1.5 py-0.2 rounded-full text-[10px] bg-primary/20 text-primary font-mono font-bold">
+											{nomineesCount}
+										</span>
+									)}
+								</TabsTrigger>
+
+								<TabsTrigger
+									value="status"
+									className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
+								>
+									<span>Status & Config</span>
+									{statusCount > 0 && (
+										<span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-500/20 text-blue-600 dark:text-blue-400 font-mono font-bold">
+											{statusCount}
+										</span>
+									)}
+								</TabsTrigger>
+							</TabsList>
+						</Tabs>
+
+						{/* Search Input on the right */}
+						<div className="relative flex-1 sm:max-w-xs">
+							<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
 							<Input
 								placeholder="Search actions, nominees, IPs or users..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="pl-9 h-9 text-xs bg-background"
+								className="pl-8 h-8 text-xs bg-background rounded-sm"
 							/>
-						</div>
-
-						<div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs">
-							<button
-								type="button"
-								onClick={() => setActiveFilter("all")}
-								className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
-									activeFilter === "all"
-										? "bg-primary text-primary-foreground"
-										: "bg-muted text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								All ({logs.length})
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveFilter("nominees")}
-								className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
-									activeFilter === "nominees"
-										? "bg-primary text-primary-foreground"
-										: "bg-muted text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								Nominees ({logs.filter((l) => l.action.startsWith("nominee_")).length})
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveFilter("status")}
-								className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
-									activeFilter === "status"
-										? "bg-primary text-primary-foreground"
-										: "bg-muted text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								Status ({logs.filter((l) => l.action.includes("status")).length})
-							</button>
+							{searchQuery && (
+								<button
+									type="button"
+									onClick={() => setSearchQuery("")}
+									className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+								>
+									<X className="size-3" />
+								</button>
+							)}
 						</div>
 					</div>
 				</div>
 
-				{/* Drawer Body — Table */}
-				<div className="flex-1 overflow-y-auto overflow-x-auto">
+				{/* Scrollable Content Body */}
+				<div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
 					{isPending && logs.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
 							<RefreshCw className="size-6 animate-spin mb-2 text-primary" />
 							<p className="text-xs font-medium">Loading audit history...</p>
 						</div>
 					) : filteredLogs.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground p-8">
+						<div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground rounded-sm border border-dashed bg-muted/5 p-8">
 							<History className="size-10 stroke-1 mb-2 text-muted-foreground/60" />
 							<p className="text-sm font-semibold text-foreground">No Audit Records Found</p>
 							<p className="text-xs max-w-xs mt-1">
@@ -292,121 +321,125 @@ export function EventAuditTrailDrawer({
 							</p>
 						</div>
 					) : (
-						<table className="w-full text-xs">
-							<thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur-sm border-b border-border/70">
-								<tr>
-									<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Action</th>
-									<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Description</th>
-									<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Performed By</th>
-									<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">IP Address</th>
-									<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Timestamp</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-border/50">
-								{filteredLogs.map((log) => {
-									const config = getActionConfig(log.action);
-									const ActionIcon = config.icon;
-									const changes = log.metadata?.changes as Record<string, { from: any; to: any }> | undefined;
-									const hasChanges = changes && Object.keys(changes).length > 0;
-									const isExpanded = expandedRow === log.id;
-
-									return (
-										<tr
-											key={log.id}
-											className={`group transition-colors hover:bg-muted/30 cursor-pointer ${isExpanded ? "bg-muted/20" : ""}`}
-											onClick={() => setExpandedRow(isExpanded ? null : log.id)}
-											title={hasChanges ? "Click to view field changes" : undefined}
-										>
-											{/* Action Badge */}
-											<td className="px-4 py-3 align-top whitespace-nowrap">
-												<Badge
-													variant="outline"
-													className={`gap-1 font-semibold text-[11px] px-2 py-0.5 rounded-md ${config.badgeClass}`}
-												>
-													<ActionIcon className="size-3" />
-													<span>{config.label}</span>
-												</Badge>
-											</td>
-
-											{/* Description + expandable changes */}
-											<td className="px-4 py-3 align-top max-w-[260px]">
-												<p className="text-foreground font-medium leading-snug line-clamp-2">
-													{log.description}
-												</p>
-												{/* Expandable field changes */}
-												{hasChanges && isExpanded && (
-													<div className="mt-2 pt-2 border-t border-border/40 space-y-1">
-														<p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-															Field Changes
-														</p>
-														{Object.entries(changes).map(([field, delta]) => (
-															<div
-																key={field}
-																className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]"
-															>
-																<span className="capitalize font-semibold text-foreground/80">
-																	{field}:
-																</span>
-																<span className="line-through bg-destructive/10 text-destructive px-1 rounded">
-																	{String(delta.from || "Empty")}
-																</span>
-																<ArrowRight className="size-3 text-muted-foreground shrink-0" />
-																<span className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1 rounded font-semibold">
-																	{String(delta.to || "Empty")}
-																</span>
-															</div>
-														))}
-													</div>
-												)}
-												{hasChanges && !isExpanded && (
-													<p className="text-[10px] text-primary/70 mt-0.5 italic">
-														Click to view {Object.keys(changes).length} field change{Object.keys(changes).length > 1 ? "s" : ""}
-													</p>
-												)}
-											</td>
-
-											{/* User */}
-											<td className="px-4 py-3 align-top whitespace-nowrap">
-												<div className="flex items-center gap-2">
-													<Avatar className="size-5 border">
-														<AvatarImage src={log.user?.avatarUrl || ""} />
-														<AvatarFallback className="text-[10px]">
-															{log.user?.fullName?.charAt(0) || "S"}
-														</AvatarFallback>
-													</Avatar>
-													<span className="font-medium text-foreground/80 truncate max-w-[120px]">
-														{log.user?.fullName || log.user?.email || "System"}
-													</span>
-												</div>
-											</td>
-
-											{/* IP Address */}
-											<td className="px-4 py-3 align-top whitespace-nowrap">
-												<span className="font-mono text-[11px] text-muted-foreground bg-muted/60 border border-border/60 rounded px-1.5 py-0.5 inline-block">
-													{formatIpAddress(log.ipAddress)}
-												</span>
-											</td>
-
-											{/* Timestamp */}
-											<td className="px-4 py-3 align-top whitespace-nowrap">
-												<div className="flex flex-col">
-													<span className="font-medium text-foreground/80">{formatRelativeTime(log.createdAt)}</span>
-													<span className="text-[10px] text-muted-foreground/70">{formatTimestamp(log.createdAt)}</span>
-												</div>
-											</td>
+						<Card className="p-0 overflow-hidden border shadow-xs rounded-sm">
+							<div className="overflow-x-auto">
+								<table className="w-full text-xs">
+									<thead className="bg-muted/40 border-b border-border/70">
+										<tr>
+											<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Action</th>
+											<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Description</th>
+											<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Performed By</th>
+											<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">IP Address</th>
+											<th className="text-left font-semibold text-muted-foreground px-4 py-2.5 whitespace-nowrap">Timestamp</th>
 										</tr>
-									);
-								})}
-							</tbody>
-						</table>
+									</thead>
+									<tbody className="divide-y divide-border/50">
+										{filteredLogs.map((log) => {
+											const config = getActionConfig(log.action);
+											const ActionIcon = config.icon;
+											const changes = log.metadata?.changes as Record<string, { from: any; to: any }> | undefined;
+											const hasChanges = changes && Object.keys(changes).length > 0;
+											const isExpanded = expandedRow === log.id;
+
+											return (
+												<tr
+													key={log.id}
+													className={`group transition-colors hover:bg-muted/30 cursor-pointer ${isExpanded ? "bg-muted/20" : ""}`}
+													onClick={() => setExpandedRow(isExpanded ? null : log.id)}
+													title={hasChanges ? "Click to view field changes" : undefined}
+												>
+													{/* Action Badge */}
+													<td className="px-4 py-3 align-top whitespace-nowrap">
+														<Badge
+															variant="outline"
+															className={`gap-1 font-semibold text-[11px] px-2 py-0.5 rounded-md ${config.badgeClass}`}
+														>
+															<ActionIcon className="size-3" />
+															<span>{config.label}</span>
+														</Badge>
+													</td>
+
+													{/* Description + expandable changes */}
+													<td className="px-4 py-3 align-top max-w-[260px]">
+														<p className="text-foreground font-medium leading-snug line-clamp-2">
+															{log.description}
+														</p>
+														{/* Expandable field changes */}
+														{hasChanges && isExpanded && (
+															<div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+																<p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+																	Field Changes
+																</p>
+																{Object.entries(changes).map(([field, delta]) => (
+																	<div
+																		key={field}
+																		className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]"
+																	>
+																		<span className="capitalize font-semibold text-foreground/80">
+																			{field}:
+																		</span>
+																		<span className="line-through bg-destructive/10 text-destructive px-1 rounded">
+																			{String(delta.from || "Empty")}
+																		</span>
+																		<ArrowRight className="size-3 text-muted-foreground shrink-0" />
+																		<span className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1 rounded font-semibold">
+																			{String(delta.to || "Empty")}
+																		</span>
+																	</div>
+																))}
+															</div>
+														)}
+														{hasChanges && !isExpanded && (
+															<p className="text-[10px] text-primary/70 mt-0.5 italic">
+																Click to view {Object.keys(changes).length} field change{Object.keys(changes).length > 1 ? "s" : ""}
+															</p>
+														)}
+													</td>
+
+													{/* User */}
+													<td className="px-4 py-3 align-top whitespace-nowrap">
+														<div className="flex items-center gap-2">
+															<Avatar className="size-5 border">
+																<AvatarImage src={log.user?.avatarUrl || ""} />
+																<AvatarFallback className="text-[10px]">
+																	{log.user?.fullName?.charAt(0) || "S"}
+																</AvatarFallback>
+															</Avatar>
+															<span className="font-medium text-foreground/80 truncate max-w-[120px]">
+																{log.user?.fullName || log.user?.email || "System"}
+															</span>
+														</div>
+													</td>
+
+													{/* IP Address */}
+													<td className="px-4 py-3 align-top whitespace-nowrap">
+														<span className="font-mono text-[11px] text-muted-foreground bg-muted/60 border border-border/60 rounded px-1.5 py-0.5 inline-block">
+															{formatIpAddress(log.ipAddress)}
+														</span>
+													</td>
+
+													{/* Timestamp */}
+													<td className="px-4 py-3 align-top whitespace-nowrap">
+														<div className="flex flex-col">
+															<span className="font-medium text-foreground/80">{formatRelativeTime(log.createdAt)}</span>
+															<span className="text-[10px] text-muted-foreground/70">{formatTimestamp(log.createdAt)}</span>
+														</div>
+													</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+						</Card>
 					)}
 				</div>
 
 				{/* Footer summary */}
 				{filteredLogs.length > 0 && (
-					<div className="px-4 py-2.5 border-t border-border/70 bg-muted/20 text-[11px] text-muted-foreground flex items-center justify-between">
+					<div className="px-6 py-3 border-t bg-muted/20 text-xs text-muted-foreground flex items-center justify-between shrink-0">
 						<span>
-							Showing {filteredLogs.length} of {logs.length} records
+							Showing <strong className="text-foreground">{filteredLogs.length}</strong> of {logs.length} records
 						</span>
 						<span>
 							Last activity: {logs.length > 0 ? formatRelativeTime(logs[0]!.createdAt) : "—"}

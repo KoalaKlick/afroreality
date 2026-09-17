@@ -257,36 +257,39 @@ export function TicketTypeSheet({
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="w-full sm:max-w-lg flex flex-col h-full overflow-y-auto">
-				<SheetHeader>
+			<SheetContent className="w-full sm:max-w-xl p-0 flex flex-col h-full overflow-hidden">
+				<SheetHeader className="shrink-0">
 					<SheetTitle>
 						{editingTicket ? "Edit Ticket Tier" : "Create Ticket Tier"}
 					</SheetTitle>
 					<SheetDescription>
-						Configure pricing, availability windows, order limits, and pass
-						styling.
+						Configure pricing, availability windows, order limits, and pass styling.
 					</SheetDescription>
 				</SheetHeader>
 
-<SheetBody className="overflow-y-auto">
 				<form
 					onSubmit={handleSubmit}
-					className="space-y-4 py-4 flex-1 flex flex-col"
+					className="flex-1 flex flex-col min-h-0"
 				>
-					<Tabs defaultValue="details" className="w-full flex-1">
-						<TabsList variant="brand" className="grid w-full grid-cols-2 mb-4">
-							<TabsTrigger variant="brand" value="details" className="gap-2">
-								<Ticket className="size-4" />
-								Details & Limits
-							</TabsTrigger>
-							<TabsTrigger variant="brand" value="design" className="gap-2">
-								<Palette className="size-4" />
-								Badge & Styling
-							</TabsTrigger>
-						</TabsList>
+					<Tabs defaultValue="details" className="flex-1 flex flex-col min-h-0">
+						{/* Tabs Toolbar directly under header */}
+						<div className="px-6 py-3 border-b bg-background/50 shrink-0">
+							<TabsList className="h-9 w-full sm:w-auto p-1.5 gap-1.5 rounded-sm bg-muted/60">
+								<TabsTrigger value="details" className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm">
+									<Ticket className="size-3.5" />
+									<span>Details & Limits</span>
+								</TabsTrigger>
+								<TabsTrigger value="design" className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm">
+									<Palette className="size-3.5" />
+									<span>Badge & Styling</span>
+								</TabsTrigger>
+							</TabsList>
+						</div>
 
-						{/* ── 1. Details Tab ── */}
-						<TabsContent value="details" className="space-y-4">
+						{/* Scrollable Form Body */}
+						<div className="flex-1 overflow-y-auto px-6 py-5">
+							{/* ── 1. Details Tab ── */}
+							<TabsContent value="details" className="space-y-4 mt-0">
 							<div className="space-y-2">
 								<Label htmlFor="ticket-name">Ticket Name *</Label>
 								<Input
@@ -613,9 +616,10 @@ export function TicketTypeSheet({
 								</div>
 							</div>
 						</TabsContent>
+						</div>
 					</Tabs>
 
-					<SheetFooter className="pt-6 border-t mt-auto">
+					<SheetFooter className="px-6 py-4 border-t bg-muted/20 shrink-0 flex flex-row items-center justify-end gap-2">
 						<Button
 							type="button"
 							variant="outline"
@@ -638,7 +642,6 @@ export function TicketTypeSheet({
 						</Button>
 					</SheetFooter>
 				</form>
-				</SheetBody>
 			</SheetContent>
 		</Sheet>
 	);

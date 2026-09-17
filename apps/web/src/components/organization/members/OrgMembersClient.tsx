@@ -103,7 +103,7 @@ export function OrgMembersClient({
 							</div>
 						</CardHeader>
 						<CardContent>
-							<TabsList variant="brand" className="flex overflow-x-auto w-full">
+							<TabsList variant="brand" className="flex overflow-x-auto w-full p-1.5 gap-1.5 rounded-sm">
 								<TabsTrigger variant="brand" value="members" className="gap-1.5">
 									<Users className="h-4 w-4" />
 									<span>Members</span>

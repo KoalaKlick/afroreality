@@ -111,6 +111,9 @@ export async function getAdminOverviewData(): Promise<AdminOverviewStats> {
 					select: {
 						subtotal: true,
 						tickets: { select: { id: true } },
+						payment: {
+							select: { metadata: true },
+						},
 					},
 				},
 				votes: {
@@ -185,25 +188,50 @@ export async function getAdminOverviewData(): Promise<AdminOverviewStats> {
 				(!ev.endDate || new Date(ev.endDate) >= now));
 
 		if (isCurrentlyOngoing || ev.status === "ongoing") {
-			const ticketRev = ev.ticketOrders.reduce(
-				(sum: number, o: { subtotal: any }) => sum + Number(o.subtotal || 0),
-				0
-			);
-			const voteRev = ev.votes.reduce((sum: number, v: { payment: any }) => {
-				if (v.payment && v.payment.status === "completed") {
-					return sum + Number(v.payment.amount || 0);
+			// Read exact amounts from payment metadata (single source of truth)
+			let eventGross = 0;
+			let eventPlatformFee = 0;
+			let eventOrgReceives = 0;
+
+			// Ticket revenue — read metadata from the linked payment
+			for (const o of ev.ticketOrders) {
+				const base = Number(o.subtotal || 0);
+				const meta = (o as any).payment?.metadata as any;
+				if (meta) {
+					eventGross += Number(meta.baseAmount ?? base);
+					eventPlatformFee += Number(meta.platformFee ?? 0);
+					eventOrgReceives += Number(meta.organizerReceives ?? (base - Number(meta.platformFee ?? 0)));
+				} else {
+					eventGross += base;
 				}
-				return sum;
-			}, 0);
+			}
+
+			// Vote revenue — read metadata from the linked payment
+			for (const v of ev.votes) {
+				if (v.payment && v.payment.status === "completed") {
+					const meta = (v.payment.metadata as any) || {};
+					const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
+					const pFee = Number(meta.platformFee ?? 0);
+					const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
+
+					eventGross += base;
+					eventPlatformFee += pFee;
+					eventOrgReceives += orgRcv;
+				}
+			}
+
 			const ticketsSold = ev.ticketOrders.reduce(
 				(sum: number, o: { tickets: any[] }) => sum + (o.tickets?.length || 0),
 				0
 			);
 
-			const totalGross = ticketRev + voteRev;
-			// Default standard platform commission is 5% unless recorded otherwise
-			const ourShare = Number((totalGross * 0.05).toFixed(2));
-			const organizerShare = Number((totalGross - ourShare).toFixed(2));
+			// Fallback to 5% only for legacy payments without metadata
+			const ourShare = eventPlatformFee > 0
+				? Number(eventPlatformFee.toFixed(2))
+				: Number((eventGross * 0.05).toFixed(2));
+			const organizerShare = eventOrgReceives > 0
+				? Number(eventOrgReceives.toFixed(2))
+				: Number((eventGross - ourShare).toFixed(2));
 
 			ongoingEventsList.push({
 				id: ev.id,
@@ -217,7 +245,7 @@ export async function getAdminOverviewData(): Promise<AdminOverviewStats> {
 				venueCity: ev.venueCity,
 				organization: ev.organization,
 				ticketsSold,
-				grossRevenue: totalGross,
+				grossRevenue: eventGross,
 				ourShare,
 				organizerShare,
 			});
@@ -411,6 +439,9 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 						select: {
 							subtotal: true,
 							tickets: { select: { id: true } },
+							payment: {
+								select: { metadata: true },
+							},
 						},
 					},
 					votes: {
@@ -449,26 +480,49 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 			else if (ev.status === "ended") ended++;
 			else if (ev.status === "draft") draft++;
 
-			const ticketRev = ev.ticketOrders.reduce(
-				(sum: number, o: { subtotal: any }) => sum + Number(o.subtotal || 0),
-				0
-			);
-			const voteRev = ev.votes.reduce((sum: number, v: { payment: any }) => {
-				if (v.payment && v.payment.status === "completed") {
-					return sum + Number(v.payment.amount || 0);
+			// Read exact amounts from payment metadata (single source of truth)
+			let evGross = 0;
+			let evPlatformFee = 0;
+			let evOrgReceives = 0;
+
+			for (const o of ev.ticketOrders) {
+				const base = Number(o.subtotal || 0);
+				const meta = (o as any).payment?.metadata as any;
+				if (meta) {
+					evGross += Number(meta.baseAmount ?? base);
+					evPlatformFee += Number(meta.platformFee ?? 0);
+					evOrgReceives += Number(meta.organizerReceives ?? (base - Number(meta.platformFee ?? 0)));
+				} else {
+					evGross += base;
 				}
-				return sum;
-			}, 0);
+			}
+
+			for (const v of ev.votes) {
+				if (v.payment && v.payment.status === "completed") {
+					const meta = (v.payment.metadata as any) || {};
+					const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
+					const pFee = Number(meta.platformFee ?? 0);
+					const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
+					evGross += base;
+					evPlatformFee += pFee;
+					evOrgReceives += orgRcv;
+				}
+			}
+
 			const ticketsSold = ev.ticketOrders.reduce(
 				(sum: number, o: { tickets: any[] }) => sum + (o.tickets?.length || 0),
 				0
 			);
 
-			const eventGross = ticketRev + voteRev;
-			const eventOurShare = Number((eventGross * 0.05).toFixed(2));
-			const eventOrgShare = Number((eventGross - eventOurShare).toFixed(2));
+			// Fallback to 5% only for legacy payments without metadata
+			const eventOurShare = evPlatformFee > 0
+				? Number(evPlatformFee.toFixed(2))
+				: Number((evGross * 0.05).toFixed(2));
+			const eventOrgShare = evOrgReceives > 0
+				? Number(evOrgReceives.toFixed(2))
+				: Number((evGross - eventOurShare).toFixed(2));
 
-			orgGross += eventGross;
+			orgGross += evGross;
 			orgPlatformFeeTotal += eventOurShare;
 
 			return {
@@ -480,7 +534,7 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 				startDate: ev.startDate ? ev.startDate.toISOString() : null,
 				endDate: ev.endDate ? ev.endDate.toISOString() : null,
 				ticketsSold,
-				grossRevenue: eventGross,
+				grossRevenue: evGross,
 				ourShare: eventOurShare,
 				organizerShare: eventOrgShare,
 			};
@@ -609,6 +663,9 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 				select: {
 					subtotal: true,
 					tickets: { select: { id: true } },
+					payment: {
+						select: { metadata: true },
+					},
 				},
 			},
 			votes: {
@@ -618,6 +675,7 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 						select: {
 							amount: true,
 							status: true,
+							metadata: true,
 						},
 					},
 				},
@@ -627,28 +685,58 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 	});
 
 	return events.map((ev) => {
-		const ticketRev = ev.ticketOrders.reduce(
-			(sum: number, o: { subtotal: any }) => sum + Number(o.subtotal || 0),
-			0
-		);
+		// Read exact amounts from payment metadata (single source of truth)
+		let totalGross = 0;
+		let totalPlatformFee = 0;
+		let totalOrgReceives = 0;
+		let ticketRev = 0;
+		let votingRev = 0;
+
+		for (const o of ev.ticketOrders) {
+			const base = Number(o.subtotal || 0);
+			const meta = (o as any).payment?.metadata as any;
+			if (meta) {
+				const metaBase = Number(meta.baseAmount ?? base);
+				totalGross += metaBase;
+				ticketRev += metaBase;
+				totalPlatformFee += Number(meta.platformFee ?? 0);
+				totalOrgReceives += Number(meta.organizerReceives ?? (metaBase - Number(meta.platformFee ?? 0)));
+			} else {
+				totalGross += base;
+				ticketRev += base;
+			}
+		}
+
 		const ticketsSold = ev.ticketOrders.reduce(
 			(sum: number, o: { tickets: any[] }) => sum + (o.tickets?.length || 0),
 			0
 		);
-		const votingRev = ev.votes.reduce((sum: number, v: { payment: any }) => {
+
+		for (const v of ev.votes) {
 			if (v.payment && v.payment.status === "completed") {
-				return sum + Number(v.payment.amount || 0);
+				const meta = (v.payment.metadata as any) || {};
+				const base = Number(meta.baseAmount ?? v.payment.amount ?? 0);
+				const pFee = Number(meta.platformFee ?? 0);
+				const orgRcv = Number(meta.organizerReceives ?? (base - pFee));
+				totalGross += base;
+				votingRev += base;
+				totalPlatformFee += pFee;
+				totalOrgReceives += orgRcv;
 			}
-			return sum;
-		}, 0);
+		}
+
 		const totalVotes = ev.votes.reduce(
 			(sum: number, v: { voteCount: number }) => sum + Number(v.voteCount || 0),
 			0
 		);
 
-		const totalGross = ticketRev + votingRev;
-		const ourPlatformShare = Number((totalGross * 0.05).toFixed(2));
-		const organizerNetRevenue = Number((totalGross - ourPlatformShare).toFixed(2));
+		// Fallback to 5% only for legacy payments without metadata
+		const ourPlatformShare = totalPlatformFee > 0
+			? Number(totalPlatformFee.toFixed(2))
+			: Number((totalGross * 0.05).toFixed(2));
+		const organizerNetRevenue = totalOrgReceives > 0
+			? Number(totalOrgReceives.toFixed(2))
+			: Number((totalGross - ourPlatformShare).toFixed(2));
 
 		return {
 			id: ev.id,

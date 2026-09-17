@@ -61,7 +61,7 @@ function SheetContent({
 			<SheetPrimitive.Content
 				data-slot="sheet-content"
 				className={cn(
-					"fixed z-50 flex flex-col p-6 bg-background shadow-lg transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500",
+					"fixed z-50 flex flex-col p-0 bg-background shadow-lg overflow-hidden transition ease-in-out data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:animate-in data-[state=open]:duration-500",
 					side === "right" &&
 						"inset-y-0 right-0 h-full w-full max-w-full sm:max-w-md border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
 					side === "left" &&
@@ -76,7 +76,7 @@ function SheetContent({
 			>
 				{children}
 				{showCloseButton && (
-					<SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary cursor-pointer">
+					<SheetPrimitive.Close className="absolute top-4 right-4 z-50 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary cursor-pointer">
 						<XIcon className="size-4" />
 						<span className="sr-only">Close</span>
 					</SheetPrimitive.Close>
@@ -97,9 +97,9 @@ function SheetHeader({
 		<div
 			data-slot="sheet-header"
 			className={cn(
-				"flex flex-col gap-1.5",
+				"flex flex-col gap-1.5 px-6 py-5 pr-14 border-b border-border/80 shrink-0 relative",
 				variant === "afro" &&
-					"bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(220,38,38,0.16),transparent_26%)] bg-background",
+					"bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(234,179,8,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(22,163,74,0.12),transparent_26%)] bg-background",
 				className,
 			)}
 			{...props}
@@ -111,7 +111,7 @@ function SheetBody({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="sheet-body"
-			className={cn("flex-1 px-2 md:px-2 py-2", className)}
+			className={cn("flex-1 overflow-y-auto px-6 py-5", className)}
 			{...props}
 		/>
 	);
@@ -121,7 +121,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="sheet-footer"
-			className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+			className={cn("mt-auto flex flex-row items-center justify-end gap-2 px-6 py-4 border-t bg-muted/20 shrink-0", className)}
 			{...props}
 		/>
 	);

@@ -270,9 +270,9 @@ function sanitizeNumberInput(value: string): string {
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="sm:max-w-lg overflow-y-auto">
-				<form onSubmit={handleSubmit} className="flex flex-col h-full">
-					<SheetHeader className="pb-4 border-b">
+			<SheetContent className="w-full sm:max-w-xl p-0 flex flex-col h-full overflow-hidden">
+				<form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0">
+					<SheetHeader className="shrink-0">
 						<SheetTitle>
 							{editingCategory ? "Edit Category" : "Add Voting Category"}
 						</SheetTitle>
@@ -283,15 +283,20 @@ function sanitizeNumberInput(value: string): string {
 						</SheetDescription>
 					</SheetHeader>
 
-					<Tabs defaultValue="basic" className="flex-1 py-4 flex flex-col">
-						<TabsList className="grid grid-cols-3 mb-4">
-							<TabsTrigger value="basic">Basic Info</TabsTrigger>
-							<TabsTrigger value="voting">Voting Rules</TabsTrigger>
-							<TabsTrigger value="nominations">Nominations</TabsTrigger>
-						</TabsList>
+					<Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0">
+						{/* Tabs Toolbar directly under header */}
+						<div className="px-6 py-3 border-b bg-background/50 shrink-0">
+							<TabsList className="h-9 w-full sm:w-auto p-1.5 gap-1.5 rounded-sm bg-muted/60">
+								<TabsTrigger value="basic" className="text-xs font-semibold px-3 flex-1 sm:flex-initial rounded-sm">Basic Info</TabsTrigger>
+								<TabsTrigger value="voting" className="text-xs font-semibold px-3 flex-1 sm:flex-initial rounded-sm">Voting Rules</TabsTrigger>
+								<TabsTrigger value="nominations" className="text-xs font-semibold px-3 flex-1 sm:flex-initial rounded-sm">Nominations</TabsTrigger>
+							</TabsList>
+						</div>
 
-						{/* 1. Basic Info Tab */}
-						<TabsContent value="basic" className="space-y-4 flex-1">
+						{/* Scrollable Tab Content */}
+						<div className="flex-1 overflow-y-auto px-6 py-5">
+							{/* 1. Basic Info Tab */}
+							<TabsContent value="basic" className="space-y-4 mt-0">
 							<div className="space-y-2">
 								<Label htmlFor="category-name">Category Name *</Label>
 								<Input
@@ -561,9 +566,10 @@ function sanitizeNumberInput(value: string): string {
 								</div>
 							)}
 						</TabsContent>
+						</div>
 					</Tabs>
 
-					<SheetFooter className="pt-4 border-t gap-2 sm:gap-0">
+					<SheetFooter className="px-6 py-4 border-t bg-muted/20 shrink-0 flex flex-row items-center justify-end gap-2">
 						<Button
 							type="button"
 							variant="outline"

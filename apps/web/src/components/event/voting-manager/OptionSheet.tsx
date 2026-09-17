@@ -180,17 +180,18 @@ export function OptionSheet({
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="w-full sm:max-w-lg flex flex-col h-full overflow-y-auto">
-				<SheetHeader>
-					<SheetTitle>
-						{editingOption ? "Edit Nominee / Option" : "Add Nominee / Option"}
-					</SheetTitle>
-					<SheetDescription>
-						Category: <span className="font-semibold">{categoryName}</span>
-					</SheetDescription>
-				</SheetHeader>
+			<SheetContent className="w-full sm:max-w-lg p-0 flex flex-col h-full overflow-hidden">
+				<form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+					<SheetHeader className="shrink-0">
+						<SheetTitle>
+							{editingOption ? "Edit Nominee / Option" : "Add Nominee / Option"}
+						</SheetTitle>
+						<SheetDescription>
+							Category: <span className="font-semibold">{categoryName}</span>
+						</SheetDescription>
+					</SheetHeader>
 
-				<form onSubmit={handleSubmit} className="space-y-4 py-4 flex-1">
+					<div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
 					{/* Photo Upload */}
 					<div className="space-y-2">
 						<Label>Nominee Photo (Optional)</Label>
@@ -293,8 +294,9 @@ export function OptionSheet({
 							minimal
 						/>
 					</div>
+					</div>
 
-					<SheetFooter className="pt-6">
+					<SheetFooter className="px-6 py-4 border-t bg-muted/20 shrink-0 flex flex-row items-center justify-end gap-2">
 						<Button
 							type="button"
 							variant="outline"

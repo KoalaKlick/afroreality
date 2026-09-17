@@ -211,11 +211,11 @@ export function NominationRequestsSheet({
 			<Sheet open={open} onOpenChange={onOpenChange}>
 				<SheetContent
 					side="right"
-					className="w-full sm:max-w-4xl p-6 flex flex-col h-full overflow-hidden"
+					className="w-full sm:max-w-4xl p-0 flex flex-col h-full overflow-hidden"
 				>
 					{/* Header */}
-					<SheetHeader className="shrink-0 pb-4 border-b border-border/80">
-						<div className="flex items-center justify-between gap-3 pr-6">
+					<SheetHeader className="shrink-0">
+						<div className="flex items-center justify-between gap-3">
 							<div>
 								<SheetTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
 									<Inbox className="size-5 text-primary" />
@@ -227,7 +227,7 @@ export function NominationRequestsSheet({
 							</div>
 
 							{pendingCount > 0 && (
-								<Badge className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs px-2.5 py-0.5">
+								<Badge className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs px-2.5 py-0.5 shrink-0">
 									{pendingCount} Pending Review
 								</Badge>
 							)}
@@ -235,7 +235,7 @@ export function NominationRequestsSheet({
 					</SheetHeader>
 
 					{/* Toolbar: Search, Filters & Tabs */}
-					<div className="py-3 space-y-3 shrink-0">
+					<div className="px-6 py-3 border-b bg-background/50 space-y-3 shrink-0">
 						<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
 							{/* Status Filter Tabs */}
 							<Tabs
@@ -243,10 +243,10 @@ export function NominationRequestsSheet({
 								onValueChange={(val) => setActiveTab(val as FilterTab)}
 								className="w-full sm:w-auto"
 							>
-								<TabsList className="h-9 w-full sm:w-auto p-1">
+								<TabsList className="h-9 w-full sm:w-auto p-1.5 gap-1.5 rounded-sm">
 									<TabsTrigger
 										value="pending"
-										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial"
+										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
 									>
 										<span>Pending</span>
 										{pendingCount > 0 && (
@@ -258,7 +258,7 @@ export function NominationRequestsSheet({
 
 									<TabsTrigger
 										value="approved"
-										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial"
+										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
 									>
 										<span>Approved</span>
 										<span className="text-[10px] font-mono opacity-60">
@@ -268,7 +268,7 @@ export function NominationRequestsSheet({
 
 									<TabsTrigger
 										value="rejected"
-										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial"
+										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
 									>
 										<span>Rejected</span>
 										{rejectedCount > 0 && (
@@ -280,7 +280,7 @@ export function NominationRequestsSheet({
 
 									<TabsTrigger
 										value="all"
-										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial"
+										className="text-xs font-semibold gap-1.5 px-3 flex-1 sm:flex-initial rounded-sm"
 									>
 										<span>All ({allNominations.length})</span>
 									</TabsTrigger>
@@ -301,7 +301,8 @@ export function NominationRequestsSheet({
 					</div>
 
 					{/* Nominations Table */}
-					<div className="flex-1 overflow-y-auto rounded-xl border border-border/80 bg-card">
+					<div className="flex-1 overflow-y-auto px-6 py-4">
+						<div className="rounded-xl border border-border/80 bg-card overflow-hidden">
 						{filteredNominations.length === 0 ? (
 							<div className="flex flex-col items-center justify-center py-14 px-4 text-center">
 								<NoNomineeIllustration className="w-32 h-auto mb-3 opacity-70" />
@@ -476,6 +477,7 @@ export function NominationRequestsSheet({
 								</TableBody>
 							</Table>
 						)}
+						</div>
 					</div>
 				</SheetContent>
 			</Sheet>
