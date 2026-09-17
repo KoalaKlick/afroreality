@@ -447,7 +447,7 @@ export function NomineeReportsContent({
 										</Badge>
 									</div>
 									<CardDescription className="text-xs">
-										Template: <code className="font-mono text-primary">fextiva_nominee_update_en</code>
+										Template: <code className="font-mono text-primary">fextiva_nominee_status_en</code>
 									</CardDescription>
 								</CardHeader>
 

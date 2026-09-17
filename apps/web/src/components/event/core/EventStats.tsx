@@ -53,10 +53,12 @@ export interface StatCardProps {
 	iconSrc?: string;
 	description?: string;
 	href?: string;
-	variant?: "default" | "success" | "warning" | "danger" | "info";
+	variant?: "default" | "success" | "warning" | "danger" | "info" | "primary";
 	className?: string;
 	children?: ReactNode;
 	onClick?: () => void;
+	watermarkNode?: ReactNode;
+	glowColor?: "red" | "yellow" | "green" | "black" | "primary";
 }
 
 /**
@@ -79,6 +81,8 @@ function getIconColorStyles(iconSrc: string): {
 			"radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.22), transparent 60%)",
 		black:
 			"radial-gradient(circle at bottom right, rgba(156, 163, 175, 0.16), transparent 60%)",
+		primary:
+			"radial-gradient(circle at bottom right, rgba(202, 8, 8, 0.22), transparent 60%)",
 	};
 
 	const borderColor: Record<string, string> = {
@@ -86,6 +90,7 @@ function getIconColorStyles(iconSrc: string): {
 		yellow: "border-amber-200/50 dark:border-amber-500/20",
 		green: "border-emerald-200/50 dark:border-emerald-500/20",
 		black: "border-gray-200/50 dark:border-gray-800/20",
+		primary: "border-primary/40 dark:border-primary/30",
 	};
 
 	const backgroundImage =
@@ -137,6 +142,8 @@ export function StatCard({
 	className,
 	children,
 	onClick,
+	watermarkNode,
+	glowColor,
 }: StatCardProps) {
 	const variantStyles = {
 		default: "bg-card",
@@ -157,9 +164,33 @@ export function StatCard({
 		info: "text-blue-600 dark:text-blue-400",
 	};
 
-	// Icon color suffix takes priority, then variant
-	const iconColor = iconSrc ? getIconColorStyles(iconSrc) : null;
-	const cardStyle = iconColor ? iconColor.className : variantStyles[variant];
+	const colorGlow: Record<string, string> = {
+		red: "radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.22), transparent 60%)",
+		yellow:
+			"radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.22), transparent 60%)",
+		green:
+			"radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.22), transparent 60%)",
+		black:
+			"radial-gradient(circle at bottom right, rgba(156, 163, 175, 0.16), transparent 60%)",
+		primary:
+			"radial-gradient(circle at bottom right, rgba(202, 8, 8, 0.22), transparent 60%)",
+	};
+
+	const borderColor: Record<string, string> = {
+		red: "border-red-200/50 dark:border-red-500/20",
+		yellow: "border-amber-200/50 dark:border-amber-500/20",
+		green: "border-emerald-200/50 dark:border-emerald-500/20",
+		black: "border-gray-200/50 dark:border-gray-800/20",
+		primary: "border-primary/40 dark:border-primary/30",
+	};
+
+	// Explicit glowColor or derived from iconSrc or variant
+	const derivedColor = glowColor ?? (iconSrc ? (iconSrc.split("/").pop()?.replace(".webp", "").split("-").pop() as any) : variant === "primary" ? "primary" : null);
+	const iconColor = derivedColor && colorGlow[derivedColor] ? {
+		style: { backgroundImage: colorGlow[derivedColor] },
+		className: borderColor[derivedColor] || "border-border",
+	} : null;
+	const cardStyle = iconColor ? iconColor.className : variantStyles[variant === "primary" ? "default" : variant];
 	const cardInlineStyle = iconColor ? iconColor.style : undefined;
 
 	const content = (() => {
@@ -170,7 +201,7 @@ export function StatCard({
 		return (
 			<Card
 				className={cn(
-					"relative p-4 sm:p-5 group overflow-hidden border h-full  transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
+					"relative p-4 sm:p-5 group overflow-hidden border h-full transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
 					cardStyle,
 					className,
 					onClick && "cursor-pointer active:scale-[0.98]",
@@ -200,9 +231,9 @@ export function StatCard({
 								<p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{description}</p>
 							)}
 						</div>
-						{!iconSrc && Icon && (
+						{!iconSrc && !watermarkNode && Icon && (
 							<div className="p-2 sm:p-2.5 rounded-xl bg-primary/10 text-primary shrink-0">
-								<Icon className={cn("size-4 sm:size-5", iconStyles[variant])} />
+								<Icon className={cn("size-4 sm:size-5", iconStyles[variant === "primary" ? "default" : variant])} />
 							</div>
 						)}
 					</div>
@@ -211,14 +242,18 @@ export function StatCard({
 					)}
 				</CardContent>
 
-				{iconSrc && (
+				{watermarkNode ? (
+					<div className="size-14 sm:size-16 select-none pointer-events-none absolute -bottom-2 -right-2 sm:-bottom-2.5 sm:-right-2.5 z-0 flex items-center justify-center opacity-40 dark:opacity-50 group-hover:opacity-80 group-hover:scale-105 transition-all duration-300 drop-shadow-sm">
+						{watermarkNode}
+					</div>
+				) : iconSrc ? (
 					// eslint-disable-next-line @next/next/no-img-element
 					<img
 						src={iconSrc}
 						alt={label}
 						className="size-14 sm:size-16 object-contain opacity-50 dark:opacity-60 group-hover:opacity-90 group-hover:scale-105 transition-all duration-300 select-none pointer-events-none absolute -bottom-2 -right-2 sm:-bottom-2.5 sm:-right-2.5 drop-shadow-sm z-0"
 					/>
-				)}
+				) : null}
 			</Card>
 		);
 	})();

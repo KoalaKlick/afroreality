@@ -20,7 +20,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { ConfirmPasswordDialog } from "@/components/shared/ConfirmPasswordDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -233,55 +233,26 @@ export function OrgWalletClient({
 			/>
 
 			<div className="flex flex-1 flex-col gap-6 p-6">
-				{/* Top Header Card with Actions */}
-				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-					<div>
-						<h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-							<WalletIcon className="h-6 w-6" />
-							Wallet & Payouts
-						</h1>
-						<p className="text-sm text-muted-foreground mt-0.5">
-							Track revenue, settlements, and manage disbursement accounts.
-						</p>
-					</div>
-
-					{/* Action Buttons in Head */}
-					<div className="flex flex-wrap items-center gap-2.5 shrink-0">
-						{/* Payout Settings Drawer Trigger */}
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setIsPayoutDrawerOpen(true)}
-							className="gap-2 bg-background hover:bg-accent"
-						>
-							<Landmark className="size-4 text-muted-foreground" />
-							<span>Payout Account</span>
-							{hasPayoutAccount ? (
-								<span className="size-2 rounded-full bg-emerald-500" />
-							) : (
-								<span className="size-2 rounded-full bg-amber-500" />
-							)}
-						</Button>
-
-						{/* Request Withdrawal Button */}
-						{canWithdraw && (
-							<Button
-								size="sm"
-								onClick={handleOpenWithdrawal}
-								disabled={availableBalance <= 0 || !!wallet?.isLocked}
-								className={`gap-1.5 shadow-xs ${wallet?.isLocked ? "opacity-60 cursor-not-allowed" : ""}`}
-								title={wallet?.isLocked ? "Withdrawals suspended while wallet is frozen" : undefined}
-							>
-								{wallet?.isLocked ? (
-									<Lock className="size-4 text-destructive" />
-								) : (
-									<ArrowDownToLine className="size-4" />
-								)}
-								{wallet?.isLocked ? "Withdrawals Frozen" : "Request Withdrawal"}
-							</Button>
-						)}
-					</div>
-				</div>
+				{/* 1. Status Cards at the Very Top */}
+				<WalletBalanceSummary
+					organizationId={organization.id}
+					availableBalance={availableBalance}
+					pendingBalance={pendingBalance}
+					isLocked={!!wallet?.isLocked}
+					totalRevenue={
+						typeof (wallet as any)?.totalInflows === "number"
+							? Number((wallet as any).totalInflows)
+							: totalInflowAmount > 0
+								? totalInflowAmount
+								: availableBalance + (wallet?.pendingCredits ?? 0)
+					}
+					totalWithdrawn={
+						typeof (wallet as any)?.totalPayouts === "number"
+							? Number((wallet as any).totalPayouts)
+							: totalOutflowAmount
+					}
+					currency={currency}
+				/>
 
 				{/* Wallet Locked / Frozen Notice Banner */}
 				{wallet?.isLocked && (
@@ -311,118 +282,109 @@ export function OrgWalletClient({
 					</div>
 				)}
 
-				{/* Destination Account Notification / Info */}
-				{hasPayoutAccount ? (
-					<div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-lg border border-border/80 bg-card/60 text-xs">
-						<div className="flex items-center gap-3">
-							<div className="size-8 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-								<Landmark className="size-4" />
-							</div>
-							<div>
-								<div className="font-semibold text-foreground flex items-center gap-1.5">
-									<span>Payout Account:</span>
-									<span className="font-medium text-emerald-700 dark:text-emerald-400">{organization.paystackAccountName}</span>
-								</div>
-								<div className="text-muted-foreground font-mono text-[11px]">
-									{organization.paystackAccountNumber} {organization.paystackBankCode ? `• Bank/MoMo: ${organization.paystackBankCode}` : ""}
-								</div>
-							</div>
-						</div>
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={() => setIsPayoutDrawerOpen(true)}
-							className="text-xs h-7 text-primary hover:text-primary"
-						>
-							Change Account
-						</Button>
-					</div>
-				) : (
-					<div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-lg border border-amber-300 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/30 text-xs">
-						<div className="flex items-center gap-2.5 text-amber-800 dark:text-amber-300">
-							<Landmark className="size-4 shrink-0" />
-							<span>No payout account configured yet. Add your Mobile Money or Bank Account to disburse withdrawals.</span>
-						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setIsPayoutDrawerOpen(true)}
-							className="text-xs h-7 border-amber-300 dark:border-amber-800"
-						>
-							Configure Payout Account
-						</Button>
-					</div>
-				)}
-
-				{/* 1. Stats at the Top (Outside Tabs) */}
-				<WalletBalanceSummary
-					organizationId={organization.id}
-					availableBalance={availableBalance}
-					pendingBalance={pendingBalance}
-					isLocked={!!wallet?.isLocked}
-					totalRevenue={
-						typeof (wallet as any)?.totalInflows === "number"
-							? Number((wallet as any).totalInflows)
-							: totalInflowAmount > 0
-								? totalInflowAmount
-								: availableBalance + (wallet?.pendingCredits ?? 0)
-					}
-					totalWithdrawn={
-						typeof (wallet as any)?.totalPayouts === "number"
-							? Number((wallet as any).totalPayouts)
-							: totalOutflowAmount
-					}
-					currency={currency}
-				/>
-
-				{/* 2. Unified Card with Standard Tabs & Search Bar */}
-				<Card>
-					<Tabs defaultValue="all" className="w-full">
-						<CardHeader className="pb-4 ">
+				{/* 2. Tabs wrapping Header Card and separate Table Card */}
+				<Tabs defaultValue="all" className="space-y-6">
+					{/* Header & Tabs Card */}
+					<Card>
+						<CardHeader>
 							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-								{/* Standard Tabs */}
-								<TabsList
+								<div>
+									<CardTitle className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+										<WalletIcon className="h-6 w-6" />
+										Wallet & Payouts
+									</CardTitle>
+									<CardDescription className="mt-1">
+										Track revenue, settlements, and manage disbursement accounts.
+									</CardDescription>
+								</div>
+
+								{/* Action Buttons in Header */}
+								<div className="flex flex-wrap items-center gap-2.5 shrink-0">
+									{/* Payout Settings Drawer Trigger */}
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setIsPayoutDrawerOpen(true)}
+										className="gap-2 bg-background hover:bg-accent"
+									>
+										<Landmark className="size-4 text-muted-foreground" />
+										<span>Payout Account</span>
+										{hasPayoutAccount ? (
+											<span className="size-2 rounded-full bg-emerald-500" />
+										) : (
+											<span className="size-2 rounded-full bg-amber-500" />
+										)}
+									</Button>
+
+									{/* Request Withdrawal Button */}
+									{canWithdraw && (
+										<Button
+											size="sm"
+											onClick={handleOpenWithdrawal}
+											disabled={availableBalance <= 0 || !!wallet?.isLocked}
+											className={`gap-1.5 shadow-xs ${wallet?.isLocked ? "opacity-60 cursor-not-allowed" : ""}`}
+											title={wallet?.isLocked ? "Withdrawals suspended while wallet is frozen" : undefined}
+										>
+											{wallet?.isLocked ? (
+												<Lock className="size-4 text-destructive" />
+											) : (
+												<ArrowDownToLine className="size-4" />
+											)}
+											{wallet?.isLocked ? "Withdrawals Frozen" : "Request Withdrawal"}
+										</Button>
+									)}
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent>
+							<TabsList
+								variant="brand"
+								className="flex overflow-x-auto w-full p-1.5 gap-1.5 rounded-sm"
+							>
+								<TabsTrigger
 									variant="brand"
-									className="flex overflow-x-auto w-full sm:w-auto rounded-sm"
+									value="all"
+									className="gap-1.5"
 								>
-									<TabsTrigger
-										variant="brand"
-										value="all"
-										className="gap-1.5"
-									>
-										<ArrowLeftRight className="h-4 w-4" />
-										<span>All Activity</span>
-									</TabsTrigger>
+									<ArrowLeftRight className="h-4 w-4" />
+									<span>All Activity</span>
+								</TabsTrigger>
 
-									<TabsTrigger
-										variant="brand"
-										value="received"
-										className="gap-1.5"
-									>
-										<DollarSign className="h-4 w-4" />
-										<span>Revenue (Inflows)</span>
-									</TabsTrigger>
+								<TabsTrigger
+									variant="brand"
+									value="received"
+									className="gap-1.5"
+								>
+									<DollarSign className="h-4 w-4" />
+									<span>Revenue (Inflows)</span>
+								</TabsTrigger>
 
-									<TabsTrigger
-										variant="brand"
-										value="withdrawals"
-										className="gap-1.5"
-									>
-										<ArrowDownToLine className="h-4 w-4" />
-										<span>Outflows (Debits)</span>
-									</TabsTrigger>
+								<TabsTrigger
+									variant="brand"
+									value="withdrawals"
+									className="gap-1.5"
+								>
+									<ArrowDownToLine className="h-4 w-4" />
+									<span>Outflows (Debits)</span>
+								</TabsTrigger>
 
-									<TabsTrigger
-										variant="brand"
-										value="payouts"
-										className="gap-1.5"
-									>
-										<Landmark className="h-4 w-4" />
-										<span>Payout History ({totalPayouts})</span>
-									</TabsTrigger>
-								</TabsList>
+								<TabsTrigger
+									variant="brand"
+									value="payouts"
+									className="gap-1.5"
+								>
+									<Landmark className="h-4 w-4" />
+									<span>Payout History ({totalPayouts})</span>
+								</TabsTrigger>
+							</TabsList>
+						</CardContent>
+					</Card>
 
-								{/* Search Bar */}
+					{/* 3. Table Card separated from Header Card */}
+					<Card>
+						<CardContent className="pt-6 space-y-4">
+							{/* Search Bar */}
+							<div className="flex flex-col sm:flex-row items-center justify-between gap-3">
 								<div className="relative w-full sm:w-72">
 									<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 									<Input
@@ -434,9 +396,7 @@ export function OrgWalletClient({
 									/>
 								</div>
 							</div>
-						</CardHeader>
 
-						<CardContent className="space-y-4">
 							{/* Tab 1: All Activity */}
 							<TabsContent value="all" className="m-0 space-y-4">
 								<TransactionsTable
@@ -493,8 +453,8 @@ export function OrgWalletClient({
 								/>
 							</TabsContent>
 						</CardContent>
-					</Tabs>
-				</Card>
+					</Card>
+				</Tabs>
 			</div>
 
 			{/* Payout Settings Drawer (Slide-out Sheet) */}

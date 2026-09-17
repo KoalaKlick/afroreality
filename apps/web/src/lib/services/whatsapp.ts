@@ -374,10 +374,10 @@ export async function sendNomineeReportWhatsAppNotification({
 	const formattedVotes = typeof votesCount === "number" ? votesCount.toLocaleString() : votesCount;
 	const formattedRank = String(rank);
 
-	// First attempt approved utility template (fextiva_nominee_update_en)
+	// First attempt approved utility template (fextiva_nominee_status_en)
 	let templateRes = await sendWhatsAppTemplateMessage({
 		to: phone,
-		templateName: "fextiva_nominee_update_en",
+		templateName: "fextiva_nominee_status_en",
 		languageCode: "en",
 		components: [
 			{
@@ -392,6 +392,27 @@ export async function sendNomineeReportWhatsAppNotification({
 			},
 		],
 	});
+
+	// If pending/failed, try previous nominee update template as secondary fallback
+	if (!templateRes.success) {
+		templateRes = await sendWhatsAppTemplateMessage({
+			to: phone,
+			templateName: "fextiva_nominee_update_en",
+			languageCode: "en",
+			components: [
+				{
+					type: "body",
+					parameters: [
+						{ type: "text", text: nomineeName },
+						{ type: "text", text: eventTitle },
+						{ type: "text", text: categoryName || "General" },
+						{ type: "text", text: formattedVotes },
+						{ type: "text", text: formattedRank },
+					],
+				},
+			],
+		});
+	}
 
 	// If pending/failed, try previous nominee template as secondary fallback
 	if (!templateRes.success) {

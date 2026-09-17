@@ -2,6 +2,7 @@
 // src/components/organization/wallet/WalletBalanceSummary.tsx
 
 import { SHARED_FINANCIAL_STATS, StatCard, statIcons } from "@/components/event/core/EventStats";
+import { FextivaLogo } from "@/components/shared/FextivaLogo";
 
 interface WalletBalanceSummaryProps {
 	readonly organizationId: string;
@@ -21,15 +22,14 @@ export function WalletBalanceSummary({
 	currency = "GHS",
 	isLocked = false,
 }: WalletBalanceSummaryProps) {
-	const balanceIcon = currency === "EUR" ? statIcons.euro : statIcons.cedi;
-
 	return (
 		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			{/* 1. Available Balance */}
 			<StatCard
 				label={SHARED_FINANCIAL_STATS.availableBalance.label}
 				value={`${currency} ${availableBalance.toFixed(2)}`}
-				iconSrc={balanceIcon}
+				glowColor="primary"
+				watermarkNode={<FextivaLogo showWordmark={false} className="size-14 sm:size-16" />}
 				description={isLocked ? "Payouts suspended (Frozen)" : "Ready for withdrawal / payout"}
 			/>
 
