@@ -78,21 +78,12 @@ function getIconColorStyles(iconSrc: string): {
 		black: "radial-gradient(circle at bottom right, rgba(156, 163, 175, 0.16), transparent 60%), linear-gradient(135deg, rgba(156, 163, 175, 0.03), transparent 50%)",
 	};
 
-	const borderColor: Record<string, string> = {
-		red: "border-red-500/25 dark:border-red-500/30",
-		yellow: "border-amber-500/30 dark:border-amber-500/35",
-		green: "border-emerald-500/30 dark:border-emerald-500/35",
-		black: "border-border",
-	};
-
 	const backgroundImage =
 		color && colorGlow[color] ? colorGlow[color] : undefined;
-	const border =
-		color && borderColor[color] ? borderColor[color] : "border-border";
 
 	return {
 		style: backgroundImage ? { backgroundImage } : {},
-		className: border,
+		className: "",
 	};
 }
 
@@ -164,7 +155,7 @@ export function StatCard({
 		return (
 			<Card
 				className={cn(
-					"relative p-4 sm:p-5 group overflow-hidden border transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
+					"relative p-4 sm:p-5 group overflow-hidden border-0 transition-all duration-300 hover:shadow-md min-h-[110px] sm:min-h-[120px] flex flex-col justify-between bg-card min-w-[190px] xs:min-w-[210px] sm:min-w-0 flex-1 shrink-0 snap-start",
 					cardStyle,
 					className,
 					onClick && "cursor-pointer active:scale-[0.98]",

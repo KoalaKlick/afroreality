@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
+import {
+	fulfillSuccessfulPayment,
+	fulfillPayoutTransfer,
+} from "@/lib/server-functions/fulfillment";
 
 export async function POST(req: Request) {
 	try {
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
 
 		const event = JSON.parse(bodyText);
 
-		// Only process successful charges
+		// 1. Process successful incoming charges (Tickets, Votes, Nominations)
 		if (event.event === "charge.success" && event.data?.status === "success") {
 			const data = event.data;
 			const reference = data.reference;
@@ -37,9 +40,31 @@ export async function POST(req: Request) {
 			}
 		}
 
+		// 2. Process outgoing transfer / payout events
+		if (event.event === "transfer.success") {
+			const reference = event.data?.reference;
+			if (reference) {
+				await fulfillPayoutTransfer({
+					reference,
+					status: "completed",
+					paystackData: event.data,
+				});
+			}
+		} else if (event.event === "transfer.failed" || event.event === "transfer.reversed") {
+			const reference = event.data?.reference;
+			if (reference) {
+				await fulfillPayoutTransfer({
+					reference,
+					status: event.event === "transfer.reversed" ? "reversed" : "failed",
+					paystackData: event.data,
+				});
+			}
+		}
+
 		return NextResponse.json({ received: true });
 	} catch (error: any) {
 		console.error("Paystack webhook error:", error);
 		return NextResponse.json({ error: error.message }, { status: 500 });
 	}
 }
+

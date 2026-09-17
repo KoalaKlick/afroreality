@@ -10,9 +10,12 @@ import {
 	checkPaystackBalance,
 	createPaystackTransferRecipient,
 	initiatePaystackTransfer,
+	verifyPaystackTransfer,
 	fetchPaystackSettlements,
 	fetchPaystackTransfers,
 } from "./paystack";
+import { fulfillPayoutTransfer } from "./fulfillment";
+
 
 export async function getOrgWallet({
 	data,
@@ -543,4 +546,79 @@ export async function getOrgActivityLogs({
 
 	return { items: serializeJsonSafe(items), total };
 }
+
+/**
+ * Syncs a payout's status directly with Paystack, or allows setting a status for dev/test verification.
+ */
+export async function syncPayoutStatus({
+	reference,
+	forceStatus,
+}: {
+	reference: string;
+	forceStatus?: "completed" | "failed" | "reversed";
+}): Promise<{ success: boolean; message: string; status?: string }> {
+	const session = await requireSession();
+
+	const payout = await prisma.payout.findUnique({
+		where: { reference },
+		include: { wallet: true },
+	});
+
+	if (!payout) {
+		return { success: false, message: `Payout with reference ${reference} not found.` };
+	}
+
+	if (forceStatus) {
+		const res = await fulfillPayoutTransfer({
+			reference,
+			status: forceStatus,
+		});
+		if (res.success) {
+			revalidatePath("/my-wallet");
+			revalidatePath("/super/wallets");
+			return {
+				success: true,
+				message: `Payout ${reference} marked as ${forceStatus}.`,
+				status: forceStatus,
+			};
+		}
+		return { success: false, message: res.error || "Failed to update payout status." };
+	}
+
+	// Verify directly with Paystack API
+	const psRes = await verifyPaystackTransfer(reference);
+	if (!psRes.success) {
+		return { success: false, message: psRes.message || "Failed to verify with Paystack." };
+	}
+
+	const psStatus = psRes.status; // "success" | "failed" | "reversed" | "abandoned" | "pending"
+
+	if (psStatus === "success") {
+		await fulfillPayoutTransfer({
+			reference,
+			status: "completed",
+			paystackData: psRes.raw,
+		});
+		revalidatePath("/my-wallet");
+		revalidatePath("/super/wallets");
+		return { success: true, message: "Payout successfully settled via Paystack!", status: "completed" };
+	} else if (psStatus === "failed" || psStatus === "abandoned" || psStatus === "reversed") {
+		const mappedStatus = psStatus === "reversed" ? "reversed" : "failed";
+		await fulfillPayoutTransfer({
+			reference,
+			status: mappedStatus,
+			paystackData: psRes.raw,
+		});
+		revalidatePath("/my-wallet");
+		revalidatePath("/super/wallets");
+		return {
+			success: true,
+			message: `Payout marked as ${mappedStatus} (Paystack status: ${psStatus}).`,
+			status: mappedStatus,
+		};
+	}
+
+	return { success: true, message: `Payout is currently ${psStatus} on Paystack.`, status: psStatus };
+}
+
 

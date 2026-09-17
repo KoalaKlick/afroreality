@@ -447,3 +447,79 @@ export async function fulfillSuccessfulPayment({
 		};
 	}
 }
+
+/**
+ * Fulfills payout transfer state changes (success, failure, reversed)
+ * Updates Payout, Ledger Transaction, and Wallet pendingDebits atomically
+ */
+export async function fulfillPayoutTransfer({
+	reference,
+	status,
+	paystackData,
+}: {
+	reference: string;
+	status: "completed" | "failed" | "reversed";
+	paystackData?: any;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const payout = await prisma.payout.findUnique({
+			where: { reference },
+			include: { wallet: true },
+		});
+
+		if (!payout) {
+			console.warn(`[FULFILLMENT-PAYOUT] Payout not found for reference: ${reference}`);
+			return { success: false, error: `Payout not found: ${reference}` };
+		}
+
+		if (payout.status === status) {
+			return { success: true, message: `Payout is already ${status}` };
+		}
+
+		await prisma.$transaction(async (tx) => {
+			const amt = Number(payout.amount);
+			const now = new Date();
+
+			// 1. Update Payout record
+			await tx.payout.update({
+				where: { id: payout.id },
+				data: {
+					status,
+					completedAt: status === "completed" ? now : undefined,
+					failedAt: status !== "completed" ? now : undefined,
+					providerResponse: paystackData ?? undefined,
+				},
+			});
+
+			// 2. Update Debit Transaction record
+			await tx.transaction.updateMany({
+				where: { reference, type: "debit" },
+				data: {
+					status,
+					completedAt: status === "completed" ? now : undefined,
+				},
+			});
+
+			// 3. Clear pendingDebits on Wallet
+			if (payout.walletId) {
+				const wallet = await tx.wallet.findUnique({ where: { id: payout.walletId } });
+				if (wallet) {
+					const newPendingDebits = Math.max(0, Number(wallet.pendingDebits) - amt);
+					await tx.wallet.update({
+						where: { id: wallet.id },
+						data: {
+							pendingDebits: newPendingDebits,
+							lastTransactionAt: now,
+						},
+					});
+				}
+			}
+		});
+
+		return { success: true };
+	} catch (error: any) {
+		console.error("[FULFILLMENT-PAYOUT-ERROR]", error);
+		return { success: false, error: error.message };
+	}
+}
+

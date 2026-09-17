@@ -511,6 +511,59 @@ export async function initiatePaystackTransfer({
 }
 
 /**
+ * Verifies the status of a transfer directly with Paystack API
+ */
+export async function verifyPaystackTransfer(reference: string): Promise<{
+	success: boolean;
+	status?: string;
+	message?: string;
+	raw?: any;
+}> {
+	if (!PAYSTACK_SECRET) {
+		return { success: false, message: "Paystack secret key missing." };
+	}
+
+	try {
+		const response = await fetch(
+			`https://api.paystack.co/transfer/verify/${encodeURIComponent(reference)}`,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${PAYSTACK_SECRET}`,
+					"Content-Type": "application/json",
+				},
+				cache: "no-store",
+			},
+		);
+
+		const result = await response.json();
+		if (result.status && result.data) {
+			return {
+				success: true,
+				status: result.data.status,
+				message: result.message,
+				raw: result.data,
+			};
+		}
+
+		return {
+			success: false,
+			message: result.message || "Failed to verify transfer.",
+			raw: result,
+		};
+	} catch (error) {
+		return {
+			success: false,
+			message:
+				error instanceof Error
+					? error.message
+					: "Error verifying transfer with Paystack.",
+		};
+	}
+}
+
+
+/**
  * Checks Paystack merchant balance to prevent transfer failures
  */
 export async function checkPaystackBalance(

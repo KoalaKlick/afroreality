@@ -409,7 +409,7 @@ export function OrgWalletClient({
 										className="gap-1.5"
 									>
 										<ArrowDownToLine className="h-4 w-4" />
-										<span>Payouts (Outflows)</span>
+										<span>Outflows (Debits)</span>
 									</TabsTrigger>
 
 									<TabsTrigger
@@ -418,7 +418,7 @@ export function OrgWalletClient({
 										className="gap-1.5"
 									>
 										<Landmark className="h-4 w-4" />
-										<span>Withdrawal Details ({totalPayouts})</span>
+										<span>Payout History ({totalPayouts})</span>
 									</TabsTrigger>
 								</TabsList>
 
