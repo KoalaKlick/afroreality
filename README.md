@@ -16,12 +16,15 @@ This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
-- `docs`: a [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `web`: another [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `ui`: a stub React component library with [Tailwind CSS](https://tailwindcss.com/) shared by both `web` and `docs` applications
+- `apps/web`: Next.js web application for Fextiva (ticketing, voting, events, admin dashboard)
+- `workers/background-delivery`: Cloudflare Worker for cron cleanup and background delivery
+- `workers/paystack-webhook`: Cloudflare Worker for Paystack charge verification and fulfillment
+- `workers/ussd`: Cloudflare Worker for Arkesel and Africa's Talking USSD flows
+- `workers/whatsapp-webhook`: Cloudflare Worker for WhatsApp Cloud API message logs and callbacks
+- `@repo/db`: Prisma database client and schemas
+- `@repo/pricing`: shared pricing and fee calculation logic
+- `@repo/ui`: shared UI components and design system
 - `@repo/tailwind-config`: shared Tailwind CSS theme and PostCSS configuration
-- `@repo/eslint-config`: `eslint` flat configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 

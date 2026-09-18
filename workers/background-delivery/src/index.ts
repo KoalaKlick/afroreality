@@ -1,3 +1,8 @@
+/**
+ * Cloudflare Worker: Background Delivery & Scheduled Maintenance
+ * - Cron Trigger: Cleans up stale USSD sessions older than 30 minutes
+ * - Queue Consumer: Handles asynchronous SMS and WhatsApp notification delivery
+ */
 import { neon } from "@neondatabase/serverless";
 
 export interface Env {
