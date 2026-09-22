@@ -141,10 +141,10 @@ export function NomineeGrid({
 						<div key={`${nominee.id}-${index}`} className="@container h-full">
 							<div
 								onClick={() => handleOpenSheet(nominee)}
-								className="group relative flex flex-col @sm:flex-row justify-between h-full gap-3 rounded-2xl bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer"
+								className="group relative flex flex-col @md:flex-row justify-between h-full gap-3 rounded-2xl bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer"
 							>
 								{/* Nominee Avatar / Poster (Left in row, Top in col) */}
-								<div className="relative aspect-4/5 w-full @sm:w-40 @md:w-48 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
+								<div className="relative aspect-4/5 w-full @md:w-48 max-h-72 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
 									{nominee.imageUrl ? (
 										<img
 											src={getEventImageUrl(nominee.imageUrl) || ""}

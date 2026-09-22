@@ -437,7 +437,7 @@ export default async function PublicCategoryPage({
 						>
 							<div className="mb-6">
 								<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
-									Nominees &amp; Candidates
+									Nominees & Candidates
 								</h2>
 								<p className="text-xs text-muted-foreground mt-0.5">
 									Cast your votes or submit a public nomination below.
