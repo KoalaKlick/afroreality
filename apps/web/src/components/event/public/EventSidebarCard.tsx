@@ -103,36 +103,30 @@ export function EventSidebarCard({
 					/>
 				)}
 
-				{/* Top-left Event Type Pill */}
-				<div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-					<Badge className="text-[10px] font-bold uppercase bg-background/90 text-foreground backdrop-blur-md border border-border rounded-sm">
-						{event.type || "Event"}
-					</Badge>
-				</div>
-
-				{/* Bottom Gradient Backdrop for Title & Org info */}
-				<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
-
-				{/* Floating Header Info inside Banner to save vertical space */}
-				<div className="absolute bottom-3 left-3 right-3 z-10 space-y-1.5">
+				{/* Top-left Organization Logo */}
+				<div className="absolute top-3 left-3 z-10">
 					<Link
 						href={`/${orgSlug}`}
-						className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background/90 hover:bg-background text-foreground backdrop-blur-md border border-border/80 text-[11px] font-semibold transition-all shadow-xs group w-fit max-w-full"
+						className="size-8 rounded-full bg-background/90 hover:bg-background text-foreground backdrop-blur-md border border-border/80 flex items-center justify-center transition-all shadow-xs hover:scale-105 overflow-hidden group p-0.5"
+						title={event.organization.name}
 					>
 						{logoImage ? (
 							<img
 								src={logoImage}
 								alt={event.organization.name}
-								className="size-3.5 rounded-full object-cover border border-border/50 shrink-0"
+								className="size-full rounded-full object-cover"
 							/>
 						) : (
-							<Building2 className="size-3 text-primary shrink-0" />
+							<Building2 className="size-4 text-primary" />
 						)}
-						<span className="truncate group-hover:text-primary transition-colors max-w-[200px]">
-							{event.organization.name}
-						</span>
 					</Link>
+				</div>
 
+				{/* Bottom Gradient Backdrop for Title */}
+				<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+
+				{/* Floating Header Info inside Banner to save vertical space */}
+				<div className="absolute bottom-3 left-3 right-3 z-10">
 					<h1 className="text-lg sm:text-xl font-black uppercase tracking-tight text-white leading-tight font-millik drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
 						{event.title}
 					</h1>
