@@ -139,7 +139,7 @@ export function ProviderLogo({
 						src={MtnLogo}
 						alt="MTN Mobile Money"
 						className={cn(
-							"h-5 w-auto max-w-[50px] object-contain",
+							"h-4.5 w-auto max-w-[54px] object-contain",
 							imageClassName,
 						)}
 					/>

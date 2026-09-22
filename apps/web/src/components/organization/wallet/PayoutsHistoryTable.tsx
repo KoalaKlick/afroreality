@@ -7,7 +7,7 @@ import {
 	getSortedRowModel,
 } from "@tanstack/react-table";
 import { useMemo } from "react";
-import { KeyRound } from "lucide-react";
+import { KeyRound, RefreshCw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProviderLogo, getProviderFriendlyName } from "@/components/shared/ProviderLogo";
 import { DataTableColumnHeader } from "@/components/common/data-table-column-header";
@@ -27,6 +27,8 @@ interface PayoutsHistoryTableProps {
 	readonly emptyDescription?: string;
 	readonly emptyVariant?: EmptyStateVariant;
 	readonly onAuthorizeOtp?: (payout: PayoutRecord) => void;
+	readonly onCancelPayout?: (payout: PayoutRecord) => void;
+	readonly onSyncPayout?: (payout: PayoutRecord) => void;
 }
 
 export function PayoutsHistoryTable({
@@ -36,6 +38,8 @@ export function PayoutsHistoryTable({
 	emptyDescription = "Withdrawals requested to your bank or mobile money account will appear here.",
 	emptyVariant = "payment",
 	onAuthorizeOtp,
+	onCancelPayout,
+	onSyncPayout,
 }: PayoutsHistoryTableProps) {
 	const columns = useMemo<ColumnDef<PayoutRecord>[]>(
 		() => [
@@ -146,31 +150,60 @@ export function PayoutsHistoryTable({
 							: status === "pending" || status === "processing"
 								? "pending"
 								: "failed";
+					const isPending = status === "pending" || status === "processing";
 					const isWaitingOtp =
-						(status === "pending" || status === "processing") &&
+						isPending &&
 						(item.providerResponse?.status === "otp" || (item.providerReference && !item.completedAt));
 
 					return (
 						<div className="flex flex-col gap-1.5 items-start">
 							<StatusBadge variant={variant} text={status} />
-							{isWaitingOtp && onAuthorizeOtp && (
-								<Button
-									type="button"
-									size="sm"
-									variant="outline"
-									className="h-6 px-2 text-[10px] font-semibold text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-950/40 gap-1 shadow-none"
-									onClick={() => onAuthorizeOtp(item)}
-								>
-									<KeyRound className="size-3" />
-									Enter OTP
-								</Button>
+							{isPending && (
+								<div className="flex items-center gap-1">
+									{isWaitingOtp && onAuthorizeOtp && (
+										<Button
+											type="button"
+											size="sm"
+											variant="outline"
+											className="h-6 px-2 text-[10px] font-semibold text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-950/40 gap-1 shadow-none"
+											onClick={() => onAuthorizeOtp(item)}
+										>
+											<KeyRound className="size-3" />
+											Enter OTP
+										</Button>
+									)}
+									{onSyncPayout && (
+										<Button
+											type="button"
+											size="sm"
+											variant="ghost"
+											className="h-6 px-1.5 text-[10px] text-muted-foreground hover:text-primary hover:bg-primary/10"
+											title="Sync status with Paystack"
+											onClick={() => onSyncPayout(item)}
+										>
+											<RefreshCw className="size-3" />
+										</Button>
+									)}
+									{onCancelPayout && (
+										<Button
+											type="button"
+											size="sm"
+											variant="ghost"
+											className="h-6 px-1.5 text-[10px] text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+											title="Cancel payout & restore balance"
+											onClick={() => onCancelPayout(item)}
+										>
+											<XCircle className="size-3" />
+										</Button>
+									)}
+								</div>
 							)}
 						</div>
 					);
 				},
 			},
 		],
-		[onAuthorizeOtp],
+		[onAuthorizeOtp, onCancelPayout, onSyncPayout],
 	);
 
 	const table = useDataTable(payouts, columns, {

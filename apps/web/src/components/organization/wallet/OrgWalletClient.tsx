@@ -45,6 +45,8 @@ import {
 	requestWalletWithdrawal,
 	finalizeWalletWithdrawal,
 	resendWithdrawalOtp,
+	cancelWalletWithdrawal,
+	syncPayoutStatus,
 } from "@/lib/server-functions/wallet";
 import type { ActivityLogRecord, PayoutRecord, Transaction, Wallet } from "@/lib/types/payment";
 import { OrgPayoutSettings } from "./OrgPayoutSettings";
@@ -108,6 +110,7 @@ export function OrgWalletClient({
 	const [otpCode, setOtpCode] = useState("");
 	const [isAuthorizingOtp, setIsAuthorizingOtp] = useState(false);
 	const [isResendingOtp, setIsResendingOtp] = useState(false);
+	const [isCancellingPayout, setIsCancellingPayout] = useState(false);
 
 	const pendingDebits =
 		typeof (wallet as any)?.pendingDebits === "number"
@@ -323,6 +326,51 @@ export function OrgWalletClient({
 			toast.error(error instanceof Error ? error.message : "Failed to resend OTP");
 		} finally {
 			setIsResendingOtp(false);
+		}
+	}
+
+	async function handleCancelPayout(payoutId: string) {
+		setIsCancellingPayout(true);
+		try {
+			const res = await cancelWalletWithdrawal({
+				data: {
+					organizationId: organization.id,
+					payoutId,
+				},
+			});
+			if (res.success) {
+				toast.success(res.message);
+				if (isOtpOpen && otpPayoutData?.payoutId === payoutId) {
+					setIsOtpOpen(false);
+					setOtpPayoutData(null);
+					setOtpCode("");
+				}
+				router.refresh();
+			} else {
+				toast.error(res.message);
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Failed to cancel payout");
+		} finally {
+			setIsCancellingPayout(false);
+		}
+	}
+
+	async function handleSyncPayout(payout: PayoutRecord) {
+		if (!payout.reference) return;
+		try {
+			toast.loading("Verifying transfer status with Paystack...", { id: `sync-${payout.reference}` });
+			const res = await syncPayoutStatus({ reference: payout.reference });
+			if (res.success) {
+				toast.success(res.message, { id: `sync-${payout.reference}` });
+				router.refresh();
+			} else {
+				toast.error(res.message || "Could not sync status with Paystack.", { id: `sync-${payout.reference}` });
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Failed to sync status with Paystack", {
+				id: `sync-${payout.reference}`,
+			});
 		}
 	}
 
@@ -564,6 +612,8 @@ export function OrgWalletClient({
 										setOtpCode("");
 										setIsOtpOpen(true);
 									}}
+									onCancelPayout={(payout) => handleCancelPayout(payout.id)}
+									onSyncPayout={handleSyncPayout}
 									emptyTitle="No withdrawal history"
 									emptyDescription="When you submit a withdrawal request, its destination account number, recipient, and processing status will appear here."
 									emptyVariant="payment"
@@ -800,8 +850,25 @@ export function OrgWalletClient({
 								autoFocus
 							/>
 							<p className="text-[11px] text-muted-foreground">
-								Did not receive the OTP? Click "Resend OTP". In Paystack Test Mode, you can enter any OTP or check Paystack Dashboard test transfers.
+								Did not receive the OTP? Click "Resend OTP". If the authorization expires or is abandoned on Paystack, funds are automatically returned to your available balance.
 							</p>
+							{otpPayoutData && (
+								<div className="flex items-center justify-between pt-1">
+									<span className="text-[11px] text-muted-foreground">
+										Expired OTP or want to cancel?
+									</span>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										className="h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10 font-semibold"
+										onClick={() => handleCancelPayout(otpPayoutData.payoutId)}
+										disabled={isCancellingPayout || isAuthorizingOtp}
+									>
+										{isCancellingPayout ? "Cancelling..." : "Cancel & Restore Balance"}
+									</Button>
+								</div>
+							)}
 						</div>
 					</div>
 

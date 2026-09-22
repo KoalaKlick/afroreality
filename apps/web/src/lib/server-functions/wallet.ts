@@ -165,6 +165,52 @@ export async function getOrgWallet({
 				}
 			}
 
+			// Instead of a hardcoded timer, verify live status directly with Paystack
+			// for any unfinalized payouts to keep local state 100% synchronized with Paystack.
+			const unfinalizedPayouts = await prisma.payout.findMany({
+				where: {
+					walletId: wallet.id,
+					status: { in: ["pending", "processing"] },
+				},
+				take: 10,
+				orderBy: { createdAt: "desc" },
+			});
+
+			for (const p of unfinalizedPayouts) {
+				if (!p.reference) continue;
+				try {
+					const psRes = await verifyPaystackTransfer(p.reference);
+					if (psRes.success && psRes.status) {
+						if (psRes.status === "success") {
+							await fulfillPayoutTransfer({
+								reference: p.reference,
+								status: "completed",
+								paystackData: psRes.raw,
+							});
+						} else if (
+							psRes.status === "abandoned" ||
+							psRes.status === "failed" ||
+							psRes.status === "reversed"
+						) {
+							await fulfillPayoutTransfer({
+								reference: p.reference,
+								status: psRes.status === "reversed" ? "reversed" : "failed",
+								paystackData: {
+									...(typeof p.providerResponse === "object" ? p.providerResponse : {}),
+									paystackVerify: psRes.raw,
+									failureReason:
+										psRes.status === "abandoned"
+											? "Paystack transfer authorization expired or was abandoned on Paystack."
+											: "Paystack transfer failed.",
+								},
+							});
+						}
+					}
+				} catch (psSyncErr) {
+					console.warn(`[WALLET-PAYSTACK-SYNC-ERR] Failed to verify payout ${p.reference}:`, psSyncErr);
+				}
+			}
+
 			// Reconcile pending debits dynamically from database transactions
 			const pendingDebitsAgg = await prisma.transaction.aggregate({
 				where: {
@@ -648,6 +694,70 @@ export async function resendWithdrawalOtp({
 	};
 }
 
+/**
+ * Cancels an unfinalized payout (e.g. expired OTP), immediately unlocking and restoring funds to the wallet
+ */
+export async function cancelWalletWithdrawal({
+	data,
+}: {
+	data: {
+		organizationId: string;
+		payoutId: string;
+	};
+}): Promise<{ success: boolean; message: string }> {
+	const session = await requireSession();
+	await requireOrgRole(data.organizationId, ["owner", "admin"]);
+
+	const payout = await prisma.payout.findUnique({
+		where: { id: data.payoutId },
+		include: { wallet: true },
+	});
+
+	if (!payout) {
+		throw new Error("Payout record not found.");
+	}
+
+	if (payout.status === "completed") {
+		throw new Error("Cannot cancel a payout that has already been completed.");
+	}
+
+	await fulfillPayoutTransfer({
+		reference: payout.reference,
+		status: "failed",
+		paystackData: {
+			cancelledByUser: true,
+			cancelledByUserId: session.userId,
+			cancelledAt: new Date().toISOString(),
+			reason: "Payout cancelled by organizer before OTP finalization.",
+		},
+	});
+
+	try {
+		await prisma.activityLog.create({
+			data: {
+				organizationId: data.organizationId,
+				userId: session.userId,
+				action: "wallet_withdrawal_cancelled",
+				entityType: "payout",
+				entityId: payout.id,
+				description: `Cancelled pending withdrawal of ${payout.currency} ${Number(payout.amount).toFixed(2)}. Funds restored to balance.`,
+				metadata: {
+					reference: payout.reference,
+					amount: Number(payout.amount),
+				},
+			},
+		});
+	} catch (logErr) {
+		console.warn("[ACTIVITY-LOG-WARN]", logErr);
+	}
+
+	revalidatePath("/organization/wallet");
+	return {
+		success: true,
+		message: "Payout request cancelled. Funds have been returned to your available balance.",
+	};
+}
+
 export async function getOrgPayouts({
 	data,
 }: {
@@ -746,6 +856,7 @@ export async function syncPayoutStatus({
 		if (res.success) {
 			revalidatePath("/my-wallet");
 			revalidatePath("/super/wallets");
+			revalidatePath("/organization/wallet");
 			return {
 				success: true,
 				message: `Payout ${reference} marked as ${forceStatus}.`,
@@ -771,6 +882,7 @@ export async function syncPayoutStatus({
 		});
 		revalidatePath("/my-wallet");
 		revalidatePath("/super/wallets");
+		revalidatePath("/organization/wallet");
 		return { success: true, message: "Payout successfully settled via Paystack!", status: "completed" };
 	} else if (psStatus === "failed" || psStatus === "abandoned" || psStatus === "reversed") {
 		const mappedStatus = psStatus === "reversed" ? "reversed" : "failed";
@@ -781,6 +893,7 @@ export async function syncPayoutStatus({
 		});
 		revalidatePath("/my-wallet");
 		revalidatePath("/super/wallets");
+		revalidatePath("/organization/wallet");
 		return {
 			success: true,
 			message: `Payout marked as ${mappedStatus} (Paystack status: ${psStatus}).`,
