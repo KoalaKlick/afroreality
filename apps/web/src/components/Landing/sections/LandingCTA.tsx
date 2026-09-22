@@ -8,10 +8,10 @@ import { Section } from "../Section";
 
 export function LandingCTA() {
 	return (
-		<Section class="overflow-hidden mt-16 md:mt-20 w-full " content-class="relative">
-			<div className="bg-primary  w-full text-primary-foreground rounded-2xl flex flex-col md:flex-row justify-between items-stretch overflow-hidden border border-border/20 shadow-none">
+		<Section maxWidth="7xl" class="overflow-hidden mt-16 md:mt-20" content-class="relative">
+			<div className="bg-primary w-full text-primary-foreground rounded-2xl flex flex-col md:flex-row justify-between items-stretch overflow-hidden border border-border/20 shadow-none">
 				{/* Left Copy & CTA */}
-				<div className="min-w-full flex-1 px-6 sm:px-10 py-8 md:py-14 space-y-4 z-30 flex flex-col justify-center">
+				<div className="max-w-xl flex-1 px-6 sm:px-10 py-8 md:py-14 space-y-4 z-30 flex flex-col justify-center">
 					<h2 className="text-white text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight font-millik">
 						Ready to Create Your Next{" "}
 						<span className="text-white/95 block font-black">
