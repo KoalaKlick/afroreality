@@ -226,7 +226,7 @@ export function EventGallery({ images, className }: EventGalleryProps) {
 						onClick={() => openLightbox(0)}
 						className="absolute bottom-3 right-3 z-10 px-3 py-1.5 rounded-full bg-black/75 hover:bg-black/90 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg border border-white/10 transition-all hover:scale-105 active:scale-95"
 					>
-						<Images className="size-3.5 text-primary" />
+						<Images className="size-3.5" />
 						<span>{count} Photos</span>
 					</button>
 				)}
