@@ -63,14 +63,48 @@ export function EventCreationCTABanner({
 
 						{/* Right: 3 people images — @container for responsive placement */}
 						<div className="flex-1 grow relative min-h-72 @container pointer-events-none select-none">
-							{/* Person 3 – back (dancing woman) */}
-							<img
-								src="/landing/cta/create-event-3.webp"
-								alt=""
-								aria-hidden="true"
-								className="absolute bottom-0 z-[1] @max-md:-left-16 @min-md:left-0 w-auto @max-md:h-full h-[85%] object-cover drop-shadow-lg hover:grayscale-75 transition-all duration-300 pointer-events-auto"
-								loading="lazy"
-							/>
+							{/* Person 3 – back (woman with brand-responsive attire color) */}
+							<div className="absolute bottom-0 z-[1] @max-md:-left-16 @min-md:left-0 w-auto @max-md:h-full h-[85%] aspect-square pointer-events-auto isolate group">
+								<img
+									src="/landing/cta/create-event-3-base.webp"
+									alt=""
+									aria-hidden="true"
+									className="size-full object-cover drop-shadow-lg hover:grayscale-75 transition-all duration-300"
+									loading="lazy"
+								/>
+								{/* Responsive attire color tint overlay */}
+								<div
+									aria-hidden="true"
+									className="absolute inset-0 size-full pointer-events-none transition-colors duration-300"
+									style={{
+										backgroundColor:
+											"var(--color-brand-secondary, var(--color-secondary, var(--secondary, #009A44)))",
+										WebkitMaskImage: "url(/landing/cta/create-event-3-mask.webp)",
+										maskImage: "url(/landing/cta/create-event-3-mask.webp)",
+										WebkitMaskSize: "100% 100%",
+										maskSize: "100% 100%",
+										WebkitMaskRepeat: "no-repeat",
+										maskRepeat: "no-repeat",
+										mixBlendMode: "color",
+									}}
+								/>
+								{/* Subtle multiplier for fabric depth & texture richness */}
+								<div
+									aria-hidden="true"
+									className="absolute inset-0 size-full pointer-events-none opacity-40 transition-colors duration-300"
+									style={{
+										backgroundColor:
+											"var(--color-brand-primary, var(--color-secondary, var(--secondary, #009A44)))",
+										WebkitMaskImage: "url(/landing/cta/create-event-3-mask.webp)",
+										maskImage: "url(/landing/cta/create-event-3-mask.webp)",
+										WebkitMaskSize: "100% 100%",
+										maskSize: "100% 100%",
+										WebkitMaskRepeat: "no-repeat",
+										maskRepeat: "no-repeat",
+										mixBlendMode: "multiply",
+									}}
+								/>
+							</div>
 							{/* Person 2 – middle (guitarist) */}
 							{/* <img
 							src="/landing/cta/create-event-2.webp"
