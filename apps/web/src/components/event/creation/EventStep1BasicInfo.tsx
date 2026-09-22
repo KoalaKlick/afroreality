@@ -170,9 +170,19 @@ export function EventStep1BasicInfo({
 		e.preventDefault();
 		setErrors({});
 
+		const generatedSlug =
+			(slug && slug.trim().length >= 2 ? slug : null) ||
+			title
+				.toLowerCase()
+				.replace(/[^a-z0-9\s-]/g, "")
+				.replace(/\s+/g, "-")
+				.replace(/-+/g, "-")
+				.slice(0, 100) ||
+			`event-${Date.now()}`;
+
 		const payload = {
 			title,
-			slug,
+			slug: generatedSlug,
 			type,
 			category: category || undefined,
 			tags,
@@ -263,7 +273,7 @@ export function EventStep1BasicInfo({
 			<Card>
 				<CardHeader>
 					<CardTitle>Event Details</CardTitle>
-					<CardDescription>Enter the name, URL, and category for your event</CardDescription>
+					<CardDescription>Enter the name and category for your event</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-5">
 					{/* Event Title */}
@@ -278,30 +288,6 @@ export function EventStep1BasicInfo({
 						/>
 						{errors.title && (
 							<p className="text-sm text-destructive">{errors.title[0]}</p>
-						)}
-					</div>
-
-					{/* Event Slug */}
-					<div className="space-y-2">
-						<Label htmlFor="slug">Event URL Slug *</Label>
-						<div className="flex items-center gap-2">
-							<span className="text-sm text-muted-foreground">/[org-slug]/event/</span>
-							<Input
-								id="slug"
-								value={slug}
-								onChange={(e) =>
-									setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
-								}
-								placeholder="fextiva-beats-summer-2026"
-								className={cn("flex-1", errors.slug ? "border-destructive" : "")}
-							/>
-						</div>
-						{errors.slug ? (
-							<p className="text-sm text-destructive">{errors.slug[0]}</p>
-						) : (
-							<p className="text-xs text-muted-foreground">
-								This will be your event's unique URL
-							</p>
 						)}
 					</div>
 
@@ -382,7 +368,7 @@ export function EventStep1BasicInfo({
 			<div className="flex justify-end pt-4">
 				<Button
 					type="submit"
-					disabled={!title || !slug}
+					disabled={!title.trim()}
 				>
 					Continue
 					<ArrowRight className="ml-2 size-4" />

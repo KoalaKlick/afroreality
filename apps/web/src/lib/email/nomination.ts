@@ -11,7 +11,7 @@ const TEXT_FOOTER = "#9ca3af";
 const SURFACE = "#ffffff";
 const PAGE_BG = "#f4f4f5";
 const DIVIDER = "#e5e7eb";
-const BORDER_RADIUS = "12px";
+const BORDER_RADIUS = "0px";
 const FONT_STACK =
 	'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif';
 
