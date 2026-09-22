@@ -7,6 +7,8 @@ import {
 	getSortedRowModel,
 } from "@tanstack/react-table";
 import { useMemo } from "react";
+import { KeyRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ProviderLogo, getProviderFriendlyName } from "@/components/shared/ProviderLogo";
 import { DataTableColumnHeader } from "@/components/common/data-table-column-header";
 import { DataTablePagination } from "@/components/common/data-table-pagination";
@@ -24,6 +26,7 @@ interface PayoutsHistoryTableProps {
 	readonly emptyTitle?: string;
 	readonly emptyDescription?: string;
 	readonly emptyVariant?: EmptyStateVariant;
+	readonly onAuthorizeOtp?: (payout: PayoutRecord) => void;
 }
 
 export function PayoutsHistoryTable({
@@ -32,6 +35,7 @@ export function PayoutsHistoryTable({
 	emptyTitle = "No withdrawal requests yet",
 	emptyDescription = "Withdrawals requested to your bank or mobile money account will appear here.",
 	emptyVariant = "payment",
+	onAuthorizeOtp,
 }: PayoutsHistoryTableProps) {
 	const columns = useMemo<ColumnDef<PayoutRecord>[]>(
 		() => [
@@ -134,18 +138,39 @@ export function PayoutsHistoryTable({
 					<DataTableColumnHeader column={column} title="Status" />
 				),
 				cell: ({ row }) => {
-					const status = row.getValue("status") as string;
+					const item = row.original;
+					const status = item.status;
 					const variant =
 						status === "completed"
 							? "completed"
 							: status === "pending" || status === "processing"
 								? "pending"
 								: "failed";
-					return <StatusBadge variant={variant} text={status} />;
+					const isWaitingOtp =
+						(status === "pending" || status === "processing") &&
+						(item.providerResponse?.status === "otp" || (item.providerReference && !item.completedAt));
+
+					return (
+						<div className="flex flex-col gap-1.5 items-start">
+							<StatusBadge variant={variant} text={status} />
+							{isWaitingOtp && onAuthorizeOtp && (
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									className="h-6 px-2 text-[10px] font-semibold text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-950/40 gap-1 shadow-none"
+									onClick={() => onAuthorizeOtp(item)}
+								>
+									<KeyRound className="size-3" />
+									Enter OTP
+								</Button>
+							)}
+						</div>
+					);
 				},
 			},
 		],
-		[],
+		[onAuthorizeOtp],
 	);
 
 	const table = useDataTable(payouts, columns, {

@@ -39,6 +39,9 @@ export interface PayoutRecord {
   currency: string;
   feeAmount?: number;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'reversed';
+  provider?: string | null;
+  providerReference?: string | null;
+  providerResponse?: any;
   description?: string | null;
   notes?: string | null;
   processedAt?: string | Date | null;

@@ -22,8 +22,9 @@ export default async function OrgMembersPage({
 
   const cookieStore = await cookies();
   const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE_NAME)?.value;
-  const activeOrgId = (typeof params.org === 'string' ? params.org : cookieOrg) || orgs[0]?.id;
-  const organization = await getOrganizationById(activeOrgId, session.userId);
+  const requestedOrgId = typeof params.org === 'string' ? params.org : cookieOrg;
+  const activeOrg = orgs.find((o: any) => o.id === requestedOrgId) || orgs[0];
+  const organization = await getOrganizationById(activeOrg.id, session.userId);
 
   if (!organization) {
     notFound();

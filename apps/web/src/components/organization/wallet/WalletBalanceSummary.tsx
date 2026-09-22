@@ -8,6 +8,7 @@ interface WalletBalanceSummaryProps {
 	readonly availableBalance?: number;
 	readonly ledgerBalance?: number;
 	readonly pendingBalance?: number;
+	readonly pendingDebits?: number;
 	readonly totalRevenue?: number;
 	readonly totalWithdrawn?: number;
 	readonly currency?: string;
@@ -18,6 +19,7 @@ export function WalletBalanceSummary({
 	availableBalance = 0,
 	ledgerBalance,
 	pendingBalance = 0,
+	pendingDebits = 0,
 	totalRevenue = 0,
 	totalWithdrawn = 0,
 	currency = "GHS",
@@ -27,9 +29,15 @@ export function WalletBalanceSummary({
 
 	const balanceDescription = isLocked
 		? "Payouts suspended (Frozen)"
-		: ledgerBalance !== undefined && Math.abs(ledgerBalance - availableBalance) > 0.009
-			? `Ready to withdraw • Ledger: ${currency} ${ledgerBalance.toFixed(2)}`
-			: "Ready for withdrawal / payout";
+		: pendingDebits > 0
+			? `Ready to withdraw • ${currency} ${pendingDebits.toFixed(2)} in progress`
+			: ledgerBalance !== undefined && Math.abs(ledgerBalance - availableBalance) > 0.009
+				? `Ready to withdraw • Ledger: ${currency} ${ledgerBalance.toFixed(2)}`
+				: "Ready for withdrawal / payout";
+
+	const totalPayoutsDescription = pendingDebits > 0
+		? `${currency} ${totalWithdrawn.toFixed(2)} completed • ${currency} ${pendingDebits.toFixed(2)} in progress`
+		: "Over time";
 
 	return (
 		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -62,7 +70,7 @@ export function WalletBalanceSummary({
 				label={SHARED_FINANCIAL_STATS.totalPayouts.label}
 				value={`${currency} ${totalWithdrawn.toFixed(2)}`}
 				iconSrc={SHARED_FINANCIAL_STATS.totalPayouts.iconSrc}
-				description="Over time"
+				description={totalPayoutsDescription}
 			/>
 		</div>
 	);

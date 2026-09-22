@@ -12,6 +12,7 @@ import {
 	Wallet as WalletIcon,
 	Lock,
 	ShieldAlert,
+	KeyRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -40,7 +41,11 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/hooks/use-permissions";
-import { requestWalletWithdrawal } from "@/lib/server-functions/wallet";
+import {
+	requestWalletWithdrawal,
+	finalizeWalletWithdrawal,
+	resendWithdrawalOtp,
+} from "@/lib/server-functions/wallet";
 import type { ActivityLogRecord, PayoutRecord, Transaction, Wallet } from "@/lib/types/payment";
 import { OrgPayoutSettings } from "./OrgPayoutSettings";
 import { PayoutsHistoryTable } from "./PayoutsHistoryTable";
@@ -89,6 +94,25 @@ export function OrgWalletClient({
 	const [withdrawalAmount, setWithdrawalAmount] = useState("");
 	const [withdrawalMemo, setWithdrawalMemo] = useState("");
 	const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState(false);
+
+	// OTP dialog states
+	const [isOtpOpen, setIsOtpOpen] = useState(false);
+	const [otpPayoutData, setOtpPayoutData] = useState<{
+		payoutId: string;
+		transferCode: string;
+		amount: number;
+		reference?: string;
+		accountName?: string;
+		accountNumber?: string;
+	} | null>(null);
+	const [otpCode, setOtpCode] = useState("");
+	const [isAuthorizingOtp, setIsAuthorizingOtp] = useState(false);
+	const [isResendingOtp, setIsResendingOtp] = useState(false);
+
+	const pendingDebits =
+		typeof (wallet as any)?.pendingDebits === "number"
+			? Number((wallet as any).pendingDebits)
+			: 0;
 
 	const availableBalance =
 		typeof (wallet as any)?.availableBalance === "number"
@@ -215,10 +239,26 @@ export function OrgWalletClient({
 					description: withdrawalMemo || undefined,
 				},
 			});
-			toast.success(result.message ?? "Withdrawal request submitted successfully!");
+
+			setIsConfirmOpen(false);
 			setWithdrawalAmount("");
 			setWithdrawalMemo("");
-			setIsConfirmOpen(false);
+
+			if (result.requiresOtp) {
+				setOtpPayoutData({
+					payoutId: result.id,
+					transferCode: result.transferCode,
+					amount: parsedAmount,
+					reference: result.reference,
+					accountName: organization.paystackAccountName ?? "",
+					accountNumber: organization.paystackAccountNumber ?? "",
+				});
+				setOtpCode("");
+				setIsOtpOpen(true);
+				toast.info(result.message || "Paystack requires OTP authorization to disburse funds.");
+			} else {
+				toast.success(result.message ?? "Withdrawal request submitted successfully!");
+			}
 			router.refresh();
 		} catch (error) {
 			toast.error(
@@ -226,6 +266,63 @@ export function OrgWalletClient({
 			);
 		} finally {
 			setIsSubmittingWithdrawal(false);
+		}
+	}
+
+	async function handleAuthorizeOtp() {
+		if (!otpPayoutData || !otpCode.trim()) {
+			toast.error("Please enter the authorization OTP code.");
+			return;
+		}
+		setIsAuthorizingOtp(true);
+		try {
+			const res = await finalizeWalletWithdrawal({
+				data: {
+					organizationId: organization.id,
+					payoutId: otpPayoutData.payoutId,
+					transferCode: otpPayoutData.transferCode,
+					otp: otpCode.trim(),
+				},
+			});
+
+			if (!res.success) {
+				toast.error(res.message || "Failed to authorize transfer. Please check the OTP code.");
+				return;
+			}
+
+			toast.success(res.message || "Payout successfully authorized and processed!");
+			setIsOtpOpen(false);
+			setOtpPayoutData(null);
+			setOtpCode("");
+			router.refresh();
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Failed to authorize payout with OTP",
+			);
+		} finally {
+			setIsAuthorizingOtp(false);
+		}
+	}
+
+	async function handleResendOtp() {
+		if (!otpPayoutData?.transferCode) return;
+		setIsResendingOtp(true);
+		try {
+			const res = await resendWithdrawalOtp({
+				data: {
+					organizationId: organization.id,
+					transferCode: otpPayoutData.transferCode,
+				},
+			});
+			if (res.success) {
+				toast.success(res.message || "OTP resent successfully. Check your phone/email.");
+			} else {
+				toast.error(res.message || "Failed to resend OTP.");
+			}
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Failed to resend OTP");
+		} finally {
+			setIsResendingOtp(false);
 		}
 	}
 
@@ -245,6 +342,7 @@ export function OrgWalletClient({
 					availableBalance={availableBalance}
 					ledgerBalance={ledgerBalance}
 					pendingBalance={pendingBalance}
+					pendingDebits={pendingDebits}
 					isLocked={!!wallet?.isLocked}
 					totalRevenue={
 						typeof (wallet as any)?.totalInflows === "number"
@@ -454,6 +552,18 @@ export function OrgWalletClient({
 								<PayoutsHistoryTable
 									payouts={payouts}
 									total={totalPayouts}
+									onAuthorizeOtp={(payout) => {
+										setOtpPayoutData({
+											payoutId: payout.id,
+											transferCode: payout.providerReference || "",
+											amount: Number(payout.amount),
+											reference: payout.reference,
+											accountName: payout.accountName || payout.recipientName,
+											accountNumber: payout.accountNumber || "",
+										});
+										setOtpCode("");
+										setIsOtpOpen(true);
+									}}
 									emptyTitle="No withdrawal history"
 									emptyDescription="When you submit a withdrawal request, its destination account number, recipient, and processing status will appear here."
 									emptyVariant="payment"
@@ -636,6 +746,97 @@ export function OrgWalletClient({
 				confirmLabel="Authorize & Submit"
 				onConfirm={handleConfirmedWithdraw}
 			/>
+
+			{/* Paystack OTP Authorization Dialog */}
+			<Dialog open={isOtpOpen} onOpenChange={setIsOtpOpen}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<KeyRound className="size-5 text-primary" />
+							Authorize Payout with OTP
+						</DialogTitle>
+						<DialogDescription>
+							Paystack sent an OTP authorization code to your phone/email to verify this payout.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="space-y-4 py-2">
+						{otpPayoutData && (
+							<div className="rounded-lg border bg-muted/40 p-3 text-xs space-y-1.5">
+								<div className="flex justify-between">
+									<span className="text-muted-foreground">Payout Amount:</span>
+									<span className="font-mono font-bold text-foreground">
+										{currency} {Number(otpPayoutData.amount).toFixed(2)}
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span className="text-muted-foreground">Destination:</span>
+									<span className="font-medium text-foreground truncate max-w-[200px]">
+										{otpPayoutData.accountName || "Account"} ({otpPayoutData.accountNumber || "—"})
+									</span>
+								</div>
+								{otpPayoutData.transferCode && (
+									<div className="flex justify-between text-[11px]">
+										<span className="text-muted-foreground">Transfer Code:</span>
+										<span className="font-mono text-muted-foreground">{otpPayoutData.transferCode}</span>
+									</div>
+								)}
+							</div>
+						)}
+
+						<div className="space-y-2">
+							<Label htmlFor="payout-otp" className="text-xs font-semibold">
+								Enter Authorization OTP Code
+							</Label>
+							<Input
+								id="payout-otp"
+								type="text"
+								inputMode="numeric"
+								pattern="[0-9]*"
+								placeholder="e.g. 123456"
+								value={otpCode}
+								onChange={(e) => setOtpCode(e.target.value.trim())}
+								className="font-mono text-center tracking-[0.25em] text-lg font-bold h-11"
+								autoFocus
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Did not receive the OTP? Click "Resend OTP". In Paystack Test Mode, you can enter any OTP or check Paystack Dashboard test transfers.
+							</p>
+						</div>
+					</div>
+
+					<DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2 gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={handleResendOtp}
+							disabled={isResendingOtp || isAuthorizingOtp}
+						>
+							{isResendingOtp ? "Resending..." : "Resend OTP"}
+						</Button>
+						<div className="flex items-center gap-2">
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								onClick={() => setIsOtpOpen(false)}
+								disabled={isAuthorizingOtp}
+							>
+								Cancel
+							</Button>
+							<Button
+								type="button"
+								size="sm"
+								onClick={handleAuthorizeOtp}
+								disabled={!otpCode || isAuthorizingOtp}
+							>
+								{isAuthorizingOtp ? "Authorizing..." : "Authorize Payout"}
+							</Button>
+						</div>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 }

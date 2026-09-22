@@ -11,6 +11,8 @@ import {
 	createPaystackTransferRecipient,
 	initiatePaystackTransfer,
 	verifyPaystackTransfer,
+	finalizePaystackTransfer,
+	resendPaystackTransferOtp,
 	fetchPaystackSettlements,
 	fetchPaystackTransfers,
 } from "./paystack";
@@ -537,7 +539,113 @@ export async function requestWalletWithdrawal({
 	});
 
 	revalidatePath("/organization/wallet");
-	return serializeJsonSafe(result);
+	return serializeJsonSafe({
+		...result,
+		requiresOtp: transferResult.status === "otp",
+		transferCode: transferResult.transferCode,
+		message: transferResult.status === "otp"
+			? "OTP authorization required. Please enter the OTP sent by Paystack to your registered phone or email to complete this payout."
+			: "Withdrawal request submitted successfully!",
+	});
+}
+
+/**
+ * Finalizes a pending Paystack payout using the OTP provided by the user
+ */
+export async function finalizeWalletWithdrawal({
+	data,
+}: {
+	data: {
+		organizationId: string;
+		payoutId: string;
+		transferCode: string;
+		otp: string;
+	};
+}): Promise<{ success: boolean; message: string; payout?: any }> {
+	const session = await requireSession();
+	await requireOrgRole(data.organizationId, ["owner", "admin"]);
+
+	const payout = await prisma.payout.findUnique({
+		where: { id: data.payoutId },
+		include: { wallet: true },
+	});
+
+	if (!payout) {
+		throw new Error("Payout record not found.");
+	}
+
+	if (payout.status === "completed") {
+		return { success: true, message: "This payout has already been finalized and completed." };
+	}
+
+	const transferCode = data.transferCode || payout.providerReference;
+	if (!transferCode) {
+		throw new Error("No Paystack transfer code associated with this payout.");
+	}
+
+	const finalizeRes = await finalizePaystackTransfer({
+		transferCode,
+		otp: data.otp,
+	});
+
+	if (!finalizeRes.success) {
+		return {
+			success: false,
+			message: finalizeRes.message || "Failed to authorize transfer with provided OTP.",
+		};
+	}
+
+	// Transfer authorized on Paystack. Fulfill in our database.
+	await fulfillPayoutTransfer({
+		reference: payout.reference,
+		status: "completed",
+		paystackData: finalizeRes.raw,
+	});
+
+	try {
+		await prisma.activityLog.create({
+			data: {
+				organizationId: data.organizationId,
+				userId: session.userId,
+				action: "wallet_withdrawal_finalized",
+				entityType: "payout",
+				entityId: payout.id,
+				description: `Authorized payout of ${payout.currency} ${Number(payout.amount).toFixed(2)} with Paystack OTP`,
+				metadata: {
+					reference: payout.reference,
+					transferCode,
+					status: finalizeRes.status,
+				},
+			},
+		});
+	} catch (logErr) {
+		console.warn("[ACTIVITY-LOG-WARN]", logErr);
+	}
+
+	revalidatePath("/organization/wallet");
+	return {
+		success: true,
+		message: finalizeRes.message || "Payout authorized and processed successfully!",
+	};
+}
+
+/**
+ * Resends the Paystack Transfer OTP
+ */
+export async function resendWithdrawalOtp({
+	data,
+}: {
+	data: {
+		organizationId: string;
+		transferCode: string;
+	};
+}): Promise<{ success: boolean; message: string }> {
+	await requireOrgRole(data.organizationId, ["owner", "admin"]);
+	const res = await resendPaystackTransferOtp({ transferCode: data.transferCode });
+	return {
+		success: res.success,
+		message: res.message || (res.success ? "OTP resent successfully." : "Failed to resend OTP."),
+	};
 }
 
 export async function getOrgPayouts({

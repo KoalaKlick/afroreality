@@ -7,6 +7,7 @@ import { getEventsList, getEventStats } from "@/lib/dal/event";
 import { MyEventsClient } from "@/components/event/core/MyEventsClient";
 import { serializeJsonSafe } from "@/lib/utils";
 import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
+import { getUserOrganizations } from "@/lib/dal/organization";
 
 export const metadata = {
 	title: "My Events - fextiva",
@@ -25,7 +26,10 @@ export default async function MyEventsPage({
 
 	const cookieStore = await cookies();
 	const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE_NAME)?.value;
-	const org = typeof params.org === "string" ? params.org : cookieOrg;
+	const orgs = await getUserOrganizations(session.userId);
+	const requestedOrgId = typeof params.org === "string" ? params.org : cookieOrg;
+	const activeOrg = orgs.find((o: any) => o.id === requestedOrgId) || orgs[0];
+	const org = activeOrg?.id;
 
 	const [events, stats] = await Promise.all([
 		getEventsList(session.userId, { status, search, orgId: org }),

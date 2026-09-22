@@ -509,6 +509,123 @@ export async function initiatePaystackTransfer({
 }
 
 /**
+ * Finalizes a transfer that requires an OTP on Paystack
+ */
+export async function finalizePaystackTransfer({
+	transferCode,
+	otp,
+}: {
+	transferCode: string;
+	otp: string;
+}): Promise<{
+	success: boolean;
+	status?: string;
+	message?: string;
+	raw?: any;
+}> {
+	if (!PAYSTACK_SECRET || transferCode.startsWith("TRF_LOCAL_")) {
+		return {
+			success: true,
+			status: "success",
+			message: "Simulated transfer finalized successfully.",
+		};
+	}
+
+	try {
+		const response = await fetch("https://api.paystack.co/transfer/finalize_transfer", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${PAYSTACK_SECRET}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				transfer_code: transferCode,
+				otp: otp.trim(),
+			}),
+		});
+
+		const result = await response.json();
+
+		if (result.status && result.data) {
+			return {
+				success: true,
+				status: result.data.status || "success",
+				message: result.message || "Transfer finalized successfully.",
+				raw: result.data,
+			};
+		}
+
+		return {
+			success: false,
+			message: result.message || "Failed to finalize transfer with provided OTP.",
+			raw: result,
+		};
+	} catch (error) {
+		console.error("finalizePaystackTransfer error:", error);
+		return {
+			success: false,
+			message: error instanceof Error ? error.message : "Error finalizing transfer on Paystack.",
+		};
+	}
+}
+
+/**
+ * Resends the OTP for a transfer on Paystack
+ */
+export async function resendPaystackTransferOtp({
+	transferCode,
+}: {
+	transferCode: string;
+}): Promise<{
+	success: boolean;
+	message?: string;
+	raw?: any;
+}> {
+	if (!PAYSTACK_SECRET || transferCode.startsWith("TRF_LOCAL_")) {
+		return {
+			success: true,
+			message: "Simulated OTP resent successfully.",
+		};
+	}
+
+	try {
+		const response = await fetch("https://api.paystack.co/transfer/resend_otp", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${PAYSTACK_SECRET}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				transfer_code: transferCode,
+				reason: "resend_otp",
+			}),
+		});
+
+		const result = await response.json();
+
+		if (result.status) {
+			return {
+				success: true,
+				message: result.message || "OTP resent successfully.",
+				raw: result.data,
+			};
+		}
+
+		return {
+			success: false,
+			message: result.message || "Failed to resend OTP.",
+			raw: result,
+		};
+	} catch (error) {
+		console.error("resendPaystackTransferOtp error:", error);
+		return {
+			success: false,
+			message: error instanceof Error ? error.message : "Error resending OTP on Paystack.",
+		};
+	}
+}
+
+/**
  * Verifies the status of a transfer directly with Paystack API
  */
 export async function verifyPaystackTransfer(reference: string): Promise<{

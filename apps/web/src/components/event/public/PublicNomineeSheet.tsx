@@ -408,6 +408,19 @@ export function PublicNomineeSheet({
 	orgSlug,
 	eventSlug,
 }: PublicNomineeSheetProps) {
+	const secondaryBrandColor = (brandVars as any)?.["--color-brand-secondary"] as string | undefined;
+	const secondaryTextColor = (() => {
+		if (!secondaryBrandColor) return "#ffffff";
+		const hex = secondaryBrandColor.replace("#", "");
+		if (hex.length === 6) {
+			const r = parseInt(hex.substring(0, 2), 16);
+			const g = parseInt(hex.substring(2, 4), 16);
+			const b = parseInt(hex.substring(4, 6), 16);
+			return (r * 299 + g * 587 + b * 114) / 1000 >= 128 ? "#0f172a" : "#ffffff";
+		}
+		return "#ffffff";
+	})();
+
 	return (
 		<div className="space-y-8 @container">
 			{/* Public Nomination Banner */}
@@ -445,7 +458,13 @@ export function PublicNomineeSheet({
 						orgSlug={orgSlug}
 						eventSlug={eventSlug}
 						trigger={
-							<Button className="shrink-0">
+							<Button
+								className="shrink-0 font-semibold shadow-xs hover:opacity-90 active:scale-95 transition-all border-0"
+								style={{
+									backgroundColor: "var(--color-brand-secondary, #FFD100)",
+									color: secondaryTextColor,
+								}}
+							>
 								Nominate Candidate
 							</Button>
 						}
