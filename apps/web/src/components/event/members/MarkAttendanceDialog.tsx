@@ -46,8 +46,8 @@ export function MarkAttendanceDialog({
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="w-full sm:max-w-sm">
-				<SheetHeader>
+			<SheetContent className="w-full sm:max-w-sm p-0 flex flex-col">
+				<SheetHeader className="shrink-0">
 					<SheetTitle className="flex items-center gap-2">
 						<QrCode className="size-5" />
 						Mark Attendance
@@ -56,7 +56,7 @@ export function MarkAttendanceDialog({
 						Enter the member&apos;s unique code to mark them as attended.
 					</SheetDescription>
 				</SheetHeader>
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} className="space-y-4 p-6">
 					<div className="space-y-2">
 						<Label htmlFor="member-code">Member Code</Label>
 						<Input

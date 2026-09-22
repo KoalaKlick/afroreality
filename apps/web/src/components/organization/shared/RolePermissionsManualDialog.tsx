@@ -159,9 +159,9 @@ export function RolePermissionsManualDrawer({
 
 			<SheetContent
 				side="right"
-				className="w-full sm:max-w-2xl md:max-w-3xl overflow-y-auto p-6 sm:p-8"
+				className="w-full sm:max-w-2xl md:max-w-3xl flex flex-col h-full p-0 overflow-hidden"
 			>
-				<SheetHeader className="pb-4 border-b">
+				<SheetHeader className="shrink-0">
 					<SheetTitle className="text-xl sm:text-2xl font-bold tracking-tight">
 						Organization Roles & Permissions
 					</SheetTitle>
@@ -170,7 +170,7 @@ export function RolePermissionsManualDrawer({
 					</SheetDescription>
 				</SheetHeader>
 
-				<SheetBody className="p-0 overflow-y-auto space-y-4">
+				<SheetBody className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-4">
 					{/* Permissions Matrix Table */}
 					<div className="overflow-hidden ">
 						<div className="overflow-x-auto">

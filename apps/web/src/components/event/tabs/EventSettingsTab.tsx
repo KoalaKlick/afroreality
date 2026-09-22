@@ -119,6 +119,28 @@ export function EventSettingsTab({
 		});
 	}
 
+	function handleAddFextivaSponsor() {
+		const exists = formData.sponsors.some(
+			(s) => s.name.toLowerCase() === "fextiva" || s.logo === "/logo.svg",
+		);
+		if (exists) {
+			toast.info("Fextiva is already in your sponsors list");
+			return;
+		}
+		const newSponsors = [
+			...formData.sponsors,
+			{ name: "Fextiva", logo: "/logo.svg" },
+		];
+		setFormData((p) => ({ ...p, sponsors: newSponsors }));
+		saveFields({
+			sponsors: newSponsors.map((s) => ({
+				name: s.name,
+				logo: s.logo || undefined,
+			})),
+		});
+		toast.success("Added Fextiva as sponsor");
+	}
+
 	function handleDeleteEvent() {
 		setIsDeleting(true);
 		startTransition(async () => {
@@ -912,17 +934,34 @@ export function EventSettingsTab({
 							</p>
 						</div>
 						{canEdit && (
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => {
-									setSelectedSponsor(null);
-									setSponsorModalOpen(true);
-								}}
-								disabled={isPending}
-							>
-								<Plus className="size-4 mr-2" /> Add Sponsor
-							</Button>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={handleAddFextivaSponsor}
+									disabled={isPending}
+									className="border-primary/40 hover:bg-primary/5 hover:border-primary text-xs flex items-center gap-1.5"
+									title="One-click add Fextiva as a sponsor"
+								>
+									<img
+										src="/logo.svg"
+										alt="Fextiva"
+										className="size-3.5 object-contain"
+									/>
+									<span>Add Fextiva</span>
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										setSelectedSponsor(null);
+										setSponsorModalOpen(true);
+									}}
+									disabled={isPending}
+								>
+									<Plus className="size-4 mr-2" /> Add Sponsor
+								</Button>
+							</div>
 						)}
 					</div>
 					<div className="flex gap-4 flex-wrap">

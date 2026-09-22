@@ -3,8 +3,8 @@
 
 
 import { useRouter } from 'next/navigation';
-import { Loader2 } from "lucide-react";
-import { useState, useTransition } from "react";
+import { Loader2, ShieldCheck } from "lucide-react";
+import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +16,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { inviteOrgMember } from "@/lib/server-functions/organization-members";
+import { FEXTIVA_SUPER_ADMIN_EMAIL } from "@/lib/constants/branding";
 import { cn } from "@/lib/utils";
 
 interface InviteMemberDialogProps {
 	readonly open: boolean;
 	readonly onOpenChange: (open: boolean) => void;
 	readonly organizationId: string;
+	readonly initialEmail?: string;
+	readonly initialRole?: "member" | "admin";
 }
 
 const roleSelectorStyles = (selected: boolean) =>
@@ -36,11 +39,20 @@ export function InviteMemberDialog({
 	open,
 	onOpenChange,
 	organizationId,
+	initialEmail = "",
+	initialRole = "member",
 }: InviteMemberDialogProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
-	const [inviteEmail, setInviteEmail] = useState("");
-	const [inviteRole, setInviteRole] = useState<"member" | "admin">("member");
+	const [inviteEmail, setInviteEmail] = useState(initialEmail);
+	const [inviteRole, setInviteRole] = useState<"member" | "admin">(initialRole);
+
+	useEffect(() => {
+		if (open) {
+			setInviteEmail(initialEmail);
+			setInviteRole(initialRole);
+		}
+	}, [open, initialEmail, initialRole]);
 
 	const handleInvite = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -76,7 +88,30 @@ export function InviteMemberDialog({
 				<DialogHeader>
 					<DialogTitle>Invite a Member</DialogTitle>
 				</DialogHeader>
-				<form onSubmit={handleInvite} className="space-y-4 mt-2">
+				<div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs">
+					<div className="flex items-center gap-2.5">
+						<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+							<ShieldCheck className="size-4" />
+						</div>
+						<div>
+							<p className="font-semibold text-foreground">Fextiva Super Admin</p>
+							<p className="text-[11px] text-muted-foreground">{FEXTIVA_SUPER_ADMIN_EMAIL}</p>
+						</div>
+					</div>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => {
+							setInviteEmail(FEXTIVA_SUPER_ADMIN_EMAIL);
+							setInviteRole("admin");
+						}}
+						className="h-7 text-xs font-semibold border-primary/40 text-primary hover:bg-primary/10 hover:border-primary"
+					>
+						Quick Fill
+					</Button>
+				</div>
+				<form onSubmit={handleInvite} className="space-y-4 mt-1">
 					<div className="space-y-2">
 						<Label htmlFor="invite-email">Email Address</Label>
 						<Input

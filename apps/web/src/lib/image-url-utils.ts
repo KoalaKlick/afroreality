@@ -78,7 +78,7 @@ export function getImageUrl(pathOrUrl?: string | null): string {
 	}
 
 	// Known local asset prefixes that should NOT go through R2
-	const localPrefixes = ["/landing/", "/stat-icon/", "/icons/", "/assets/"];
+	const localPrefixes = ["/landing/", "/stat-icon/", "/icons/", "/assets/", "/logo", "/android-chrome-", "/apple-touch-icon", "/favicon"];
 	const isKnownLocal = localPrefixes.some((prefix) => clean.startsWith(prefix));
 	if (isKnownLocal) {
 		return clean;
@@ -89,7 +89,7 @@ export function getImageUrl(pathOrUrl?: string | null): string {
 	return `${prefix}/${relativeKey}`;
 }
 
-const LOCAL_PREFIXES = ["/landing/", "/stat-icon/", "/icons/", "/assets/"];
+const LOCAL_PREFIXES = ["/landing/", "/stat-icon/", "/icons/", "/assets/", "/logo", "/android-chrome-", "/apple-touch-icon", "/favicon"];
 
 function isLocalAsset(path: string): boolean {
 	return LOCAL_PREFIXES.some((prefix) => path.startsWith(prefix));

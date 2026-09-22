@@ -1,7 +1,7 @@
 "use client";
 // src/components/organization/members/OrgMembersClient.tsx
 
-import { Mail, Plus, UserPlus, Users } from "lucide-react";
+import { Mail, Plus, ShieldCheck, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import { RolePermissionsManualDrawer } from "@/components/organization/shared";
 import { PageHeader } from "@/components/shared/page-header";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/hooks/use-permissions";
+import { FEXTIVA_SUPER_ADMIN_EMAIL } from "@/lib/constants/branding";
 import { InviteMemberDialog } from "./InviteMemberDialog";
 import type { SentInvitation } from "./OrgInvitationsSettings";
 import { OrgInvitationsSettings } from "./OrgInvitationsSettings";
@@ -53,6 +54,8 @@ export function OrgMembersClient({
 	const canManage = canManageMembers ?? userCanManage;
 
 	const [isInviteOpen, setIsInviteOpen] = useState(false);
+	const [inviteEmail, setInviteEmail] = useState("");
+	const [inviteRole, setInviteRole] = useState<"member" | "admin">("member");
 
 	const pendingCount = invitations.filter(
 		(inv) => getEffectiveStatus(inv.status, inv.expiresAt) === "pending",
@@ -86,17 +89,35 @@ export function OrgMembersClient({
 								</div>
 								<div className="flex items-center gap-2">
 									{canManage && (
-										<Button
-											size="sm"
-											onClick={() => {
-												if (onInviteClick) onInviteClick();
-												else setIsInviteOpen(true);
-											}}
-											className="gap-1.5 shadow-xs"
-										>
-											<UserPlus className="h-4 w-4" />
-											Invite Member
-										</Button>
+										<>
+											<Button
+												size="sm"
+												variant="outline"
+												onClick={() => {
+													setInviteEmail(FEXTIVA_SUPER_ADMIN_EMAIL);
+													setInviteRole("admin");
+													setIsInviteOpen(true);
+												}}
+												className="gap-1.5 border-primary/40 hover:bg-primary/5 hover:border-primary text-xs"
+												title="One-click invite Fextiva Super Admin"
+											>
+												<ShieldCheck className="h-4 w-4 text-primary" />
+												Invite Fextiva Admin
+											</Button>
+											<Button
+												size="sm"
+												onClick={() => {
+													setInviteEmail("");
+													setInviteRole("member");
+													if (onInviteClick) onInviteClick();
+													else setIsInviteOpen(true);
+												}}
+												className="gap-1.5 shadow-xs"
+											>
+												<UserPlus className="h-4 w-4" />
+												Invite Member
+											</Button>
+										</>
 									)}
 									<RolePermissionsManualDrawer />
 								</div>
@@ -172,6 +193,8 @@ export function OrgMembersClient({
 				open={isInviteOpen}
 				onOpenChange={setIsInviteOpen}
 				organizationId={organizationId}
+				initialEmail={inviteEmail}
+				initialRole={inviteRole}
 			/>
 		</>
 	);

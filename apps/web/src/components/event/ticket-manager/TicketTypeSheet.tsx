@@ -560,7 +560,9 @@ export function TicketTypeSheet({
 												borderColor:
 													formData.primaryColor === col.value
 														? "var(--foreground)"
-														: "transparent",
+														: col.value.toLowerCase() === "#ffffff"
+															? "var(--border)"
+															: "transparent",
 											}}
 										/>
 									))}
@@ -609,7 +611,9 @@ export function TicketTypeSheet({
 												borderColor:
 													formData.secondaryColor === col.value
 														? "var(--foreground)"
-														: "transparent",
+														: col.value.toLowerCase() === "#ffffff"
+															? "var(--border)"
+															: "transparent",
 											}}
 										/>
 									))}

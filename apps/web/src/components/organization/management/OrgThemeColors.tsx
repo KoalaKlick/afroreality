@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { Palette, Check, Sparkles, Building2, Users, ArrowRight, Globe, Mail, Phone, Calendar, MapPin, Share2, Ticket as TicketIcon, Trophy, ImageIcon, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,67 +31,17 @@ export interface OrgThemeColorsProps {
 	readonly slug?: string;
 }
 
-function ColorPresetPicker({
-	label,
-	value,
-	onChange,
-}: {
-	readonly label: string;
-	readonly value: string;
-	readonly onChange: (value: string) => void;
-}) {
-	return (
-		<div className="space-y-3">
-			<div className="flex items-center justify-between">
-				<Label className="text-xs font-bold uppercase tracking-wider">{label}</Label>
-				<span className="text-xs font-mono font-semibold text-muted-foreground uppercase">
-					{value}
-				</span>
-			</div>
-
-			<div className="grid grid-cols-5 sm:grid-cols-8 gap-2">
-				{PRESET_COLORS.map((color) => {
-					const isSelected =
-						value.toLowerCase() === color.value.toLowerCase();
-					return (
-						<button
-							key={`${label}-${color.value}`}
-							type="button"
-							onClick={() => onChange(color.value)}
-							className={cn(
-								"group relative h-9 w-full rounded-lg transition-all border flex items-center justify-center shadow-2xs",
-								isSelected
-									? "ring-2 ring-primary ring-offset-2 scale-105 border-white dark:border-black"
-									: "border-border/40 hover:scale-105 hover:shadow-xs",
-							)}
-							style={{ backgroundColor: color.value }}
-							title={`${color.name} (${color.value}) - ${color.description}`}
-						>
-							{isSelected && (
-								<Check className="size-4 text-white drop-shadow-md stroke-[3]" />
-							)}
-						</button>
-					);
-				})}
-			</div>
-
-			<div className="flex items-center gap-2 pt-1">
-				<input
-					type="color"
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					className="size-9 rounded-md border cursor-pointer p-0.5 bg-background shrink-0"
-				/>
-				<Input
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					className="font-mono text-xs uppercase max-w-[140px]"
-					placeholder="#000000"
-				/>
-			</div>
-		</div>
-	);
+function isLightHex(hex: string): boolean {
+	const c = hex.replace("#", "");
+	if (c.length !== 6) return false;
+	const r = parseInt(c.slice(0, 2), 16);
+	const g = parseInt(c.slice(2, 4), 16);
+	const b = parseInt(c.slice(4, 6), 16);
+	return (r * 299 + g * 587 + b * 114) / 1000 > 165;
 }
+
+type ColorRole = "primary" | "secondary" | "tertiary";
+
 
 function getInitials(name: string): string {
 	return name
@@ -398,17 +349,58 @@ export function OrgThemeColors({
 	socialLinks,
 	slug,
 }: OrgThemeColorsProps) {
+	const [activeRole, setActiveRole] = useState<ColorRole>("primary");
+
 	const handleApplyTheme = (theme: (typeof PRESET_THEMES)[number]) => {
 		setPrimaryColor(theme.primary);
 		setSecondaryColor(theme.secondary);
 		setTertiaryColor(theme.tertiary);
 	};
 
+	const roleConfigs: Record<
+		ColorRole,
+		{
+			role: ColorRole;
+			shortLabel: string;
+			fullLabel: string;
+			usage: string;
+			color: string;
+			onChange: (color: string) => void;
+		}
+	> = {
+		primary: {
+			role: "primary",
+			shortLabel: "Primary",
+			fullLabel: "Primary Brand Color",
+			usage: "Main identity, primary buttons, headers",
+			color: primaryColor,
+			onChange: setPrimaryColor,
+		},
+		secondary: {
+			role: "secondary",
+			shortLabel: "Secondary",
+			fullLabel: "Secondary Accent Color",
+			usage: "Badges, ticket stubs, highlights",
+			color: secondaryColor,
+			onChange: setSecondaryColor,
+		},
+		tertiary: {
+			role: "tertiary",
+			shortLabel: "Tertiary",
+			fullLabel: "Tertiary Accent Color",
+			usage: "Dividers, badges, contrast accents",
+			color: tertiaryColor,
+			onChange: setTertiaryColor,
+		},
+	};
+
+	const currentConfig = roleConfigs[activeRole];
+
 	return (
 		<Card>
 			<CardContent className="pt-6 grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
 				{/* Left Column: Color Controls */}
-				<div className="xl:col-span-6 space-y-6">
+				<div className="xl:col-span-6 space-y-4">
 					<div>
 						<div className="flex items-center gap-2 text-lg font-bold text-foreground">
 							<Palette className="size-5 text-primary" />
@@ -419,13 +411,16 @@ export function OrgThemeColors({
 						</p>
 					</div>
 
-					{/* Quick Curated Palette Themes */}
-					<div className="space-y-2.5 p-4 rounded-xl border bg-muted/20">
-						<div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-							<Sparkles className="size-3.5 text-primary" />
-							<span>Curated Palette Themes</span>
+					{/* Curated Themes Bar (Compact single row) */}
+					<div className="space-y-2 p-3 rounded-xl border bg-muted/20">
+						<div className="flex items-center justify-between">
+							<span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+								<Sparkles className="size-3.5 text-primary" />
+								Curated Themes
+							</span>
+							<span className="text-[10px] text-muted-foreground">Click to apply 3-color palette</span>
 						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+						<div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
 							{PRESET_THEMES.map((theme) => {
 								const isActive =
 									primaryColor.toLowerCase() === theme.primary.toLowerCase() &&
@@ -438,28 +433,75 @@ export function OrgThemeColors({
 										type="button"
 										onClick={() => handleApplyTheme(theme)}
 										className={cn(
-											"p-2.5 rounded-lg border text-left transition-all flex items-center justify-between gap-2",
+											"shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all cursor-pointer",
 											isActive
-												? "border-primary bg-primary/5 ring-1 ring-primary shadow-2xs"
-												: "bg-card hover:border-primary/40 hover:shadow-2xs",
+												? "border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary shadow-2xs"
+												: "border-border/60 bg-card hover:border-primary/40 hover:bg-accent/40"
 										)}
+										title={theme.name}
 									>
-										<div className="min-w-0">
-											<p className="text-xs font-bold truncate">{theme.name.split(" (")[0]}</p>
-										</div>
-										<div className="flex items-center -space-x-1.5 shrink-0">
+										<span className="flex items-center -space-x-1 shrink-0">
 											<span
-												className="size-4 rounded-full border border-background shadow-2xs"
+												className="size-3 rounded-full border border-background shadow-2xs"
 												style={{ backgroundColor: theme.primary }}
 											/>
 											<span
-												className="size-4 rounded-full border border-background shadow-2xs"
+												className="size-3 rounded-full border border-background shadow-2xs"
 												style={{ backgroundColor: theme.secondary }}
 											/>
 											<span
-												className="size-4 rounded-full border border-background shadow-2xs"
+												className="size-3 rounded-full border border-background shadow-2xs"
 												style={{ backgroundColor: theme.tertiary }}
 											/>
+										</span>
+										<span className="whitespace-nowrap text-[11px]">{theme.name.split(" (")[0]}</span>
+									</button>
+								);
+							})}
+						</div>
+					</div>
+
+					{/* 3 Color Roles Selector */}
+					<div className="space-y-1.5">
+						<span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+							Select Color Role to Edit
+						</span>
+						<div className="grid grid-cols-3 gap-2">
+							{(["primary", "secondary", "tertiary"] as const).map((role) => {
+								const conf = roleConfigs[role];
+								const isSelected = activeRole === role;
+								const isLight = isLightHex(conf.color);
+								return (
+									<button
+										key={role}
+										type="button"
+										onClick={() => setActiveRole(role)}
+										className={cn(
+											"p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer",
+											isSelected
+												? "border-primary bg-primary/5 ring-2 ring-primary/40 shadow-xs"
+												: "border-border/60 bg-card hover:border-border hover:bg-muted/30"
+										)}
+									>
+										<div className="flex items-center justify-between gap-1 w-full">
+											<span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground truncate">
+												{conf.shortLabel}
+											</span>
+											<span
+												className={cn(
+													"size-4.5 rounded-full shrink-0 shadow-2xs border",
+													isLight ? "border-border/80" : "border-black/10 dark:border-white/20"
+												)}
+												style={{ backgroundColor: conf.color }}
+											/>
+										</div>
+										<div>
+											<p className="font-mono text-xs font-semibold uppercase text-foreground">
+												{conf.color}
+											</p>
+											<p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+												{conf.usage}
+											</p>
 										</div>
 									</button>
 								);
@@ -467,25 +509,77 @@ export function OrgThemeColors({
 						</div>
 					</div>
 
-					<Separator />
+					{/* Active Role Color Palette Customizer */}
+					<div className="p-4 rounded-xl border bg-muted/20 space-y-3.5">
+						<div className="flex items-center justify-between flex-wrap gap-2">
+							<div>
+								<p className="text-xs font-bold text-foreground">
+									{currentConfig.fullLabel}
+								</p>
+								<p className="text-[11px] text-muted-foreground mt-0.5">
+									{currentConfig.usage}
+								</p>
+							</div>
+							<div className="flex items-center gap-2">
+								<input
+									type="color"
+									value={currentConfig.color}
+									onChange={(e) => currentConfig.onChange(e.target.value)}
+									className="size-8 rounded-md border cursor-pointer p-0.5 bg-background shrink-0"
+								/>
+								<Input
+									value={currentConfig.color}
+									onChange={(e) => currentConfig.onChange(e.target.value)}
+									className="font-mono text-xs uppercase w-24 h-8"
+									placeholder="#000000"
+								/>
+							</div>
+						</div>
 
-					<ColorPresetPicker
-						label="Primary Brand Color"
-						value={primaryColor}
-						onChange={setPrimaryColor}
-					/>
-					<Separator />
-					<ColorPresetPicker
-						label="Secondary Accent Color"
-						value={secondaryColor}
-						onChange={setSecondaryColor}
-					/>
-					<Separator />
-					<ColorPresetPicker
-						label="Tertiary Accent Color"
-						value={tertiaryColor}
-						onChange={setTertiaryColor}
-					/>
+						{/* Swatches Grid */}
+						<div className="space-y-1.5 pt-1 border-t border-border/50">
+							<div className="flex items-center justify-between">
+								<span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+									Preset Swatches ({PRESET_COLORS.length})
+								</span>
+								<span className="text-[10px] text-muted-foreground">
+									Click any color to apply to {currentConfig.shortLabel}
+								</span>
+							</div>
+							<div className="grid grid-cols-7 sm:grid-cols-9 md:grid-cols-10 gap-1.5">
+								{PRESET_COLORS.map((color) => {
+									const isSelected =
+										currentConfig.color.toLowerCase() === color.value.toLowerCase();
+									const isLight = isLightHex(color.value);
+									return (
+										<button
+											key={`${activeRole}-${color.value}`}
+											type="button"
+											onClick={() => currentConfig.onChange(color.value)}
+											className={cn(
+												"group relative h-7 sm:h-8 w-full rounded-md transition-all border flex items-center justify-center shadow-2xs cursor-pointer",
+												isLight ? "border-border/80" : "border-transparent",
+												isSelected
+													? "ring-2 ring-primary ring-offset-2 scale-110 border-foreground z-10"
+													: "hover:scale-105 hover:shadow-xs"
+											)}
+											style={{ backgroundColor: color.value }}
+											title={`${color.name} (${color.value}) - ${color.description}`}
+										>
+											{isSelected && (
+												<Check
+													className={cn(
+														"size-3.5 stroke-[3]",
+														isLight ? "text-neutral-900" : "text-white drop-shadow-md"
+													)}
+												/>
+											)}
+										</button>
+									);
+								})}
+							</div>
+						</div>
+					</div>
 				</div>
 
 				{/* Right Column: Sample Org Page Preview */}

@@ -7,6 +7,7 @@
 
 import { z } from "zod";
 import { EventStatus, EventType } from "@/lib/constants/enums";
+import { socialLinkUrlSchema } from "./organization";
 
 export const eventTitleSchema = z
 	.string()
@@ -162,7 +163,7 @@ export const eventSponsorSchema = z.object({
 });
 
 export const eventSocialLinkSchema = z.object({
-	url: z.string().url("Invalid social link URL"),
+	url: socialLinkUrlSchema,
 });
 
 export const eventGalleryLinkSchema = z.object({

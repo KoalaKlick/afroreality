@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { addEventMember } from '@/lib/server-functions/event-member';
 import { toast } from 'sonner';
+import { ShieldCheck } from 'lucide-react';
+import { FEXTIVA_SUPER_ADMIN_EMAIL } from '@/lib/constants/branding';
 
 export function AddMemberDialog({
   open,
@@ -66,7 +68,28 @@ export function AddMemberDialog({
         <DialogHeader>
           <DialogTitle>Add Event Attendee</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-4 text-primary shrink-0" />
+            <div className="text-left">
+              <p className="font-semibold text-foreground">Fextiva Super Admin</p>
+              <p className="text-[10px] text-muted-foreground">{FEXTIVA_SUPER_ADMIN_EMAIL}</p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setName('Fextiva Super Admin');
+              setEmail(FEXTIVA_SUPER_ADMIN_EMAIL);
+            }}
+            className="h-7 text-xs font-semibold border-primary/40 text-primary hover:bg-primary/10 hover:border-primary"
+          >
+            Quick Fill
+          </Button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4 py-1">
           <div>
             <Label htmlFor="mem-name">Full Name *</Label>
             <Input id="mem-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" required />

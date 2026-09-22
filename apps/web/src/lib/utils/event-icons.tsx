@@ -45,49 +45,72 @@ export function getSocialPlatform(url: string, className?: string): { name: stri
 	const iconClass = cn("size-4 shrink-0", className);
 	const u = url?.toLowerCase() || "";
 
-	if (u.includes("wa.me") || u.includes("whatsapp")) {
+	if (u.includes("wa.me") || u.includes("whatsapp") || u.startsWith("whatsapp:")) {
 		return {
 			name: "WhatsApp",
 			icon: <WhatsAppIcon className={iconClass} />,
 			color: "text-[#25D366]",
 		};
 	}
-	if (u.includes("t.me") || u.includes("telegram")) {
+	if (u.includes("t.me") || u.includes("telegram") || u.startsWith("tg:")) {
 		return {
 			name: "Telegram",
 			icon: <TelegramIcon className={iconClass} />,
 			color: "text-[#0088cc]",
 		};
 	}
-	if (u.includes("facebook.com") || u.includes("fb.me")) {
+	if (
+		u.includes("facebook.com") ||
+		u.includes("fb.me") ||
+		u.includes("fb.com") ||
+		u.startsWith("fb:") ||
+		u.includes("fb://")
+	) {
 		return {
 			name: "Facebook",
 			icon: <FacebookIcon className={iconClass} />,
 			color: "text-[#1877F2]",
 		};
 	}
-	if (u.includes("x.com") || u.includes("twitter.com")) {
+	if (
+		u.includes("x.com") ||
+		u.includes("twitter.com") ||
+		u.startsWith("twitter:") ||
+		u.startsWith("x:") ||
+		u.includes("twitter://")
+	) {
 		return {
 			name: "X / Twitter",
 			icon: <XIcon className={iconClass} />,
 			color: "text-foreground",
 		};
 	}
-	if (u.includes("instagram.com")) {
+	if (
+		u.includes("instagram.com") ||
+		u.includes("instagr.am") ||
+		u.startsWith("instagram:") ||
+		u.includes("instagram://")
+	) {
 		return {
 			name: "Instagram",
 			icon: <InstagramIcon className={iconClass} />,
 			color: "text-[#E4405F]",
 		};
 	}
-	if (u.includes("linkedin.com")) {
+	if (u.includes("linkedin.com") || u.startsWith("linkedin:") || u.includes("linkedin://")) {
 		return {
 			name: "LinkedIn",
 			icon: <LinkedInIcon className={iconClass} />,
 			color: "text-[#0A66C2]",
 		};
 	}
-	if (u.includes("youtube.com") || u.includes("youtu.be")) {
+	if (
+		u.includes("youtube.com") ||
+		u.includes("youtu.be") ||
+		u.startsWith("youtube:") ||
+		u.includes("vnd.youtube") ||
+		u.includes("youtube://")
+	) {
 		return {
 			name: "YouTube",
 			icon: <YoutubeIcon className={iconClass} />,

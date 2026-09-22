@@ -50,17 +50,17 @@ export function SocialLinkDialog({
 						{link ? "Edit Social Link" : "Add Social Link"}
 					</DialogTitle>
 					<DialogDescription>
-						Enter your profile or page link (Instagram, X, Facebook, etc.)
+						Enter your profile, app scheme (whatsapp://, fb://), or web link.
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-4 py-2">
 					<div className="space-y-2">
-						<Label>Social URL</Label>
+						<Label>Social or App Link</Label>
 						<Input
-							type="url"
+							type="text"
 							value={url}
 							onChange={(e) => setUrl(e.target.value)}
-							placeholder="https://instagram.com/..."
+							placeholder="https://instagram.com/..., whatsapp://..., or wa.me/..."
 							required
 						/>
 					</div>

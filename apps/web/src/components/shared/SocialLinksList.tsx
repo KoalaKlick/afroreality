@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { getSocialPlatform } from "@/lib/utils/event-icons";
@@ -31,11 +31,14 @@ export function SocialLinksList({
 			{socialLinks.map((link) => {
 				const plat = getSocialPlatform(link.url, iconDimensions);
 				const titleName = link.platform || plat.name || "Social Link";
+				const rawUrl = (link.url || "").trim();
+				const isScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(rawUrl);
+				const href = isScheme ? rawUrl : `https://${rawUrl}`;
 
 				return (
 					<a
 						key={link.id || link.url}
-						href={link.url}
+						href={href}
 						target="_blank"
 						rel="noopener noreferrer"
 						className={`${buttonDimensions} rounded-full border border-border/80 bg-card flex items-center justify-center hover:bg-accent/10 hover:border-primary transition-all shadow-2xs hover:scale-105 active:scale-95 group`}

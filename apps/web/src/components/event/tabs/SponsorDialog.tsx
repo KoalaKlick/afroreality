@@ -80,7 +80,25 @@ export function SponsorDialog({
 						Upload the sponsor's logo and enter their company name.
 					</DialogDescription>
 				</DialogHeader>
-				<form onSubmit={handleSubmit} className="space-y-4 py-2">
+				<div className="flex items-center justify-between p-2 rounded-lg bg-muted/40 border text-xs">
+					<div className="flex items-center gap-2">
+						<img src="/logo.svg" alt="Fextiva" className="size-4 object-contain" />
+						<span className="font-medium text-foreground">Partnering with Fextiva?</span>
+					</div>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => {
+							setName("Fextiva");
+							setLogo("/logo.svg");
+						}}
+						className="h-7 text-xs font-semibold border-primary/40 hover:bg-primary/5 hover:border-primary text-primary"
+					>
+						Use Fextiva Logo
+					</Button>
+				</div>
+				<form onSubmit={handleSubmit} className="space-y-4 py-1">
 					<div className="space-y-2">
 						<Label>Sponsor Logo</Label>
 						<input

@@ -652,9 +652,9 @@ export function EventDetailHeader({
 				<SheetContent
 					side="right"
 					variant="brand"
-					className="w-full sm:max-w-xl overflow-y-auto p-6"
+					className="w-full sm:max-w-xl flex flex-col h-full p-0 overflow-hidden"
 				>
-					<SheetHeader className="pb-4 border-b border-border/60">
+					<SheetHeader className="shrink-0">
 						<div className="flex items-center gap-2.5">
 							<div className="size-9 rounded-lg bg-primary-100 dark:bg-primary-950/50 text-primary flex items-center justify-center shrink-0">
 								<Landmark className="size-5" />
@@ -670,7 +670,7 @@ export function EventDetailHeader({
 						</div>
 					</SheetHeader>
 
-					<div className="pt-6">
+					<div className="flex-1 overflow-y-auto p-6">
 						<OrgPayoutSettings
 							key={organization?.id}
 							organization={{

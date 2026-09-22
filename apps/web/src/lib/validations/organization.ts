@@ -111,6 +111,33 @@ export const orgUrlSchema = z
 	.optional()
 	.or(z.literal(""));
 
+export const socialLinkUrlSchema = z
+	.string()
+	.trim()
+	.min(1, "Social link is required")
+	.refine(
+		(val) => {
+			// Accept standard web URLs (http/https)
+			if (/^https?:\/\/[^\s]+$/i.test(val)) return true;
+			// Accept app schemes and deep links: whatsapp://, fb://, tg://, instagram://, twitter://, x://, linkedin://, youtube://, etc.
+			if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s]+$/i.test(val)) return true;
+			// Accept communication protocols: tel:, mailto:, sms:
+			if (/^(tel|mailto|sms):[^\s]+$/i.test(val)) return true;
+			// Accept bare domain formats like wa.me/..., t.me/..., instagram.com/..., facebook.com/...
+			if (/^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+(\/[^\s]*)?$/i.test(val)) return true;
+			try {
+				new URL(val);
+				return true;
+			} catch {
+				return false;
+			}
+		},
+		{
+			message:
+				"Invalid social or app link (e.g. https://..., whatsapp://..., or wa.me/...)",
+		},
+	);
+
 export const orgColorSchema = z
 	.string()
 	.regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color")
@@ -171,7 +198,7 @@ export const updateOrganizationSchema = z.object({
 	paystackAccountNumber: z.string().optional().or(z.literal("")),
 	paystackBankCode: z.string().optional().or(z.literal("")),
 	subaccountCode: z.string().optional().or(z.literal("")),
-	socialLinks: z.array(z.string().url("Invalid social URL")).optional(),
+	socialLinks: z.array(socialLinkUrlSchema).optional(),
 });
 
 export type CreateOrgStep1Data = z.infer<typeof createOrgStep1Schema>;

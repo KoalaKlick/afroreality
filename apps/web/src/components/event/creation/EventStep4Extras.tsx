@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,18 @@ export function EventStep4Extras({
 
   const [sponsorModalOpen, setSponsorModalOpen] = React.useState(false);
   const [selectedSponsorIndex, setSelectedSponsorIndex] = React.useState<number | null>(null);
+
+  const handleAddFextivaSponsor = () => {
+    const exists = sponsors.some(
+      (s) => s.name.toLowerCase() === 'fextiva' || s.logo === '/logo.svg'
+    );
+    if (exists) {
+      toast.info('Fextiva is already in your sponsors list');
+      return;
+    }
+    setSponsors((prev) => [...prev, { name: 'Fextiva', logo: '/logo.svg' }]);
+    toast.success('Added Fextiva as sponsor');
+  };
 
   const addSocial = () => setSocialLinks([...socialLinks, { url: '' }]);
   const removeSocial = (index: number) => setSocialLinks(socialLinks.filter((_, i) => i !== index));
@@ -63,18 +76,34 @@ export function EventStep4Extras({
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between mb-3">
-          <Label className="text-sm font-semibold">Sponsors</Label>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSelectedSponsorIndex(null);
-              setSponsorModalOpen(true);
-            }}
-          >
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add Sponsor
-          </Button>
+          <div>
+            <Label className="text-sm font-semibold">Sponsors</Label>
+            <p className="text-xs text-muted-foreground">Add event sponsors and partners</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddFextivaSponsor}
+              className="border-primary/40 hover:bg-primary/5 hover:border-primary text-xs flex items-center gap-1.5"
+              title="One-click add Fextiva as a sponsor"
+            >
+              <img src="/logo.svg" alt="Fextiva" className="size-3.5 object-contain" />
+              <span>Add Fextiva</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedSponsorIndex(null);
+                setSponsorModalOpen(true);
+              }}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" /> Add Sponsor
+            </Button>
+          </div>
         </div>
         <div className="flex gap-4 flex-wrap">
           {sponsors.map((s, idx) => (
@@ -139,7 +168,7 @@ export function EventStep4Extras({
         </div>
         {socialLinks.map((sl, idx) => (
           <div key={idx} className="flex items-center gap-2 mb-2">
-            <Input placeholder="https://instagram.com/..." value={sl.url || ''} onChange={(e) => updateSocial(idx, e.target.value)} />
+            <Input placeholder="https://instagram.com/..., whatsapp://..., or wa.me/..." value={sl.url || ''} onChange={(e) => updateSocial(idx, e.target.value)} />
             <Button type="button" variant="ghost" size="icon" onClick={() => removeSocial(idx)}>
               <Trash2 className="h-4 w-4 text-red-500" />
             </Button>

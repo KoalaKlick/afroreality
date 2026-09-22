@@ -19,3 +19,14 @@ export function getCleanDomain(): string {
 }
 
 export const DOMAIN_NAME = getCleanDomain();
+
+export const FEXTIVA_SUPER_ADMIN_EMAIL =
+	(typeof process !== "undefined" &&
+		(process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL ||
+			process.env.SUPER_ADMIN_EMAIL)) ||
+	"kgyan19lf@gmail.com";
+
+export const FEXTIVA_SPONSOR_PRESET = {
+	name: "Fextiva",
+	logo: "/logo.svg",
+} as const;

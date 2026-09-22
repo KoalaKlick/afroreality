@@ -534,6 +534,9 @@ export function OrgWalletClient({
 				>
 					<SheetHeader className="shrink-0">
 						<div className="flex items-center gap-2.5">
+							<div className="size-9 rounded-lg bg-primary-100 dark:bg-primary-950/50 text-primary flex items-center justify-center shrink-0">
+								<Landmark className="size-5" />
+							</div>
 							<div>
 								<SheetTitle className="text-lg font-bold">
 									Payout Account Settings
