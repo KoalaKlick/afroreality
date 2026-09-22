@@ -7,7 +7,7 @@ import {
 	getSortedRowModel,
 } from "@tanstack/react-table";
 import { useMemo } from "react";
-import { KeyRound, RefreshCw, XCircle } from "lucide-react";
+import { RefreshCw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProviderLogo, getProviderFriendlyName } from "@/components/shared/ProviderLogo";
 import { DataTableColumnHeader } from "@/components/common/data-table-column-header";
@@ -26,7 +26,6 @@ interface PayoutsHistoryTableProps {
 	readonly emptyTitle?: string;
 	readonly emptyDescription?: string;
 	readonly emptyVariant?: EmptyStateVariant;
-	readonly onAuthorizeOtp?: (payout: PayoutRecord) => void;
 	readonly onCancelPayout?: (payout: PayoutRecord) => void;
 	readonly onSyncPayout?: (payout: PayoutRecord) => void;
 }
@@ -37,7 +36,6 @@ export function PayoutsHistoryTable({
 	emptyTitle = "No withdrawal requests yet",
 	emptyDescription = "Withdrawals requested to your bank or mobile money account will appear here.",
 	emptyVariant = "payment",
-	onAuthorizeOtp,
 	onCancelPayout,
 	onSyncPayout,
 }: PayoutsHistoryTableProps) {
@@ -144,34 +142,25 @@ export function PayoutsHistoryTable({
 				cell: ({ row }) => {
 					const item = row.original;
 					const status = item.status;
+					const isAwaitingApproval = status === "pending" && (item as any).requiresApproval;
 					const variant =
 						status === "completed"
 							? "completed"
 							: status === "pending" || status === "processing"
 								? "pending"
 								: "failed";
-					const isPending = status === "pending" || status === "processing";
-					const isWaitingOtp =
-						isPending &&
-						(item.providerResponse?.status === "otp" || (item.providerReference && !item.completedAt));
+					const isProcessing = status === "processing";
+					const displayText = isAwaitingApproval ? "Awaiting Approval" : status;
 
 					return (
 						<div className="flex flex-col gap-1.5 items-start">
-							<StatusBadge variant={variant} text={status} />
-							{isPending && (
+							{isAwaitingApproval ? (
+								<StatusBadge variant="pending" text={displayText} />
+							) : (
+								<StatusBadge variant={variant} text={status} />
+							)}
+							{isProcessing && (
 								<div className="flex items-center gap-1">
-									{isWaitingOtp && onAuthorizeOtp && (
-										<Button
-											type="button"
-											size="sm"
-											variant="outline"
-											className="h-6 px-2 text-[10px] font-semibold text-amber-600 dark:text-amber-400 border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-950/40 gap-1 shadow-none"
-											onClick={() => onAuthorizeOtp(item)}
-										>
-											<KeyRound className="size-3" />
-											Enter OTP
-										</Button>
-									)}
 									{onSyncPayout && (
 										<Button
 											type="button"
@@ -203,7 +192,7 @@ export function PayoutsHistoryTable({
 				},
 			},
 		],
-		[onAuthorizeOtp, onCancelPayout, onSyncPayout],
+		[onCancelPayout, onSyncPayout],
 	);
 
 	const table = useDataTable(payouts, columns, {

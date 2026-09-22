@@ -751,4 +751,292 @@ export async function adminUpdatePaystackGatewaySettings(data: {
 	}
 }
 
+/**
+ * Super Admin: Approve a pending payout. Triggers the Paystack transfer.
+ */
+export async function adminApprovePayout(data: {
+	payoutId: string;
+}): Promise<{
+	success: boolean;
+	message?: string;
+	error?: string;
+	requiresOtp?: boolean;
+	transferCode?: string;
+}> {
+	try {
+		const adminState = await requirePlatformAdmin();
 
+		const payout = await prisma.payout.findUnique({
+			where: { id: data.payoutId },
+			include: { wallet: true },
+		});
+
+		if (!payout) {
+			return { success: false, error: "Payout not found." };
+		}
+
+		if (payout.status !== "pending" || !payout.requiresApproval) {
+			return { success: false, error: `Payout is not pending approval (current status: ${payout.status}).` };
+		}
+
+		const withdrawalAmount = Number(payout.amount);
+
+		// 1. Check Paystack merchant balance
+		const { checkPaystackBalance, createPaystackTransferRecipient, initiatePaystackTransfer } = await import("./paystack");
+
+		const balCheck = await checkPaystackBalance(payout.currency);
+		if (balCheck.success && typeof balCheck.balance === "number") {
+			if (withdrawalAmount > balCheck.balance) {
+				return {
+					success: false,
+					error: `Paystack merchant balance (${payout.currency} ${balCheck.balance.toFixed(2)}) is insufficient for this payout of ${payout.currency} ${withdrawalAmount.toFixed(2)}.`,
+				};
+			}
+		}
+
+		// 2. Create Transfer Recipient
+		const recipientResult = await createPaystackTransferRecipient({
+			name: payout.accountName || payout.recipientName,
+			accountNumber: payout.accountNumber || "",
+			bankCode: payout.bankCode || "",
+			currency: payout.currency,
+		});
+
+		if (!recipientResult.success || !recipientResult.recipientCode) {
+			return { success: false, error: recipientResult.message || "Failed to create transfer recipient on Paystack." };
+		}
+
+		// 3. Initiate Transfer
+		const transferResult = await initiatePaystackTransfer({
+			amount: withdrawalAmount,
+			recipientCode: recipientResult.recipientCode,
+			reference: payout.reference,
+			reason: payout.description || "Approved wallet withdrawal",
+		});
+
+		if (!transferResult.success) {
+			return { success: false, error: `Paystack transfer error: ${transferResult.message || "Failed to initiate transfer."}` };
+		}
+
+		const isImmediateSuccess = transferResult.status === "success";
+		const requiresOtp = transferResult.status === "otp";
+		const now = new Date();
+
+		// 4. Update payout record with Paystack data
+		await prisma.payout.update({
+			where: { id: payout.id },
+			data: {
+				status: isImmediateSuccess ? "completed" : "processing",
+				approvedBy: adminState.userId,
+				approvedAt: now,
+				processedAt: now,
+				completedAt: isImmediateSuccess ? now : undefined,
+				providerReference: transferResult.transferCode,
+				providerResponse: transferResult.raw ?? undefined,
+			},
+		});
+
+		// 5. Update transaction record
+		await prisma.transaction.updateMany({
+			where: { reference: payout.reference, type: "debit" },
+			data: {
+				status: isImmediateSuccess ? "completed" : "processing",
+				providerReference: transferResult.transferCode,
+				providerResponse: transferResult.raw ?? undefined,
+				completedAt: isImmediateSuccess ? now : undefined,
+			},
+		});
+
+		// 6. If immediate success, fulfill the payout (decrement balance, release pending debits)
+		if (isImmediateSuccess) {
+			const { fulfillPayoutTransfer } = await import("./fulfillment");
+			await fulfillPayoutTransfer({
+				reference: payout.reference,
+				status: "completed",
+				paystackData: transferResult.raw,
+			});
+		}
+
+		// 7. Audit log
+		await prisma.activityLog.create({
+			data: {
+				organizationId: payout.wallet?.organizationId || "",
+				userId: adminState.userId,
+				action: "payout.approved_by_super_admin",
+				entityType: "payout",
+				entityId: payout.id,
+				description: `Payout of ${payout.currency} ${withdrawalAmount.toFixed(2)} to ${payout.recipientName} approved by admin`,
+				metadata: {
+					adminEmail: adminState.email,
+					reference: payout.reference,
+					transferCode: transferResult.transferCode,
+					status: transferResult.status,
+				},
+			},
+		}).catch(() => {});
+
+		revalidatePath("/super");
+		revalidatePath("/super/wallets");
+		revalidatePath("/organization/wallet");
+
+		if (requiresOtp) {
+			return {
+				success: true,
+				message: "Transfer initiated! Enter the OTP sent to your registered email/phone to complete.",
+				requiresOtp: true,
+				transferCode: transferResult.transferCode,
+			};
+		}
+
+		return {
+			success: true,
+			message: isImmediateSuccess
+				? "Payout approved and transfer completed successfully!"
+				: "Payout approved. Transfer is processing on Paystack.",
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_APPROVE_PAYOUT_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to approve payout" };
+	}
+}
+
+/**
+ * Super Admin: Finalize an approved payout by submitting the Paystack OTP.
+ */
+export async function adminFinalizePayoutOtp(data: {
+	payoutId: string;
+	transferCode: string;
+	otp: string;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const adminState = await requirePlatformAdmin();
+
+		const payout = await prisma.payout.findUnique({
+			where: { id: data.payoutId },
+			include: { wallet: true },
+		});
+
+		if (!payout) {
+			return { success: false, error: "Payout not found." };
+		}
+
+		if (payout.status === "completed") {
+			return { success: true, message: "Payout has already been completed." };
+		}
+
+		const { finalizePaystackTransfer } = await import("./paystack");
+
+		const transferCode = data.transferCode || payout.providerReference;
+		if (!transferCode) {
+			return { success: false, error: "No Paystack transfer code associated with this payout." };
+		}
+
+		const finalizeRes = await finalizePaystackTransfer({
+			transferCode,
+			otp: data.otp,
+		});
+
+		if (!finalizeRes.success) {
+			return { success: false, error: finalizeRes.message || "Failed to authorize transfer with OTP." };
+		}
+
+		// Fulfill the payout
+		const { fulfillPayoutTransfer } = await import("./fulfillment");
+		await fulfillPayoutTransfer({
+			reference: payout.reference,
+			status: "completed",
+			paystackData: finalizeRes.raw,
+		});
+
+		// Audit log
+		await prisma.activityLog.create({
+			data: {
+				organizationId: payout.wallet?.organizationId || "",
+				userId: adminState.userId,
+				action: "payout.otp_finalized_by_super_admin",
+				entityType: "payout",
+				entityId: payout.id,
+				description: `Payout OTP finalized for ${payout.currency} ${Number(payout.amount).toFixed(2)} to ${payout.recipientName}`,
+				metadata: {
+					adminEmail: adminState.email,
+					reference: payout.reference,
+					transferCode,
+				},
+			},
+		}).catch(() => {});
+
+		revalidatePath("/super");
+		revalidatePath("/super/wallets");
+		revalidatePath("/organization/wallet");
+
+		return { success: true, message: "Payout authorized and completed successfully!" };
+	} catch (err: any) {
+		console.error("[ADMIN_FINALIZE_OTP_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to finalize OTP" };
+	}
+}
+
+/**
+ * Super Admin: Reject a pending payout. Returns frozen funds to organizer's wallet.
+ */
+export async function adminRejectPayout(data: {
+	payoutId: string;
+	reason?: string;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const adminState = await requirePlatformAdmin();
+
+		const payout = await prisma.payout.findUnique({
+			where: { id: data.payoutId },
+			include: { wallet: true },
+		});
+
+		if (!payout) {
+			return { success: false, error: "Payout not found." };
+		}
+
+		if (payout.status === "completed") {
+			return { success: false, error: "Cannot reject a payout that has already been completed." };
+		}
+
+		// Use fulfillPayoutTransfer to handle the fund release atomically
+		const { fulfillPayoutTransfer } = await import("./fulfillment");
+		await fulfillPayoutTransfer({
+			reference: payout.reference,
+			status: "failed",
+			paystackData: {
+				rejectedByAdmin: true,
+				rejectedByUserId: adminState.userId,
+				rejectedByEmail: adminState.email,
+				rejectedAt: new Date().toISOString(),
+				reason: data.reason?.trim() || "Rejected by platform administrator.",
+			},
+		});
+
+		// Audit log
+		await prisma.activityLog.create({
+			data: {
+				organizationId: payout.wallet?.organizationId || "",
+				userId: adminState.userId,
+				action: "payout.rejected_by_super_admin",
+				entityType: "payout",
+				entityId: payout.id,
+				description: `Payout of ${payout.currency} ${Number(payout.amount).toFixed(2)} to ${payout.recipientName} rejected: ${data.reason?.trim() || "No reason provided"}`,
+				metadata: {
+					adminEmail: adminState.email,
+					reference: payout.reference,
+					reason: data.reason?.trim() || null,
+				},
+			},
+		}).catch(() => {});
+
+		revalidatePath("/super");
+		revalidatePath("/super/wallets");
+		revalidatePath("/organization/wallet");
+
+		return { success: true, message: "Payout rejected. Funds have been returned to the organizer's wallet." };
+	} catch (err: any) {
+		console.error("[ADMIN_REJECT_PAYOUT_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to reject payout" };
+	}
+}

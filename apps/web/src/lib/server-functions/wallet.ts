@@ -7,9 +7,6 @@ import { serializeJsonSafe } from "../utils";
 import { requireOrgRole } from "./auth-helpers";
 import { isTPlusOneSettled, getSettlementDate, getNextUpcomingSettlementDate } from "@/lib/utils/settlement";
 import {
-	checkPaystackBalance,
-	createPaystackTransferRecipient,
-	initiatePaystackTransfer,
 	verifyPaystackTransfer,
 	finalizePaystackTransfer,
 	resendPaystackTransferOtp,
@@ -452,48 +449,13 @@ export async function requestWalletWithdrawal({
 		);
 	}
 
-	// 2. Check Paystack Live Merchant Balance to prevent API errors
-	const paystackBalanceCheck = await checkPaystackBalance(wallet.currency);
-	if (paystackBalanceCheck.success && typeof paystackBalanceCheck.balance === "number") {
-		if (withdrawalAmount > paystackBalanceCheck.balance) {
-			throw new Error(
-				`Cannot process withdrawal: Paystack merchant account balance (${wallet.currency} ${paystackBalanceCheck.balance.toFixed(2)}) is insufficient for this payout. Please contact support or try a smaller amount.`
-			);
-		}
-	}
-
-	// 3. Create Transfer Recipient on Paystack
+	// 2. Create payout in "pending_approval" state — Paystack transfer will be initiated
+	//    by the super admin when they approve the payout from the admin dashboard.
 	const ref = `WDR-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-	const recipientResult = await createPaystackTransferRecipient({
-		name: data.accountName,
-		accountNumber: data.accountNumber,
-		bankCode: data.bankCode,
-		currency: wallet.currency,
-	});
-
-	if (!recipientResult.success || !recipientResult.recipientCode) {
-		throw new Error(recipientResult.message || "Failed to register payout recipient with Paystack.");
-	}
-
-	// 4. Initiate Real Transfer on Paystack
-	const transferResult = await initiatePaystackTransfer({
-		amount: withdrawalAmount,
-		recipientCode: recipientResult.recipientCode,
-		reference: ref,
-		reason: data.description?.trim() || "Wallet withdrawal",
-	});
-
-	if (!transferResult.success) {
-		throw new Error(`Paystack transfer error: ${transferResult.message || "Failed to initiate transfer."}`);
-	}
-
-	const isImmediateSuccess = transferResult.status === "success";
-	const payoutStatus = isImmediateSuccess ? "completed" : "processing";
-	const transactionStatus = isImmediateSuccess ? "completed" : "processing";
 	const now = new Date();
 
 	const result = await prisma.$transaction(async (tx) => {
-		// 1. Create payout request with Paystack reference
+		// 1. Create payout request awaiting admin approval
 		const payout = await tx.payout.create({
 			data: {
 				reference: ref,
@@ -504,57 +466,38 @@ export async function requestWalletWithdrawal({
 				accountNumber: data.accountNumber,
 				accountName: data.accountName,
 				amount: withdrawalAmount,
-				feeAmount: 0, // No extra surcharge on payout; buyer already absorbed charges
+				feeAmount: 0,
 				currency: wallet.currency,
-				status: payoutStatus,
+				status: "pending",
+				requiresApproval: true,
 				provider: "paystack",
-				providerReference: transferResult.transferCode,
-				providerResponse: transferResult.raw ?? undefined,
 				description: data.description ?? "Wallet withdrawal via Paystack",
-				completedAt: isImmediateSuccess ? now : undefined,
 			},
 		});
 
-		// 2. Update wallet balance or pending debits:
-		// If immediate success: decrement balance directly, do NOT increment pendingDebits!
-		// If processing/pending: increment pendingDebits until webhook fulfillment
-		if (isImmediateSuccess) {
-			const currentBal = Number(wallet.balance);
-			const newBal = Math.round(Math.max(0, currentBal - withdrawalAmount) * 100) / 100;
-			await tx.wallet.update({
-				where: { id: wallet.id },
-				data: {
-					balance: newBal,
-					lastTransactionAt: now,
-				},
-			});
-		} else {
-			await tx.wallet.update({
-				where: { id: wallet.id },
-				data: {
-					pendingDebits: { increment: withdrawalAmount },
-					lastTransactionAt: now,
-				},
-			});
-		}
+		// 2. Freeze funds by incrementing pendingDebits
+		await tx.wallet.update({
+			where: { id: wallet.id },
+			data: {
+				pendingDebits: { increment: withdrawalAmount },
+				lastTransactionAt: now,
+			},
+		});
 
-		// 3. Log audit transaction
+		// 3. Log audit transaction as pending
 		await tx.transaction.create({
 			data: {
 				reference: ref,
 				walletId: wallet.id,
 				type: "debit",
 				category: "wallet_withdrawal",
-				status: transactionStatus,
+				status: "pending",
 				amount: withdrawalAmount,
 				feeAmount: 0,
 				currency: wallet.currency,
-				providerReference: transferResult.transferCode,
-				providerResponse: transferResult.raw ?? undefined,
-				description: data.description?.trim() || `Withdrawal to ${data.accountNumber} via Paystack`,
+				description: data.description?.trim() || `Withdrawal to ${data.accountNumber} (pending approval)`,
 				balanceBefore: Number(wallet.balance),
-				balanceAfter: Math.round(Math.max(0, Number(wallet.balance) - withdrawalAmount) * 100) / 100,
-				completedAt: isImmediateSuccess ? now : undefined,
+				balanceAfter: Number(wallet.balance),
 			},
 		});
 
@@ -567,13 +510,11 @@ export async function requestWalletWithdrawal({
 					action: "wallet_withdrawal_requested",
 					entityType: "payout",
 					entityId: payout.id,
-					description: `Disbursed ${wallet.currency} ${withdrawalAmount.toFixed(2)} via Paystack to ${data.bankName ? data.bankName + " " : ""}${data.accountNumber} (${data.accountName})`,
+					description: `Withdrawal of ${wallet.currency} ${withdrawalAmount.toFixed(2)} requested to ${data.bankName ? data.bankName + " " : ""}${data.accountNumber} (${data.accountName}) — awaiting admin approval`,
 					metadata: {
 						reference: ref,
 						amount: withdrawalAmount,
 						currency: wallet.currency,
-						transferCode: transferResult.transferCode,
-						status: transferResult.status,
 					},
 				},
 			});
@@ -587,11 +528,8 @@ export async function requestWalletWithdrawal({
 	revalidatePath("/organization/wallet");
 	return serializeJsonSafe({
 		...result,
-		requiresOtp: transferResult.status === "otp",
-		transferCode: transferResult.transferCode,
-		message: transferResult.status === "otp"
-			? "OTP authorization required. Please enter the OTP sent by Paystack to your registered phone or email to complete this payout."
-			: "Withdrawal request submitted successfully!",
+		requiresOtp: false,
+		message: "Withdrawal request submitted successfully! Your payout is pending admin approval.",
 	});
 }
 

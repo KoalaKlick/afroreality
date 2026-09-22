@@ -7,7 +7,11 @@ import {
 	Lock,
 	Unlock,
 	SlidersHorizontal,
-	Coins,
+	CheckCircle2,
+	XCircle,
+	Clock,
+	Shield,
+	KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,13 +28,21 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { formatAmount } from "@/lib/utils";
 import type { AdminWalletItem, AdminPayoutItem } from "@/lib/dal/admin";
-import { adminLockWallet, adminToggleAutoPayout } from "@/lib/server-functions/admin";
+import {
+	adminLockWallet,
+	adminToggleAutoPayout,
+	adminApprovePayout,
+	adminRejectPayout,
+	adminFinalizePayoutOtp,
+} from "@/lib/server-functions/admin";
 
 interface AdminWalletsContentProps {
 	wallets: AdminWalletItem[];
 	recentPayouts: AdminPayoutItem[];
+	pendingApprovals: AdminPayoutItem[];
 	floatSummary: {
 		totalActiveGHS: number;
 		totalLockedGHS: number;
@@ -42,12 +54,25 @@ interface AdminWalletsContentProps {
 export function AdminWalletsContent({
 	wallets,
 	recentPayouts,
+	pendingApprovals,
 	floatSummary,
 }: AdminWalletsContentProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [lockDialogWallet, setLockDialogWallet] = useState<AdminWalletItem | null>(null);
 	const [lockReason, setLockReason] = useState("");
 	const [isPending, startTransition] = useTransition();
+
+	// Approve flow state
+	const [approveTarget, setApproveTarget] = useState<AdminPayoutItem | null>(null);
+	const [isApproving, setIsApproving] = useState(false);
+
+	// OTP flow state
+	const [otpTarget, setOtpTarget] = useState<{ payout: AdminPayoutItem; transferCode: string } | null>(null);
+	const [otpValue, setOtpValue] = useState("");
+
+	// Reject flow state
+	const [rejectTarget, setRejectTarget] = useState<AdminPayoutItem | null>(null);
+	const [rejectReason, setRejectReason] = useState("");
 
 	const filteredWallets = wallets.filter((w) => {
 		const q = searchQuery.toLowerCase();
@@ -94,6 +119,82 @@ export function AdminWalletsContent({
 				toast.success(res.message);
 			} else {
 				toast.error(res.error || "Failed to update auto-payout");
+			}
+		});
+	};
+
+	const handleApprovePayout = () => {
+		if (!approveTarget) return;
+		setIsApproving(true);
+
+		startTransition(async () => {
+			try {
+				const res = await adminApprovePayout({ payoutId: approveTarget.id });
+
+				if (res.success) {
+					if (res.requiresOtp && res.transferCode) {
+						// Transfer needs OTP — show OTP dialog
+						setOtpTarget({ payout: approveTarget, transferCode: res.transferCode });
+						setApproveTarget(null);
+						toast.info(res.message || "OTP required. Check your email/phone.");
+					} else {
+						toast.success(res.message || "Payout approved!");
+						setApproveTarget(null);
+					}
+				} else {
+					toast.error(res.error || "Failed to approve payout.");
+				}
+			} catch (err: any) {
+				toast.error(err?.message || "An error occurred.");
+			} finally {
+				setIsApproving(false);
+			}
+		});
+	};
+
+	const handleFinalizeOtp = () => {
+		if (!otpTarget || !otpValue.trim()) return;
+
+		startTransition(async () => {
+			try {
+				const res = await adminFinalizePayoutOtp({
+					payoutId: otpTarget.payout.id,
+					transferCode: otpTarget.transferCode,
+					otp: otpValue.trim(),
+				});
+
+				if (res.success) {
+					toast.success(res.message || "Payout completed!");
+					setOtpTarget(null);
+					setOtpValue("");
+				} else {
+					toast.error(res.error || "OTP verification failed.");
+				}
+			} catch (err: any) {
+				toast.error(err?.message || "An error occurred.");
+			}
+		});
+	};
+
+	const handleRejectPayout = () => {
+		if (!rejectTarget) return;
+
+		startTransition(async () => {
+			try {
+				const res = await adminRejectPayout({
+					payoutId: rejectTarget.id,
+					reason: rejectReason.trim() || undefined,
+				});
+
+				if (res.success) {
+					toast.success(res.message || "Payout rejected.");
+					setRejectTarget(null);
+					setRejectReason("");
+				} else {
+					toast.error(res.error || "Failed to reject payout.");
+				}
+			} catch (err: any) {
+				toast.error(err?.message || "An error occurred.");
 			}
 		});
 	};
@@ -167,15 +268,23 @@ export function AdminWalletsContent({
 				</Card>
 			</div>
 
-			{/* Tabs: Wallets vs Payouts */}
-			<Tabs defaultValue="wallets" className="w-full rounded-none shadow-none">
+			{/* Tabs: Wallets vs Approval Queue vs Payouts */}
+			<Tabs defaultValue={pendingApprovals.length > 0 ? "approvals" : "wallets"} className="w-full rounded-none shadow-none">
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 rounded-none shadow-none">
 					<TabsList className="bg-muted/50 border border-border rounded-none shadow-none p-0">
 						<TabsTrigger value="wallets" className="text-xs font-semibold rounded-none shadow-none">
 							Organizer Wallets ({wallets.length})
 						</TabsTrigger>
+						<TabsTrigger value="approvals" className="text-xs font-semibold rounded-none shadow-none relative">
+							Approval Queue
+							{pendingApprovals.length > 0 && (
+								<span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-5 px-1 text-[10px] font-bold bg-rose-500 text-white rounded-full">
+									{pendingApprovals.length}
+								</span>
+							)}
+						</TabsTrigger>
 						<TabsTrigger value="payouts" className="text-xs font-semibold rounded-none shadow-none">
-							Platform Payouts Audit ({recentPayouts.length})
+							Payouts Audit ({recentPayouts.length})
 						</TabsTrigger>
 					</TabsList>
 
@@ -306,7 +415,107 @@ export function AdminWalletsContent({
 					)}
 				</TabsContent>
 
-				{/* 2. Payouts Audit Tab */}
+				{/* 2. Approval Queue Tab */}
+				<TabsContent value="approvals">
+					<Card className="border border-border rounded-none shadow-none">
+						<CardHeader className="pb-3 border-b border-border">
+							<div className="flex items-center gap-2">
+								<Shield className="h-4 w-4 text-primary" />
+								<CardTitle className="text-sm font-bold">Payout Approval Queue</CardTitle>
+							</div>
+							<CardDescription className="text-xs">
+								Organizer withdrawal requests awaiting your approval. Approving triggers the Paystack transfer.
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="p-0">
+							{pendingApprovals.length === 0 ? (
+								<div className="py-16 text-center text-muted-foreground text-xs">
+									<Clock className="h-8 w-8 mx-auto mb-3 opacity-30" />
+									<p className="font-semibold text-foreground text-sm">No pending approvals</p>
+									<p className="mt-1">All payout requests have been processed.</p>
+								</div>
+							) : (
+								<div className="divide-y divide-border">
+									{pendingApprovals.map((p) => (
+										<div key={p.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+											<div className="min-w-0 flex-1">
+												<div className="flex items-center gap-2 flex-wrap">
+													<Badge
+														variant="outline"
+														className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
+													>
+														Pending Approval
+													</Badge>
+													<span className="font-mono text-xs text-muted-foreground truncate">
+														{p.reference}
+													</span>
+												</div>
+
+												<p className="font-bold text-sm text-foreground mt-1.5">
+													{p.recipientName}
+													{p.wallet?.organization && (
+														<span className="font-normal text-muted-foreground ml-1">
+															({p.wallet.organization.name})
+														</span>
+													)}
+												</p>
+
+												<div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground flex-wrap">
+													<span>{p.bankName || p.bankCode || "Bank"}</span>
+													<span>•</span>
+													<span className="font-mono">{p.accountNumber || "N/A"}</span>
+													<span>•</span>
+													<span>Requested: {new Date(p.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+												</div>
+
+												{p.description && (
+													<p className="text-[11px] text-muted-foreground mt-1 italic">
+														&quot;{p.description}&quot;
+													</p>
+												)}
+											</div>
+
+											<div className="flex items-center gap-3 shrink-0">
+												<div className="text-right mr-2">
+													<p className="text-lg font-bold text-foreground font-mono">
+														{formatAmount(p.amount, p.currency)}
+													</p>
+												</div>
+
+												<Button
+													variant="default"
+													size="sm"
+													disabled={isPending || isApproving}
+													onClick={() => setApproveTarget(p)}
+													className="text-xs font-semibold rounded-none shadow-none bg-emerald-600 hover:bg-emerald-700 text-white"
+												>
+													<CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+													Approve
+												</Button>
+
+												<Button
+													variant="destructive"
+													size="sm"
+													disabled={isPending}
+													onClick={() => {
+														setRejectTarget(p);
+														setRejectReason("");
+													}}
+													className="text-xs font-semibold rounded-none shadow-none"
+												>
+													<XCircle className="h-3.5 w-3.5 mr-1" />
+													Reject
+												</Button>
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				{/* 3. Payouts Audit Tab */}
 				<TabsContent value="payouts">
 					<Card className="border border-border rounded-none shadow-none">
 						<CardContent className="p-0">
@@ -365,7 +574,7 @@ export function AdminWalletsContent({
 				</TabsContent>
 			</Tabs>
 
-			{/* Lock / Unlock Dialog - Flat & Square */}
+			{/* Lock / Unlock Dialog */}
 			<Dialog open={!!lockDialogWallet} onOpenChange={(open) => !open && setLockDialogWallet(null)}>
 				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
 					<DialogHeader>
@@ -425,6 +634,172 @@ export function AdminWalletsContent({
 								: lockDialogWallet?.isLocked
 								? "Confirm Unlock"
 								: "Confirm Lock"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Approve Confirmation Dialog */}
+			<Dialog open={!!approveTarget} onOpenChange={(open) => !open && setApproveTarget(null)}>
+				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<CheckCircle2 className="h-5 w-5 text-emerald-500" />
+							Approve Payout
+						</DialogTitle>
+						<DialogDescription className="text-xs">
+							This will initiate the Paystack transfer. If OTP is enabled on your account, you'll be prompted to enter the OTP sent to your email/phone.
+						</DialogDescription>
+					</DialogHeader>
+
+					{approveTarget && (
+						<div className="space-y-3 py-2">
+							<div className="p-3 bg-muted/30 border border-border space-y-2 text-xs rounded-none">
+								<div className="flex justify-between">
+									<span className="text-muted-foreground">Organizer:</span>
+									<span className="font-semibold text-foreground">
+										{approveTarget.wallet?.organization?.name || approveTarget.recipientName}
+									</span>
+								</div>
+								<div className="flex justify-between">
+									<span className="text-muted-foreground">Recipient:</span>
+									<span className="font-mono text-foreground">{approveTarget.recipientName}</span>
+								</div>
+								<div className="flex justify-between">
+									<span className="text-muted-foreground">Account:</span>
+									<span className="font-mono text-foreground">
+										{approveTarget.bankName || approveTarget.bankCode} • {approveTarget.accountNumber}
+									</span>
+								</div>
+								<div className="flex justify-between border-t border-border pt-2">
+									<span className="text-muted-foreground font-semibold">Amount:</span>
+									<span className="text-base font-bold text-foreground font-mono">
+										{formatAmount(approveTarget.amount, approveTarget.currency)}
+									</span>
+								</div>
+							</div>
+						</div>
+					)}
+
+					<DialogFooter className="gap-2 sm:gap-0">
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setApproveTarget(null)}
+							disabled={isPending || isApproving}
+							className="text-xs rounded-none shadow-none"
+						>
+							Cancel
+						</Button>
+						<Button
+							size="sm"
+							onClick={handleApprovePayout}
+							disabled={isPending || isApproving}
+							className="text-xs font-semibold rounded-none shadow-none bg-emerald-600 hover:bg-emerald-700 text-white"
+						>
+							{isPending || isApproving ? "Processing..." : "Confirm & Transfer"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* OTP Finalization Dialog */}
+			<Dialog open={!!otpTarget} onOpenChange={(open) => !open && setOtpTarget(null)}>
+				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<KeyRound className="h-5 w-5 text-primary" />
+							Enter Paystack OTP
+						</DialogTitle>
+						<DialogDescription className="text-xs">
+							Paystack sent an OTP to your registered email/phone. Enter it below to authorize the transfer of{" "}
+							<strong className="text-foreground">
+								{otpTarget ? formatAmount(otpTarget.payout.amount, otpTarget.payout.currency) : ""}
+							</strong>{" "}
+							to <strong className="text-foreground">{otpTarget?.payout.recipientName}</strong>.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="space-y-3 py-2">
+						<Input
+							placeholder="Enter OTP code"
+							value={otpValue}
+							onChange={(e) => setOtpValue(e.target.value)}
+							className="text-center text-lg font-mono tracking-[0.3em] rounded-none shadow-none border-border"
+							maxLength={10}
+							autoFocus
+						/>
+					</div>
+
+					<DialogFooter className="gap-2 sm:gap-0">
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => {
+								setOtpTarget(null);
+								setOtpValue("");
+							}}
+							disabled={isPending}
+							className="text-xs rounded-none shadow-none"
+						>
+							Cancel
+						</Button>
+						<Button
+							size="sm"
+							onClick={handleFinalizeOtp}
+							disabled={isPending || !otpValue.trim()}
+							className="text-xs font-semibold rounded-none shadow-none"
+						>
+							{isPending ? "Verifying..." : "Authorize Transfer"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Reject Dialog */}
+			<Dialog open={!!rejectTarget} onOpenChange={(open) => !open && setRejectTarget(null)}>
+				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<XCircle className="h-5 w-5 text-destructive" />
+							Reject Payout
+						</DialogTitle>
+						<DialogDescription className="text-xs">
+							Rejecting will return {rejectTarget ? formatAmount(rejectTarget.amount, rejectTarget.currency) : ""} to{" "}
+							<strong className="text-foreground">{rejectTarget?.wallet?.organization?.name || "the organizer"}</strong>'s wallet balance.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="space-y-2 py-2">
+						<label className="text-xs font-medium text-foreground">
+							Reason for rejection (visible to organizer):
+						</label>
+						<Textarea
+							placeholder="e.g. Incorrect bank details, suspicious activity, KYC incomplete..."
+							value={rejectReason}
+							onChange={(e) => setRejectReason(e.target.value)}
+							className="text-xs rounded-none shadow-none border-border min-h-[80px]"
+						/>
+					</div>
+
+					<DialogFooter className="gap-2 sm:gap-0">
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setRejectTarget(null)}
+							disabled={isPending}
+							className="text-xs rounded-none shadow-none"
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							size="sm"
+							onClick={handleRejectPayout}
+							disabled={isPending}
+							className="text-xs font-semibold rounded-none shadow-none"
+						>
+							{isPending ? "Processing..." : "Confirm Reject"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

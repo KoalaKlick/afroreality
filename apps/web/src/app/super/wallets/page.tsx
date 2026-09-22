@@ -25,6 +25,7 @@ export default async function SuperAdminWalletsPage() {
 			<AdminWalletsContent
 				wallets={serializeJsonSafe(data.wallets)}
 				recentPayouts={serializeJsonSafe(data.recentPayouts)}
+				pendingApprovals={serializeJsonSafe(data.pendingApprovals)}
 				floatSummary={serializeJsonSafe(data.floatSummary)}
 			/>
 		</Suspense>

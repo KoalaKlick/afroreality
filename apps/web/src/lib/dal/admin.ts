@@ -971,6 +971,10 @@ export interface AdminPayoutItem {
 	bankName: string | null;
 	accountNumber: string | null;
 	accountName: string | null;
+	bankCode: string | null;
+	providerReference: string | null;
+	requiresApproval: boolean;
+	description: string | null;
 	createdAt: string;
 	approvedAt: string | null;
 	processedAt: string | null;
@@ -990,6 +994,7 @@ export interface AdminPayoutItem {
 export async function getAdminWalletsList(): Promise<{
 	wallets: AdminWalletItem[];
 	recentPayouts: AdminPayoutItem[];
+	pendingApprovals: AdminPayoutItem[];
 	floatSummary: {
 		totalActiveGHS: number;
 		totalLockedGHS: number;
@@ -997,7 +1002,26 @@ export async function getAdminWalletsList(): Promise<{
 		pendingCreditsGHS: number;
 	};
 }> {
-	const [walletsData, payoutsData] = await Promise.all([
+	const payoutInclude = {
+		approver: {
+			select: {
+				fullName: true,
+				email: true,
+			},
+		},
+		wallet: {
+			select: {
+				organization: {
+					select: {
+						name: true,
+						slug: true,
+					},
+				},
+			},
+		},
+	};
+
+	const [walletsData, payoutsData, pendingApprovalsData] = await Promise.all([
 		prisma.wallet.findMany({
 			where: {
 				organizationId: { not: null },
@@ -1019,26 +1043,15 @@ export async function getAdminWalletsList(): Promise<{
 			orderBy: { balance: "desc" },
 		}),
 		prisma.payout.findMany({
+			where: { status: { notIn: ["pending"] } },
 			take: 20,
 			orderBy: { createdAt: "desc" },
-			include: {
-				approver: {
-					select: {
-						fullName: true,
-						email: true,
-					},
-				},
-				wallet: {
-					select: {
-						organization: {
-							select: {
-								name: true,
-								slug: true,
-							},
-						},
-					},
-				},
-			},
+			include: payoutInclude,
+		}),
+		prisma.payout.findMany({
+			where: { status: "pending", requiresApproval: true },
+			orderBy: { createdAt: "asc" },
+			include: payoutInclude,
 		}),
 	]);
 
@@ -1084,7 +1097,7 @@ export async function getAdminWalletsList(): Promise<{
 		};
 	});
 
-	const recentPayouts: AdminPayoutItem[] = payoutsData.map((p) => ({
+	const mapPayout = (p: any): AdminPayoutItem => ({
 		id: p.id,
 		reference: p.reference,
 		amount: Number(p.amount || 0),
@@ -1095,17 +1108,25 @@ export async function getAdminWalletsList(): Promise<{
 		bankName: p.bankName,
 		accountNumber: p.accountNumber,
 		accountName: p.accountName,
+		bankCode: p.bankCode,
+		providerReference: p.providerReference,
+		requiresApproval: p.requiresApproval ?? false,
+		description: p.description,
 		createdAt: p.createdAt.toISOString(),
 		approvedAt: p.approvedAt ? p.approvedAt.toISOString() : null,
 		processedAt: p.processedAt ? p.processedAt.toISOString() : null,
 		completedAt: p.completedAt ? p.completedAt.toISOString() : null,
 		approver: p.approver,
 		wallet: p.wallet,
-	}));
+	});
+
+	const recentPayouts: AdminPayoutItem[] = payoutsData.map(mapPayout);
+	const pendingApprovals: AdminPayoutItem[] = pendingApprovalsData.map(mapPayout);
 
 	return {
 		wallets,
 		recentPayouts,
+		pendingApprovals,
 		floatSummary: {
 			totalActiveGHS,
 			totalLockedGHS,
