@@ -1043,14 +1043,15 @@ export async function getAdminWalletsList(): Promise<{
 			orderBy: { balance: "desc" },
 		}),
 		prisma.payout.findMany({
-			where: { status: { notIn: ["pending"] } },
 			take: 20,
 			orderBy: { createdAt: "desc" },
 			include: payoutInclude,
 		}),
 		prisma.payout.findMany({
-			where: { status: "pending", requiresApproval: true },
-			orderBy: { createdAt: "asc" },
+			where: {
+				status: { in: ["pending", "processing"] },
+			},
+			orderBy: { createdAt: "desc" },
 			include: payoutInclude,
 		}),
 	]);

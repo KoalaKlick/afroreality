@@ -12,6 +12,7 @@ import {
 	Clock,
 	Shield,
 	KeyRound,
+	RotateCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,6 +38,7 @@ import {
 	adminApprovePayout,
 	adminRejectPayout,
 	adminFinalizePayoutOtp,
+	adminSyncPayoutStatus,
 } from "@/lib/server-functions/admin";
 
 interface AdminWalletsContentProps {
@@ -195,6 +197,29 @@ export function AdminWalletsContent({
 				}
 			} catch (err: any) {
 				toast.error(err?.message || "An error occurred.");
+			}
+		});
+	};
+
+	const [syncingId, setSyncingId] = useState<string | null>(null);
+
+	const handleSyncPayout = (p: AdminPayoutItem) => {
+		setSyncingId(p.id);
+		startTransition(async () => {
+			try {
+				const res = await adminSyncPayoutStatus({
+					payoutId: p.id,
+					reference: p.reference,
+				});
+				if (res.success) {
+					toast.success(res.message);
+				} else {
+					toast.error(res.message || "Failed to sync status with Paystack.");
+				}
+			} catch (err: any) {
+				toast.error(err?.message || "An error occurred while syncing.");
+			} finally {
+				setSyncingId(null);
 			}
 		});
 	};
@@ -436,79 +461,142 @@ export function AdminWalletsContent({
 								</div>
 							) : (
 								<div className="divide-y divide-border">
-									{pendingApprovals.map((p) => (
-										<div key={p.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-											<div className="min-w-0 flex-1">
-												<div className="flex items-center gap-2 flex-wrap">
-													<Badge
-														variant="outline"
-														className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
-													>
-														Pending Approval
-													</Badge>
-													<span className="font-mono text-xs text-muted-foreground truncate">
-														{p.reference}
-													</span>
-												</div>
-
-												<p className="font-bold text-sm text-foreground mt-1.5">
-													{p.recipientName}
-													{p.wallet?.organization && (
-														<span className="font-normal text-muted-foreground ml-1">
-															({p.wallet.organization.name})
+									{pendingApprovals.map((p) => {
+										const isProcessing = p.status === "processing";
+										return (
+											<div key={p.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+												<div className="min-w-0 flex-1">
+													<div className="flex items-center gap-2 flex-wrap">
+														{isProcessing ? (
+															<Badge
+																variant="outline"
+																className="bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
+															>
+																Awaiting OTP / Processing
+															</Badge>
+														) : (
+															<Badge
+																variant="outline"
+																className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
+															>
+																Pending Approval
+															</Badge>
+														)}
+														<span className="font-mono text-xs text-muted-foreground truncate">
+															{p.reference}
 														</span>
+														{p.providerReference && (
+															<span className="font-mono text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5">
+																{p.providerReference}
+															</span>
+														)}
+													</div>
+
+													<p className="font-bold text-sm text-foreground mt-1.5">
+														{p.recipientName}
+														{p.wallet?.organization && (
+															<span className="font-normal text-muted-foreground ml-1">
+																({p.wallet.organization.name})
+															</span>
+														)}
+													</p>
+
+													<div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground flex-wrap">
+														<span>{p.bankName || p.bankCode || "Bank"}</span>
+														<span>•</span>
+														<span className="font-mono">{p.accountNumber || "N/A"}</span>
+														<span>•</span>
+														<span>Requested: {new Date(p.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+													</div>
+
+													{p.description && (
+														<p className="text-[11px] text-muted-foreground mt-1 italic">
+															&quot;{p.description}&quot;
+														</p>
 													)}
-												</p>
-
-												<div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground flex-wrap">
-													<span>{p.bankName || p.bankCode || "Bank"}</span>
-													<span>•</span>
-													<span className="font-mono">{p.accountNumber || "N/A"}</span>
-													<span>•</span>
-													<span>Requested: {new Date(p.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
 												</div>
 
-												{p.description && (
-													<p className="text-[11px] text-muted-foreground mt-1 italic">
-														&quot;{p.description}&quot;
-													</p>
-												)}
-											</div>
+												<div className="flex items-center gap-3 shrink-0">
+													<div className="text-right mr-2">
+														<p className="text-lg font-bold text-foreground font-mono">
+															{formatAmount(p.amount, p.currency)}
+														</p>
+													</div>
 
-											<div className="flex items-center gap-3 shrink-0">
-												<div className="text-right mr-2">
-													<p className="text-lg font-bold text-foreground font-mono">
-														{formatAmount(p.amount, p.currency)}
-													</p>
+													{isProcessing ? (
+														<>
+															<Button
+																variant="default"
+																size="sm"
+																disabled={isPending}
+																onClick={() => {
+																	setOtpTarget({ payout: p, transferCode: p.providerReference || "" });
+																	setOtpValue("");
+																}}
+																className="text-xs font-semibold rounded-none shadow-none bg-amber-600 hover:bg-amber-700 text-white"
+															>
+																<KeyRound className="h-3.5 w-3.5 mr-1" />
+																Enter OTP
+															</Button>
+
+															<Button
+																variant="outline"
+																size="sm"
+																disabled={isPending || syncingId === p.id}
+																onClick={() => handleSyncPayout(p)}
+																className="text-xs font-semibold rounded-none shadow-none"
+																title="Check Paystack status"
+															>
+																<RotateCw className={`h-3.5 w-3.5 mr-1 ${syncingId === p.id ? "animate-spin" : ""}`} />
+																Sync
+															</Button>
+
+															<Button
+																variant="destructive"
+																size="sm"
+																disabled={isPending}
+																onClick={() => {
+																	setRejectTarget(p);
+																	setRejectReason("");
+																}}
+																className="text-xs font-semibold rounded-none shadow-none"
+															>
+																<XCircle className="h-3.5 w-3.5 mr-1" />
+																Reject
+															</Button>
+														</>
+													) : (
+														<>
+															<Button
+																variant="default"
+																size="sm"
+																disabled={isPending || isApproving}
+																onClick={() => setApproveTarget(p)}
+																className="text-xs font-semibold rounded-none shadow-none bg-emerald-600 hover:bg-emerald-700 text-white"
+															>
+																<CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+																Approve
+															</Button>
+
+															<Button
+																variant="destructive"
+																size="sm"
+																disabled={isPending}
+																onClick={() => {
+																	setRejectTarget(p);
+																	setRejectReason("");
+																}}
+																className="text-xs font-semibold rounded-none shadow-none"
+															>
+																<XCircle className="h-3.5 w-3.5 mr-1" />
+																Reject
+															</Button>
+														</>
+													)}
 												</div>
-
-												<Button
-													variant="default"
-													size="sm"
-													disabled={isPending || isApproving}
-													onClick={() => setApproveTarget(p)}
-													className="text-xs font-semibold rounded-none shadow-none bg-emerald-600 hover:bg-emerald-700 text-white"
-												>
-													<CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-													Approve
-												</Button>
-
-												<Button
-													variant="destructive"
-													size="sm"
-													disabled={isPending}
-													onClick={() => {
-														setRejectTarget(p);
-														setRejectReason("");
-													}}
-													className="text-xs font-semibold rounded-none shadow-none"
-												>
-													<XCircle className="h-3.5 w-3.5 mr-1" />
-													Reject
-												</Button>
 											</div>
-										</div>
-									))}
+										);
+									})}
 								</div>
 							)}
 						</CardContent>
@@ -544,6 +632,11 @@ export function AdminWalletsContent({
 													<span className="font-mono text-muted-foreground truncate">
 														{p.reference}
 													</span>
+													{p.providerReference && (
+														<span className="font-mono text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5">
+															{p.providerReference}
+														</span>
+													)}
 												</div>
 
 												<p className="font-bold text-foreground mt-1">
@@ -555,14 +648,44 @@ export function AdminWalletsContent({
 												</p>
 											</div>
 
-											<div className="text-right shrink-0">
-												<p className="text-sm font-bold text-foreground font-mono">
-													{formatAmount(p.amount, p.currency)}
-												</p>
-												{p.approver && (
-													<p className="text-[10px] text-muted-foreground">
-														Approved by: {p.approver.fullName}
+											<div className="flex items-center gap-3 shrink-0">
+												<div className="text-right">
+													<p className="text-sm font-bold text-foreground font-mono">
+														{formatAmount(p.amount, p.currency)}
 													</p>
+													{p.approver && (
+														<p className="text-[10px] text-muted-foreground">
+															Approved by: {p.approver.fullName}
+														</p>
+													)}
+												</div>
+
+												{p.status === "processing" && (
+													<div className="flex items-center gap-1.5">
+														<Button
+															variant="outline"
+															size="sm"
+															disabled={isPending}
+															onClick={() => {
+																setOtpTarget({ payout: p, transferCode: p.providerReference || "" });
+																setOtpValue("");
+															}}
+															className="text-[11px] h-7 px-2 font-semibold rounded-none shadow-none text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
+														>
+															<KeyRound className="h-3 w-3 mr-1" />
+															OTP
+														</Button>
+														<Button
+															variant="ghost"
+															size="sm"
+															disabled={isPending || syncingId === p.id}
+															onClick={() => handleSyncPayout(p)}
+															className="text-[11px] h-7 px-2 font-semibold rounded-none shadow-none text-muted-foreground hover:text-foreground"
+															title="Sync status"
+														>
+															<RotateCw className={`h-3 w-3 ${syncingId === p.id ? "animate-spin" : ""}`} />
+														</Button>
+													</div>
 												)}
 											</div>
 										</div>

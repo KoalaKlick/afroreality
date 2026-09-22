@@ -1040,3 +1040,58 @@ export async function adminRejectPayout(data: {
 		return { success: false, error: err?.message || "Failed to reject payout" };
 	}
 }
+
+/**
+ * Super Admin: Sync a payout's status directly with Paystack API.
+ */
+export async function adminSyncPayoutStatus(data: {
+	payoutId: string;
+	reference: string;
+}): Promise<{ success: boolean; message: string; status?: string }> {
+	try {
+		await requirePlatformAdmin();
+		const { verifyPaystackTransfer } = await import("./paystack");
+		const { fulfillPayoutTransfer } = await import("./fulfillment");
+
+		const psRes = await verifyPaystackTransfer(data.reference);
+		if (!psRes.success) {
+			return { success: false, message: psRes.message || "Failed to verify with Paystack." };
+		}
+
+		const psStatus = psRes.status; // "success" | "failed" | "reversed" | "abandoned" | "pending" | "otp"
+		if (psStatus === "success") {
+			await fulfillPayoutTransfer({
+				reference: data.reference,
+				status: "completed",
+				paystackData: psRes.raw,
+			});
+			revalidatePath("/super");
+			revalidatePath("/super/wallets");
+			revalidatePath("/organization/wallet");
+			return { success: true, message: "Payout transfer confirmed successful on Paystack!", status: "completed" };
+		} else if (psStatus === "failed" || psStatus === "abandoned" || psStatus === "reversed") {
+			const mappedStatus = psStatus === "reversed" ? "reversed" : "failed";
+			await fulfillPayoutTransfer({
+				reference: data.reference,
+				status: mappedStatus,
+				paystackData: psRes.raw,
+			});
+			revalidatePath("/super");
+			revalidatePath("/super/wallets");
+			revalidatePath("/organization/wallet");
+			return { success: true, message: `Payout transfer marked as ${mappedStatus} on Paystack. Funds refunded.`, status: mappedStatus };
+		}
+
+		return {
+			success: true,
+			message: psStatus === "otp"
+				? "Transfer is awaiting OTP authorization on Paystack."
+				: `Transfer is currently ${psStatus} on Paystack.`,
+			status: psStatus,
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_SYNC_PAYOUT_ERROR]", err);
+		return { success: false, message: err?.message || "Failed to sync payout status." };
+	}
+}
+
