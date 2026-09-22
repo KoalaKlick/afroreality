@@ -426,6 +426,7 @@ exports.Prisma.FeeConfigurationScalarFieldEnum = {
   currency: 'currency',
   isActive: 'isActive',
   description: 'description',
+  organizationId: 'organizationId',
   effectiveFrom: 'effectiveFrom',
   effectiveTo: 'effectiveTo',
   createdAt: 'createdAt',

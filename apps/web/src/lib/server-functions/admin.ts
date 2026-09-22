@@ -401,3 +401,354 @@ export async function adminToggleEventUssd(data: {
 	}
 }
 
+export interface AdminFeeConfigItem {
+	id: string;
+	name: string;
+	feeType: string;
+	percentage: number | null;
+	fixedAmount: number | null;
+	minFee: number | null;
+	maxFee: number | null;
+	currency: string;
+	isActive: boolean;
+	description?: string | null;
+	organizationId?: string | null;
+	organization?: {
+		id: string;
+		name: string;
+		slug: string;
+		logoUrl?: string | null;
+	} | null;
+}
+
+export interface AdminPlatformFeesData {
+	globalFees: AdminFeeConfigItem[];
+	orgOverrides: AdminFeeConfigItem[];
+	paystackConfig: {
+		feeRate: number;
+		feeCap: number;
+	};
+	organizations: Array<{
+		id: string;
+		name: string;
+		slug: string;
+	}>;
+}
+
+/**
+ * Super Admin: Get all platform fee configurations (global defaults + per-organization overrides + gateway settings).
+ */
+export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
+	await requirePlatformAdmin();
+
+	const [globalFees, orgOverrides, gatewaySetting, organizations] = await Promise.all([
+		prisma.feeConfiguration.findMany({
+			where: { organizationId: null },
+			orderBy: [{ feeType: "asc" }, { createdAt: "desc" }],
+		}),
+		prisma.feeConfiguration.findMany({
+			where: { organizationId: { not: null } },
+			include: {
+				organization: {
+					select: { id: true, name: true, slug: true, logoUrl: true },
+				},
+			},
+			orderBy: [{ createdAt: "desc" }],
+		}),
+		prisma.platformSetting.findUnique({
+			where: { key: "payment_gateway_paystack" },
+		}),
+		prisma.organization.findMany({
+			select: { id: true, name: true, slug: true },
+			orderBy: { name: "asc" },
+		}),
+	]);
+
+	const paystackConfig = (gatewaySetting?.value as any) || {
+		feeRate: 0.0195,
+		feeCap: 100,
+	};
+
+	const serializeFeeItem = (item: any): AdminFeeConfigItem => ({
+		id: item.id,
+		name: item.name,
+		feeType: item.feeType,
+		percentage: item.percentage !== null ? Number(item.percentage) : null,
+		fixedAmount: item.fixedAmount !== null ? Number(item.fixedAmount) : null,
+		minFee: item.minFee !== null ? Number(item.minFee) : null,
+		maxFee: item.maxFee !== null ? Number(item.maxFee) : null,
+		currency: item.currency,
+		isActive: item.isActive,
+		description: item.description,
+		organizationId: item.organizationId,
+		organization: item.organization,
+	});
+
+	return {
+		globalFees: globalFees.map(serializeFeeItem),
+		orgOverrides: orgOverrides.map(serializeFeeItem),
+		paystackConfig: {
+			feeRate: typeof paystackConfig.feeRate === "number" ? paystackConfig.feeRate : 0.0195,
+			feeCap: typeof paystackConfig.feeCap === "number" ? paystackConfig.feeCap : 100,
+		},
+		organizations,
+	};
+}
+
+/**
+ * Super Admin: Save or update a global platform fee configuration.
+ */
+export async function adminSaveGlobalFee(data: {
+	feeType: string;
+	name?: string;
+	percentage: number;
+	fixedAmount: number;
+	minFee?: number | null;
+	maxFee?: number | null;
+	isActive?: boolean;
+	description?: string;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const adminState = await requirePlatformAdmin();
+
+		const existing = await prisma.feeConfiguration.findFirst({
+			where: {
+				organizationId: null,
+				feeType: data.feeType,
+			},
+		});
+
+		if (existing) {
+			await prisma.feeConfiguration.update({
+				where: { id: existing.id },
+				data: {
+					name: data.name || existing.name,
+					percentage: data.percentage,
+					fixedAmount: data.fixedAmount,
+					minFee: data.minFee ?? null,
+					maxFee: data.maxFee ?? null,
+					isActive: data.isActive ?? true,
+					description: data.description ?? existing.description,
+					updatedAt: new Date(),
+				},
+			});
+		} else {
+			await prisma.feeConfiguration.create({
+				data: {
+					name: data.name || `Global ${data.feeType.toUpperCase()} Fee`,
+					feeType: data.feeType,
+					percentage: data.percentage,
+					fixedAmount: data.fixedAmount,
+					minFee: data.minFee ?? null,
+					maxFee: data.maxFee ?? null,
+					isActive: data.isActive ?? true,
+					currency: "GHS",
+					description: data.description || `Global platform fee rule for ${data.feeType}`,
+				},
+			});
+		}
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+
+		return {
+			success: true,
+			message: `Global ${data.feeType} fee configuration saved successfully.`,
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_SAVE_GLOBAL_FEE_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to save global fee configuration" };
+	}
+}
+
+/**
+ * Super Admin: Set a custom fee override for a specific organization.
+ */
+export async function adminSetOrganizationFeeOverride(data: {
+	organizationId: string;
+	feeType: string;
+	name?: string;
+	percentage: number;
+	fixedAmount: number;
+	minFee?: number | null;
+	maxFee?: number | null;
+	isActive?: boolean;
+	description?: string;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const adminState = await requirePlatformAdmin();
+
+		const org = await prisma.organization.findUnique({
+			where: { id: data.organizationId },
+			select: { id: true, name: true },
+		});
+
+		if (!org) {
+			return { success: false, error: "Organization not found" };
+		}
+
+		const existing = await prisma.feeConfiguration.findFirst({
+			where: {
+				organizationId: data.organizationId,
+				feeType: data.feeType,
+			},
+		});
+
+		if (existing) {
+			await prisma.feeConfiguration.update({
+				where: { id: existing.id },
+				data: {
+					name: data.name || `${org.name} - ${data.feeType.toUpperCase()} Fee`,
+					percentage: data.percentage,
+					fixedAmount: data.fixedAmount,
+					minFee: data.minFee ?? null,
+					maxFee: data.maxFee ?? null,
+					isActive: data.isActive ?? true,
+					description: data.description ?? existing.description,
+					updatedAt: new Date(),
+				},
+			});
+		} else {
+			await prisma.feeConfiguration.create({
+				data: {
+					organizationId: data.organizationId,
+					name: data.name || `${org.name} - ${data.feeType.toUpperCase()} Fee`,
+					feeType: data.feeType,
+					percentage: data.percentage,
+					fixedAmount: data.fixedAmount,
+					minFee: data.minFee ?? null,
+					maxFee: data.maxFee ?? null,
+					isActive: data.isActive ?? true,
+					currency: "GHS",
+					description: data.description || `Custom fee override for ${org.name}`,
+				},
+			});
+		}
+
+		await prisma.activityLog
+			.create({
+				data: {
+					organizationId: data.organizationId,
+					userId: adminState.userId,
+					action: "organization.fee_override_set",
+					entityType: "fee_configuration",
+					description: `Custom fee override set for ${data.feeType}: ${data.percentage}% + GHS ${data.fixedAmount}`,
+					metadata: {
+						adminEmail: adminState.email,
+						feeType: data.feeType,
+						percentage: data.percentage,
+						fixedAmount: data.fixedAmount,
+					},
+				},
+			})
+			.catch(() => {});
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+		revalidatePath("/super/organizers");
+
+		return {
+			success: true,
+			message: `Custom fee override for ${org.name} (${data.feeType}) saved.`,
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_SET_ORG_FEE_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to set organization fee override" };
+	}
+}
+
+/**
+ * Super Admin: Delete an organization fee override (reverting them back to platform global default).
+ */
+export async function adminDeleteOrganizationFeeOverride(data: {
+	id: string;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const adminState = await requirePlatformAdmin();
+
+		const record = await prisma.feeConfiguration.findUnique({
+			where: { id: data.id },
+		});
+
+		if (!record) {
+			return { success: false, error: "Fee override record not found" };
+		}
+
+		await prisma.feeConfiguration.delete({
+			where: { id: data.id },
+		});
+
+		if (record.organizationId) {
+			await prisma.activityLog
+				.create({
+					data: {
+						organizationId: record.organizationId,
+						userId: adminState.userId,
+						action: "organization.fee_override_removed",
+						entityType: "fee_configuration",
+						description: `Custom fee override for ${record.feeType} deleted; organization reverted to platform default`,
+						metadata: { adminEmail: adminState.email, feeType: record.feeType },
+					},
+				})
+				.catch(() => {});
+		}
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+		revalidatePath("/super/organizers");
+
+		return {
+			success: true,
+			message: "Fee override removed. Organization reverted to global platform default.",
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_DELETE_ORG_FEE_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to delete organization fee override" };
+	}
+}
+
+/**
+ * Super Admin: Update payment gateway (Paystack) rate and cap settings.
+ */
+export async function adminUpdatePaystackGatewaySettings(data: {
+	feeRate: number; // e.g. 0.0195 or 1.95
+	feeCap: number; // e.g. 100
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		await requirePlatformAdmin();
+
+		const normalizedRate = data.feeRate > 1 ? data.feeRate / 100 : data.feeRate;
+
+		await prisma.platformSetting.upsert({
+			where: { key: "payment_gateway_paystack" },
+			create: {
+				key: "payment_gateway_paystack",
+				value: {
+					feeRate: normalizedRate,
+					feeCap: data.feeCap,
+				},
+				description: "Paystack Ghana gateway fee rate and surcharge cap",
+			},
+			update: {
+				value: {
+					feeRate: normalizedRate,
+					feeCap: data.feeCap,
+				},
+				updatedAt: new Date(),
+			},
+		});
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+
+		return {
+			success: true,
+			message: "Paystack gateway settings updated successfully.",
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_UPDATE_GATEWAY_SETTINGS_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to update gateway settings" };
+	}
+}
+
+

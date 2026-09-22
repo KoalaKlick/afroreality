@@ -647,8 +647,10 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 			clearedEarnings = orgNetShare;
 		}
 
+		const completedDebits = wallet?.transactions?.filter((t) => t.type === "debit") || [];
+		const completedDebitTotal = Math.round(completedDebits.reduce((sum, t) => sum + Number(t.amount || 0), 0) * 100) / 100;
 		const pendingDebits = Number(wallet?.pendingDebits || 0);
-		const availableBalance = Math.round(Math.max(0, clearedEarnings - pendingDebits) * 100) / 100;
+		const availableBalance = Math.round(Math.max(0, clearedEarnings - completedDebitTotal - pendingDebits) * 100) / 100;
 		const roundedPendingClearance = Math.round(pendingClearance * 100) / 100;
 
 		return {

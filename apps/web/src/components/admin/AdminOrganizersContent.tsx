@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import Link from "next/link";
 import {
 	Building2,
 	Users,
@@ -14,6 +15,7 @@ import {
 	Eye,
 	SlidersHorizontal,
 	TrendingUp,
+	Percent,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -489,6 +491,25 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 													</span>
 												</div>
 											</div>
+										</div>
+
+										{/* Platform Fee Configuration Banner */}
+										<div className="p-3 bg-muted/40 border border-border flex items-center justify-between text-xs rounded-none shadow-none">
+											<div>
+												<span className="font-bold text-foreground block">Platform Fee Rates</span>
+												<span className="text-[11px] text-muted-foreground">Manage custom rate overrides or view global baseline fees</span>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												asChild
+												className="text-xs font-semibold h-7 rounded-none hover:bg-primary hover:text-primary-foreground border-border"
+											>
+												<Link href="/super/fees">
+													<Percent className="h-3 w-3 mr-1 text-primary" />
+													Configure Fees
+												</Link>
+											</Button>
 										</div>
 
 										{selectedOrg.wallet ? (

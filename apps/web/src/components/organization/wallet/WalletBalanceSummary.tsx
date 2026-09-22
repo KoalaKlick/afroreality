@@ -6,6 +6,7 @@ import { SHARED_FINANCIAL_STATS, StatCard, statIcons } from "@/components/event/
 interface WalletBalanceSummaryProps {
 	readonly organizationId: string;
 	readonly availableBalance?: number;
+	readonly ledgerBalance?: number;
 	readonly pendingBalance?: number;
 	readonly totalRevenue?: number;
 	readonly totalWithdrawn?: number;
@@ -15,6 +16,7 @@ interface WalletBalanceSummaryProps {
 
 export function WalletBalanceSummary({
 	availableBalance = 0,
+	ledgerBalance,
 	pendingBalance = 0,
 	totalRevenue = 0,
 	totalWithdrawn = 0,
@@ -23,6 +25,12 @@ export function WalletBalanceSummary({
 }: WalletBalanceSummaryProps) {
 	const balanceIcon = currency === "EUR" ? statIcons.euro : statIcons.cedi;
 
+	const balanceDescription = isLocked
+		? "Payouts suspended (Frozen)"
+		: ledgerBalance !== undefined && Math.abs(ledgerBalance - availableBalance) > 0.009
+			? `Ready to withdraw • Ledger: ${currency} ${ledgerBalance.toFixed(2)}`
+			: "Ready for withdrawal / payout";
+
 	return (
 		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			{/* 1. Available Balance */}
@@ -30,7 +38,7 @@ export function WalletBalanceSummary({
 				label={SHARED_FINANCIAL_STATS.availableBalance.label}
 				value={`${currency} ${availableBalance.toFixed(2)}`}
 				iconSrc={balanceIcon}
-				description={isLocked ? "Payouts suspended (Frozen)" : "Ready for withdrawal / payout"}
+				description={balanceDescription}
 			/>
 
 			{/* 2. Pending Clearance */}

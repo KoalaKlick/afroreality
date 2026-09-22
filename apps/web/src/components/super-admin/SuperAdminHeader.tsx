@@ -16,6 +16,7 @@ export function SuperAdminHeader() {
 		if (pathname.startsWith("/super/organizers")) return "Organizers & Members Directory";
 		if (pathname.startsWith("/super/events")) return "Events Schedule & Financial Oversight";
 		if (pathname.startsWith("/super/wallets")) return "Wallets, Escrow & Payouts";
+		if (pathname.startsWith("/super/fees")) return "Platform Fees & Gateway Surcharges";
 		if (pathname.startsWith("/super/admins")) return "Platform Admin Users & Delegation";
 		return "Super Admin Platform";
 	};

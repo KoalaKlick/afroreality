@@ -12,6 +12,7 @@ import {
 	UserCheck,
 	ArrowLeft,
 	Sparkles,
+	Percent,
 	MessageSquare,
 } from "lucide-react";
 import {
@@ -65,6 +66,11 @@ const navItems = [
 		title: "Wallets & Payouts",
 		href: "/super/wallets",
 		icon: Wallet,
+	},
+	{
+		title: "Platform Fees",
+		href: "/super/fees",
+		icon: Percent,
 	},
 	{
 		title: "Platform Admin Users",

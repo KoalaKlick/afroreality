@@ -5,6 +5,7 @@ import { paystack } from "@/lib/paystack";
 import { createTicketToken, verifyTicketToken } from "@/lib/ticket-crypto";
 import { getFrontendBaseUrl } from "@/lib/utils";
 import { computeChargeAmount, toPesewas, round2 } from "@/lib/utils/pricing";
+import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 import { submitPublicNomination } from "@/lib/server-functions/voting-options";
 
@@ -151,15 +152,16 @@ export async function initiatePublicTicketCheckout({
 
 		const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-		// Compute Platform Fee & Paystack Surcharge based on single source of truth
-		const feeCalc = computeChargeAmount(baseAmount, "ticket");
+		const organization = ticketType.event.organization;
+		const subaccountCode = (organization as any)?.subaccountCode || null;
+
+		// Compute Platform Fee & Paystack Surcharge based on database single source of truth (checking org override)
+		const feeCalc = await computeDynamicChargeAmount(baseAmount, "ticket", "GHS", organization?.id);
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
 		const platformFee = feeCalc.platformFee;
 		const organizerReceives = feeCalc.organizerReceives;
 		const splitChargePesewas = feeCalc.splitChargePesewas;
-		const organization = ticketType.event.organization;
-		const subaccountCode = (organization as any)?.subaccountCode || null;
 
 		// Create Pending Ticket Order
 		const order = await prisma.ticketOrder.create({
@@ -522,15 +524,15 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 
 		const sanitizedPhone = (voterPhone || "").replace(/[^0-9]/g, "") || "voter";
 		const paymentEmail = voterEmail?.trim() || `${sanitizedPhone}@customer.fextiva.com`;
+		const organization = category.event.organization;
+		const subaccountCode = (organization as any)?.subaccountCode || null;
 
-		const feeCalc = computeChargeAmount(baseAmount, "vote");
+		const feeCalc = await computeDynamicChargeAmount(baseAmount, "vote", "GHS", organization?.id);
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
 		const platformFee = feeCalc.platformFee;
 		const organizerReceives = feeCalc.organizerReceives;
 		const splitChargePesewas = feeCalc.splitChargePesewas;
-		const organization = category.event.organization;
-		const subaccountCode = (organization as any)?.subaccountCode || null;
 
 		const callbackUrl = `${getFrontendBaseUrl()}/${organization.slug}/event/${category.event.slug}/category/${categoryId}`;
 
@@ -723,7 +725,7 @@ export async function initiatePublicNomination({
 			nomineeEmail?.trim() ||
 			(nominatorPhone ? `${nominatorPhone.replace(/[^0-9]/g, "")}@customer.fextiva.com` : `nom-${Date.now().toString().slice(-6)}@pay.fextiva.com`);
 
-		const feeCalc = computeChargeAmount(nominationPrice, "nomination");
+		const feeCalc = await computeDynamicChargeAmount(nominationPrice, "nomination");
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
 		const platformFee = feeCalc.platformFee;

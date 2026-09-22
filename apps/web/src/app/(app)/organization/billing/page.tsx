@@ -22,6 +22,7 @@ import {
 
 import { cookies } from "next/headers";
 import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
+import { getDynamicFeeConfig } from "@/lib/server-functions/fee-service";
 
 export default async function OrgBillingPage({
 	searchParams,
@@ -59,6 +60,19 @@ export default async function OrgBillingPage({
 	const communicationCredits = Number(profile?.communicationCredits || 0);
 	const isVerifiedPartner = profile?.isVerifiedPartner || false;
 
+	// Fetch dynamic database-configured fee rates for this specific organization
+	const [voteFee, ticketFee, nominationFee] = await Promise.all([
+		getDynamicFeeConfig("vote", organization.id),
+		getDynamicFeeConfig("ticket", organization.id),
+		getDynamicFeeConfig("nomination", organization.id),
+	]);
+
+	const orgFees = {
+		vote: voteFee,
+		ticket: ticketFee,
+		nomination: nominationFee,
+	};
+
 	return (
 		<>
 			<PageHeader
@@ -87,9 +101,9 @@ export default async function OrgBillingPage({
 					communicationCredits={communicationCredits}
 				/>
 
-				<PlatformFeesCard isVerifiedPartner={isVerifiedPartner} />
+				<PlatformFeesCard isVerifiedPartner={isVerifiedPartner} fees={orgFees} />
 
-				<FeeCalculator />
+				<FeeCalculator fees={orgFees} />
 
 				<CommunicationCreditsCard balance={communicationCredits} />
 			</div>

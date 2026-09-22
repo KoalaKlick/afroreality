@@ -4650,6 +4650,7 @@ export namespace Prisma {
     team: number
     socialLinks: number
     wallets: number
+    feeConfigurations: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4660,6 +4661,7 @@ export namespace Prisma {
     team?: boolean | OrganizationCountOutputTypeCountTeamArgs
     socialLinks?: boolean | OrganizationCountOutputTypeCountSocialLinksArgs
     wallets?: boolean | OrganizationCountOutputTypeCountWalletsArgs
+    feeConfigurations?: boolean | OrganizationCountOutputTypeCountFeeConfigurationsArgs
   }
 
   // Custom InputTypes
@@ -4720,6 +4722,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountWalletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WalletWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountFeeConfigurationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: FeeConfigurationWhereInput
   }
 
 
@@ -17415,6 +17424,7 @@ export namespace Prisma {
     socialLinks?: boolean | Organization$socialLinksArgs<ExtArgs>
     creator?: boolean | Organization$creatorArgs<ExtArgs>
     wallets?: boolean | Organization$walletsArgs<ExtArgs>
+    feeConfigurations?: boolean | Organization$feeConfigurationsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -17505,6 +17515,7 @@ export namespace Prisma {
     socialLinks?: boolean | Organization$socialLinksArgs<ExtArgs>
     creator?: boolean | Organization$creatorArgs<ExtArgs>
     wallets?: boolean | Organization$walletsArgs<ExtArgs>
+    feeConfigurations?: boolean | Organization$feeConfigurationsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17525,6 +17536,7 @@ export namespace Prisma {
       socialLinks: Prisma.$OrganizationSocialLinkPayload<ExtArgs>[]
       creator: Prisma.$ProfilePayload<ExtArgs> | null
       wallets: Prisma.$WalletPayload<ExtArgs>[]
+      feeConfigurations: Prisma.$FeeConfigurationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17951,6 +17963,7 @@ export namespace Prisma {
     socialLinks<T extends Organization$socialLinksArgs<ExtArgs> = {}>(args?: Subset<T, Organization$socialLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationSocialLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     creator<T extends Organization$creatorArgs<ExtArgs> = {}>(args?: Subset<T, Organization$creatorArgs<ExtArgs>>): Prisma__ProfileClient<$Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     wallets<T extends Organization$walletsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$walletsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    feeConfigurations<T extends Organization$feeConfigurationsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$feeConfigurationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FeeConfigurationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18587,6 +18600,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.feeConfigurations
+   */
+  export type Organization$feeConfigurationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the FeeConfiguration
+     */
+    select?: FeeConfigurationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the FeeConfiguration
+     */
+    omit?: FeeConfigurationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
+    where?: FeeConfigurationWhereInput
+    orderBy?: FeeConfigurationOrderByWithRelationInput | FeeConfigurationOrderByWithRelationInput[]
+    cursor?: FeeConfigurationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: FeeConfigurationScalarFieldEnum | FeeConfigurationScalarFieldEnum[]
   }
 
   /**
@@ -28504,6 +28541,7 @@ export namespace Prisma {
     currency: $Enums.CurrencyCode | null
     isActive: boolean | null
     description: string | null
+    organizationId: string | null
     effectiveFrom: Date | null
     effectiveTo: Date | null
     createdAt: Date | null
@@ -28522,6 +28560,7 @@ export namespace Prisma {
     currency: $Enums.CurrencyCode | null
     isActive: boolean | null
     description: string | null
+    organizationId: string | null
     effectiveFrom: Date | null
     effectiveTo: Date | null
     createdAt: Date | null
@@ -28541,6 +28580,7 @@ export namespace Prisma {
     currency: number
     isActive: number
     description: number
+    organizationId: number
     effectiveFrom: number
     effectiveTo: number
     createdAt: number
@@ -28575,6 +28615,7 @@ export namespace Prisma {
     currency?: true
     isActive?: true
     description?: true
+    organizationId?: true
     effectiveFrom?: true
     effectiveTo?: true
     createdAt?: true
@@ -28593,6 +28634,7 @@ export namespace Prisma {
     currency?: true
     isActive?: true
     description?: true
+    organizationId?: true
     effectiveFrom?: true
     effectiveTo?: true
     createdAt?: true
@@ -28612,6 +28654,7 @@ export namespace Prisma {
     currency?: true
     isActive?: true
     description?: true
+    organizationId?: true
     effectiveFrom?: true
     effectiveTo?: true
     createdAt?: true
@@ -28718,6 +28761,7 @@ export namespace Prisma {
     currency: $Enums.CurrencyCode
     isActive: boolean
     description: string | null
+    organizationId: string | null
     effectiveFrom: Date
     effectiveTo: Date | null
     createdAt: Date
@@ -28756,10 +28800,12 @@ export namespace Prisma {
     currency?: boolean
     isActive?: boolean
     description?: boolean
+    organizationId?: boolean
     effectiveFrom?: boolean
     effectiveTo?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    organization?: boolean | FeeConfiguration$organizationArgs<ExtArgs>
   }, ExtArgs["result"]["feeConfiguration"]>
 
   export type FeeConfigurationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -28775,10 +28821,12 @@ export namespace Prisma {
     currency?: boolean
     isActive?: boolean
     description?: boolean
+    organizationId?: boolean
     effectiveFrom?: boolean
     effectiveTo?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    organization?: boolean | FeeConfiguration$organizationArgs<ExtArgs>
   }, ExtArgs["result"]["feeConfiguration"]>
 
   export type FeeConfigurationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -28794,10 +28842,12 @@ export namespace Prisma {
     currency?: boolean
     isActive?: boolean
     description?: boolean
+    organizationId?: boolean
     effectiveFrom?: boolean
     effectiveTo?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    organization?: boolean | FeeConfiguration$organizationArgs<ExtArgs>
   }, ExtArgs["result"]["feeConfiguration"]>
 
   export type FeeConfigurationSelectScalar = {
@@ -28813,17 +28863,29 @@ export namespace Prisma {
     currency?: boolean
     isActive?: boolean
     description?: boolean
+    organizationId?: boolean
     effectiveFrom?: boolean
     effectiveTo?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type FeeConfigurationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "feeType" | "transactionCategory" | "percentage" | "fixedAmount" | "minFee" | "maxFee" | "tiers" | "currency" | "isActive" | "description" | "effectiveFrom" | "effectiveTo" | "createdAt" | "updatedAt", ExtArgs["result"]["feeConfiguration"]>
+  export type FeeConfigurationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "feeType" | "transactionCategory" | "percentage" | "fixedAmount" | "minFee" | "maxFee" | "tiers" | "currency" | "isActive" | "description" | "organizationId" | "effectiveFrom" | "effectiveTo" | "createdAt" | "updatedAt", ExtArgs["result"]["feeConfiguration"]>
+  export type FeeConfigurationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | FeeConfiguration$organizationArgs<ExtArgs>
+  }
+  export type FeeConfigurationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | FeeConfiguration$organizationArgs<ExtArgs>
+  }
+  export type FeeConfigurationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | FeeConfiguration$organizationArgs<ExtArgs>
+  }
 
   export type $FeeConfigurationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "FeeConfiguration"
-    objects: {}
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs> | null
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
@@ -28837,6 +28899,7 @@ export namespace Prisma {
       currency: $Enums.CurrencyCode
       isActive: boolean
       description: string | null
+      organizationId: string | null
       effectiveFrom: Date
       effectiveTo: Date | null
       createdAt: Date
@@ -29235,6 +29298,7 @@ export namespace Prisma {
    */
   export interface Prisma__FeeConfigurationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends FeeConfiguration$organizationArgs<ExtArgs> = {}>(args?: Subset<T, FeeConfiguration$organizationArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -29276,6 +29340,7 @@ export namespace Prisma {
     readonly currency: FieldRef<"FeeConfiguration", 'CurrencyCode'>
     readonly isActive: FieldRef<"FeeConfiguration", 'Boolean'>
     readonly description: FieldRef<"FeeConfiguration", 'String'>
+    readonly organizationId: FieldRef<"FeeConfiguration", 'String'>
     readonly effectiveFrom: FieldRef<"FeeConfiguration", 'DateTime'>
     readonly effectiveTo: FieldRef<"FeeConfiguration", 'DateTime'>
     readonly createdAt: FieldRef<"FeeConfiguration", 'DateTime'>
@@ -29297,6 +29362,10 @@ export namespace Prisma {
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
+    /**
      * Filter, which FeeConfiguration to fetch.
      */
     where: FeeConfigurationWhereUniqueInput
@@ -29315,6 +29384,10 @@ export namespace Prisma {
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
+    /**
      * Filter, which FeeConfiguration to fetch.
      */
     where: FeeConfigurationWhereUniqueInput
@@ -29332,6 +29405,10 @@ export namespace Prisma {
      * Omit specific fields from the FeeConfiguration
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
     /**
      * Filter, which FeeConfiguration to fetch.
      */
@@ -29381,6 +29458,10 @@ export namespace Prisma {
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
+    /**
      * Filter, which FeeConfiguration to fetch.
      */
     where?: FeeConfigurationWhereInput
@@ -29428,6 +29509,10 @@ export namespace Prisma {
      * Omit specific fields from the FeeConfiguration
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
     /**
      * Filter, which FeeConfigurations to fetch.
      */
@@ -29477,6 +29562,10 @@ export namespace Prisma {
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
+    /**
      * The data needed to create a FeeConfiguration.
      */
     data: XOR<FeeConfigurationCreateInput, FeeConfigurationUncheckedCreateInput>
@@ -29510,6 +29599,10 @@ export namespace Prisma {
      */
     data: FeeConfigurationCreateManyInput | FeeConfigurationCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -29524,6 +29617,10 @@ export namespace Prisma {
      * Omit specific fields from the FeeConfiguration
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
     /**
      * The data needed to update a FeeConfiguration.
      */
@@ -29576,6 +29673,10 @@ export namespace Prisma {
      * Limit how many FeeConfigurations to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -29590,6 +29691,10 @@ export namespace Prisma {
      * Omit specific fields from the FeeConfiguration
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
     /**
      * The filter to search for the FeeConfiguration to update in case it exists.
      */
@@ -29617,6 +29722,10 @@ export namespace Prisma {
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
+    /**
      * Filter which FeeConfiguration to delete.
      */
     where: FeeConfigurationWhereUniqueInput
@@ -29637,6 +29746,25 @@ export namespace Prisma {
   }
 
   /**
+   * FeeConfiguration.organization
+   */
+  export type FeeConfiguration$organizationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Organization
+     */
+    select?: OrganizationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Organization
+     */
+    omit?: OrganizationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrganizationInclude<ExtArgs> | null
+    where?: OrganizationWhereInput
+  }
+
+  /**
    * FeeConfiguration without action
    */
   export type FeeConfigurationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -29648,6 +29776,10 @@ export namespace Prisma {
      * Omit specific fields from the FeeConfiguration
      */
     omit?: FeeConfigurationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: FeeConfigurationInclude<ExtArgs> | null
   }
 
 
@@ -49820,6 +49952,7 @@ export namespace Prisma {
     currency: 'currency',
     isActive: 'isActive',
     description: 'description',
+    organizationId: 'organizationId',
     effectiveFrom: 'effectiveFrom',
     effectiveTo: 'effectiveTo',
     createdAt: 'createdAt',
@@ -51532,6 +51665,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkListRelationFilter
     creator?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
     wallets?: WalletListRelationFilter
+    feeConfigurations?: FeeConfigurationListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -51565,6 +51699,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkOrderByRelationAggregateInput
     creator?: ProfileOrderByWithRelationInput
     wallets?: WalletOrderByRelationAggregateInput
+    feeConfigurations?: FeeConfigurationOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -51601,6 +51736,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkListRelationFilter
     creator?: XOR<ProfileNullableScalarRelationFilter, ProfileWhereInput> | null
     wallets?: WalletListRelationFilter
+    feeConfigurations?: FeeConfigurationListRelationFilter
   }, "id" | "slug">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -52492,10 +52628,12 @@ export namespace Prisma {
     currency?: EnumCurrencyCodeFilter<"FeeConfiguration"> | $Enums.CurrencyCode
     isActive?: BoolFilter<"FeeConfiguration"> | boolean
     description?: StringNullableFilter<"FeeConfiguration"> | string | null
+    organizationId?: UuidNullableFilter<"FeeConfiguration"> | string | null
     effectiveFrom?: DateTimeFilter<"FeeConfiguration"> | Date | string
     effectiveTo?: DateTimeNullableFilter<"FeeConfiguration"> | Date | string | null
     createdAt?: DateTimeFilter<"FeeConfiguration"> | Date | string
     updatedAt?: DateTimeFilter<"FeeConfiguration"> | Date | string
+    organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
   }
 
   export type FeeConfigurationOrderByWithRelationInput = {
@@ -52511,10 +52649,12 @@ export namespace Prisma {
     currency?: SortOrder
     isActive?: SortOrder
     description?: SortOrderInput | SortOrder
+    organizationId?: SortOrderInput | SortOrder
     effectiveFrom?: SortOrder
     effectiveTo?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
   }
 
   export type FeeConfigurationWhereUniqueInput = Prisma.AtLeast<{
@@ -52533,10 +52673,12 @@ export namespace Prisma {
     currency?: EnumCurrencyCodeFilter<"FeeConfiguration"> | $Enums.CurrencyCode
     isActive?: BoolFilter<"FeeConfiguration"> | boolean
     description?: StringNullableFilter<"FeeConfiguration"> | string | null
+    organizationId?: UuidNullableFilter<"FeeConfiguration"> | string | null
     effectiveFrom?: DateTimeFilter<"FeeConfiguration"> | Date | string
     effectiveTo?: DateTimeNullableFilter<"FeeConfiguration"> | Date | string | null
     createdAt?: DateTimeFilter<"FeeConfiguration"> | Date | string
     updatedAt?: DateTimeFilter<"FeeConfiguration"> | Date | string
+    organization?: XOR<OrganizationNullableScalarRelationFilter, OrganizationWhereInput> | null
   }, "id">
 
   export type FeeConfigurationOrderByWithAggregationInput = {
@@ -52552,6 +52694,7 @@ export namespace Prisma {
     currency?: SortOrder
     isActive?: SortOrder
     description?: SortOrderInput | SortOrder
+    organizationId?: SortOrderInput | SortOrder
     effectiveFrom?: SortOrder
     effectiveTo?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -52579,6 +52722,7 @@ export namespace Prisma {
     currency?: EnumCurrencyCodeWithAggregatesFilter<"FeeConfiguration"> | $Enums.CurrencyCode
     isActive?: BoolWithAggregatesFilter<"FeeConfiguration"> | boolean
     description?: StringNullableWithAggregatesFilter<"FeeConfiguration"> | string | null
+    organizationId?: UuidNullableWithAggregatesFilter<"FeeConfiguration"> | string | null
     effectiveFrom?: DateTimeWithAggregatesFilter<"FeeConfiguration"> | Date | string
     effectiveTo?: DateTimeNullableWithAggregatesFilter<"FeeConfiguration"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"FeeConfiguration"> | Date | string
@@ -55278,6 +55422,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -55310,6 +55455,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -55342,6 +55488,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -55374,6 +55521,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -56382,6 +56530,7 @@ export namespace Prisma {
     effectiveTo?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    organization?: OrganizationCreateNestedOneWithoutFeeConfigurationsInput
   }
 
   export type FeeConfigurationUncheckedCreateInput = {
@@ -56397,6 +56546,7 @@ export namespace Prisma {
     currency?: $Enums.CurrencyCode
     isActive?: boolean
     description?: string | null
+    organizationId?: string | null
     effectiveFrom?: Date | string
     effectiveTo?: Date | string | null
     createdAt?: Date | string
@@ -56420,6 +56570,7 @@ export namespace Prisma {
     effectiveTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneWithoutFeeConfigurationsNestedInput
   }
 
   export type FeeConfigurationUncheckedUpdateInput = {
@@ -56435,6 +56586,7 @@ export namespace Prisma {
     currency?: EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
     isActive?: BoolFieldUpdateOperationsInput | boolean
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     effectiveFrom?: DateTimeFieldUpdateOperationsInput | Date | string
     effectiveTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56454,6 +56606,7 @@ export namespace Prisma {
     currency?: $Enums.CurrencyCode
     isActive?: boolean
     description?: string | null
+    organizationId?: string | null
     effectiveFrom?: Date | string
     effectiveTo?: Date | string | null
     createdAt?: Date | string
@@ -56492,6 +56645,7 @@ export namespace Prisma {
     currency?: EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
     isActive?: BoolFieldUpdateOperationsInput | boolean
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    organizationId?: NullableStringFieldUpdateOperationsInput | string | null
     effectiveFrom?: DateTimeFieldUpdateOperationsInput | Date | string
     effectiveTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -59395,6 +59549,12 @@ export namespace Prisma {
     none?: WalletWhereInput
   }
 
+  export type FeeConfigurationListRelationFilter = {
+    every?: FeeConfigurationWhereInput
+    some?: FeeConfigurationWhereInput
+    none?: FeeConfigurationWhereInput
+  }
+
   export type ActivityLogOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -59420,6 +59580,10 @@ export namespace Prisma {
   }
 
   export type WalletOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type FeeConfigurationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -60225,6 +60389,7 @@ export namespace Prisma {
     currency?: SortOrder
     isActive?: SortOrder
     description?: SortOrder
+    organizationId?: SortOrder
     effectiveFrom?: SortOrder
     effectiveTo?: SortOrder
     createdAt?: SortOrder
@@ -60250,6 +60415,7 @@ export namespace Prisma {
     currency?: SortOrder
     isActive?: SortOrder
     description?: SortOrder
+    organizationId?: SortOrder
     effectiveFrom?: SortOrder
     effectiveTo?: SortOrder
     createdAt?: SortOrder
@@ -60268,6 +60434,7 @@ export namespace Prisma {
     currency?: SortOrder
     isActive?: SortOrder
     description?: SortOrder
+    organizationId?: SortOrder
     effectiveFrom?: SortOrder
     effectiveTo?: SortOrder
     createdAt?: SortOrder
@@ -62427,6 +62594,13 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
+  export type FeeConfigurationCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<FeeConfigurationCreateWithoutOrganizationInput, FeeConfigurationUncheckedCreateWithoutOrganizationInput> | FeeConfigurationCreateWithoutOrganizationInput[] | FeeConfigurationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: FeeConfigurationCreateOrConnectWithoutOrganizationInput | FeeConfigurationCreateOrConnectWithoutOrganizationInput[]
+    createMany?: FeeConfigurationCreateManyOrganizationInputEnvelope
+    connect?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+  }
+
   export type ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput> | ActivityLogCreateWithoutOrganizationInput[] | ActivityLogUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: ActivityLogCreateOrConnectWithoutOrganizationInput | ActivityLogCreateOrConnectWithoutOrganizationInput[]
@@ -62474,6 +62648,13 @@ export namespace Prisma {
     connectOrCreate?: WalletCreateOrConnectWithoutOrganizationInput | WalletCreateOrConnectWithoutOrganizationInput[]
     createMany?: WalletCreateManyOrganizationInputEnvelope
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+  }
+
+  export type FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<FeeConfigurationCreateWithoutOrganizationInput, FeeConfigurationUncheckedCreateWithoutOrganizationInput> | FeeConfigurationCreateWithoutOrganizationInput[] | FeeConfigurationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: FeeConfigurationCreateOrConnectWithoutOrganizationInput | FeeConfigurationCreateOrConnectWithoutOrganizationInput[]
+    createMany?: FeeConfigurationCreateManyOrganizationInputEnvelope
+    connect?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
   }
 
   export type ActivityLogUpdateManyWithoutOrganizationNestedInput = {
@@ -62584,6 +62765,20 @@ export namespace Prisma {
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
   }
 
+  export type FeeConfigurationUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<FeeConfigurationCreateWithoutOrganizationInput, FeeConfigurationUncheckedCreateWithoutOrganizationInput> | FeeConfigurationCreateWithoutOrganizationInput[] | FeeConfigurationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: FeeConfigurationCreateOrConnectWithoutOrganizationInput | FeeConfigurationCreateOrConnectWithoutOrganizationInput[]
+    upsert?: FeeConfigurationUpsertWithWhereUniqueWithoutOrganizationInput | FeeConfigurationUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: FeeConfigurationCreateManyOrganizationInputEnvelope
+    set?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    disconnect?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    delete?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    connect?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    update?: FeeConfigurationUpdateWithWhereUniqueWithoutOrganizationInput | FeeConfigurationUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: FeeConfigurationUpdateManyWithWhereWithoutOrganizationInput | FeeConfigurationUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: FeeConfigurationScalarWhereInput | FeeConfigurationScalarWhereInput[]
+  }
+
   export type ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<ActivityLogCreateWithoutOrganizationInput, ActivityLogUncheckedCreateWithoutOrganizationInput> | ActivityLogCreateWithoutOrganizationInput[] | ActivityLogUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: ActivityLogCreateOrConnectWithoutOrganizationInput | ActivityLogCreateOrConnectWithoutOrganizationInput[]
@@ -62680,6 +62875,20 @@ export namespace Prisma {
     update?: WalletUpdateWithWhereUniqueWithoutOrganizationInput | WalletUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: WalletUpdateManyWithWhereWithoutOrganizationInput | WalletUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
+  }
+
+  export type FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<FeeConfigurationCreateWithoutOrganizationInput, FeeConfigurationUncheckedCreateWithoutOrganizationInput> | FeeConfigurationCreateWithoutOrganizationInput[] | FeeConfigurationUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: FeeConfigurationCreateOrConnectWithoutOrganizationInput | FeeConfigurationCreateOrConnectWithoutOrganizationInput[]
+    upsert?: FeeConfigurationUpsertWithWhereUniqueWithoutOrganizationInput | FeeConfigurationUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: FeeConfigurationCreateManyOrganizationInputEnvelope
+    set?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    disconnect?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    delete?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    connect?: FeeConfigurationWhereUniqueInput | FeeConfigurationWhereUniqueInput[]
+    update?: FeeConfigurationUpdateWithWhereUniqueWithoutOrganizationInput | FeeConfigurationUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: FeeConfigurationUpdateManyWithWhereWithoutOrganizationInput | FeeConfigurationUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: FeeConfigurationScalarWhereInput | FeeConfigurationScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutTeamInput = {
@@ -63174,8 +63383,24 @@ export namespace Prisma {
     update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutPayoutsInput, WalletUpdateWithoutPayoutsInput>, WalletUncheckedUpdateWithoutPayoutsInput>
   }
 
+  export type OrganizationCreateNestedOneWithoutFeeConfigurationsInput = {
+    create?: XOR<OrganizationCreateWithoutFeeConfigurationsInput, OrganizationUncheckedCreateWithoutFeeConfigurationsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutFeeConfigurationsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
   export type NullableEnumTransactionCategoryFieldUpdateOperationsInput = {
     set?: $Enums.TransactionCategory | null
+  }
+
+  export type OrganizationUpdateOneWithoutFeeConfigurationsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutFeeConfigurationsInput, OrganizationUncheckedCreateWithoutFeeConfigurationsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutFeeConfigurationsInput
+    upsert?: OrganizationUpsertWithoutFeeConfigurationsInput
+    disconnect?: OrganizationWhereInput | boolean
+    delete?: OrganizationWhereInput | boolean
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutFeeConfigurationsInput, OrganizationUpdateWithoutFeeConfigurationsInput>, OrganizationUncheckedUpdateWithoutFeeConfigurationsInput>
   }
 
   export type CommissionCreateNestedManyWithoutPromoterInput = {
@@ -65455,6 +65680,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutActivityLogsInput = {
@@ -65486,6 +65712,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutActivityLogsInput = {
@@ -65608,6 +65835,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutActivityLogsInput = {
@@ -65639,6 +65867,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProfileUpsertWithoutActivityLogsInput = {
@@ -65972,6 +66201,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutEventsInput = {
@@ -66003,6 +66233,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutEventsInput = {
@@ -66604,6 +66835,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutEventsInput = {
@@ -66635,6 +66867,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type TicketOrderUpsertWithWhereUniqueWithoutEventInput = {
@@ -68583,6 +68816,54 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type FeeConfigurationCreateWithoutOrganizationInput = {
+    id?: string
+    name: string
+    feeType: string
+    transactionCategory?: $Enums.TransactionCategory | null
+    percentage?: Decimal | DecimalJsLike | number | string | null
+    fixedAmount?: Decimal | DecimalJsLike | number | string | null
+    minFee?: Decimal | DecimalJsLike | number | string | null
+    maxFee?: Decimal | DecimalJsLike | number | string | null
+    tiers?: NullableJsonNullValueInput | InputJsonValue
+    currency?: $Enums.CurrencyCode
+    isActive?: boolean
+    description?: string | null
+    effectiveFrom?: Date | string
+    effectiveTo?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FeeConfigurationUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    name: string
+    feeType: string
+    transactionCategory?: $Enums.TransactionCategory | null
+    percentage?: Decimal | DecimalJsLike | number | string | null
+    fixedAmount?: Decimal | DecimalJsLike | number | string | null
+    minFee?: Decimal | DecimalJsLike | number | string | null
+    maxFee?: Decimal | DecimalJsLike | number | string | null
+    tiers?: NullableJsonNullValueInput | InputJsonValue
+    currency?: $Enums.CurrencyCode
+    isActive?: boolean
+    description?: string | null
+    effectiveFrom?: Date | string
+    effectiveTo?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type FeeConfigurationCreateOrConnectWithoutOrganizationInput = {
+    where: FeeConfigurationWhereUniqueInput
+    create: XOR<FeeConfigurationCreateWithoutOrganizationInput, FeeConfigurationUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type FeeConfigurationCreateManyOrganizationInputEnvelope = {
+    data: FeeConfigurationCreateManyOrganizationInput | FeeConfigurationCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ActivityLogUpsertWithWhereUniqueWithoutOrganizationInput = {
     where: ActivityLogWhereUniqueInput
     update: XOR<ActivityLogUpdateWithoutOrganizationInput, ActivityLogUncheckedUpdateWithoutOrganizationInput>
@@ -68904,6 +69185,45 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
 
+  export type FeeConfigurationUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: FeeConfigurationWhereUniqueInput
+    update: XOR<FeeConfigurationUpdateWithoutOrganizationInput, FeeConfigurationUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<FeeConfigurationCreateWithoutOrganizationInput, FeeConfigurationUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type FeeConfigurationUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: FeeConfigurationWhereUniqueInput
+    data: XOR<FeeConfigurationUpdateWithoutOrganizationInput, FeeConfigurationUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type FeeConfigurationUpdateManyWithWhereWithoutOrganizationInput = {
+    where: FeeConfigurationScalarWhereInput
+    data: XOR<FeeConfigurationUpdateManyMutationInput, FeeConfigurationUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type FeeConfigurationScalarWhereInput = {
+    AND?: FeeConfigurationScalarWhereInput | FeeConfigurationScalarWhereInput[]
+    OR?: FeeConfigurationScalarWhereInput[]
+    NOT?: FeeConfigurationScalarWhereInput | FeeConfigurationScalarWhereInput[]
+    id?: UuidFilter<"FeeConfiguration"> | string
+    name?: StringFilter<"FeeConfiguration"> | string
+    feeType?: StringFilter<"FeeConfiguration"> | string
+    transactionCategory?: EnumTransactionCategoryNullableFilter<"FeeConfiguration"> | $Enums.TransactionCategory | null
+    percentage?: DecimalNullableFilter<"FeeConfiguration"> | Decimal | DecimalJsLike | number | string | null
+    fixedAmount?: DecimalNullableFilter<"FeeConfiguration"> | Decimal | DecimalJsLike | number | string | null
+    minFee?: DecimalNullableFilter<"FeeConfiguration"> | Decimal | DecimalJsLike | number | string | null
+    maxFee?: DecimalNullableFilter<"FeeConfiguration"> | Decimal | DecimalJsLike | number | string | null
+    tiers?: JsonNullableFilter<"FeeConfiguration">
+    currency?: EnumCurrencyCodeFilter<"FeeConfiguration"> | $Enums.CurrencyCode
+    isActive?: BoolFilter<"FeeConfiguration"> | boolean
+    description?: StringNullableFilter<"FeeConfiguration"> | string | null
+    organizationId?: UuidNullableFilter<"FeeConfiguration"> | string | null
+    effectiveFrom?: DateTimeFilter<"FeeConfiguration"> | Date | string
+    effectiveTo?: DateTimeNullableFilter<"FeeConfiguration"> | Date | string | null
+    createdAt?: DateTimeFilter<"FeeConfiguration"> | Date | string
+    updatedAt?: DateTimeFilter<"FeeConfiguration"> | Date | string
+  }
+
   export type OrganizationCreateWithoutTeamInput = {
     id?: string
     name: string
@@ -68933,6 +69253,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutTeamInput = {
@@ -68964,6 +69285,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutTeamInput = {
@@ -69086,6 +69408,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutTeamInput = {
@@ -69117,6 +69440,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProfileUpsertWithoutTeamMembershipsInput = {
@@ -69304,6 +69628,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -69335,6 +69660,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -69463,6 +69789,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -69494,6 +69821,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateWithoutRequestsInput = {
@@ -69525,6 +69853,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutRequestsInput = {
@@ -69556,6 +69885,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutRequestsInput = {
@@ -69753,6 +70083,7 @@ export namespace Prisma {
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutRequestsInput = {
@@ -69784,6 +70115,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProfileUpsertWithoutResolvedRequestsInput = {
@@ -69977,6 +70309,7 @@ export namespace Prisma {
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutSocialLinksInput = {
@@ -70008,6 +70341,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutSocialLinksInput = {
@@ -70055,6 +70389,7 @@ export namespace Prisma {
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutSocialLinksInput = {
@@ -70086,6 +70421,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type PayoutCreateWithoutWalletInput = {
@@ -70239,6 +70575,7 @@ export namespace Prisma {
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutWalletsInput = {
@@ -70270,6 +70607,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutWalletsInput = {
@@ -70483,6 +70821,7 @@ export namespace Prisma {
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutWalletsInput = {
@@ -70514,6 +70853,7 @@ export namespace Prisma {
     invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type ProfileUpsertWithoutWalletsInput = {
@@ -71363,6 +71703,150 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
+  }
+
+  export type OrganizationCreateWithoutFeeConfigurationsInput = {
+    id?: string
+    name: string
+    slug: string
+    description?: string | null
+    logoUrl?: string | null
+    bannerUrl?: string | null
+    primaryColor?: string
+    secondaryColor?: string
+    faviconUrl?: string | null
+    websiteUrl?: string | null
+    contactEmail?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    phone?: string | null
+    paystackAccountName?: string | null
+    paystackAccountNumber?: string | null
+    paystackBankCode?: string | null
+    subaccountCode?: string | null
+    tertiaryColor?: string
+    allowJoinRequests?: boolean
+    autoPayout?: boolean
+    activityLogs?: ActivityLogCreateNestedManyWithoutOrganizationInput
+    events?: EventCreateNestedManyWithoutOrganizationInput
+    requests?: MembershipRequestCreateNestedManyWithoutOrganizationInput
+    invitations?: OrganizationInvitationCreateNestedManyWithoutOrganizationInput
+    team?: TeamMemberCreateNestedManyWithoutOrganizationInput
+    socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
+    creator?: ProfileCreateNestedOneWithoutCreatedOrganizationsInput
+    wallets?: WalletCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutFeeConfigurationsInput = {
+    id?: string
+    name: string
+    slug: string
+    description?: string | null
+    logoUrl?: string | null
+    bannerUrl?: string | null
+    primaryColor?: string
+    secondaryColor?: string
+    faviconUrl?: string | null
+    websiteUrl?: string | null
+    contactEmail?: string | null
+    createdBy?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    phone?: string | null
+    paystackAccountName?: string | null
+    paystackAccountNumber?: string | null
+    paystackBankCode?: string | null
+    subaccountCode?: string | null
+    tertiaryColor?: string
+    allowJoinRequests?: boolean
+    autoPayout?: boolean
+    activityLogs?: ActivityLogUncheckedCreateNestedManyWithoutOrganizationInput
+    events?: EventUncheckedCreateNestedManyWithoutOrganizationInput
+    requests?: MembershipRequestUncheckedCreateNestedManyWithoutOrganizationInput
+    invitations?: OrganizationInvitationUncheckedCreateNestedManyWithoutOrganizationInput
+    team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
+    socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
+    wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutFeeConfigurationsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutFeeConfigurationsInput, OrganizationUncheckedCreateWithoutFeeConfigurationsInput>
+  }
+
+  export type OrganizationUpsertWithoutFeeConfigurationsInput = {
+    update: XOR<OrganizationUpdateWithoutFeeConfigurationsInput, OrganizationUncheckedUpdateWithoutFeeConfigurationsInput>
+    create: XOR<OrganizationCreateWithoutFeeConfigurationsInput, OrganizationUncheckedCreateWithoutFeeConfigurationsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutFeeConfigurationsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutFeeConfigurationsInput, OrganizationUncheckedUpdateWithoutFeeConfigurationsInput>
+  }
+
+  export type OrganizationUpdateWithoutFeeConfigurationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: StringFieldUpdateOperationsInput | string
+    secondaryColor?: StringFieldUpdateOperationsInput | string
+    faviconUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    paystackAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    paystackAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    paystackBankCode?: NullableStringFieldUpdateOperationsInput | string | null
+    subaccountCode?: NullableStringFieldUpdateOperationsInput | string | null
+    tertiaryColor?: StringFieldUpdateOperationsInput | string
+    allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
+    autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUpdateManyWithoutOrganizationNestedInput
+    events?: EventUpdateManyWithoutOrganizationNestedInput
+    requests?: MembershipRequestUpdateManyWithoutOrganizationNestedInput
+    invitations?: OrganizationInvitationUpdateManyWithoutOrganizationNestedInput
+    team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
+    socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
+    creator?: ProfileUpdateOneWithoutCreatedOrganizationsNestedInput
+    wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutFeeConfigurationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    primaryColor?: StringFieldUpdateOperationsInput | string
+    secondaryColor?: StringFieldUpdateOperationsInput | string
+    faviconUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    paystackAccountName?: NullableStringFieldUpdateOperationsInput | string | null
+    paystackAccountNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    paystackBankCode?: NullableStringFieldUpdateOperationsInput | string | null
+    subaccountCode?: NullableStringFieldUpdateOperationsInput | string | null
+    tertiaryColor?: StringFieldUpdateOperationsInput | string
+    allowJoinRequests?: BoolFieldUpdateOperationsInput | boolean
+    autoPayout?: BoolFieldUpdateOperationsInput | boolean
+    activityLogs?: ActivityLogUncheckedUpdateManyWithoutOrganizationNestedInput
+    events?: EventUncheckedUpdateManyWithoutOrganizationNestedInput
+    requests?: MembershipRequestUncheckedUpdateManyWithoutOrganizationNestedInput
+    invitations?: OrganizationInvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+    team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
+    socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
+    wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type CommissionCreateWithoutPromoterInput = {
@@ -73738,6 +74222,7 @@ export namespace Prisma {
     team?: TeamMemberCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkCreateNestedManyWithoutOrganizationInput
     wallets?: WalletCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCreatorInput = {
@@ -73769,6 +74254,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedCreateNestedManyWithoutOrganizationInput
     socialLinks?: OrganizationSocialLinkUncheckedCreateNestedManyWithoutOrganizationInput
     wallets?: WalletUncheckedCreateNestedManyWithoutOrganizationInput
+    feeConfigurations?: FeeConfigurationUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCreatorInput = {
@@ -77473,6 +77959,25 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type FeeConfigurationCreateManyOrganizationInput = {
+    id?: string
+    name: string
+    feeType: string
+    transactionCategory?: $Enums.TransactionCategory | null
+    percentage?: Decimal | DecimalJsLike | number | string | null
+    fixedAmount?: Decimal | DecimalJsLike | number | string | null
+    minFee?: Decimal | DecimalJsLike | number | string | null
+    maxFee?: Decimal | DecimalJsLike | number | string | null
+    tiers?: NullableJsonNullValueInput | InputJsonValue
+    currency?: $Enums.CurrencyCode
+    isActive?: boolean
+    description?: string | null
+    effectiveFrom?: Date | string
+    effectiveTo?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ActivityLogUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     action?: StringFieldUpdateOperationsInput | string
@@ -77797,6 +78302,63 @@ export namespace Prisma {
     isLocked?: BoolFieldUpdateOperationsInput | boolean
     lockReason?: NullableStringFieldUpdateOperationsInput | string | null
     lastTransactionAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FeeConfigurationUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    feeType?: StringFieldUpdateOperationsInput | string
+    transactionCategory?: NullableEnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory | null
+    percentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    fixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minFee?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxFee?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    tiers?: NullableJsonNullValueInput | InputJsonValue
+    currency?: EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    effectiveFrom?: DateTimeFieldUpdateOperationsInput | Date | string
+    effectiveTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FeeConfigurationUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    feeType?: StringFieldUpdateOperationsInput | string
+    transactionCategory?: NullableEnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory | null
+    percentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    fixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minFee?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxFee?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    tiers?: NullableJsonNullValueInput | InputJsonValue
+    currency?: EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    effectiveFrom?: DateTimeFieldUpdateOperationsInput | Date | string
+    effectiveTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type FeeConfigurationUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    feeType?: StringFieldUpdateOperationsInput | string
+    transactionCategory?: NullableEnumTransactionCategoryFieldUpdateOperationsInput | $Enums.TransactionCategory | null
+    percentage?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    fixedAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    minFee?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    maxFee?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    tiers?: NullableJsonNullValueInput | InputJsonValue
+    currency?: EnumCurrencyCodeFieldUpdateOperationsInput | $Enums.CurrencyCode
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    effectiveFrom?: DateTimeFieldUpdateOperationsInput | Date | string
+    effectiveTo?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -79245,6 +79807,7 @@ export namespace Prisma {
     team?: TeamMemberUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCreatorInput = {
@@ -79276,6 +79839,7 @@ export namespace Prisma {
     team?: TeamMemberUncheckedUpdateManyWithoutOrganizationNestedInput
     socialLinks?: OrganizationSocialLinkUncheckedUpdateManyWithoutOrganizationNestedInput
     wallets?: WalletUncheckedUpdateManyWithoutOrganizationNestedInput
+    feeConfigurations?: FeeConfigurationUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateManyWithoutCreatorInput = {

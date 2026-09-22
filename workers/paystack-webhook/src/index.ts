@@ -80,8 +80,114 @@ export default {
 			const event = JSON.parse(bodyText);
 			const eventType = event.event;
 			const data = event.data;
+			const sql = neon(env.DATABASE_URL);
 
-			// 2. Only process successful charges
+			// 2. Handle Paystack Outgoing Transfer Events (Payouts)
+			if (
+				eventType === "transfer.success" ||
+				eventType === "transfer.failed" ||
+				eventType === "transfer.reversed"
+			) {
+				const transferRef = data.reference;
+				const transferCode = data.transfer_code;
+
+				const payouts = await sql`
+					SELECT id, wallet_id, amount, status, reference 
+					FROM payouts 
+					WHERE reference = ${transferRef} OR provider_reference = ${transferCode} 
+					LIMIT 1
+				`;
+
+				const payout = payouts[0];
+				if (!payout) {
+					return new Response("Payout not found", { status: 200 });
+				}
+
+				const payoutAmount = Number(payout.amount);
+				const walletId = payout.wallet_id;
+
+				if (eventType === "transfer.success") {
+					if (payout.status !== "completed") {
+						await sql`
+							UPDATE payouts 
+							SET status = 'completed', completed_at = NOW(), provider_response = ${JSON.stringify(data)}, updated_at = NOW() 
+							WHERE id = ${payout.id}
+						`;
+
+						if (walletId) {
+							if (payout.status === "processing" || payout.status === "pending") {
+								await sql`
+									UPDATE wallets 
+									SET balance = balance - ${payoutAmount}, 
+										pending_debits = GREATEST(0, pending_debits - ${payoutAmount}), 
+										last_transaction_at = NOW(), 
+										updated_at = NOW() 
+									WHERE id = ${walletId}
+								`;
+							} else {
+								await sql`
+									UPDATE wallets 
+									SET pending_debits = GREATEST(0, pending_debits - ${payoutAmount}), 
+										last_transaction_at = NOW(), 
+										updated_at = NOW() 
+									WHERE id = ${walletId}
+								`;
+							}
+
+							const walletRows = await sql`SELECT balance FROM wallets WHERE id = ${walletId} LIMIT 1`;
+							const currentBalance = walletRows[0]?.balance;
+
+							await sql`
+								UPDATE transactions 
+								SET status = 'completed', balance_after = ${currentBalance}, completed_at = NOW(), updated_at = NOW() 
+								WHERE wallet_id = ${walletId} AND (reference = ${payout.reference} OR reference = ${"TXN-" + payout.reference})
+							`;
+						}
+					}
+					return new Response("Transfer completed handled", { status: 200 });
+				}
+
+				if (eventType === "transfer.failed" || eventType === "transfer.reversed") {
+					const finalStatus = eventType === "transfer.reversed" ? "reversed" : "failed";
+					if (payout.status !== "failed" && payout.status !== "reversed") {
+						await sql`
+							UPDATE payouts 
+							SET status = ${finalStatus}, failed_at = NOW(), provider_response = ${JSON.stringify(data)}, updated_at = NOW() 
+							WHERE id = ${payout.id}
+						`;
+
+						if (walletId) {
+							if (payout.status === "completed") {
+								await sql`
+									UPDATE wallets 
+									SET balance = balance + ${payoutAmount}, 
+										pending_debits = GREATEST(0, pending_debits - ${payoutAmount}), 
+										last_transaction_at = NOW(), 
+										updated_at = NOW() 
+									WHERE id = ${walletId}
+								`;
+							} else {
+								await sql`
+									UPDATE wallets 
+									SET pending_debits = GREATEST(0, pending_debits - ${payoutAmount}), 
+										last_transaction_at = NOW(), 
+										updated_at = NOW() 
+									WHERE id = ${walletId}
+								`;
+							}
+
+							await sql`
+								UPDATE transactions 
+								SET status = 'failed', failed_at = NOW(), notes = ${"Transfer failed: " + (data.reason || "")}, updated_at = NOW() 
+								WHERE wallet_id = ${walletId} AND (reference = ${payout.reference} OR reference = ${"TXN-" + payout.reference})
+							`;
+						}
+					}
+					return new Response("Transfer failure/reversal handled", { status: 200 });
+				}
+			}
+
+			// 3. Only process successful incoming charges
 			if (eventType !== "charge.success" || data.status !== "success") {
 				return new Response("Ignored non-charge.success event", { status: 200 });
 			}
@@ -91,11 +197,10 @@ export default {
 				return new Response("Missing reference", { status: 400 });
 			}
 
-			const sql = neon(env.DATABASE_URL);
 			const metadata = data.metadata || {};
 			const paystackTransactionId = String(data.id || "");
 
-			// 3. Idempotency Check — Check Payment record in database
+			// 4. Idempotency Check — Check Payment record in database
 			const payments = await sql`
 				SELECT id, reference, status, purpose, amount, currency, metadata 
 				FROM payments 
@@ -243,8 +348,61 @@ export default {
 			if (organizationId) {
 				try {
 					const baseAmount = Number(metadata.baseAmount || payment?.amount || data.amount / 100);
-					const platformFee = Number(metadata.platformFee || 0);
-					const organizerReceives = Number(metadata.organizerReceives || (baseAmount - platformFee));
+					let platformFee = Number(metadata.platformFee);
+					let organizerReceives = Number(metadata.organizerReceives);
+
+					if (Number.isNaN(platformFee) || platformFee === 0) {
+						const feeType =
+							purpose === "ticket_purchase"
+								? "ticket"
+								: purpose === "nomination"
+									? "nomination"
+									: "vote";
+
+						let feeRows: any[] = [];
+						if (organizationId) {
+							feeRows = await sql`
+								SELECT percentage, fixed_amount, min_fee, max_fee
+								FROM fee_configurations
+								WHERE organization_id = ${organizationId} AND fee_type = ${feeType} AND is_active = true
+								ORDER BY created_at DESC
+								LIMIT 1
+							`;
+						}
+
+						if (feeRows.length === 0) {
+							feeRows = await sql`
+								SELECT percentage, fixed_amount, min_fee, max_fee
+								FROM fee_configurations
+								WHERE organization_id IS NULL AND fee_type = ${feeType} AND is_active = true
+								ORDER BY created_at DESC
+								LIMIT 1
+							`;
+						}
+
+						if (feeRows.length > 0) {
+							const row = feeRows[0];
+							const pct =
+								row.percentage !== null
+									? Number(row.percentage) > 1
+										? Number(row.percentage) / 100
+										: Number(row.percentage)
+									: 0.065;
+							const fixed = Number(row.fixed_amount || 0);
+							platformFee = Math.round((baseAmount * pct + fixed) * 100) / 100;
+							if (row.min_fee !== null && platformFee < Number(row.min_fee)) {
+								platformFee = Number(row.min_fee);
+							}
+							if (row.max_fee !== null && platformFee > Number(row.max_fee)) {
+								platformFee = Number(row.max_fee);
+							}
+							organizerReceives = Math.max(0, Math.round((baseAmount - platformFee) * 100) / 100);
+						} else {
+							platformFee = Math.round(baseAmount * 0.065 * 100) / 100;
+							organizerReceives = Math.max(0, Math.round((baseAmount - platformFee) * 100) / 100);
+						}
+					}
+
 					const isSplit = metadata.isSplit === true;
 
 					if (!isSplit && organizerReceives > 0) {

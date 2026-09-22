@@ -472,20 +472,17 @@ export async function fulfillPayoutTransfer({
 			return { success: false, error: `Payout not found: ${reference}` };
 		}
 
-		if (payout.status === status) {
-			return { success: true, message: `Payout is already ${status}` };
-		}
-
 		await prisma.$transaction(async (tx) => {
 			const amt = Number(payout.amount);
 			const now = new Date();
+			const wasAlreadyCompleted = payout.status === "completed";
 
 			// 1. Update Payout record
 			await tx.payout.update({
 				where: { id: payout.id },
 				data: {
 					status,
-					completedAt: status === "completed" ? now : undefined,
+					completedAt: status === "completed" ? (payout.completedAt || now) : undefined,
 					failedAt: status !== "completed" ? now : undefined,
 					providerResponse: paystackData ?? undefined,
 				},
@@ -500,15 +497,32 @@ export async function fulfillPayoutTransfer({
 				},
 			});
 
-			// 3. Clear pendingDebits on Wallet
+			// 3. Reconcile Wallet balance and pendingDebits atomically
 			if (payout.walletId) {
 				const wallet = await tx.wallet.findUnique({ where: { id: payout.walletId } });
 				if (wallet) {
-					const newPendingDebits = Math.max(0, Number(wallet.pendingDebits) - amt);
+					// Sum real pending debits from database transactions
+					const pendingDebitsAgg = await tx.transaction.aggregate({
+						where: {
+							walletId: wallet.id,
+							type: "debit",
+							status: { in: ["pending", "processing"] },
+						},
+						_sum: { amount: true },
+					});
+					const exactPendingDebits = Number(pendingDebitsAgg._sum.amount || 0);
+
+					let updatedBalance = Number(wallet.balance);
+					// If transitioning from processing/pending to completed, decrement ledger balance
+					if (status === "completed" && !wasAlreadyCompleted) {
+						updatedBalance = Math.max(0, Math.round((updatedBalance - amt) * 100) / 100);
+					}
+
 					await tx.wallet.update({
 						where: { id: wallet.id },
 						data: {
-							pendingDebits: newPendingDebits,
+							balance: updatedBalance,
+							pendingDebits: exactPendingDebits,
 							lastTransactionAt: now,
 						},
 					});

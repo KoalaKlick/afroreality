@@ -127,12 +127,114 @@ export function buildPaginatedMenu(
 // Database Helpers via direct PostgreSQL connection
 export async function fetchEventByCode(sql: any, code: string) {
 	const events = await sql`
-		SELECT id, title, has_ussd, ussd_code, type 
+		SELECT id, title, has_ussd, ussd_code, type, organization_id 
 		FROM events 
 		WHERE ussd_code = ${code} AND has_ussd = true
 		LIMIT 1
 	`;
 	return events[0] || null;
+}
+
+export async function getWorkerFeeCalculation(
+	sql: any,
+	baseAmount: number,
+	feeType: "vote" | "ticket" = "vote",
+	organizationId?: string,
+) {
+	let feePct = 0.065;
+	let fixedFee = 0;
+	let minFee: number | undefined;
+	let maxFee: number | undefined;
+
+	try {
+		let feeRows: any[] = [];
+		if (organizationId) {
+			feeRows = await sql`
+				SELECT percentage, fixed_amount, min_fee, max_fee
+				FROM fee_configurations
+				WHERE organization_id = ${organizationId} AND fee_type = ${feeType} AND is_active = true
+				ORDER BY created_at DESC
+				LIMIT 1
+			`;
+		}
+
+		if (feeRows.length === 0) {
+			feeRows = await sql`
+				SELECT percentage, fixed_amount, min_fee, max_fee
+				FROM fee_configurations
+				WHERE organization_id IS NULL AND fee_type = ${feeType} AND is_active = true
+				ORDER BY created_at DESC
+				LIMIT 1
+			`;
+		}
+
+		if (feeRows.length > 0) {
+			const row = feeRows[0];
+			if (row.percentage !== null && row.percentage !== undefined) {
+				const p = Number(row.percentage);
+				feePct = p > 1 ? p / 100 : p;
+			}
+			if (row.fixed_amount !== null && row.fixed_amount !== undefined) {
+				fixedFee = Number(row.fixed_amount);
+			}
+			if (row.min_fee !== null && row.min_fee !== undefined) {
+				minFee = Number(row.min_fee);
+			}
+			if (row.max_fee !== null && row.max_fee !== undefined) {
+				maxFee = Number(row.max_fee);
+			}
+		}
+	} catch (err) {
+		console.warn("[USSD-WORKER-FEE-ERROR] Fee query error:", err);
+	}
+
+	let paystackRate = 0.0195;
+	let paystackCap = 100;
+
+	try {
+		const gatewayRows = await sql`
+			SELECT value FROM platform_settings WHERE key = 'payment_gateway_paystack' LIMIT 1
+		`;
+		if (gatewayRows.length > 0 && gatewayRows[0].value) {
+			const val = gatewayRows[0].value;
+			if (typeof val.feeRate === "number") {
+				paystackRate = val.feeRate > 1 ? val.feeRate / 100 : val.feeRate;
+			}
+			if (typeof val.feeCap === "number") {
+				paystackCap = val.feeCap;
+			}
+		}
+	} catch (err) {
+		console.warn("[USSD-WORKER-GATEWAY-ERROR] Gateway setting error:", err);
+	}
+
+	// 1. Calculate platform fee
+	const percentageFee = Math.round(baseAmount * feePct * 100) / 100;
+	let platformFee = Math.round((percentageFee + fixedFee) * 100) / 100;
+	if (minFee !== undefined && platformFee < minFee) platformFee = minFee;
+	if (maxFee !== undefined && platformFee > maxFee) platformFee = maxFee;
+
+	const organizerReceives = Math.max(0, Math.round((baseAmount - platformFee) * 100) / 100);
+
+	// 2. Calculate Paystack surcharge absorbed by buyer
+	const uncappedCharge = baseAmount / (1 - paystackRate);
+	const uncappedFee = Math.round(uncappedCharge * paystackRate * 100) / 100;
+
+	let totalToCharge = Math.round(uncappedCharge * 100) / 100;
+	let paystackFee = uncappedFee;
+
+	if (uncappedFee > paystackCap) {
+		totalToCharge = Math.round((baseAmount + paystackCap) * 100) / 100;
+		paystackFee = paystackCap;
+	}
+
+	return {
+		totalToCharge,
+		paystackFee,
+		platformFee,
+		organizerReceives,
+		baseAmount,
+	};
 }
 
 export async function fetchEventDetails(sql: any, eventId: string) {
@@ -202,7 +304,9 @@ export async function processPayment(
 	}
 
 	const baseAmount = Number(price) * quantity;
-	const feeCalc = computeChargeAmount(baseAmount);
+	const feeType = event.type === "voting" ? "vote" : "ticket";
+	const orgId = event.organization_id || event.organizationId;
+	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId);
 	const totalAmountGHS = feeCalc.totalToCharge;
 	const amountPesewas = Math.round(totalAmountGHS * 100);
 
@@ -241,6 +345,8 @@ export async function processPayment(
 			channel: "ussd",
 			event_id: event.id,
 			eventId: event.id,
+			organization_id: orgId,
+			organizationId: orgId,
 			option_id: optionId,
 			optionId: optionId,
 			votingOptionId: optionId,
@@ -284,6 +390,8 @@ export async function processPayment(
 					channel: "ussd",
 					event_id: event.id,
 					eventId: event.id,
+					organization_id: orgId,
+					organizationId: orgId,
 					option_id: optionId,
 					optionId: optionId,
 					votingOptionId: optionId,
@@ -293,6 +401,8 @@ export async function processPayment(
 					phone_number: phoneNumber,
 					phone: phoneNumber,
 					baseAmount,
+					platformFee: feeCalc.platformFee,
+					organizerReceives: feeCalc.organizerReceives,
 					paystackFee: feeCalc.paystackFee,
 					totalToCharge: totalAmountGHS,
 				},
@@ -552,7 +662,7 @@ export async function handleUssdCore(
 			);
 
 			const listedEvents = await sql`
-				SELECT id, title, has_ussd, ussd_code, type 
+				SELECT id, title, has_ussd, ussd_code, type, organization_id 
 				FROM events 
 				WHERE has_ussd = true 
 				ORDER BY created_at DESC 

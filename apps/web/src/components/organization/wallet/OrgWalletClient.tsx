@@ -95,6 +95,11 @@ export function OrgWalletClient({
 			? Number((wallet as any).availableBalance)
 			: Math.max(0, (wallet?.balance ?? 0) - (wallet?.pendingDebits ?? 0));
 
+	const ledgerBalance =
+		typeof (wallet as any)?.ledgerBalance === "number"
+			? Number((wallet as any).ledgerBalance)
+			: Number(wallet?.balance ?? 0);
+
 	const pendingBalance =
 		typeof (wallet as any)?.pendingBalance === "number"
 			? Number((wallet as any).pendingBalance)
@@ -238,6 +243,7 @@ export function OrgWalletClient({
 				<WalletBalanceSummary
 					organizationId={organization.id}
 					availableBalance={availableBalance}
+					ledgerBalance={ledgerBalance}
 					pendingBalance={pendingBalance}
 					isLocked={!!wallet?.isLocked}
 					totalRevenue={

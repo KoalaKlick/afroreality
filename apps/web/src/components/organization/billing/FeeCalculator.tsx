@@ -6,22 +6,61 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { calculateFee, type TransactionType } from "@/lib/constants/pricing";
+import { PLATFORM_FEES, type TransactionType } from "@/lib/constants/pricing";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import type { FeeRateDisplayItem } from "./PlatformFeesCard";
 
 interface FeeCalculatorProps {
 	readonly className?: string;
+	readonly fees?: Record<string, FeeRateDisplayItem>;
 }
 
 const TRANSACTION_TYPES: TransactionType[] = ["vote", "nomination", "ticket"];
 
-export function FeeCalculator({ className }: FeeCalculatorProps) {
+export function FeeCalculator({ className, fees }: FeeCalculatorProps) {
 	const [previewAmount, setPreviewAmount] = useState<string>("100");
 	const [previewType, setPreviewType] = useState<TransactionType>("ticket");
 
 	const amount = parseFloat(previewAmount) || 0;
-	const breakdown = amount > 0 ? calculateFee(amount, previewType) : null;
+
+	const selectedConfig = fees?.[previewType];
+	const feePct = selectedConfig
+		? selectedConfig.percentage
+		: PLATFORM_FEES[previewType]?.percentage ?? 0.065;
+	const fixedFee = selectedConfig
+		? selectedConfig.fixedAmount
+		: PLATFORM_FEES[previewType]?.fixed ?? 0;
+
+	let totalPlatformFee = Math.round((amount * feePct + fixedFee) * 100) / 100;
+	if (
+		selectedConfig?.minFee !== null &&
+		selectedConfig?.minFee !== undefined &&
+		totalPlatformFee < Number(selectedConfig.minFee)
+	) {
+		totalPlatformFee = Number(selectedConfig.minFee);
+	}
+	if (
+		selectedConfig?.maxFee !== null &&
+		selectedConfig?.maxFee !== undefined &&
+		totalPlatformFee > Number(selectedConfig.maxFee)
+	) {
+		totalPlatformFee = Number(selectedConfig.maxFee);
+	}
+
+	const organizerReceives = Math.max(0, Math.round((amount - totalPlatformFee) * 100) / 100);
+
+	const breakdown =
+		amount > 0
+			? {
+					amount,
+					feePercentage: feePct,
+					fixedFee,
+					totalPlatformFee,
+					organizerReceives,
+					isCustomOverride: selectedConfig?.isCustomOverride,
+				}
+			: null;
 
 	return (
 		<Card className={cn("bg-card p-6", className)}>
@@ -74,10 +113,15 @@ export function FeeCalculator({ className }: FeeCalculatorProps) {
 								</span>
 							</div>
 							<div className="flex justify-between text-sm">
-								<span className="text-muted-foreground">
-									Platform Fee ({breakdown.feePercentage * 100}%
-									{breakdown.fixedFee > 0 ? ` + GHS ${breakdown.fixedFee}` : ""}
+								<span className="text-muted-foreground flex items-center gap-1.5">
+									Platform Fee ({Number((breakdown.feePercentage * 100).toFixed(1))}%
+									{breakdown.fixedFee > 0 ? ` + GHS ${Number(breakdown.fixedFee).toFixed(2)}` : ""}
 									)
+									{breakdown.isCustomOverride && (
+										<span className="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+											Custom
+										</span>
+									)}
 								</span>
 								<span className="font-bold text-red-600">
 									− GHS {breakdown.totalPlatformFee.toFixed(2)}

@@ -163,22 +163,39 @@ export async function getOrgWallet({
 				}
 			}
 
+			// Reconcile pending debits dynamically from database transactions
+			const pendingDebitsAgg = await prisma.transaction.aggregate({
+				where: {
+					walletId: wallet.id,
+					type: "debit",
+					status: { in: ["pending", "processing"] },
+				},
+				_sum: { amount: true },
+			});
+			const realPendingDebits = Math.round(Number(pendingDebitsAgg._sum.amount || 0) * 100) / 100;
+
 			// Reconcile wallet balance directly from completed transactions
 			const completedTxns = await prisma.transaction.findMany({
 				where: { walletId: wallet.id, status: "completed" },
 				select: { type: true, amount: true, feeAmount: true, completedAt: true, createdAt: true },
 			});
-			const totalCreditSum = completedTxns
-				.filter((t) => t.type === "credit")
-				.reduce((sum, t) => sum + Number(t.amount || 0), 0);
-			const totalFeeSum = completedTxns
-				.filter((t) => t.type === "credit")
-				.reduce((sum, t) => sum + Number(t.feeAmount || 0), 0);
+			const totalCreditSum = Math.round(
+				completedTxns
+					.filter((t) => t.type === "credit")
+					.reduce((sum, t) => sum + Number(t.amount || 0), 0) * 100
+			) / 100;
+			const totalFeeSum = Math.round(
+				completedTxns
+					.filter((t) => t.type === "credit")
+					.reduce((sum, t) => sum + Number(t.feeAmount || 0), 0) * 100
+			) / 100;
 			const totalGrossInflows = Math.round((totalCreditSum + totalFeeSum) * 100) / 100;
-			const totalDebitSum = completedTxns
-				.filter((t) => t.type === "debit")
-				.reduce((sum, t) => sum + Number(t.amount || 0), 0);
-			const trueBalance = Math.max(0, totalCreditSum - totalDebitSum);
+			const totalDebitSum = Math.round(
+				completedTxns
+					.filter((t) => t.type === "debit")
+					.reduce((sum, t) => sum + Number(t.amount || 0), 0) * 100
+			) / 100;
+			const trueBalance = Math.round(Math.max(0, totalCreditSum - totalDebitSum) * 100) / 100;
 
 			// T+1 Settlement breakdown: Non-public holidays and weekdays
 			let clearedEarnings = 0;
@@ -196,30 +213,39 @@ export async function getOrgWallet({
 				}
 			}
 
-			if (Number(wallet.balance) !== trueBalance || Number(wallet.pendingCredits) > 0) {
+			if (
+				Number(wallet.balance) !== trueBalance ||
+				Number(wallet.pendingDebits) !== realPendingDebits ||
+				Number(wallet.pendingCredits) > 0
+			) {
 				wallet = await prisma.wallet.update({
 					where: { id: wallet.id },
 					data: {
 						balance: trueBalance,
+						pendingDebits: realPendingDebits,
 						pendingCredits: 0,
 						lastTransactionAt: new Date(),
 					},
 				});
 			}
 
-			const balanceNum = Number(wallet.balance);
-			const pendingDebitsNum = Number(wallet.pendingDebits);
-			const availableToWithdraw = Math.max(0, clearedEarnings - totalDebitSum - pendingDebitsNum);
+			const balanceNum = Math.round(Number(wallet.balance) * 100) / 100;
+			const pendingDebitsNum = realPendingDebits;
+			// Cleared earnings eligible to withdraw (minus completed debits and active pending debits)
+			const availableToWithdraw = Math.round(
+				Math.max(0, clearedEarnings - totalDebitSum - realPendingDebits) * 100
+			) / 100;
 			const nextSettlement = getNextUpcomingSettlementDate(upcomingTxDates);
 
 			return serializeJsonSafe({
 				id: wallet.id,
 				organizationId: wallet.organizationId,
 				balance: balanceNum,
+				ledgerBalance: balanceNum,
 				availableBalance: availableToWithdraw,
-				clearedBalance: Math.max(0, clearedEarnings - totalDebitSum - pendingDebitsNum),
-				pendingBalance: pendingClearanceEarnings,
-				pendingSettlement: pendingClearanceEarnings,
+				clearedBalance: availableToWithdraw,
+				pendingBalance: Math.round(pendingClearanceEarnings * 100) / 100,
+				pendingSettlement: Math.round(pendingClearanceEarnings * 100) / 100,
 				nextSettlementDate: nextSettlement ? nextSettlement.toISOString() : null,
 				currency: wallet.currency,
 				totalInflows: totalGrossInflows,
@@ -227,8 +253,8 @@ export async function getOrgWallet({
 				organizerShare: totalCreditSum,
 				platformFees: totalFeeSum,
 				totalPayouts: totalDebitSum,
-				pendingCredits: pendingClearanceEarnings,
-				pendingDebits: pendingDebitsNum,
+				pendingCredits: Math.round(pendingClearanceEarnings * 100) / 100,
+				pendingDebits: realPendingDebits,
 				isLocked: !!wallet.isLocked,
 				lockReason: wallet.lockReason ?? null,
 			});
@@ -237,16 +263,17 @@ export async function getOrgWallet({
 		console.warn("[WALLET-SYNC-WARN]", reconcileErr);
 	}
 
-	const balanceNum = Number(wallet.balance);
-	const pendingDebitsNum = Number(wallet.pendingDebits);
-	const pendingCreditsNum = Number(wallet.pendingCredits);
+	const balanceNum = Math.round(Number(wallet.balance) * 100) / 100;
+	const pendingDebitsNum = Math.round(Number(wallet.pendingDebits) * 100) / 100;
+	const pendingCreditsNum = Math.round(Number(wallet.pendingCredits) * 100) / 100;
 
 	return serializeJsonSafe({
 		id: wallet.id,
 		organizationId: wallet.organizationId,
 		balance: balanceNum,
-		availableBalance: Math.max(0, balanceNum - pendingDebitsNum),
-		clearedBalance: Math.max(0, balanceNum - pendingDebitsNum),
+		ledgerBalance: balanceNum,
+		availableBalance: Math.round(Math.max(0, balanceNum - pendingDebitsNum) * 100) / 100,
+		clearedBalance: Math.round(Math.max(0, balanceNum - pendingDebitsNum) * 100) / 100,
 		pendingBalance: pendingCreditsNum,
 		pendingSettlement: pendingCreditsNum,
 		nextSettlementDate: null,
@@ -255,7 +282,7 @@ export async function getOrgWallet({
 		grossInflows: balanceNum,
 		organizerShare: balanceNum,
 		platformFees: 0,
-		totalPayouts: pendingDebitsNum,
+		totalPayouts: 0,
 		pendingCredits: pendingCreditsNum,
 		pendingDebits: pendingDebitsNum,
 		isLocked: !!wallet.isLocked,
@@ -348,11 +375,23 @@ export async function requestWalletWithdrawal({
 		where: { walletId: wallet.id, type: "debit", status: "completed" },
 		select: { amount: true },
 	});
-	const completedDebitsTotal = existingDebits.reduce((s, d) => s + Number(d.amount || 0), 0);
-	const availableCleared = Math.max(
-		0,
-		clearedSum - completedDebitsTotal - Number(wallet.pendingDebits),
-	);
+	const completedDebitsTotal = Math.round(
+		existingDebits.reduce((s, d) => s + Number(d.amount || 0), 0) * 100
+	) / 100;
+
+	const pendingDebitsAgg = await prisma.transaction.aggregate({
+		where: {
+			walletId: wallet.id,
+			type: "debit",
+			status: { in: ["pending", "processing"] },
+		},
+		_sum: { amount: true },
+	});
+	const activePendingDebits = Math.round(Number(pendingDebitsAgg._sum.amount || 0) * 100) / 100;
+
+	const availableCleared = Math.round(
+		Math.max(0, clearedSum - completedDebitsTotal - activePendingDebits) * 100
+	) / 100;
 
 	if (withdrawalAmount > availableCleared) {
 		if (unclearedSum > 0) {
@@ -400,6 +439,11 @@ export async function requestWalletWithdrawal({
 		throw new Error(`Paystack transfer error: ${transferResult.message || "Failed to initiate transfer."}`);
 	}
 
+	const isImmediateSuccess = transferResult.status === "success";
+	const payoutStatus = isImmediateSuccess ? "completed" : "processing";
+	const transactionStatus = isImmediateSuccess ? "completed" : "processing";
+	const now = new Date();
+
 	const result = await prisma.$transaction(async (tx) => {
 		// 1. Create payout request with Paystack reference
 		const payout = await tx.payout.create({
@@ -412,23 +456,39 @@ export async function requestWalletWithdrawal({
 				accountNumber: data.accountNumber,
 				accountName: data.accountName,
 				amount: withdrawalAmount,
+				feeAmount: 0, // No extra surcharge on payout; buyer already absorbed charges
 				currency: wallet.currency,
-				status: transferResult.status === "success" ? "completed" : "processing",
+				status: payoutStatus,
 				provider: "paystack",
 				providerReference: transferResult.transferCode,
 				providerResponse: transferResult.raw ?? undefined,
 				description: data.description ?? "Wallet withdrawal via Paystack",
+				completedAt: isImmediateSuccess ? now : undefined,
 			},
 		});
 
-		// 2. Increase pending debits on wallet
-		await tx.wallet.update({
-			where: { id: wallet.id },
-			data: {
-				pendingDebits: { increment: withdrawalAmount },
-				lastTransactionAt: new Date(),
-			},
-		});
+		// 2. Update wallet balance or pending debits:
+		// If immediate success: decrement balance directly, do NOT increment pendingDebits!
+		// If processing/pending: increment pendingDebits until webhook fulfillment
+		if (isImmediateSuccess) {
+			const currentBal = Number(wallet.balance);
+			const newBal = Math.round(Math.max(0, currentBal - withdrawalAmount) * 100) / 100;
+			await tx.wallet.update({
+				where: { id: wallet.id },
+				data: {
+					balance: newBal,
+					lastTransactionAt: now,
+				},
+			});
+		} else {
+			await tx.wallet.update({
+				where: { id: wallet.id },
+				data: {
+					pendingDebits: { increment: withdrawalAmount },
+					lastTransactionAt: now,
+				},
+			});
+		}
 
 		// 3. Log audit transaction
 		await tx.transaction.create({
@@ -437,14 +497,16 @@ export async function requestWalletWithdrawal({
 				walletId: wallet.id,
 				type: "debit",
 				category: "wallet_withdrawal",
-				status: transferResult.status === "success" ? "completed" : "processing",
+				status: transactionStatus,
 				amount: withdrawalAmount,
+				feeAmount: 0,
 				currency: wallet.currency,
 				providerReference: transferResult.transferCode,
 				providerResponse: transferResult.raw ?? undefined,
 				description: data.description?.trim() || `Withdrawal to ${data.accountNumber} via Paystack`,
 				balanceBefore: Number(wallet.balance),
-				balanceAfter: Math.max(0, Number(wallet.balance) - withdrawalAmount),
+				balanceAfter: Math.round(Math.max(0, Number(wallet.balance) - withdrawalAmount) * 100) / 100,
+				completedAt: isImmediateSuccess ? now : undefined,
 			},
 		});
 

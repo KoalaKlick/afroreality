@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@repo/db";
-import { computeChargeAmount, toPesewas } from "@repo/pricing";
+import { toPesewas } from "@repo/pricing";
+import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 
 export const dynamic = "force-dynamic";
 
@@ -196,7 +197,8 @@ async function processPayment(
 	}
 
 	const baseAmount = Number(price) * quantity;
-	const feeCalc = computeChargeAmount(baseAmount, event.type === "voting" ? "vote" : "ticket");
+	const feeType = event.type === "voting" ? "vote" : "ticket";
+	const feeCalc = await computeDynamicChargeAmount(baseAmount, feeType, "GHS", event.organizationId);
 	const totalAmountGHS = feeCalc.totalToCharge;
 	const amountPesewas = toPesewas(totalAmountGHS);
 	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
