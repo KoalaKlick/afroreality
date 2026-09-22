@@ -181,6 +181,8 @@ html {
   --color-brand-secondary: #e88722;
   --color-brand-tertiary: #53967a;
   --sepia-bg: var(--color-sepia-50);
+  --scrollbar-thumb: oklch(0.7 0.01 260 / 45%);
+  --scrollbar-thumb-hover: oklch(0.45 0.02 260 / 75%);
 }
 
 .dark {
@@ -218,6 +220,8 @@ html {
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
   --sepia-bg: var(--background);
+  --scrollbar-thumb: oklch(1 0 0 / 18%);
+  --scrollbar-thumb-hover: oklch(1 0 0 / 38%);
 }
 
 @layer base {
@@ -242,6 +246,44 @@ html {
   ::-moz-selection {
     background-color: var(--color-primary-600);
     color: #ffffff;
+  }
+
+  /* Thin modern customized scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  /* WebKit & Chromium browsers (Chrome, Edge, Safari) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* Scrollbar utilities */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 

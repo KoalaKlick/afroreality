@@ -108,7 +108,7 @@ export function EventsPageClient({
 			<main className="pt-1 sm:pt-2">
 				{/* Hero Section */}
 				<section className="relative pb-8 sm:pb-12 overflow-hidden">
-					<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-6">
+					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-6">
 						{/* Tab Switcher (Preline Clean Style) */}
 						<div className="flex justify-start mb-5 sm:mb-6">
 							<div className="inline-flex rounded-lg border border-border p-1 bg-muted/40 shadow-none">
@@ -189,7 +189,7 @@ export function EventsPageClient({
 
 				{/* Results Section */}
 				<section className="pb-16 sm:pb-20">
-					<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-6">
+					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-6">
 						{activeTab === "events" ? (
 							<EventsGrid
 								events={filteredEvents}

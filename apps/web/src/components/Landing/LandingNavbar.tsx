@@ -67,7 +67,7 @@ export function LandingNavbar() {
 		<>
 			<header
 				className={cn(
-					"fixed top-0 md:top-2 left-0 right-0 z-50 max-w-6xl mx-auto md:rounded-full transition-all duration-300",
+					"fixed top-0 md:top-2 left-0 right-0 z-50 max-w-7xl mx-auto md:rounded-full transition-all duration-300",
 					isScrolled
 						? "bg-white/80 backdrop-blur-lg shadow-sm"
 						: "bg-white",
