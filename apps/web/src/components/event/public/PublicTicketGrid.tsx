@@ -177,6 +177,7 @@ export function PublicTicketGrid({
                   venue={venue}
                   ticketCode={`TIER-${ticket.orderIdx + 1}`}
                   stacked={false}
+                  disableFlip={true}
                 />
 
                 {/* Price and Cute Action Button */}

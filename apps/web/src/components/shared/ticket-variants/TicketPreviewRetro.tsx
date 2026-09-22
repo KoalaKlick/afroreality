@@ -26,6 +26,7 @@ interface TicketProps {
   readonly exportSide?: "front" | "back" | "both";
   readonly buyerName?: string;
   readonly stacked?: boolean;
+  readonly disableFlip?: boolean;
 }
 
 const RETRO_PATH = "M 0,0.1 C 0,0.05 0.05,0 0.1,0 L 0.9,0 C 0.95,0 1,0.05 1,0.1 L 1,0.4 C 0.98,0.4 0.96,0.42 0.96,0.5 C 0.96,0.58 0.98,0.6 1,0.6 L 1,0.9 C 1,0.95 0.95,1 0.9,1 L 0.1,1 C 0.05,1 0,0.95 0,0.9 L 0,0.6 C 0.02,0.6 0.04,0.58 0.04,0.5 C 0.04,0.42 0.02,0.4 0,0.4 Z";
@@ -90,6 +91,7 @@ export function TicketCardRetro({
   exportSide = "both",
   buyerName,
   stacked = false,
+  disableFlip = false,
 }: TicketProps) {
   const uid = useId().replace(/:/g, "");
   const clipId = `ticket-retro-clip-${uid}`;
@@ -271,7 +273,7 @@ export function TicketCardRetro({
 
       <div
         className="relative w-full aspect-[560/210] min-h-[190px]"
-        onClick={() => setFlipped((f) => !f)}
+        onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >
         <div
           className="absolute inset-0 z-10"

@@ -26,6 +26,7 @@ interface TicketCardProps {
   readonly exportMode?: boolean;
   readonly exportSide?: "front" | "back" | "both";
   readonly buyerName?: string;
+  readonly disableFlip?: boolean;
 }
 
 const TICKET_PATH_RELATIVE = [
@@ -521,6 +522,7 @@ export function TicketCardGeo({
   exportMode = false,
   exportSide = "both",
   buyerName = "Valued Guest",
+  disableFlip = false,
 }: TicketCardProps) {
   const [flipped, setFlipped] = useState(false);
 
@@ -592,7 +594,7 @@ export function TicketCardGeo({
 
       <div
         className="relative w-full aspect-[560/210] min-h-[190px]"
-        onClick={() => setFlipped((f) => !f)}
+        onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >
         {stacked &&
           ghosts.map((g, i) => (

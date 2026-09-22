@@ -26,6 +26,7 @@ interface TicketCardProps {
   readonly exportMode?: boolean;
   readonly exportSide?: "front" | "back" | "both";
   readonly buyerName?: string;
+  readonly disableFlip?: boolean;
 }
 
 /**
@@ -247,6 +248,7 @@ export function TicketCard({
   exportMode = false,
   exportSide = "both",
   buyerName = "Valued Guest",
+  disableFlip = false,
 }: TicketCardProps) {
   const [flipped, setFlipped] = useState(false);
 
@@ -502,7 +504,7 @@ export function TicketCard({
 
       <div
         className="relative w-full aspect-[560/210] min-h-[190px]"
-        onClick={() => setFlipped((f) => !f)}
+        onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >
         {/* Ghost (stacked) copies */}
         {stacked &&
