@@ -38,7 +38,7 @@ export function getSocialIcon(platform: string) {
 	if (p.includes("linkedin")) {
 		return <LinkedInIcon className="size-4" />;
 	}
-	return <Share2 className="size-4" />;
+	return <Globe className="size-4" />;
 }
 
 export function getSocialPlatform(url: string, className?: string): { name: string; icon: React.ReactNode; color?: string } {
@@ -119,8 +119,8 @@ export function getSocialPlatform(url: string, className?: string): { name: stri
 	}
 
 	return {
-		name: "Social Link",
-		icon: <Share2 className={cn(iconClass, "text-muted-foreground")} />,
+		name: "Website",
+		icon: <Globe className={cn(iconClass, "text-muted-foreground")} />,
 		color: "text-muted-foreground",
 	};
 }

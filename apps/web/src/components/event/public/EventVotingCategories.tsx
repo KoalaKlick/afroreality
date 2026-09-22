@@ -45,10 +45,10 @@ export function EventVotingCategories({
 				</div>
 
 				{isUpcoming && startDate && (
-					<div className="mb-4 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 flex items-center gap-2.5 text-amber-700 dark:text-amber-400">
+					<div className="mb-4 bg-amber-500/10 px-4 py-3 flex items-center gap-2.5 text-amber-700 dark:text-amber-400">
 						<Clock className="size-4 shrink-0" />
-						<p className="text-xs font-bold uppercase tracking-wider">
-							Voting has not started yet &mdash; opens on {new Date(startDate).toLocaleString("en-GH", {
+						<p className="text-xs font-medium uppercase ">
+							Voting has not started yet  opens on {new Date(startDate).toLocaleString("en-GH", {
 								dateStyle: "medium",
 								timeStyle: "short",
 							})}.
