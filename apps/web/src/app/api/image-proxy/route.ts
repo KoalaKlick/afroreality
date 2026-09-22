@@ -14,6 +14,25 @@ export async function GET(request: NextRequest) {
 			return new NextResponse("Invalid url protocol", { status: 400 });
 		}
 
+		// Security: only proxy images from our own R2 bucket(s)
+		const allowedHosts = (
+			process.env.IMAGE_PROXY_ALLOWED_HOSTS ||
+			"pub-7eea00abc69849599238b5352b41898f.r2.dev"
+		)
+			.split(",")
+			.map((h) => h.trim().toLowerCase());
+
+		let parsedHost: string;
+		try {
+			parsedHost = new URL(imageUrl).hostname.toLowerCase();
+		} catch {
+			return new NextResponse("Invalid url", { status: 400 });
+		}
+
+		if (!allowedHosts.some((h) => parsedHost === h || parsedHost.endsWith(`.${h}`))) {
+			return new NextResponse("Host not allowed", { status: 403 });
+		}
+
 		const response = await fetch(imageUrl, {
 			headers: {
 				"User-Agent": "fextiva-ShareProxy/1.0",

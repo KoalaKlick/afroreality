@@ -20,6 +20,51 @@ export function normalizePhoneNumber(phone: string, defaultCountryCode = "233"):
 	return cleaned;
 }
 
+/**
+ * Returns true only if the URL is a public HTTPS URL that Meta's servers
+ * can reach. Private CDN hostnames (e.g. Cloudflare R2 pub-*.r2.dev) are
+ * not reachable by Meta and will cause error #100.
+ */
+function isMetaAccessibleImageUrl(url: string | undefined | null): boolean {
+	if (!url) return false;
+	try {
+		const parsed = new URL(url);
+		if (parsed.protocol !== "https:") return false;
+		// Reject known private/CDN patterns that Meta cannot fetch
+		const blockedPatterns = [
+			/\.r2\.dev$/i,          // Cloudflare R2
+			/\.r2\.cloudflarestorage\.com$/i,
+			/localhost/i,
+			/127\.0\.0\.1/,
+			/\.local$/i,
+		];
+		return !blockedPatterns.some((re) => re.test(parsed.hostname));
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Rewrites a CDN/R2 image URL to go through the app's own image proxy
+ * so that third-party services (e.g. Meta's WhatsApp API) can fetch it.
+ *
+ * Example:
+ *   https://pub-abc.r2.dev/events/img.webp
+ *   → https://fextiva.com/api/image-proxy?url=https%3A%2F%2Fpub-abc.r2.dev%2F...
+ *
+ * If the URL is already publicly accessible, it is returned unchanged.
+ */
+function toProxiedImageUrl(url: string | undefined | null): string | null {
+	if (!url) return null;
+	// If Meta can already reach it, use it directly
+	if (isMetaAccessibleImageUrl(url)) return url;
+	const baseUrl = getFrontendBaseUrl();
+	// Only proxy if we have a real public base URL (not localhost)
+	if (!baseUrl || baseUrl.includes("localhost")) return null;
+	return `${baseUrl}/api/image-proxy?url=${encodeURIComponent(url)}`;
+}
+
+
 export interface WhatsAppTemplateComponent {
 	type: "header" | "body" | "button";
 	sub_type?: "url" | "quick_reply";
@@ -31,6 +76,7 @@ export interface WhatsAppTemplateComponent {
 		document?: { link: string; filename?: string };
 	}>;
 }
+
 
 export interface SendWhatsAppResponse {
 	success: boolean;
@@ -256,16 +302,11 @@ export async function sendTicketWhatsAppNotification({
 		? `${baseUrl}/android-chrome-512x512.png`
 		: "https://fextiva.com/android-chrome-512x512.png";
 
-	const components: WhatsAppTemplateComponent[] = [
-		{
-			type: "header",
-			parameters: [
-				{
-					type: "image",
-					image: { link: bannerImageUrl || defaultLogoBanner },
-				},
-			],
-		},
+	// Rewrite blocked CDN URLs (e.g. R2) through our own domain proxy so Meta can fetch them.
+	// Falls back to null (no header) if we can't make a public URL.
+	const safeImageUrl = toProxiedImageUrl(bannerImageUrl) ?? toProxiedImageUrl(defaultLogoBanner);
+
+	const bodyAndButton: WhatsAppTemplateComponent[] = [
 		{
 			type: "body",
 			parameters: [
@@ -278,25 +319,44 @@ export async function sendTicketWhatsAppNotification({
 	];
 
 	if (ticketToken || ticketCode) {
-		components.push({
+		bodyAndButton.push({
 			type: "button",
 			sub_type: "url",
 			index: "0",
-			parameters: [
-				{ type: "text", text: ticketToken || ticketCode },
-			],
+			parameters: [{ type: "text", text: ticketToken || ticketCode }],
 		});
 	}
 
-	// First attempt template message if registered
-	const templateRes = await sendWhatsAppTemplateMessage({
+	// Build components: with header image if the URL is safe, without otherwise
+	const componentsWithHeader: WhatsAppTemplateComponent[] = safeImageUrl
+		? [
+				{
+					type: "header",
+					parameters: [{ type: "image", image: { link: safeImageUrl } }],
+				},
+				...bodyAndButton,
+		  ]
+		: bodyAndButton;
+
+	// 1. Attempt with header (or without if image is unsafe)
+	let templateRes = await sendWhatsAppTemplateMessage({
 		to: phone,
 		templateName: "fextiva_ticket_confirmation_en",
 		languageCode: "en",
-		components,
+		components: componentsWithHeader,
 	});
 
-	// If template is pending or not yet approved, attempt standard text message fallback
+	// 2. If failed AND we sent with a header image, retry without the header
+	if (!templateRes.success && safeImageUrl) {
+		templateRes = await sendWhatsAppTemplateMessage({
+			to: phone,
+			templateName: "fextiva_ticket_confirmation_en",
+			languageCode: "en",
+			components: bodyAndButton,
+		});
+	}
+
+	// 3. If template is still unavailable/pending, fall back to plain text
 	if (!templateRes.success) {
 		const fallbackText = `🎟️ *Fextiva Ticket Confirmed*\n\nHi ${attendeeName || "there"},\nYour ticket for *${eventTitle}* is confirmed!\n\n*Ticket ID:* ${ticketCode}${ticketUrl ? `\n\nView Ticket: ${ticketUrl}` : ""}\n\nThank you for choosing Fextiva!`;
 		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
@@ -394,6 +454,9 @@ export async function sendNomineeReportWhatsAppNotification({
 			? `${baseUrl}/android-chrome-512x512.png`
 			: "https://fextiva.com/android-chrome-512x512.png";
 
+	// Rewrite R2/CDN URLs through our proxy so Meta can fetch them
+	const safeHeaderImage = toProxiedImageUrl(bannerImageUrl) ?? toProxiedImageUrl(defaultLogoBanner);
+
 	// The public portal path for this nominee's category
 	// e.g. "afrofest/event/awards-2026/category/cm123..." or shortlink "c/cm123..."
 	const publicCategoryPath =
@@ -419,7 +482,7 @@ export async function sendNomineeReportWhatsAppNotification({
 				parameters: [
 					{
 						type: "image",
-						image: { link: bannerImageUrl || defaultLogoBanner },
+						image: { link: safeHeaderImage || "https://fextiva.com/android-chrome-512x512.png" },
 					},
 				],
 			},
@@ -475,7 +538,7 @@ export async function sendNomineeReportWhatsAppNotification({
 			parameters: [
 				{
 					type: "image",
-					image: { link: bannerImageUrl || defaultLogoBanner },
+					image: { link: safeHeaderImage || "https://fextiva.com/android-chrome-512x512.png" },
 				},
 			],
 		},

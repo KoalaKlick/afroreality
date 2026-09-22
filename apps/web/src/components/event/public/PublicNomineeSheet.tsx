@@ -138,14 +138,13 @@ export function NomineeGrid({
 							: 0;
 
 					return (
-						<div
-							key={`${nominee.id}-${index}`}
-							onClick={() => handleOpenSheet(nominee)}
-							className="group relative flex flex-col justify-between h-full gap-2.5 rounded-2xl bg-card p-2.5 transition-all duration-300 hover:shadow-md cursor-pointer"
-						>
-							<div className="space-y-2.5 flex-1 flex flex-col">
-								{/* Nominee Avatar / Poster */}
-								<div className="relative aspect-4/5 w-full rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
+						<div key={`${nominee.id}-${index}`} className="@container h-full">
+							<div
+								onClick={() => handleOpenSheet(nominee)}
+								className="group relative flex flex-col @sm:flex-row justify-between h-full gap-3 rounded-2xl bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer"
+							>
+								{/* Nominee Avatar / Poster (Left in row, Top in col) */}
+								<div className="relative aspect-4/5 w-full @sm:w-40 @md:w-48 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
 									{nominee.imageUrl ? (
 										<img
 											src={getEventImageUrl(nominee.imageUrl) || ""}
@@ -183,53 +182,56 @@ export function NomineeGrid({
 									)}
 								</div>
 
-								{/* Nominee Meta */}
-								<div className="flex flex-col gap-1 px-0.5">
-									<h4 className="font-bold text-base text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-										{nominee.optionText}
-									</h4>
-									{(nominee.description || nominee.bio) && (
-										<p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-											{stripHtml(nominee.description || nominee.bio)}
-										</p>
-									)}
+								{/* Nominee Meta & Actions (Right in row, Bottom in col) */}
+								<div className="flex-1 flex flex-col justify-between min-w-0 gap-2.5">
+									{/* Nominee Meta */}
+									<div className="flex flex-col gap-1 px-0.5">
+										<h4 className="font-bold text-base @sm:text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+											{nominee.optionText}
+										</h4>
+										{(nominee.description || nominee.bio) && (
+											<p className="text-xs text-muted-foreground line-clamp-2 @sm:line-clamp-3 leading-relaxed">
+												{stripHtml(nominee.description || nominee.bio)}
+											</p>
+										)}
+									</div>
+
+									{/* Actions */}
+									<div className="pt-2 mt-auto border-t border-border/50 flex items-center justify-between gap-2">
+										<Button
+											variant="ghost"
+											size="icon"
+											className="size-8 rounded-full shrink-0"
+											onClick={(e) => handleShare(e, nominee)}
+											title="Share Nominee"
+										>
+											<Share2 className="size-3.5 text-muted-foreground" />
+										</Button>
+
+										<Button
+											size="sm"
+											onClick={(e) => {
+												e.stopPropagation();
+												handleOpenVoteModal(nominee);
+											}}
+											className="text-xs font-bold gap-1.5 h-8 flex-1"
+											disabled={isEnded || isUpcoming}
+										>
+											<Vote className="size-3.5" />
+											<span className="truncate">
+												{isEnded
+													? "Voting Closed"
+													: isUpcoming
+														? `Opens ${formatStart(startDate)}`
+														: votingMode === "internal"
+															? "Cast Ballot"
+															: isFree
+																? "Vote Free"
+																: `Vote (GHS ${votePrice.toFixed(2)})`}
+											</span>
+										</Button>
+									</div>
 								</div>
-							</div>
-
-							{/* Actions */}
-							<div className="pt-2 mt-auto border-t border-border/50 flex items-center justify-between gap-2">
-								<Button
-									variant="ghost"
-									size="icon"
-									className="size-8 rounded-full shrink-0"
-									onClick={(e) => handleShare(e, nominee)}
-									title="Share Nominee"
-								>
-									<Share2 className="size-3.5 text-muted-foreground" />
-								</Button>
-
-								<Button
-									size="sm"
-									onClick={(e) => {
-										e.stopPropagation();
-										handleOpenVoteModal(nominee);
-									}}
-									className="text-xs font-bold gap-1.5 h-8 flex-1"
-									disabled={isEnded || isUpcoming}
-								>
-									<Vote className="size-3.5" />
-									<span>
-										{isEnded
-											? "Voting Closed"
-											: isUpcoming
-												? `Opens ${formatStart(startDate)}`
-												: votingMode === "internal"
-													? "Cast Ballot"
-													: isFree
-														? "Vote Free"
-														: `Vote (GHS ${votePrice.toFixed(2)})`}
-									</span>
-								</Button>
 							</div>
 						</div>
 					);
