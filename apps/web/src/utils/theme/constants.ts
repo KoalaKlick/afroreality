@@ -16,7 +16,6 @@ export const PRESET_COLORS = [
 	{ name: "Obsidian Slate", value: "#0f172a", description: "Deep space charcoal (Minimalism & Power)" },
 	{ name: "Charcoal Steel", value: "#334155", description: "Sophisticated gunmetal slate (Executive & Clean)" },
 	{ name: "Cool Silver", value: "#64748b", description: "Balanced neutral slate (Subtle & Modern)" },
-	{ name: "Pure White", value: "#ffffff", description: "Crisp stark white (Clarity & Light)" },
 
 	// ── Reds & Maroons ──
 	{ name: "Crimson Scarlet", value: "#dc2626", description: "Bold iconic red (Energy & Passion)" },
