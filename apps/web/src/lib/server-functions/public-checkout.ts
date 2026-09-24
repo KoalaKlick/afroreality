@@ -231,9 +231,6 @@ export async function initiatePublicTicketCheckout({
 			amount: toPesewas(totalToCharge),
 			currency: ticketType.currency || "GHS",
 			callback_url: callbackUrl,
-			subaccount: subaccountCode || undefined,
-			bearer: subaccountCode ? "account" : undefined,
-			transaction_charge: subaccountCode && splitChargePesewas > 0 ? splitChargePesewas : undefined,
 			metadata: {
 				purpose: "ticket_purchase",
 				ticketOrderId: order.id,
@@ -254,7 +251,7 @@ export async function initiatePublicTicketCheckout({
 				organizerReceives,
 				paystackFee,
 				totalToCharge,
-				isSplit: !!subaccountCode,
+				isSplit: false,
 				sourcePath: `/${organization.slug}/event/${ticketType.event.slug}`,
 			},
 		});
@@ -541,9 +538,6 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			amount: toPesewas(totalToCharge),
 			currency: "GHS",
 			callback_url: callbackUrl,
-			subaccount: subaccountCode || undefined,
-			bearer: subaccountCode ? "account" : undefined,
-			transaction_charge: subaccountCode && splitChargePesewas > 0 ? splitChargePesewas : undefined,
 			metadata: {
 				purpose: "voting",
 				eventId,
@@ -563,7 +557,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 				organizerReceives,
 				paystackFee,
 				totalToCharge,
-				isSplit: !!subaccountCode,
+				isSplit: false,
 				sourcePath: `/${organization.slug}/event/${category.event.slug}/category/${categoryId}`,
 			},
 		});
@@ -741,10 +735,6 @@ export async function initiatePublicNomination({
 			amount: toPesewas(totalToCharge),
 			currency: "GHS",
 			callback_url: callbackUrl,
-			subaccount: subaccountCode || undefined,
-			bearer: subaccountCode ? "account" : undefined,
-			transaction_charge:
-				subaccountCode && splitChargePesewas > 0 ? splitChargePesewas : undefined,
 			metadata: {
 				purpose: "nomination",
 				eventId,
@@ -765,7 +755,7 @@ export async function initiatePublicNomination({
 				organizerReceives,
 				paystackFee,
 				totalToCharge,
-				isSplit: !!subaccountCode,
+				isSplit: false,
 				sourcePath: `/${orgSlug || organization.slug}/event/${eventSlug || category.event.slug}/category/${categoryId}`,
 			},
 		});

@@ -523,10 +523,63 @@ export async function requestWalletWithdrawal({
 	// 3. Create payout in "pending_approval" state — Paystack transfer will be initiated
 	//    by the super admin when they approve the payout from the admin dashboard.
 	const ref = `WDR-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-	const now = new Date();
-
 	const result = await prisma.$transaction(async (tx) => {
-		// 1. Create payout request awaiting admin approval
+		// 1. Concurrency control: Lock the wallet row to prevent race conditions & double-spending
+		const lockedWallets = await tx.$queryRawUnsafe<any[]>(
+			`SELECT id, balance, "pending_debits", "is_locked", "lock_reason" FROM wallets WHERE id = $1::uuid FOR UPDATE`,
+			wallet.id,
+		);
+		const lockedWallet = lockedWallets?.[0];
+		if (!lockedWallet) throw new Error("Wallet not found.");
+		if (lockedWallet.is_locked) {
+			throw new Error("Wallet is locked: " + (lockedWallet.lock_reason ?? "Contact support"));
+		}
+
+		// 2. Atomically calculate available cleared balance inside the isolated transaction
+		const completedCredits = await tx.transaction.findMany({
+			where: { walletId: wallet.id, status: "completed", type: "credit" },
+			select: { amount: true, completedAt: true, createdAt: true },
+		});
+
+		let txClearedSum = 0;
+		for (const c of completedCredits) {
+			const dt = c.completedAt || c.createdAt || new Date();
+			if (isTPlusOneSettled(dt)) {
+				txClearedSum += Number(c.amount || 0);
+			}
+		}
+
+		const existingDebits = await tx.transaction.findMany({
+			where: { walletId: wallet.id, type: "debit", status: "completed" },
+			select: { amount: true },
+		});
+		const txCompletedDebitsTotal = Math.round(
+			existingDebits.reduce((s, d) => s + Number(d.amount || 0), 0) * 100
+		) / 100;
+
+		const pendingDebitsAgg = await tx.transaction.aggregate({
+			where: {
+				walletId: wallet.id,
+				type: "debit",
+				status: { in: ["pending", "processing"] },
+			},
+			_sum: { amount: true },
+		});
+		const txActivePendingDebits = Math.round(Number(pendingDebitsAgg._sum.amount || 0) * 100) / 100;
+
+		const txAvailableCleared = Math.round(
+			Math.max(0, txClearedSum - txCompletedDebitsTotal - txActivePendingDebits) * 100
+		) / 100;
+
+		if (withdrawalAmount > txAvailableCleared) {
+			throw new Error(
+				`Insufficient cleared balance for withdrawal. Available: ${wallet.currency} ${txAvailableCleared.toFixed(2)}, Requested: ${wallet.currency} ${withdrawalAmount.toFixed(2)}.`,
+			);
+		}
+
+		const now = new Date();
+
+		// 3. Create payout request awaiting admin approval
 		const payout = await tx.payout.create({
 			data: {
 				reference: ref,

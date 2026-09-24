@@ -838,6 +838,10 @@ export async function adminApprovePayout(data: {
 			return { success: false, error: `Payout is not pending approval (current status: ${payout.status}).` };
 		}
 
+		if (payout.wallet?.isLocked) {
+			return { success: false, error: "Cannot approve payout: The organization wallet is currently locked." };
+		}
+
 		const grossAmount = Number(payout.amount);
 		const feeAmount = Number(payout.feeAmount || 0);
 		const netDisbursedAmount = Math.max(0, Math.round((grossAmount - feeAmount) * 100) / 100);
