@@ -913,6 +913,7 @@ export function EventSettingsTab({
 				{/* USSD Settings Section */}
 				<UssdSettings
 					eventId={event.id}
+					eventTitle={event.title}
 					hasUssd={event.hasUssd}
 					ussdCode={event.ussdCode}
 					canEdit={canEdit}

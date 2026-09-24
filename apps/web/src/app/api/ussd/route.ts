@@ -177,7 +177,13 @@ const EVENT_INCLUDE = {
 
 async function fetchEventByCode(code: string) {
 	return prisma.event.findFirst({
-		where: { ussdCode: code, hasUssd: true },
+		where: {
+			OR: [
+				{ ussdCode: code, hasUssd: true },
+				{ ussdCode: code },
+				{ id: code },
+			],
+		},
 		include: EVENT_INCLUDE,
 	});
 }
@@ -647,19 +653,29 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 	});
 
 	if (pendingSession) {
-		const rawTokens = text.split("*").filter(Boolean);
-		if (rawTokens.length === 0) {
-			return `CON You have a pending payment of GHS ${Number(pendingSession.amount).toFixed(2)}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`;
-		}
-		const otpAnswer = rawTokens[rawTokens.length - 1];
-		if (otpAnswer === "0") {
-			await prisma.ussdSession.update({
-				where: { id: pendingSession.id },
-				data: { status: "cancelled" },
-			});
-			text = "";
-		} else if (otpAnswer) {
-			return await submitPaystackOtp(pendingSession, otpAnswer);
+		const payment = await prisma.payment.findUnique({
+			where: { reference: pendingSession.reference },
+			select: { metadata: true },
+		});
+		const isAwaitingOtp =
+			(payment?.metadata as any)?.awaitingOtp === true ||
+			(payment?.metadata as any)?.awaitingOtp === "true";
+
+		if (isAwaitingOtp) {
+			const rawTokens = text.split("*").filter(Boolean);
+			if (rawTokens.length === 0) {
+				return `CON You have a pending payment of GHS ${Number(pendingSession.amount).toFixed(2)}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`;
+			}
+			const otpAnswer = rawTokens[rawTokens.length - 1];
+			if (otpAnswer === "0") {
+				await prisma.ussdSession.update({
+					where: { id: pendingSession.id },
+					data: { status: "cancelled" },
+				});
+				text = "";
+			} else if (otpAnswer) {
+				return await submitPaystackOtp(pendingSession, otpAnswer);
+			}
 		}
 	}
 

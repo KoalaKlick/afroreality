@@ -17,9 +17,11 @@ import { toast } from "sonner";
 import { enableUssdForEvent, disableUssdForEvent } from "@/lib/server-functions/ussd";
 import { getUssdDialCode, getUssdTelUri } from "@/lib/utils/ussd";
 import QRCode from "react-qr-code";
+import { UssdPhoneSimulatorModal } from "./UssdPhoneSimulatorModal";
 
 interface UssdSettingsProps {
 	readonly eventId: string;
+	readonly eventTitle?: string;
 	readonly hasUssd?: boolean | null;
 	readonly ussdCode?: string | null;
 	readonly canEdit?: boolean;
@@ -28,6 +30,7 @@ interface UssdSettingsProps {
 
 export function UssdSettings({
 	eventId,
+	eventTitle = "Event",
 	hasUssd: initialHasUssd,
 	ussdCode: initialUssdCode,
 	canEdit = true,
@@ -36,6 +39,7 @@ export function UssdSettings({
 	const [hasUssd, setHasUssd] = useState(!!initialHasUssd);
 	const [ussdCode, setUssdCode] = useState(initialUssdCode || "");
 	const [showQr, setShowQr] = useState(false);
+	const [showSimulator, setShowSimulator] = useState(false);
 	const [isPending, startTransition] = useTransition();
 	const qrRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +189,17 @@ export function UssdSettings({
 										<span className="hidden sm:inline">Dial Code</span>
 									</a>
 								</Button>
+
+								<Button
+									type="button"
+									variant="secondary"
+									onClick={() => setShowSimulator(true)}
+									className="size-11 sm:w-auto sm:px-4 shrink-0 gap-2 border border-primary/25 bg-primary/10 hover:bg-primary/20 text-primary font-bold shadow-xs"
+									title="Open USSD Phone Simulator"
+								>
+									<Smartphone className="size-4" />
+									<span className="hidden sm:inline">Phone Simulator</span>
+								</Button>
 							</div>
 
 							{/* Expandable QR Code Section */}
@@ -248,28 +263,49 @@ export function UssdSettings({
 						</div>
 
 						{canEdit && (
-							<Button
-								type="button"
-								onClick={handleEnable}
-								disabled={isPending}
-								className="w-full sm:w-auto gap-2 font-bold"
-							>
-								{isPending ? (
-									<>
-										<Loader2 className="size-4 animate-spin" />
-										Generating Extension Code...
-									</>
-								) : (
-									<>
-										<Smartphone className="size-4" />
-										Activate USSD Channel
-									</>
-								)}
-							</Button>
+							<div className="flex flex-wrap items-center gap-3">
+								<Button
+									type="button"
+									onClick={handleEnable}
+									disabled={isPending}
+									className="w-full sm:w-auto gap-2 font-bold"
+								>
+									{isPending ? (
+										<>
+											<Loader2 className="size-4 animate-spin" />
+											Generating Extension Code...
+										</>
+									) : (
+										<>
+											#
+											Activate USSD Channel
+										</>
+									)}
+								</Button>
+
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setShowSimulator(true)}
+									className="w-full sm:w-auto gap-2 font-semibold border-primary/20 hover:bg-primary/5 text-foreground"
+								>
+									<Smartphone className="size-4 text-primary" />
+									Preview in Phone Simulator
+								</Button>
+							</div>
 						)}
 					</div>
 				)}
 			</div>
+
+			{/* Phone Simulator Modal */}
+			<UssdPhoneSimulatorModal
+				open={showSimulator}
+				onOpenChange={setShowSimulator}
+				eventId={eventId}
+				eventTitle={eventTitle}
+				ussdCode={ussdCode}
+			/>
 		</Card>
 	);
 }

@@ -77,12 +77,12 @@ export function EventDepositModal({
 
 				<div className="p-6 space-y-5">
 					{/* Deposit Card */}
-					<div className="rounded-xl border border-primary/30 bg-primary/5 p-4 relative overflow-hidden">
+					<div className="rounded-md border border-gray-300/30 bg-gray-100 p-4 relative overflow-hidden">
 						<div className="flex items-center justify-between mb-1.5">
-							<span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+							<span className="text-xs font-semibold text-gray-500 uppercase ">
 								Commitment Deposit
 							</span>
-							<Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-primary/30 font-semibold text-[11px] px-2 py-0.5">
+							<Badge className="bg-gray-400/20 rounded-xs text-gray-900 hover:bg-gray-400/10 font-semibold text-[11px] px-2 py-0.5">
 								100% Refundable
 							</Badge>
 						</div>
@@ -103,7 +103,7 @@ export function EventDepositModal({
 							<Clock className="h-4 w-4 text-primary shrink-0 mt-0.5" />
 							<div>
 								<span className="font-semibold text-foreground">Refunded within {refundWindowDays} days: </span>
-								Super admins review and refund the deposit directly to your original payment method.
+								Fextiva review and refund the deposit directly to your original payment method.
 							</div>
 						</div>
 
@@ -125,7 +125,7 @@ export function EventDepositModal({
 					</div>
 				</div>
 
-				<DialogFooter className="p-4 bg-muted/30 border-t border-border/60 gap-2 sm:gap-0">
+				<DialogFooter className="p-4 bg-muted/30  flex border-t border-border/60 gap-2">
 					<Button
 						variant="outline"
 						size="sm"
