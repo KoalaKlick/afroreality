@@ -241,7 +241,7 @@ export async function fetchEventDetails(sql: any, eventId: string) {
 	const [categories, options, ticketTypes] = await Promise.all([
 		sql`SELECT id, name, order_idx, vote_price FROM voting_categories WHERE event_id = ${eventId} ORDER BY order_idx ASC`,
 		sql`SELECT id, category_id, option_text, order_idx, status FROM voting_options WHERE event_id = ${eventId} AND status = 'approved' ORDER BY order_idx ASC`,
-		sql`SELECT id, name, price, status, order_idx FROM ticket_types WHERE event_id = ${eventId} AND status = 'available' ORDER BY order_idx ASC`,
+		sql`SELECT id, name, price, status, order_idx, min_per_order, max_per_order FROM ticket_types WHERE event_id = ${eventId} AND status = 'available' ORDER BY order_idx ASC`,
 	]);
 
 	return {
@@ -650,7 +650,10 @@ export async function handleVotingFlow(
 				`${event.title}\nSelect Category:`,
 				categories,
 				catSelection.page,
-				(cat, idx) => `${idx}. ${cat.name}\n`,
+				(cat, idx) => {
+					const price = Number(cat.vote_price ?? cat.votePrice) || 0.5;
+					return `${idx}. ${cat.name} (GHS ${price.toFixed(2)})\n`;
+				},
 			),
 		);
 	}
@@ -659,19 +662,20 @@ export async function handleVotingFlow(
 	if (!selectedCategory) return textResponse("END Invalid category.");
 
 	tokens = catSelection.remainingTokens;
+	const votePrice = Number(selectedCategory.vote_price ?? selectedCategory.votePrice) || 0.5;
 
 	const nominees = (details.options || []).filter(
 		(n: any) => n.category_id === selectedCategory.id,
 	);
 
 	if (nominees.length === 0)
-		return textResponse("END No nominees in this category.");
+		return textResponse(`END No nominees in ${selectedCategory.name}.`);
 
 	const nomSelection = getPaginatedSelection(tokens);
 	if (nomSelection.selectedIndex === null) {
 		return textResponse(
 			buildPaginatedMenu(
-				selectedCategory.name,
+				`${selectedCategory.name}\n(GHS ${votePrice.toFixed(2)}/vote)\nSelect Nominee:`,
 				nominees,
 				nomSelection.page,
 				(nom, idx) => `${idx}. ${nom.option_text}\n`,
@@ -687,8 +691,28 @@ export async function handleVotingFlow(
 	const quantityStr = tokens.shift();
 	if (!quantityStr) {
 		return textResponse(
-			`CON How many votes for ${selectedNominee.option_text}?\n0. Back`,
+			`CON Enter number of votes for ${selectedNominee.option_text}:\nRate: GHS ${votePrice.toFixed(2)}/vote\n0. Back`,
 		);
+	}
+
+	const quantity = Number.parseInt(quantityStr, 10);
+	if (Number.isNaN(quantity) || quantity <= 0) {
+		return textResponse("END Invalid vote quantity. Try again.");
+	}
+
+	// Order Summary & Confirmation Screen
+	const confirmToken = tokens.shift();
+	if (!confirmToken) {
+		const baseAmount = votePrice * quantity;
+		const orgId = event.organization_id || event.organizationId;
+		const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, "vote", orgId);
+		return textResponse(
+			`CON Confirm Vote\nNominee: ${selectedNominee.option_text}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`,
+		);
+	}
+
+	if (confirmToken !== "1") {
+		return textResponse("CON Invalid choice.\n1. Confirm & Pay\n0. Back");
 	}
 
 	const otpStr = tokens.shift();
@@ -697,8 +721,8 @@ export async function handleVotingFlow(
 		sql,
 		event,
 		selectedNominee.id,
-		Number.parseInt(quantityStr, 10),
-		selectedCategory.vote_price,
+		quantity,
+		votePrice,
 		phoneNumber,
 		paystackSecret,
 		otpStr,
@@ -724,7 +748,7 @@ export async function handleTicketFlow(
 				`${event.title}\nSelect Ticket:`,
 				tickets,
 				tktSelection.page,
-				(tkt, idx) => `${idx}. ${tkt.name} - GHS ${tkt.price}\n`,
+				(tkt, idx) => `${idx}. ${tkt.name} - GHS ${Number(tkt.price).toFixed(2)}\n`,
 			),
 		);
 	}
@@ -734,11 +758,45 @@ export async function handleTicketFlow(
 
 	tokens = tktSelection.remainingTokens;
 
+	const ticketPrice = Number(selectedTicket.price) || 0;
+
 	const quantityStr = tokens.shift();
 	if (!quantityStr) {
 		return textResponse(
-			`CON How many ${selectedTicket.name} tickets?\n0. Back`,
+			`CON Enter quantity for ${selectedTicket.name}:\nPrice: GHS ${ticketPrice.toFixed(2)} each\n0. Back`,
 		);
+	}
+
+	const quantity = Number.parseInt(quantityStr, 10);
+	if (Number.isNaN(quantity) || quantity <= 0) {
+		return textResponse("END Invalid ticket quantity. Try again.");
+	}
+
+	if (selectedTicket.min_per_order && quantity < selectedTicket.min_per_order) {
+		return textResponse(
+			`END Minimum quantity for this ticket is ${selectedTicket.min_per_order}.`,
+		);
+	}
+
+	if (selectedTicket.max_per_order && quantity > selectedTicket.max_per_order) {
+		return textResponse(
+			`END Maximum quantity for this ticket is ${selectedTicket.max_per_order}.`,
+		);
+	}
+
+	// Order Summary & Confirmation Screen
+	const confirmToken = tokens.shift();
+	if (!confirmToken) {
+		const baseAmount = ticketPrice * quantity;
+		const orgId = event.organization_id || event.organizationId;
+		const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, "ticket", orgId);
+		return textResponse(
+			`CON Confirm Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`,
+		);
+	}
+
+	if (confirmToken !== "1") {
+		return textResponse("CON Invalid choice.\n1. Confirm & Pay\n0. Back");
 	}
 
 	const otpStr = tokens.shift();
@@ -747,8 +805,8 @@ export async function handleTicketFlow(
 		sql,
 		event,
 		selectedTicket.id,
-		Number.parseInt(quantityStr, 10),
-		selectedTicket.price,
+		quantity,
+		ticketPrice,
 		phoneNumber,
 		paystackSecret,
 		otpStr,

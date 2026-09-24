@@ -414,7 +414,10 @@ async function handleVotingFlow(
 			`${event.title}\nSelect Category:`,
 			categories,
 			catSelection.page,
-			(cat, idx) => `${idx}. ${cat.name}\n`,
+			(cat, idx) => {
+				const price = Number(cat.votePrice) || 0.5;
+				return `${idx}. ${cat.name} (GHS ${price.toFixed(2)})\n`;
+			},
 		);
 	}
 
@@ -422,6 +425,7 @@ async function handleVotingFlow(
 	if (!selectedCategory) return "END Invalid category.";
 
 	tokens = catSelection.remainingTokens;
+	const votePrice = Number(selectedCategory.votePrice) || 0.5;
 
 	// Filter nominees from event-level votingOptions by category_id
 	// (mirrors reference: event.voting_options filtered by n.category_id === selectedCategory.id)
@@ -438,7 +442,7 @@ async function handleVotingFlow(
 	const nomSelection = getPaginatedSelection(tokens);
 	if (nomSelection.selectedIndex === null) {
 		return buildPaginatedMenu(
-			selectedCategory.name,
+			`${selectedCategory.name}\n(GHS ${votePrice.toFixed(2)}/vote)\nSelect Nominee:`,
 			nominees,
 			nomSelection.page,
 			(nom, idx) => `${idx}. ${nom.optionText}\n`,
@@ -452,16 +456,32 @@ async function handleVotingFlow(
 
 	const quantityStr = tokens.shift();
 	if (!quantityStr) {
-		return `CON How many votes for ${selectedNominee.optionText}?\n0. Back`;
+		return `CON Enter number of votes for ${selectedNominee.optionText}:\nRate: GHS ${votePrice.toFixed(2)}/vote\n0. Back`;
+	}
+
+	const quantity = Number.parseInt(quantityStr, 10);
+	if (Number.isNaN(quantity) || quantity <= 0) {
+		return "END Invalid vote quantity. Try again.";
+	}
+
+	// Order Summary & Confirmation Screen
+	const confirmToken = tokens.shift();
+	if (!confirmToken) {
+		const baseAmount = votePrice * quantity;
+		const feeCalc = await computeDynamicChargeAmount(baseAmount, "vote", "GHS", event.organizationId);
+		return `CON Confirm Vote\nNominee: ${selectedNominee.optionText}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
+	}
+
+	if (confirmToken !== "1") {
+		return "CON Invalid choice.\n1. Confirm & Pay\n0. Back";
 	}
 
 	const otpStr = tokens.shift();
-	const votePrice = Number(selectedCategory.votePrice) || 0.5;
 
 	return await processPayment(
 		event,
 		selectedNominee.id,
-		Number.parseInt(quantityStr, 10),
+		quantity,
 		votePrice,
 		phoneNumber,
 		otpStr,
@@ -512,7 +532,7 @@ async function handleTicketFlow(
 			`${event.title}\nSelect Ticket:`,
 			tickets,
 			tktSelection.page,
-			(tkt, idx) => `${idx}. ${tkt.name} - GHS ${tkt.price}\n`,
+			(tkt, idx) => `${idx}. ${tkt.name} - GHS ${Number(tkt.price).toFixed(2)}\n`,
 		);
 	}
 
@@ -521,18 +541,44 @@ async function handleTicketFlow(
 
 	tokens = tktSelection.remainingTokens;
 
+	const ticketPrice = Number(selectedTicket.price) || 0;
+
 	const quantityStr = tokens.shift();
 	if (!quantityStr) {
-		return `CON How many ${selectedTicket.name} tickets?\n0. Back`;
+		return `CON Enter quantity for ${selectedTicket.name}:\nPrice: GHS ${ticketPrice.toFixed(2)} each\n0. Back`;
+	}
+
+	const quantity = Number.parseInt(quantityStr, 10);
+	if (Number.isNaN(quantity) || quantity <= 0) {
+		return "END Invalid ticket quantity. Try again.";
+	}
+
+	if (selectedTicket.minPerOrder && quantity < selectedTicket.minPerOrder) {
+		return `END Minimum quantity for this ticket is ${selectedTicket.minPerOrder}.`;
+	}
+
+	if (selectedTicket.maxPerOrder && quantity > selectedTicket.maxPerOrder) {
+		return `END Maximum quantity for this ticket is ${selectedTicket.maxPerOrder}.`;
+	}
+
+	// Order Summary & Confirmation Screen
+	const confirmToken = tokens.shift();
+	if (!confirmToken) {
+		const baseAmount = ticketPrice * quantity;
+		const feeCalc = await computeDynamicChargeAmount(baseAmount, "ticket", "GHS", event.organizationId);
+		return `CON Confirm Ticket Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
+	}
+
+	if (confirmToken !== "1") {
+		return "CON Invalid choice.\n1. Confirm & Pay\n0. Back";
 	}
 
 	const otpStr = tokens.shift();
-	const ticketPrice = Number(selectedTicket.price) || 0;
 
 	return await processPayment(
 		event,
 		selectedTicket.id,
-		Number.parseInt(quantityStr, 10),
+		quantity,
 		ticketPrice,
 		phoneNumber,
 		otpStr,
