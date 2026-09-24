@@ -17,6 +17,7 @@ import {
 	ArrowRight,
 	CreditCard,
 	Layers,
+	ArrowDownToLine,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -46,6 +47,7 @@ import {
 	adminSetOrganizationFeeOverride,
 	adminDeleteOrganizationFeeOverride,
 	adminUpdatePaystackGatewaySettings,
+	adminUpdateWithdrawalRules,
 } from "@/lib/server-functions/admin";
 
 export interface FeeConfigItem {
@@ -75,6 +77,11 @@ export interface AdminFeesContentProps {
 		feeRate: number;
 		feeCap: number;
 	};
+	withdrawalRules?: {
+		minAmount: number;
+		transferFee: number;
+		freePerWeek: number;
+	};
 	organizations: Array<{
 		id: string;
 		name: string;
@@ -86,6 +93,7 @@ export function AdminFeesContent({
 	globalFees,
 	orgOverrides,
 	paystackConfig,
+	withdrawalRules,
 	organizations,
 }: AdminFeesContentProps) {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -107,6 +115,14 @@ export function AdminFeesContent({
 	const [gatewayForm, setGatewayForm] = useState({
 		feeRate: paystackConfig.feeRate * 100, // display as 1.95
 		feeCap: paystackConfig.feeCap,
+	});
+
+	// Withdrawal Rules Modal State (Option B configurable)
+	const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
+	const [withdrawalForm, setWithdrawalForm] = useState({
+		minAmount: withdrawalRules?.minAmount ?? 20,
+		transferFee: withdrawalRules?.transferFee ?? 1.0,
+		freePerWeek: withdrawalRules?.freePerWeek ?? 1,
 	});
 
 	// Org Override Modal State
@@ -218,6 +234,23 @@ export function AdminFeesContent({
 		});
 	};
 
+	const handleSaveWithdrawalRules = () => {
+		startTransition(async () => {
+			const res = await adminUpdateWithdrawalRules({
+				minAmount: Number(withdrawalForm.minAmount),
+				transferFee: Number(withdrawalForm.transferFee),
+				freePerWeek: Number(withdrawalForm.freePerWeek),
+			});
+
+			if (res.success) {
+				toast.success(res.message);
+				setIsWithdrawalDialogOpen(false);
+			} else {
+				toast.error(res.error || "Failed to update withdrawal rules");
+			}
+		});
+	};
+
 	const handleOpenNewOverride = (preselectedOrgId?: string) => {
 		setEditingOverride(null);
 		setOrgForm({
@@ -311,6 +344,15 @@ export function AdminFeesContent({
 					>
 						<CreditCard className="h-3.5 w-3.5 mr-1.5 text-primary" />
 						Gateway Surcharge ({gatewayForm.feeRate}%)
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setIsWithdrawalDialogOpen(true)}
+						className="text-xs font-semibold h-9 rounded-lg"
+					>
+						<ArrowDownToLine className="h-3.5 w-3.5 mr-1.5 text-primary" />
+						Withdrawal Rules (Min: GHS {withdrawalForm.minAmount})
 					</Button>
 					<Button
 						size="sm"
@@ -780,6 +822,102 @@ export function AdminFeesContent({
 							className="text-xs font-semibold"
 						>
 							{isPending ? "Saving..." : "Update Gateway Settings"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Withdrawal Rules & Payout Policy Dialog (Option B) */}
+			<Dialog open={isWithdrawalDialogOpen} onOpenChange={setIsWithdrawalDialogOpen}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="text-base font-bold flex items-center gap-2">
+							<ArrowDownToLine className="h-4 w-4 text-primary" />
+							Wallet Payout & Withdrawal Rules
+						</DialogTitle>
+						<DialogDescription className="text-xs">
+							Configure the minimum withdrawal threshold and Paystack transfer fee absorption policy for organizers.
+						</DialogDescription>
+					</DialogHeader>
+
+					<div className="space-y-4 py-2">
+						<div className="space-y-1.5">
+							<Label className="text-xs font-semibold">Minimum Withdrawal Amount (GHS)</Label>
+							<Input
+								type="number"
+								step="1"
+								min="1"
+								value={withdrawalForm.minAmount}
+								onChange={(e) =>
+									setWithdrawalForm({
+										...withdrawalForm,
+										minAmount: parseFloat(e.target.value) || 0,
+									})
+								}
+								className="text-xs h-9"
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Organizers cannot submit withdrawal requests below this amount (prevents transfer fees exceeding payout value).
+							</p>
+						</div>
+
+						<div className="space-y-1.5">
+							<Label className="text-xs font-semibold">Paystack Transfer Fee (GHS)</Label>
+							<Input
+								type="number"
+								step="0.1"
+								min="0"
+								value={withdrawalForm.transferFee}
+								onChange={(e) =>
+									setWithdrawalForm({
+										...withdrawalForm,
+										transferFee: parseFloat(e.target.value) || 0,
+									})
+								}
+								className="text-xs h-9"
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Fee deducted by Paystack per transfer (default: GHS 1.00 for Ghana Mobile Money & Banks).
+							</p>
+						</div>
+
+						<div className="space-y-1.5">
+							<Label className="text-xs font-semibold">Free Withdrawals Per Week (Rolling 7 Days)</Label>
+							<Input
+								type="number"
+								step="1"
+								min="0"
+								value={withdrawalForm.freePerWeek}
+								onChange={(e) =>
+									setWithdrawalForm({
+										...withdrawalForm,
+										freePerWeek: parseInt(e.target.value, 10) || 0,
+									})
+								}
+								className="text-xs h-9"
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Number of withdrawals per 7 days where Afroreality absorbs the transfer fee. Subsequent withdrawals will have the transfer fee deducted from the organizer&apos;s payout.
+							</p>
+						</div>
+					</div>
+
+					<DialogFooter>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setIsWithdrawalDialogOpen(false)}
+							className="text-xs"
+						>
+							Cancel
+						</Button>
+						<Button
+							size="sm"
+							onClick={handleSaveWithdrawalRules}
+							disabled={isPending}
+							className="text-xs font-semibold"
+						>
+							{isPending ? "Saving..." : "Save Withdrawal Rules"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

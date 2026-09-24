@@ -26,6 +26,7 @@ export default async function SuperAdminFeesPage() {
 				globalFees={serializeJsonSafe(data.globalFees)}
 				orgOverrides={serializeJsonSafe(data.orgOverrides)}
 				paystackConfig={serializeJsonSafe(data.paystackConfig)}
+				withdrawalRules={serializeJsonSafe(data.withdrawalRules)}
 				organizations={serializeJsonSafe(data.organizations)}
 			/>
 		</Suspense>

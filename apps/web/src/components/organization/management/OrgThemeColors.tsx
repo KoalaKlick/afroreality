@@ -477,7 +477,7 @@ export function OrgThemeColors({
 										type="button"
 										onClick={() => setActiveRole(role)}
 										className={cn(
-											"p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer",
+											"p-2.5 rounded border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer",
 											isSelected
 												? "border-primary bg-primary/5 ring-2 ring-primary/40 shadow-xs"
 												: "border-border/60 bg-card hover:border-border hover:bg-muted/30"

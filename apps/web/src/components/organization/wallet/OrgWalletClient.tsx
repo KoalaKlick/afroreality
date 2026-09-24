@@ -180,11 +180,18 @@ export function OrgWalletClient({
 		[outflows, searchQuery],
 	);
 
+	const minWithdrawalAmount = Number((wallet as any)?.minWithdrawalAmount ?? 20);
+	const transferFee = Number((wallet as any)?.transferFee ?? 1.0);
+	const isNextWithdrawalFree = Boolean((wallet as any)?.isNextWithdrawalFree ?? true);
+
 	const parsedAmount = Number.parseFloat(withdrawalAmount);
 	const isValidWithdrawalAmount =
 		!Number.isNaN(parsedAmount) &&
-		parsedAmount > 0 &&
+		parsedAmount >= minWithdrawalAmount &&
 		parsedAmount <= availableBalance;
+
+	const calculatedFee = isNextWithdrawalFree ? 0 : transferFee;
+	const netPayoutAmount = Math.max(0, Math.round((parsedAmount - calculatedFee) * 100) / 100);
 
 	function handleOpenWithdrawal() {
 		if (wallet?.isLocked) {
@@ -202,11 +209,15 @@ export function OrgWalletClient({
 	}
 
 	function handleProceedToConfirm() {
-		if (!isValidWithdrawalAmount) {
+		if (Number.isNaN(parsedAmount) || parsedAmount < minWithdrawalAmount) {
 			toast.error(
-				parsedAmount > availableBalance
-					? `Amount exceeds available balance (${currency} ${availableBalance.toFixed(2)})`
-					: "Please enter a valid withdrawal amount.",
+				`Minimum withdrawal amount is ${currency} ${minWithdrawalAmount.toFixed(2)}.`,
+			);
+			return;
+		}
+		if (parsedAmount > availableBalance) {
+			toast.error(
+				`Amount exceeds available balance (${currency} ${availableBalance.toFixed(2)})`,
 			);
 			return;
 		}
@@ -632,21 +643,66 @@ export function OrgWalletClient({
 							<Input
 								id="withdraw-amount"
 								type="number"
-								min="1"
+								min={minWithdrawalAmount}
 								max={availableBalance}
 								step="0.01"
 								value={withdrawalAmount}
 								onChange={(e) => setWithdrawalAmount(e.target.value)}
-								placeholder={`0.00`}
+								placeholder={`Min: ${minWithdrawalAmount.toFixed(2)}`}
 								className="font-mono"
 								autoFocus
 							/>
+							<div className="flex items-center justify-between text-[11px]">
+								<span className="text-muted-foreground">
+									Minimum withdrawal: <span className="font-semibold text-foreground">{currency} {minWithdrawalAmount.toFixed(2)}</span>
+								</span>
+								{parsedAmount > 0 && parsedAmount < minWithdrawalAmount && (
+									<span className="text-destructive font-medium">
+										Below minimum ({currency} {minWithdrawalAmount.toFixed(2)})
+									</span>
+								)}
+							</div>
 							{parsedAmount > availableBalance && (
 								<p className="text-[11px] text-destructive font-medium">
 									Amount exceeds available balance ({currency} {availableBalance.toFixed(2)})
 								</p>
 							)}
 						</div>
+
+						{/* Live Fee Breakdown (Option B: 1 Free/week, then GHS 1.00) */}
+						{parsedAmount >= minWithdrawalAmount && parsedAmount <= availableBalance && (
+							<div className="rounded-lg border border-border/70 bg-muted/30 p-2.5 space-y-1.5 text-xs">
+								<div className="flex items-center justify-between text-muted-foreground">
+									<span>Gross Requested Amount:</span>
+									<span className="font-mono font-medium text-foreground">
+										{currency} {parsedAmount.toFixed(2)}
+									</span>
+								</div>
+								<div className="flex items-center justify-between">
+									<span className="flex items-center gap-1.5 text-muted-foreground">
+										Transfer Fee:
+										{isNextWithdrawalFree ? (
+											<Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-bold">
+												FREE (Weekly)
+											</Badge>
+										) : (
+											<Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-medium">
+												Paid by Organizer
+											</Badge>
+										)}
+									</span>
+									<span className={`font-mono font-medium ${isNextWithdrawalFree ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
+										{isNextWithdrawalFree ? `${currency} 0.00` : `- ${currency} ${transferFee.toFixed(2)}`}
+									</span>
+								</div>
+								<div className="border-t border-border/50 pt-1.5 flex items-center justify-between font-semibold">
+									<span>Net Disbursed to Account:</span>
+									<span className="font-mono text-primary font-bold text-sm">
+										{currency} {netPayoutAmount.toFixed(2)}
+									</span>
+								</div>
+							</div>
+						)}
 
 						{/* Memo Input */}
 						<div className="space-y-1.5">
@@ -696,7 +752,7 @@ export function OrgWalletClient({
 				open={isConfirmOpen}
 				onOpenChange={setIsConfirmOpen}
 				title="Confirm Withdrawal Request"
-				description={`You are about to transfer ${currency} ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"} to your verified payout account (${organization.paystackAccountNumber || "MoMo/Bank"}). Please enter your password to authorize this transaction.`}
+				description={`You are about to submit a withdrawal of ${currency} ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"} (${isNextWithdrawalFree ? "Free weekly payout" : `Fee: ${currency} ${calculatedFee.toFixed(2)}`} • Net to receive: ${currency} ${netPayoutAmount.toFixed(2)}) to your verified payout account (${organization.paystackAccountNumber || "MoMo/Bank"}). Please enter your password to authorize this transaction.`}
 				confirmLabel="Authorize & Submit"
 				onConfirm={handleConfirmedWithdraw}
 			/>

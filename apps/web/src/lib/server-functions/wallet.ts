@@ -14,6 +14,33 @@ import {
 	fetchPaystackTransfers,
 } from "./paystack";
 import { fulfillPayoutTransfer } from "./fulfillment";
+import { WITHDRAWAL_CONFIG } from "@repo/pricing";
+
+/**
+ * Loads dynamic withdrawal rules configured by Super Admin from DB (falls back to defaults)
+ */
+export async function getDynamicWithdrawalRules() {
+	try {
+		const setting = await prisma.platformSetting.findUnique({
+			where: { key: "wallet_withdrawal_rules" },
+		});
+		if (setting?.value && typeof setting.value === "object") {
+			const v = setting.value as any;
+			return {
+				minAmount: typeof v.minAmount === "number" && v.minAmount > 0 ? Number(v.minAmount) : WITHDRAWAL_CONFIG.minAmount,
+				transferFee: typeof v.transferFee === "number" && v.transferFee >= 0 ? Number(v.transferFee) : WITHDRAWAL_CONFIG.transferFee,
+				freePerWeek: typeof v.freePerWeek === "number" && v.freePerWeek >= 0 ? Number(v.freePerWeek) : WITHDRAWAL_CONFIG.freePerWeek,
+			};
+		}
+	} catch (e) {
+		console.warn("[WITHDRAWAL-RULES-FETCH-WARN]", e);
+	}
+	return {
+		minAmount: WITHDRAWAL_CONFIG.minAmount,
+		transferFee: WITHDRAWAL_CONFIG.transferFee,
+		freePerWeek: WITHDRAWAL_CONFIG.freePerWeek,
+	};
+}
 
 
 export async function getOrgWallet({
@@ -22,6 +49,8 @@ export async function getOrgWallet({
 	data: { organizationId: string };
 }): Promise<any> {
 	await requireOrgRole(data.organizationId, ["owner", "admin", "member"]);
+
+	const withdrawalRules = await getDynamicWithdrawalRules();
 
 	let wallet = await prisma.wallet.findFirst({
 		where: { organizationId: data.organizationId },
@@ -282,6 +311,17 @@ export async function getOrgWallet({
 			) / 100;
 			const nextSettlement = getNextUpcomingSettlementDate(upcomingTxDates);
 
+			// Count withdrawals initiated in the last 7 days to evaluate weekly free allowance
+			const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+			const recentPayoutsCount = await prisma.payout.count({
+				where: {
+					walletId: wallet.id,
+					status: { in: ["pending", "processing", "completed"] },
+					createdAt: { gte: sevenDaysAgo },
+				},
+			});
+			const isNextWithdrawalFree = recentPayoutsCount < withdrawalRules.freePerWeek;
+
 			return serializeJsonSafe({
 				id: wallet.id,
 				organizationId: wallet.organizationId,
@@ -302,6 +342,11 @@ export async function getOrgWallet({
 				pendingDebits: realPendingDebits,
 				isLocked: !!wallet.isLocked,
 				lockReason: wallet.lockReason ?? null,
+				minWithdrawalAmount: withdrawalRules.minAmount,
+				transferFee: withdrawalRules.transferFee,
+				freeWithdrawalsPerWeek: withdrawalRules.freePerWeek,
+				recentWeeklyPayoutsCount: recentPayoutsCount,
+				isNextWithdrawalFree,
 			});
 		}
 	} catch (reconcileErr) {
@@ -332,6 +377,11 @@ export async function getOrgWallet({
 		pendingDebits: pendingDebitsNum,
 		isLocked: !!wallet.isLocked,
 		lockReason: wallet.lockReason ?? null,
+		minWithdrawalAmount: withdrawalRules.minAmount,
+		transferFee: withdrawalRules.transferFee,
+		freeWithdrawalsPerWeek: withdrawalRules.freePerWeek,
+		recentWeeklyPayoutsCount: 0,
+		isNextWithdrawalFree: true,
 	});
 }
 
@@ -395,8 +445,15 @@ export async function requestWalletWithdrawal({
 		);
 	}
 
+	const withdrawalRules = await getDynamicWithdrawalRules();
+
 	const withdrawalAmount = Number(data.amount);
 	if (withdrawalAmount <= 0) throw new Error("Invalid withdrawal amount.");
+	if (withdrawalAmount < withdrawalRules.minAmount) {
+		throw new Error(
+			`Minimum withdrawal amount is ${wallet.currency} ${withdrawalRules.minAmount.toFixed(2)}.`,
+		);
+	}
 
 	// 1. Calculate available cleared balance (T+1 enforced)
 	const completedCredits = await prisma.transaction.findMany({
@@ -449,7 +506,21 @@ export async function requestWalletWithdrawal({
 		);
 	}
 
-	// 2. Create payout in "pending_approval" state — Paystack transfer will be initiated
+	// 2. Evaluate weekly fee policy (Option B: 1 Free per 7 days, then GHS 1.00 fee)
+	const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+	const recentPayoutsCount = await prisma.payout.count({
+		where: {
+			walletId: wallet.id,
+			status: { in: ["pending", "processing", "completed"] },
+			createdAt: { gte: sevenDaysAgo },
+		},
+	});
+
+	const isFree = recentPayoutsCount < withdrawalRules.freePerWeek;
+	const feeAmount = isFree ? 0 : withdrawalRules.transferFee;
+	const netDisbursed = Math.max(0, Math.round((withdrawalAmount - feeAmount) * 100) / 100);
+
+	// 3. Create payout in "pending_approval" state — Paystack transfer will be initiated
 	//    by the super admin when they approve the payout from the admin dashboard.
 	const ref = `WDR-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 	const now = new Date();
@@ -466,16 +537,20 @@ export async function requestWalletWithdrawal({
 				accountNumber: data.accountNumber,
 				accountName: data.accountName,
 				amount: withdrawalAmount,
-				feeAmount: 0,
+				feeAmount: feeAmount,
 				currency: wallet.currency,
 				status: "pending",
 				requiresApproval: true,
 				provider: "paystack",
-				description: data.description ?? "Wallet withdrawal via Paystack",
+				description:
+					data.description?.trim() ||
+					(isFree
+						? "Wallet withdrawal (Free weekly payout)"
+						: `Wallet withdrawal (${wallet.currency} ${feeAmount.toFixed(2)} transfer fee)`),
 			},
 		});
 
-		// 2. Freeze funds by incrementing pendingDebits
+		// 2. Freeze funds by incrementing pendingDebits with the total requested amount
 		await tx.wallet.update({
 			where: { id: wallet.id },
 			data: {
@@ -493,9 +568,13 @@ export async function requestWalletWithdrawal({
 				category: "wallet_withdrawal",
 				status: "pending",
 				amount: withdrawalAmount,
-				feeAmount: 0,
+				feeAmount: feeAmount,
 				currency: wallet.currency,
-				description: data.description?.trim() || `Withdrawal to ${data.accountNumber} (pending approval)`,
+				description:
+					data.description?.trim() ||
+					(isFree
+						? `Withdrawal to ${data.accountNumber} (Free weekly payout, pending approval)`
+						: `Withdrawal to ${data.accountNumber} (Net: ${wallet.currency} ${netDisbursed.toFixed(2)}, Fee: ${wallet.currency} ${feeAmount.toFixed(2)}, pending approval)`),
 				balanceBefore: Number(wallet.balance),
 				balanceAfter: Number(wallet.balance),
 			},
@@ -510,11 +589,14 @@ export async function requestWalletWithdrawal({
 					action: "wallet_withdrawal_requested",
 					entityType: "payout",
 					entityId: payout.id,
-					description: `Withdrawal of ${wallet.currency} ${withdrawalAmount.toFixed(2)} requested to ${data.bankName ? data.bankName + " " : ""}${data.accountNumber} (${data.accountName}) — awaiting admin approval`,
+					description: `Withdrawal of ${wallet.currency} ${withdrawalAmount.toFixed(2)} requested to ${data.bankName ? data.bankName + " " : ""}${data.accountNumber} (${data.accountName})${feeAmount > 0 ? ` [Fee: ${wallet.currency} ${feeAmount.toFixed(2)}, Net: ${wallet.currency} ${netDisbursed.toFixed(2)}]` : " [Free weekly payout]"} — awaiting admin approval`,
 					metadata: {
 						reference: ref,
 						amount: withdrawalAmount,
+						feeAmount,
+						netDisbursed,
 						currency: wallet.currency,
+						isFree,
 					},
 				},
 			});

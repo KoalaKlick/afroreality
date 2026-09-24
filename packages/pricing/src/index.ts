@@ -192,10 +192,17 @@ export function computeChargeAmount(
 	};
 }
 
+export const WITHDRAWAL_CONFIG = {
+	minAmount: 20, // Minimum GHS 20.00
+	transferFee: 1.0, // GHS 1.00 Paystack transfer fee
+	freePerWeek: 1, // 1 free withdrawal per rolling 7 days
+} as const;
+
 export const CASHOUT_CONFIG = {
 	settlementDays: 1,
 	settlementLabel: "Next business day",
-	minWithdrawalAmount: 10,
+	minWithdrawalAmount: WITHDRAWAL_CONFIG.minAmount,
+	transferFee: WITHDRAWAL_CONFIG.transferFee,
 	autoSettlement: true,
 };
 

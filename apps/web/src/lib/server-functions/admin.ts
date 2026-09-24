@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@repo/db";
 import { requirePlatformAdmin } from "@/lib/admin/admin-auth";
+import { WITHDRAWAL_CONFIG } from "@repo/pricing";
 
 /**
  * Super Admin action to lock or unlock an organization wallet.
@@ -428,6 +429,11 @@ export interface AdminPlatformFeesData {
 		feeRate: number;
 		feeCap: number;
 	};
+	withdrawalRules: {
+		minAmount: number;
+		transferFee: number;
+		freePerWeek: number;
+	};
 	organizations: Array<{
 		id: string;
 		name: string;
@@ -441,7 +447,7 @@ export interface AdminPlatformFeesData {
 export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 	await requirePlatformAdmin();
 
-	const [globalFees, orgOverrides, gatewaySetting, organizations] = await Promise.all([
+	const [globalFees, orgOverrides, gatewaySetting, withdrawalSetting, organizations] = await Promise.all([
 		prisma.feeConfiguration.findMany({
 			where: { organizationId: null },
 			orderBy: [{ feeType: "asc" }, { createdAt: "desc" }],
@@ -458,6 +464,9 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 		prisma.platformSetting.findUnique({
 			where: { key: "payment_gateway_paystack" },
 		}),
+		prisma.platformSetting.findUnique({
+			where: { key: "wallet_withdrawal_rules" },
+		}),
 		prisma.organization.findMany({
 			select: { id: true, name: true, slug: true },
 			orderBy: { name: "asc" },
@@ -467,6 +476,13 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 	const paystackConfig = (gatewaySetting?.value as any) || {
 		feeRate: 0.0195,
 		feeCap: 100,
+	};
+
+	const withdrawalRulesRaw = (withdrawalSetting?.value as any) || {};
+	const withdrawalRules = {
+		minAmount: typeof withdrawalRulesRaw.minAmount === "number" ? withdrawalRulesRaw.minAmount : WITHDRAWAL_CONFIG.minAmount,
+		transferFee: typeof withdrawalRulesRaw.transferFee === "number" ? withdrawalRulesRaw.transferFee : WITHDRAWAL_CONFIG.transferFee,
+		freePerWeek: typeof withdrawalRulesRaw.freePerWeek === "number" ? withdrawalRulesRaw.freePerWeek : WITHDRAWAL_CONFIG.freePerWeek,
 	};
 
 	const serializeFeeItem = (item: any): AdminFeeConfigItem => ({
@@ -491,6 +507,7 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 			feeRate: typeof paystackConfig.feeRate === "number" ? paystackConfig.feeRate : 0.0195,
 			feeCap: typeof paystackConfig.feeCap === "number" ? paystackConfig.feeCap : 100,
 		},
+		withdrawalRules,
 		organizations,
 	};
 }
@@ -752,6 +769,48 @@ export async function adminUpdatePaystackGatewaySettings(data: {
 }
 
 /**
+ * Super Admin: Update wallet withdrawal rules (minimum amount, Paystack transfer fee, and free weekly allowance).
+ */
+export async function adminUpdateWithdrawalRules(data: {
+	minAmount: number;
+	transferFee: number;
+	freePerWeek: number;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		await requirePlatformAdmin();
+
+		const minAmount = Math.max(1, Number(data.minAmount || WITHDRAWAL_CONFIG.minAmount));
+		const transferFee = Math.max(0, Number(data.transferFee ?? WITHDRAWAL_CONFIG.transferFee));
+		const freePerWeek = Math.max(0, Math.floor(Number(data.freePerWeek ?? WITHDRAWAL_CONFIG.freePerWeek)));
+
+		await prisma.platformSetting.upsert({
+			where: { key: "wallet_withdrawal_rules" },
+			create: {
+				key: "wallet_withdrawal_rules",
+				value: { minAmount, transferFee, freePerWeek },
+				description: "Wallet payout minimum amount and Paystack transfer fee policy",
+			},
+			update: {
+				value: { minAmount, transferFee, freePerWeek },
+				updatedAt: new Date(),
+			},
+		});
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+		revalidatePath("/organization/wallet");
+
+		return {
+			success: true,
+			message: "Wallet withdrawal rules updated successfully.",
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_UPDATE_WITHDRAWAL_RULES_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to update withdrawal rules" };
+	}
+}
+
+/**
  * Super Admin: Approve a pending payout. Triggers the Paystack transfer.
  */
 export async function adminApprovePayout(data: {
@@ -779,17 +838,19 @@ export async function adminApprovePayout(data: {
 			return { success: false, error: `Payout is not pending approval (current status: ${payout.status}).` };
 		}
 
-		const withdrawalAmount = Number(payout.amount);
+		const grossAmount = Number(payout.amount);
+		const feeAmount = Number(payout.feeAmount || 0);
+		const netDisbursedAmount = Math.max(0, Math.round((grossAmount - feeAmount) * 100) / 100);
 
 		// 1. Check Paystack merchant balance
 		const { checkPaystackBalance, createPaystackTransferRecipient, initiatePaystackTransfer } = await import("./paystack");
 
 		const balCheck = await checkPaystackBalance(payout.currency);
 		if (balCheck.success && typeof balCheck.balance === "number") {
-			if (withdrawalAmount > balCheck.balance) {
+			if (netDisbursedAmount > balCheck.balance) {
 				return {
 					success: false,
-					error: `Paystack merchant balance (${payout.currency} ${balCheck.balance.toFixed(2)}) is insufficient for this payout of ${payout.currency} ${withdrawalAmount.toFixed(2)}.`,
+					error: `Paystack merchant balance (${payout.currency} ${balCheck.balance.toFixed(2)}) is insufficient for this net payout of ${payout.currency} ${netDisbursedAmount.toFixed(2)}.`,
 				};
 			}
 		}
@@ -806,12 +867,12 @@ export async function adminApprovePayout(data: {
 			return { success: false, error: recipientResult.message || "Failed to create transfer recipient on Paystack." };
 		}
 
-		// 3. Initiate Transfer
+		// 3. Initiate Transfer (Net amount sent to recipient)
 		const transferResult = await initiatePaystackTransfer({
-			amount: withdrawalAmount,
+			amount: netDisbursedAmount,
 			recipientCode: recipientResult.recipientCode,
 			reference: payout.reference,
-			reason: payout.description || "Approved wallet withdrawal",
+			reason: payout.description || `Approved wallet withdrawal (Net: ${payout.currency} ${netDisbursedAmount.toFixed(2)})`,
 		});
 
 		if (!transferResult.success) {
@@ -865,10 +926,13 @@ export async function adminApprovePayout(data: {
 				action: "payout.approved_by_super_admin",
 				entityType: "payout",
 				entityId: payout.id,
-				description: `Payout of ${payout.currency} ${withdrawalAmount.toFixed(2)} to ${payout.recipientName} approved by admin`,
+				description: `Payout of ${payout.currency} ${grossAmount.toFixed(2)}${feeAmount > 0 ? ` (Net: ${payout.currency} ${netDisbursedAmount.toFixed(2)}, Fee: ${payout.currency} ${feeAmount.toFixed(2)})` : " (Free weekly payout)"} to ${payout.recipientName} approved by admin`,
 				metadata: {
 					adminEmail: adminState.email,
 					reference: payout.reference,
+					grossAmount,
+					feeAmount,
+					netDisbursedAmount,
 					transferCode: transferResult.transferCode,
 					status: transferResult.status,
 				},
