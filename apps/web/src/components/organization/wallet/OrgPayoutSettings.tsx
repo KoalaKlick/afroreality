@@ -40,6 +40,7 @@ interface OrgPayoutSettingsProps {
 		paystackAccountName?: string | null;
 		subaccountCode?: string | null;
 	};
+	onSuccess?: () => void;
 }
 
 interface NetworkOption {
@@ -47,7 +48,7 @@ interface NetworkOption {
 	label: string;
 }
 
-export function OrgPayoutSettings({ organization }: OrgPayoutSettingsProps) {
+export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettingsProps) {
 	const [bankType, setBankType] = useState<"momo" | "bank">("momo");
 	const [isVerifying, setIsVerifying] = useState(false);
 	const [isCreating, setIsCreating] = useState(false);
@@ -203,6 +204,7 @@ export function OrgPayoutSettings({ organization }: OrgPayoutSettingsProps) {
 				setPayoutAccountName(verifiedName ?? accountName);
 				setIsEditing(false);
 				toast.success("Payment account saved successfully!");
+				if (onSuccess) onSuccess();
 			} else {
 				toast.error(result.error || "Failed to set up payment account.");
 			}

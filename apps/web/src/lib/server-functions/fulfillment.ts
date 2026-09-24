@@ -331,6 +331,14 @@ export async function fulfillSuccessfulPayment({
 		}
 
 		// 5. Organization Wallet & Transaction Ledger Updates
+		// Security deposits are held in platform escrow and MUST NEVER credit organizer wallet balances.
+		if (metadata.isEventDeposit) {
+			return {
+				success: true,
+				payment: updatedPayment,
+			};
+		}
+
 		let organizationId = metadata.organizationId || metadata.orgId;
 		if (!organizationId) {
 			const eventId = metadata.eventId || metadata.event_id || payment.ticketOrders?.[0]?.eventId;

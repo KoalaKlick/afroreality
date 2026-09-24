@@ -68,6 +68,11 @@ const navItems = [
 		icon: Wallet,
 	},
 	{
+		title: "Security Deposits",
+		href: "/super/deposits",
+		icon: ShieldCheck,
+	},
+	{
 		title: "Platform Fees",
 		href: "/super/fees",
 		icon: Percent,

@@ -797,3 +797,59 @@ export async function fetchPaystackTransfers(): Promise<
 	return [];
 }
 
+/**
+ * Initiates a refund on Paystack for a completed transaction
+ */
+export async function createPaystackRefund({
+	transactionReference,
+	amount,
+	currency = "GHS",
+	merchantNote,
+}: {
+	transactionReference: string;
+	amount?: number;
+	currency?: string;
+	merchantNote?: string;
+}): Promise<{ success: boolean; data?: any; message?: string; error?: string }> {
+	if (!PAYSTACK_SECRET) {
+		return { success: false, error: "Paystack secret key is not configured." };
+	}
+
+	try {
+		const payload: any = {
+			transaction: transactionReference,
+			merchant_note: merchantNote || "Event security deposit refund",
+		};
+		if (amount && amount > 0) {
+			payload.amount = Math.round(amount * 100);
+			payload.currency = currency;
+		}
+
+		const response = await fetch("https://api.paystack.co/refund", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${PAYSTACK_SECRET}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(payload),
+		});
+
+		const result = await response.json();
+		if (result.status && result.data) {
+			return {
+				success: true,
+				data: result.data,
+				message: result.message || "Refund initiated successfully on Paystack.",
+			};
+		}
+
+		return {
+			success: false,
+			error: result.message || "Failed to process refund on Paystack.",
+		};
+	} catch (error: any) {
+		console.error("[PAYSTACK-REFUND-ERROR]", error);
+		return { success: false, error: error?.message || "Paystack refund network error." };
+	}
+}
+

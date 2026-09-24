@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import {
-	useRouter
+	useRouter,
+	useSearchParams,
 } from "next/navigation";
 import {
 	Calendar,
@@ -25,9 +26,10 @@ import {
 	Vote,
 	X,
 } from "lucide-react";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { EventAuditTrailDrawer } from "../audit/EventAuditTrailDrawer";
+import { EventDepositModal } from "./EventDepositModal";
 import AddFilesIcon from "@/assets/add-files.svg";
 import { StatusBadge } from "@/components/common/status-badge";
 import {
@@ -61,7 +63,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrgPayoutSettings } from "@/components/organization/wallet";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { cleanStorageKey, getEventImageUrl } from "@/lib/image-url-utils";
-import { updateExistingEvent } from "@/lib/server-functions/event-mgmt";
+import {
+	updateExistingEvent,
+	checkEventDepositRequirement,
+	verifyEventDepositPayment,
+} from "@/lib/server-functions/event-mgmt";
 import { cn, formatDate, getErrorMessage } from "@/lib/utils";
 
 interface EventDetailHeaderProps {
@@ -115,6 +121,52 @@ export function EventDetailHeader({
 	const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
 	const [isPayoutDrawerOpen, setIsPayoutDrawerOpen] = useState(false);
 	const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
+
+	// Security deposit modal state
+	const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+	const [depositModalData, setDepositModalData] = useState<{
+		amount: number;
+		refundWindowDays: number;
+	}>({
+		amount: 100,
+		refundWindowDays: 2,
+	});
+
+	// URL searchParams to check for deposit payment callback
+	const searchParams = useSearchParams();
+	const depositRef = searchParams.get("deposit_ref");
+
+	useEffect(() => {
+		if (depositRef && event.status !== "published") {
+			(async () => {
+				try {
+					toast.loading("Verifying your security deposit...", { id: "verify-deposit" });
+					const verifyRes = await verifyEventDepositPayment({
+						reference: depositRef,
+						eventId: event.id,
+					});
+
+					if (verifyRes.success) {
+						toast.success("Security deposit verified! Publishing event...", { id: "verify-deposit" });
+						await updateExistingEvent({
+							data: {
+								id: event.id,
+								status: "published",
+							},
+						});
+						toast.success("Event published live!");
+						if (onRefresh) onRefresh();
+						router.replace(window.location.pathname);
+					} else {
+						toast.error(verifyRes.error || "Deposit verification failed.", { id: "verify-deposit" });
+					}
+				} catch (err: any) {
+					console.error("Deposit verification error:", err);
+					toast.error("Failed to verify deposit.", { id: "verify-deposit" });
+				}
+			})();
+		}
+	}, [depositRef, event.id, event.status, onRefresh, router]);
 
 	// Editable state
 	const [editingTitle, setEditingTitle] = useState(false);
@@ -178,7 +230,7 @@ export function EventDetailHeader({
 	) {
 		if (newStatus === event.status) return;
 
-		// Gate paid event publishing behind a payout account
+		// 1. Gate paid event publishing behind a payout account FIRST
 		const isPaidEvent =
 			event.type === "ticketed" ||
 			event.type === "hybrid" ||
@@ -186,6 +238,27 @@ export function EventDetailHeader({
 		if (newStatus === "published" && isPaidEvent && !hasPayoutActivated) {
 			setShowPaymentPrompt(true);
 			return;
+		}
+
+		// 2. Gate publishing behind refundable security deposit SECOND (only after payout account check passes)
+		if (newStatus === "published") {
+			try {
+				const depReq = await checkEventDepositRequirement({
+					eventId: event.id,
+					organizationId: event.organizationId,
+				});
+
+				if (depReq.required) {
+					setDepositModalData({
+						amount: depReq.amount || 100,
+						refundWindowDays: depReq.refundWindowDays || 2,
+					});
+					setIsDepositModalOpen(true);
+					return;
+				}
+			} catch (err) {
+				console.error("[DEPOSIT-CHECK-ERROR]", err);
+			}
 		}
 
 		startStatusTransition(async () => {
@@ -681,6 +754,12 @@ export function EventDetailHeader({
 								paystackAccountName: organization?.paystackAccountName ?? null,
 								subaccountCode: organization?.subaccountCode ?? null,
 							}}
+							onSuccess={() => {
+								setIsPayoutDrawerOpen(false);
+								router.refresh();
+								if (onRefresh) onRefresh();
+								toast.success("Payout account saved! You can now proceed to publish your event.");
+							}}
 						/>
 					</div>
 				</SheetContent>
@@ -692,6 +771,16 @@ export function EventDetailHeader({
 				eventTitle={event.title}
 				open={isAuditDrawerOpen}
 				onOpenChange={setIsAuditDrawerOpen}
+			/>
+
+			{/* Refundable Security Deposit Modal */}
+			<EventDepositModal
+				open={isDepositModalOpen}
+				onOpenChange={setIsDepositModalOpen}
+				eventId={event.id}
+				eventTitle={event.title}
+				amount={depositModalData.amount}
+				refundWindowDays={depositModalData.refundWindowDays}
 			/>
 		</>
 	);

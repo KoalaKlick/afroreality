@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import Link from "next/link";
 import {
 	Percent,
 	Coins,
@@ -48,6 +49,7 @@ import {
 	adminDeleteOrganizationFeeOverride,
 	adminUpdatePaystackGatewaySettings,
 	adminUpdateWithdrawalRules,
+	type EventDepositRules,
 } from "@/lib/server-functions/admin";
 
 export interface FeeConfigItem {
@@ -82,6 +84,7 @@ export interface AdminFeesContentProps {
 		transferFee: number;
 		freePerWeek: number;
 	};
+	depositRules?: EventDepositRules;
 	organizations: Array<{
 		id: string;
 		name: string;
@@ -94,6 +97,7 @@ export function AdminFeesContent({
 	orgOverrides,
 	paystackConfig,
 	withdrawalRules,
+	depositRules,
 	organizations,
 }: AdminFeesContentProps) {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -353,6 +357,17 @@ export function AdminFeesContent({
 					>
 						<ArrowDownToLine className="h-3.5 w-3.5 mr-1.5 text-primary" />
 						Withdrawal Rules (Min: GHS {withdrawalForm.minAmount})
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						asChild
+						className="text-xs font-semibold h-9 rounded-lg"
+					>
+						<Link href="/super/deposits">
+							<ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-primary" />
+							Security Deposits (GHS {depositRules?.amount ?? 100})
+						</Link>
 					</Button>
 					<Button
 						size="sm"

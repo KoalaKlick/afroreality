@@ -422,6 +422,20 @@ export interface AdminFeeConfigItem {
 	} | null;
 }
 
+export interface EventDepositRules {
+	enabled: boolean;
+	amount: number;
+	scope: "first_event_only" | "every_event";
+	refundWindowDays: number;
+}
+
+export const DEFAULT_DEPOSIT_RULES: EventDepositRules = {
+	enabled: true,
+	amount: 100,
+	scope: "first_event_only",
+	refundWindowDays: 2,
+};
+
 export interface AdminPlatformFeesData {
 	globalFees: AdminFeeConfigItem[];
 	orgOverrides: AdminFeeConfigItem[];
@@ -434,6 +448,7 @@ export interface AdminPlatformFeesData {
 		transferFee: number;
 		freePerWeek: number;
 	};
+	depositRules: EventDepositRules;
 	organizations: Array<{
 		id: string;
 		name: string;
@@ -447,7 +462,7 @@ export interface AdminPlatformFeesData {
 export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 	await requirePlatformAdmin();
 
-	const [globalFees, orgOverrides, gatewaySetting, withdrawalSetting, organizations] = await Promise.all([
+	const [globalFees, orgOverrides, gatewaySetting, withdrawalSetting, depositSetting, organizations] = await Promise.all([
 		prisma.feeConfiguration.findMany({
 			where: { organizationId: null },
 			orderBy: [{ feeType: "asc" }, { createdAt: "desc" }],
@@ -467,6 +482,9 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 		prisma.platformSetting.findUnique({
 			where: { key: "wallet_withdrawal_rules" },
 		}),
+		prisma.platformSetting.findUnique({
+			where: { key: "event_deposit_rules" },
+		}),
 		prisma.organization.findMany({
 			select: { id: true, name: true, slug: true },
 			orderBy: { name: "asc" },
@@ -483,6 +501,14 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 		minAmount: typeof withdrawalRulesRaw.minAmount === "number" ? withdrawalRulesRaw.minAmount : WITHDRAWAL_CONFIG.minAmount,
 		transferFee: typeof withdrawalRulesRaw.transferFee === "number" ? withdrawalRulesRaw.transferFee : WITHDRAWAL_CONFIG.transferFee,
 		freePerWeek: typeof withdrawalRulesRaw.freePerWeek === "number" ? withdrawalRulesRaw.freePerWeek : WITHDRAWAL_CONFIG.freePerWeek,
+	};
+
+	const depositRulesRaw = (depositSetting?.value as any) || {};
+	const depositRules: EventDepositRules = {
+		enabled: typeof depositRulesRaw.enabled === "boolean" ? depositRulesRaw.enabled : DEFAULT_DEPOSIT_RULES.enabled,
+		amount: typeof depositRulesRaw.amount === "number" && depositRulesRaw.amount > 0 ? depositRulesRaw.amount : DEFAULT_DEPOSIT_RULES.amount,
+		scope: depositRulesRaw.scope === "every_event" ? "every_event" : DEFAULT_DEPOSIT_RULES.scope,
+		refundWindowDays: typeof depositRulesRaw.refundWindowDays === "number" && depositRulesRaw.refundWindowDays > 0 ? depositRulesRaw.refundWindowDays : DEFAULT_DEPOSIT_RULES.refundWindowDays,
 	};
 
 	const serializeFeeItem = (item: any): AdminFeeConfigItem => ({
@@ -508,6 +534,7 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 			feeCap: typeof paystackConfig.feeCap === "number" ? paystackConfig.feeCap : 100,
 		},
 		withdrawalRules,
+		depositRules,
 		organizations,
 	};
 }
@@ -1162,4 +1189,307 @@ export async function adminSyncPayoutStatus(data: {
 		return { success: false, message: err?.message || "Failed to sync payout status." };
 	}
 }
+
+/**
+ * Super Admin: Update event security deposit rules (enabled, amount, scope, refundWindowDays).
+ */
+export async function adminUpdateEventDepositRules(data: {
+	enabled: boolean;
+	amount: number;
+	scope: "first_event_only" | "every_event";
+	refundWindowDays: number;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		await requirePlatformAdmin();
+
+		const amount = Math.max(1, Number(data.amount || DEFAULT_DEPOSIT_RULES.amount));
+		const refundWindowDays = Math.max(1, Math.floor(Number(data.refundWindowDays || DEFAULT_DEPOSIT_RULES.refundWindowDays)));
+		const scope = data.scope === "every_event" ? "every_event" : "first_event_only";
+		const enabled = Boolean(data.enabled);
+
+		await prisma.platformSetting.upsert({
+			where: { key: "event_deposit_rules" },
+			create: {
+				key: "event_deposit_rules",
+				value: { enabled, amount, scope, refundWindowDays },
+				description: "Refundable security deposit policy when organizers publish events",
+			},
+			update: {
+				value: { enabled, amount, scope, refundWindowDays },
+				updatedAt: new Date(),
+			},
+		});
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+		revalidatePath("/super/deposits");
+
+		return {
+			success: true,
+			message: "Event security deposit rules updated successfully.",
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_UPDATE_DEPOSIT_RULES_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to update deposit rules" };
+	}
+}
+
+export interface AdminSecurityDepositItem {
+	id: string;
+	reference: string;
+	providerReference?: string | null;
+	amount: number;
+	currency: string;
+	status: "held" | "refunded";
+	createdAt: string;
+	verifiedAt?: string | null;
+	refundedAt?: string | null;
+	paystackRefundId?: string | null;
+	refundedBy?: string | null;
+	daysHeld: number;
+	isDue: boolean;
+	organizerEmail: string;
+	event: {
+		id: string;
+		title: string;
+		slug: string;
+		status: string;
+	} | null;
+	organization: {
+		id: string;
+		name: string;
+		slug: string;
+		paystackAccountName?: string | null;
+		paystackAccountNumber?: string | null;
+		paystackBankCode?: string | null;
+	} | null;
+}
+
+export interface AdminSecurityDepositsData {
+	deposits: AdminSecurityDepositItem[];
+	totalHeldAmount: number;
+	totalHeldCount: number;
+	dueRefundsCount: number;
+	totalRefundedAmount: number;
+	totalRefundedCount: number;
+	depositRules: EventDepositRules;
+}
+
+/**
+ * Super Admin: Retrieve all event security deposits (escrow records), calculate days held, and refund statuses.
+ */
+export async function getAdminSecurityDeposits(): Promise<AdminSecurityDepositsData> {
+	await requirePlatformAdmin();
+
+	const [depositSetting, allCompletedPayments] = await Promise.all([
+		prisma.platformSetting.findUnique({
+			where: { key: "event_deposit_rules" },
+		}),
+		prisma.payment.findMany({
+			where: {
+				status: "completed",
+			},
+			orderBy: { createdAt: "desc" },
+		}),
+	]);
+
+	const depositRulesRaw = (depositSetting?.value as any) || {};
+	const depositRules: EventDepositRules = {
+		enabled: typeof depositRulesRaw.enabled === "boolean" ? depositRulesRaw.enabled : DEFAULT_DEPOSIT_RULES.enabled,
+		amount: typeof depositRulesRaw.amount === "number" && depositRulesRaw.amount > 0 ? depositRulesRaw.amount : DEFAULT_DEPOSIT_RULES.amount,
+		scope: depositRulesRaw.scope === "every_event" ? "every_event" : DEFAULT_DEPOSIT_RULES.scope,
+		refundWindowDays: typeof depositRulesRaw.refundWindowDays === "number" && depositRulesRaw.refundWindowDays > 0 ? depositRulesRaw.refundWindowDays : DEFAULT_DEPOSIT_RULES.refundWindowDays,
+	};
+
+	// Filter down specifically to event deposits (matching metadata.isEventDeposit === true)
+	const depositPayments = allCompletedPayments.filter((p) => {
+		const meta = (p.metadata as any) || {};
+		return meta.isEventDeposit === true;
+	});
+
+	// Collect unique event IDs and organization IDs to fetch in bulk
+	const eventIds = [...new Set(depositPayments.map((p) => (p.metadata as any)?.eventId).filter(Boolean))];
+	const orgIds = [...new Set(depositPayments.map((p) => (p.metadata as any)?.organizationId).filter(Boolean))];
+
+	const [events, orgs] = await Promise.all([
+		eventIds.length > 0
+			? prisma.event.findMany({
+					where: { id: { in: eventIds } },
+					select: { id: true, title: true, slug: true, status: true },
+			  })
+			: [],
+		orgIds.length > 0
+			? prisma.organization.findMany({
+					where: { id: { in: orgIds } },
+					select: {
+						id: true,
+						name: true,
+						slug: true,
+						paystackAccountName: true,
+						paystackAccountNumber: true,
+						paystackBankCode: true,
+					},
+			  })
+			: [],
+	]);
+
+	const eventMap = new Map(events.map((e) => [e.id, e]));
+	const orgMap = new Map(orgs.map((o) => [o.id, o]));
+
+	const now = new Date();
+	let totalHeldAmount = 0;
+	let totalHeldCount = 0;
+	let dueRefundsCount = 0;
+	let totalRefundedAmount = 0;
+	let totalRefundedCount = 0;
+
+	const deposits: AdminSecurityDepositItem[] = depositPayments.map((p) => {
+		const meta = (p.metadata as any) || {};
+		const amount = Number(p.amount);
+		const isRefunded = meta.depositStatus === "refunded" || !!meta.refundedAt;
+		const status: "held" | "refunded" = isRefunded ? "refunded" : "held";
+
+		// Calculate days held
+		const paymentDate = p.verifiedAt || p.createdAt;
+		const diffMs = now.getTime() - new Date(paymentDate).getTime();
+		const daysHeld = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+		const isDue = status === "held" && daysHeld >= depositRules.refundWindowDays;
+
+		if (status === "held") {
+			totalHeldAmount += amount;
+			totalHeldCount++;
+			if (isDue) dueRefundsCount++;
+		} else {
+			totalRefundedAmount += amount;
+			totalRefundedCount++;
+		}
+
+		return {
+			id: p.id,
+			reference: p.reference,
+			providerReference: p.providerReference,
+			amount,
+			currency: p.currency,
+			status,
+			createdAt: p.createdAt.toISOString(),
+			verifiedAt: p.verifiedAt ? p.verifiedAt.toISOString() : null,
+			refundedAt: meta.refundedAt || null,
+			paystackRefundId: meta.paystackRefundId || null,
+			refundedBy: meta.refundedBy || null,
+			daysHeld,
+			isDue,
+			organizerEmail: p.email,
+			event: meta.eventId ? eventMap.get(meta.eventId) || null : null,
+			organization: meta.organizationId ? orgMap.get(meta.organizationId) || null : null,
+		};
+	});
+
+	return {
+		deposits,
+		totalHeldAmount,
+		totalHeldCount,
+		dueRefundsCount,
+		totalRefundedAmount,
+		totalRefundedCount,
+		depositRules,
+	};
+}
+
+/**
+ * Super Admin: Process a 1-click Paystack refund for a held event security deposit.
+ */
+export async function adminProcessSecurityDepositRefund(data: {
+	paymentId: string;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		const adminState = await requirePlatformAdmin();
+
+		const payment = await prisma.payment.findUnique({
+			where: { id: data.paymentId },
+		});
+
+		if (!payment) {
+			return { success: false, error: "Payment record not found." };
+		}
+
+		if (payment.status !== "completed") {
+			return { success: false, error: "Only completed payments can be refunded." };
+		}
+
+		const meta = (payment.metadata as any) || {};
+		if (!meta.isEventDeposit) {
+			return { success: false, error: "Payment is not marked as an event security deposit." };
+		}
+
+		if (meta.depositStatus === "refunded") {
+			return { success: false, error: "This deposit has already been refunded." };
+		}
+
+		const { createPaystackRefund } = await import("./paystack");
+
+		// Paystack accepts transaction reference or transaction ID
+		const txRef = payment.providerReference || payment.reference;
+		const refundRes = await createPaystackRefund({
+			transactionReference: txRef,
+			amount: Number(payment.amount),
+			currency: payment.currency,
+			merchantNote: `Afroreality security deposit refund for event: ${meta.eventTitle || meta.eventId || "Event"}`,
+		});
+
+		if (!refundRes.success) {
+			return {
+				success: false,
+				error: refundRes.error || refundRes.message || "Failed to process refund on Paystack.",
+			};
+		}
+
+		// Update payment metadata to record refund details
+		const now = new Date();
+		const updatedMeta = {
+			...meta,
+			depositStatus: "refunded",
+			refundedAt: now.toISOString(),
+			paystackRefundId: refundRes.data?.id ? String(refundRes.data.id) : undefined,
+			refundedBy: adminState.email,
+			refundResponse: refundRes.data,
+		};
+
+		await prisma.payment.update({
+			where: { id: payment.id },
+			data: {
+				metadata: updatedMeta,
+			},
+		});
+
+		// Create an ActivityLog entry for auditing
+		await prisma.activityLog.create({
+			data: {
+				organizationId: meta.organizationId || null,
+				userId: adminState.userId,
+				action: "security_deposit.refunded_by_super_admin",
+				entityType: "payment",
+				entityId: payment.id,
+				description: `Security deposit of ${payment.currency} ${Number(payment.amount).toFixed(2)} refunded via Paystack.`,
+				metadata: {
+					adminEmail: adminState.email,
+					reference: payment.reference,
+					providerReference: payment.providerReference,
+					paystackRefundId: refundRes.data?.id,
+				},
+			},
+		}).catch(() => {});
+
+		revalidatePath("/super");
+		revalidatePath("/super/deposits");
+
+		return {
+			success: true,
+			message: `Security deposit of ${payment.currency} ${Number(payment.amount).toFixed(2)} refunded successfully via Paystack!`,
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_PROCESS_DEPOSIT_REFUND_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to process security deposit refund." };
+	}
+}
+
 
