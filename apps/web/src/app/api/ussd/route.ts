@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@repo/db";
 import { toPesewas } from "@repo/pricing";
 import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
+import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 
 export const dynamic = "force-dynamic";
 
@@ -184,6 +185,44 @@ async function fetchEventByCode(code: string) {
 // ─── Payment Initiation Helper ───────────────────────────────────────────────
 // Mirrors: _shared/ussd-handler.ts processPayment
 
+async function submitOtp(
+	reference: string,
+	otp: string,
+	paystackSecret: string,
+	event: any,
+	quantity: number,
+): Promise<string> {
+	try {
+		const paystackRes = await fetch("https://api.paystack.co/charge/submit_otp", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${paystackSecret}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ otp, reference }),
+		});
+		const paystackData = (await paystackRes.json()) as any;
+
+		if (!paystackRes.ok || !paystackData.status) {
+			return `END OTP verification failed: ${paystackData.message || "Invalid OTP"}`;
+		}
+
+		if (paystackData.data?.status === "success") {
+			await fulfillSuccessfulPayment({
+				reference,
+				paystackData: paystackData.data,
+			});
+			const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+			return `END Payment authorized! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`;
+		}
+
+		return "END Payment authorized! You will receive an SMS confirmation shortly.";
+	} catch (err) {
+		console.error("Paystack OTP Exception:", err);
+		return "END OTP submission failed. Try again later.";
+	}
+}
+
 async function processPayment(
 	event: any,
 	optionId: string,
@@ -203,6 +242,23 @@ async function processPayment(
 	const amountPesewas = toPesewas(totalAmountGHS);
 	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
 	const provider = getProvider(phoneNumber);
+
+	if (otpStr) {
+		const pendingSession = await prisma.ussdSession.findFirst({
+			where: { phoneNumber, status: "pending" },
+			orderBy: { createdAt: "desc" },
+		});
+		if (pendingSession) {
+			return await submitOtp(
+				pendingSession.reference,
+				otpStr,
+				paystackSecret,
+				event,
+				quantity,
+			);
+		}
+	}
+
 	const reference = `USSD_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
 	try {
@@ -252,6 +308,12 @@ async function processPayment(
 			return `END Payment of GHS ${totalAmountGHS.toFixed(2)} recorded. Reference: ${reference}`;
 		}
 
+		// When testing in Paystack test mode (sk_test_...), Paystack requires using test mobile money number 0551234987.
+		// Arbitrary numbers will be declined by Paystack with: "Please use the test mobile money number".
+		const isTestMode = paystackSecret.startsWith("sk_test_");
+		const chargePhone = isTestMode ? "0551234987" : normalizePhone(phoneNumber);
+		const chargeProvider = isTestMode ? "mtn" : provider;
+
 		const paystackRes = await fetch("https://api.paystack.co/charge", {
 			method: "POST",
 			headers: {
@@ -264,8 +326,8 @@ async function processPayment(
 				currency: "GHS",
 				reference,
 				mobile_money: {
-					phone: normalizePhone(phoneNumber),
-					provider,
+					phone: chargePhone,
+					provider: chargeProvider,
 				},
 				metadata: {
 					source: "ussd",
@@ -291,6 +353,16 @@ async function processPayment(
 		if (!paystackRes.ok || !paystackData.status) {
 			console.error("Paystack Charge Error:", paystackData);
 			return `END Payment initiation failed: ${paystackData.message || "Unknown error"}`;
+		}
+
+		// Immediate fulfillment on success (e.g. test mode or pre-approved transactions)
+		if (paystackData.data?.status === "success") {
+			await fulfillSuccessfulPayment({
+				reference,
+				paystackData: paystackData.data,
+			});
+			const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+			return `END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`;
 		}
 
 		if (paystackData.data?.status === "send_otp") {

@@ -79,12 +79,32 @@ export async function fulfillSuccessfulPayment({
 
 		// 4. A: Ticket Purchase Fulfillment
 		if (payment.purpose === "ticket_purchase" || metadata.purpose === "ticket_purchase") {
-			const ticketOrderId = metadata.ticketOrderId || metadata.orderId || payment.ticketOrders?.[0]?.id;
-			const ticketTypeId = metadata.ticketTypeId;
+			let ticketOrderId = metadata.ticketOrderId || metadata.orderId || payment.ticketOrders?.[0]?.id;
+			const ticketTypeId = metadata.ticketTypeId || metadata.optionId;
 			const eventId = metadata.eventId;
 			const quantity = Math.max(1, Number(metadata.quantity) || 1);
-			const buyerName = metadata.buyerName || metadata.attendeeName || "Attendee";
+			const buyerName = metadata.buyerName || metadata.attendeeName || `USSD Attendee (${metadata.phoneNumber || payment.email})`;
 			const buyerEmail = metadata.buyerEmail || metadata.attendeeEmail || payment.email;
+
+			if (!ticketOrderId && ticketTypeId && eventId) {
+				try {
+					const newOrder = await prisma.ticketOrder.create({
+						data: {
+							eventId,
+							paymentId: payment.id,
+							orderNumber: `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+							buyerName,
+							buyerPhone: metadata.phoneNumber || null,
+							subtotal: payment.amount,
+							status: "completed",
+						},
+						include: { tickets: true },
+					});
+					ticketOrderId = newOrder.id;
+				} catch (orderCreateErr) {
+					console.error("[fulfillment] Failed to create TicketOrder for USSD:", orderCreateErr);
+				}
+			}
 
 			if (ticketOrderId) {
 				const order = await prisma.ticketOrder.findUnique({

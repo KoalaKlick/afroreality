@@ -252,6 +252,178 @@ export async function fetchEventDetails(sql: any, eventId: string) {
 }
 
 // Payment Processing via Paystack
+export async function fulfillSuccessfulPaymentSql(
+	sql: any,
+	reference: string,
+	paystackData?: any,
+) {
+	try {
+		const payments = await sql`
+			SELECT id, reference, status, purpose, amount, currency, metadata 
+			FROM payments 
+			WHERE reference = ${reference} 
+			LIMIT 1
+		`;
+		const payment = payments[0] || null;
+		if (payment && payment.status === "completed") {
+			return;
+		}
+
+		const paymentId = payment?.id || null;
+		const metadata = payment?.metadata || paystackData?.metadata || {};
+		const purpose =
+			payment?.purpose ||
+			metadata.purpose ||
+			(metadata.voteCount ? "vote_purchase" : "ticket_purchase");
+		const paystackTransactionId = String(paystackData?.id || "");
+
+		// 1. Update Payment record
+		if (paymentId) {
+			await sql`
+				UPDATE payments 
+				SET status = 'completed', 
+					verified_at = NOW(), 
+					paystack_transaction_id = ${paystackTransactionId},
+					updated_at = NOW() 
+				WHERE id = ${paymentId}
+			`;
+		}
+
+		// 2. Mark USSD Session completed
+		await sql`
+			UPDATE ussd_sessions 
+			SET status = 'completed', updated_at = NOW() 
+			WHERE reference = ${reference}
+		`;
+
+		// 3. Voting Fulfillment
+		if (purpose === "voting" || purpose === "vote_purchase") {
+			const optionId =
+				metadata.optionId || metadata.votingOptionId || metadata.option_id;
+			const categoryId = metadata.categoryId || metadata.category_id || null;
+			const eventId = metadata.eventId || metadata.event_id;
+			const voteCount = Math.max(
+				1,
+				Number(metadata.voteCount) || Number(metadata.quantity) || 1,
+			);
+			const voterPhone =
+				metadata.voterPhone ||
+				metadata.phone ||
+				metadata.phone_number ||
+				null;
+			const voterEmail =
+				metadata.voterEmail || (voterPhone ? `${voterPhone}@fextiva.com` : null);
+
+			if (optionId && eventId) {
+				await sql`
+					INSERT INTO votes (event_id, option_id, category_id, payment_id, vote_count, voter_phone, voter_email, created_at)
+					VALUES (${eventId}, ${optionId}, ${categoryId}, ${paymentId}, ${voteCount}, ${voterPhone}, ${voterEmail}, NOW())
+				`;
+
+				await sql`
+					UPDATE voting_options 
+					SET votes_count = votes_count + ${voteCount}, updated_at = NOW() 
+					WHERE id = ${optionId}
+				`;
+			}
+		}
+
+		// 4. Ticket Purchase Fulfillment
+		if (purpose === "ticket_purchase") {
+			const ticketTypeId =
+				metadata.ticketTypeId || metadata.optionId || metadata.option_id;
+			const eventId = metadata.eventId || metadata.event_id;
+			const quantity = Math.max(1, Number(metadata.quantity) || 1);
+			const buyerPhone =
+				metadata.voterPhone ||
+				metadata.phone ||
+				metadata.phone_number ||
+				"";
+			const buyerEmail = metadata.buyerEmail || `${buyerPhone}@fextiva.com`;
+			const buyerName =
+				metadata.buyerName || `USSD Attendee (${buyerPhone})`;
+
+			if (ticketTypeId && eventId && paymentId) {
+				const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+				const orderRows = await sql`
+					INSERT INTO ticket_orders (event_id, payment_id, order_number, buyer_name, buyer_phone, subtotal, status, created_at, updated_at)
+					VALUES (${eventId}, ${paymentId}, ${orderNumber}, ${buyerName}, ${buyerPhone}, ${payment?.amount || 0}, 'completed', NOW(), NOW())
+					RETURNING id
+				`;
+				const orderId = orderRows[0]?.id;
+
+				if (orderId) {
+					for (let i = 0; i < quantity; i++) {
+						const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+						const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
+						await sql`
+							INSERT INTO tickets (order_id, ticket_type_id, event_id, ticket_code, attendee_name, attendee_email, check_in_status, created_at, updated_at)
+							VALUES (${orderId}, ${ticketTypeId}, ${eventId}, ${ticketCode}, ${buyerName}, ${buyerEmail}, 'not_checked_in', NOW(), NOW())
+						`;
+					}
+					await sql`
+						UPDATE ticket_types 
+						SET quantity_sold = quantity_sold + ${quantity}, updated_at = NOW() 
+						WHERE id = ${ticketTypeId}
+					`;
+				}
+			}
+		}
+
+		// 5. Organization Wallet & Transaction Ledger Updates
+		let organizationId =
+			metadata.organizationId || metadata.orgId || metadata.organization_id;
+		if (!organizationId) {
+			const eventId = metadata.eventId || metadata.event_id;
+			if (eventId) {
+				const evRows =
+					await sql`SELECT organization_id FROM events WHERE id = ${eventId} LIMIT 1`;
+				organizationId = evRows[0]?.organization_id;
+			}
+		}
+
+		if (organizationId) {
+			const baseAmount = Number(
+				metadata.baseAmount || payment?.amount || 0,
+			);
+			const platformFee = Number(metadata.platformFee || 0);
+			const organizerReceives = Number(
+				metadata.organizerReceives ?? (baseAmount - platformFee),
+			);
+
+			if (organizerReceives > 0) {
+				await sql`
+					INSERT INTO wallets (organization_id, balance, currency, created_at, updated_at)
+					VALUES (${organizationId}, ${organizerReceives}, 'GHS', NOW(), NOW())
+					ON CONFLICT (organization_id) 
+					DO UPDATE SET balance = wallets.balance + ${organizerReceives}, last_transaction_at = NOW(), updated_at = NOW()
+				`;
+
+				const walletRows = await sql`
+					SELECT id, balance FROM wallets WHERE organization_id = ${organizationId} LIMIT 1
+				`;
+				const wallet = walletRows[0];
+
+				if (wallet) {
+					const txnRef = `TXN-${reference}-${Date.now().toString().slice(-4)}`;
+					const category =
+						purpose === "ticket_purchase"
+							? "ticket_purchase"
+							: "vote_purchase";
+
+					await sql`
+						INSERT INTO transactions (reference, wallet_id, payment_id, type, category, status, amount, currency, fee_amount, balance_after, description, completed_at, created_at, updated_at)
+						VALUES (${txnRef}, ${wallet.id}, ${paymentId}, 'credit', ${category}, 'completed', ${organizerReceives}, 'GHS', ${platformFee}, ${wallet.balance}, ${"USSD Payment: " + reference}, NOW(), NOW(), NOW())
+						ON CONFLICT (reference) DO NOTHING
+					`;
+				}
+			}
+		}
+	} catch (fulfillmentErr) {
+		console.error("[USSD-WORKER-FULFILLMENT-ERROR]", fulfillmentErr);
+	}
+}
+
 export async function submitOtp(
 	sql: any,
 	reference: string,
@@ -273,13 +445,18 @@ export async function submitOtp(
 		const paystackData = (await paystackRes.json()) as any;
 
 		if (!paystackRes.ok || !paystackData.status) {
-			await sql`UPDATE ussd_sessions SET status = 'pending' WHERE reference = ${reference}`;
 			return textResponse(
 				`END OTP verification failed: ${paystackData.message || "Invalid OTP"}`,
 			);
 		}
 
-		await sql`UPDATE ussd_sessions SET status = 'processing' WHERE reference = ${reference}`;
+		if (paystackData.data?.status === "success") {
+			await fulfillSuccessfulPaymentSql(sql, reference, paystackData.data);
+			return textResponse(
+				"END Payment authorized! Your request has been confirmed.",
+			);
+		}
+
 		return textResponse(
 			"END Payment authorized! You will receive an SMS confirmation shortly.",
 		);
@@ -340,7 +517,7 @@ export async function processPayment(
 		// Also create record in payments table for webhook reconciliation
 		await sql`
 			INSERT INTO payments (reference, email, purpose, amount, currency, provider, status, metadata, created_at, updated_at)
-			VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@fextiva.com`}, ${event.type === "voting" ? "voting" : "ticket_purchase"}, ${baseAmount}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
+			VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@fextiva.com`}, ${event.type === "voting" ? "vote_purchase" : "ticket_purchase"}, ${baseAmount}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
 			source: "ussd",
 			channel: "ussd",
 			event_id: event.id,
@@ -370,6 +547,12 @@ export async function processPayment(
 			);
 		}
 
+		// When testing in Paystack test mode (sk_test_...), Paystack requires using test mobile money number 0551234987.
+		// Arbitrary numbers will be declined by Paystack with: "Please use the test mobile money number".
+		const isTestMode = paystackSecret.startsWith("sk_test_");
+		const chargePhone = isTestMode ? "0551234987" : normalizePhone(phoneNumber);
+		const chargeProvider = isTestMode ? "mtn" : provider;
+
 		const paystackRes = await fetch("https://api.paystack.co/charge", {
 			method: "POST",
 			headers: {
@@ -382,8 +565,8 @@ export async function processPayment(
 				currency: "GHS",
 				reference,
 				mobile_money: {
-					phone: normalizePhone(phoneNumber),
-					provider,
+					phone: chargePhone,
+					provider: chargeProvider,
 				},
 				metadata: {
 					source: "ussd",
@@ -418,7 +601,21 @@ export async function processPayment(
 			);
 		}
 
+		// Immediate fulfillment on success (e.g. test mode or pre-approved transactions)
+		if (paystackData.data?.status === "success") {
+			await fulfillSuccessfulPaymentSql(sql, reference, paystackData.data);
+			const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+			return textResponse(
+				`END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`,
+			);
+		}
+
 		if (paystackData.data?.status === "send_otp") {
+			await sql`
+				UPDATE payments 
+				SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{awaitingOtp}', 'true')
+				WHERE reference = ${reference}
+			`.catch(() => {});
 			return textResponse(
 				`CON ${paystackData.data.display_text || "Please enter the OTP sent to your phone"}:\n0. Back`,
 			);
@@ -574,12 +771,16 @@ export async function handleUssdCore(
 
 	const sql = neon(dbUrl);
 
-	// OTP Resumption Interceptor
+	// OTP Resumption Interceptor (only when gateway requested OTP)
 	const pendingSessions = await sql`
-		SELECT reference, amount 
-		FROM ussd_sessions 
-		WHERE phone_number = ${phoneNumber} AND status = 'pending' AND created_at >= NOW() - INTERVAL '5 minutes'
-		ORDER BY created_at DESC 
+		SELECT s.reference, s.amount 
+		FROM ussd_sessions s
+		JOIN payments p ON p.reference = s.reference
+		WHERE s.phone_number = ${phoneNumber} 
+		  AND s.status = 'pending' 
+		  AND (p.metadata->>'awaitingOtp') = 'true'
+		  AND s.created_at >= NOW() - INTERVAL '5 minutes'
+		ORDER BY s.created_at DESC 
 		LIMIT 1
 	`;
 
