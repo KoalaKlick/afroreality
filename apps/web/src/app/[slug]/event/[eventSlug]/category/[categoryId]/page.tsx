@@ -186,93 +186,95 @@ export default async function PublicCategoryPage({
 		>
 			{/* Mobile / Tablet View (< xl) */}
 			<div className="flex flex-col xl:hidden flex-1 @container/content">
-				<div className="relative h-48 sm:h-64 w-full overflow-hidden bg-muted/30">
-					{heroImg ? (
-						<img
-							src={heroImg}
-							alt={category.name}
-							className="w-full h-full object-cover"
-						/>
-					) : (
-						<OrgGeometricBanner
-							primaryColor={organization.primaryColor}
-							secondaryColor={organization.secondaryColor}
-							tertiaryColor={organization.tertiaryColor}
-						/>
-					)}
-				</div>
-
-				<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
-					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs">
-						<div className="flex items-center gap-2 truncate">
-							<Link
-								href={`/${orgSlug}`}
-								className="font-semibold text-muted-foreground hover:text-foreground transition-colors"
-							>
-								{organization.name}
-							</Link>
-							<ChevronRight className="size-3.5 text-muted-foreground/60" />
-							<Link
-								href={`/${orgSlug}/event/${eventSlug}`}
-								className="font-semibold text-muted-foreground hover:text-foreground transition-colors truncate"
-							>
-								{event.title}
-							</Link>
-							<ChevronRight className="size-3.5 text-muted-foreground/60" />
-							<span className="font-bold text-foreground truncate">
-								{category.name}
-							</span>
-						</div>
-
-						<Button asChild variant="ghost" size="sm" className="h-8 gap-1 text-xs">
-							<Link href={`/${orgSlug}/event/${eventSlug}`}>
-								<ArrowLeft className="size-3.5" /> Back to Event
-							</Link>
-						</Button>
-					</div>
-				</header>
-
-				{isUpcoming && event.startDate && (
-					<div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
-						<Clock className="size-4 shrink-0" />
-						<p className="text-xs font-bold uppercase tracking-wider">
-							Voting has not started yet &mdash; opens on {new Date(event.startDate).toLocaleString("en-GH", {
-								dateStyle: "medium",
-								timeStyle: "short",
-							})}.
-						</p>
-					</div>
-				)}
-
-				<section className="border-b border-border/80 bg-muted/30 py-10">
-					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-						<div className="flex flex-wrap items-center gap-2">
-							<Badge
-								className="text-xs font-bold rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none"
-							>
-								Voting Category
-							</Badge>
-							{isInternalVoting && (
-								<Badge
-									variant="outline"
-									className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1 rounded-sm"
-								>
-									<Lock className="size-3" /> Member Ballot
-								</Badge>
-							)}
-						</div>
-
-						<h1 className="text-3xl sm:text-4xl font-black text-foreground tracking-tight uppercase font-millik">
-							{category.name}
-						</h1>
-
-						{category.description && (
-							<div className="max-w-3xl text-sm text-muted-foreground leading-relaxed">
-								<RichTextDisplay content={category.description} />
-							</div>
+				<div className="relative w-full overflow-hidden bg-background">
+					<div className="relative h-48 sm:h-64 md:h-80 w-full overflow-hidden bg-muted/30">
+						{heroImg ? (
+							<img
+								src={heroImg}
+								alt={category.name}
+								className="w-full h-full object-cover"
+							/>
+						) : (
+							<OrgGeometricBanner
+								primaryColor={organization.primaryColor}
+								secondaryColor={organization.secondaryColor}
+								tertiaryColor={organization.tertiaryColor}
+							/>
 						)}
 					</div>
-				</section>
+
+					<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40">
+						<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between text-xs">
+							<div className="flex items-center gap-2 truncate">
+								<Link
+									href={`/${orgSlug}`}
+									className="font-semibold text-muted-foreground hover:text-foreground transition-colors"
+								>
+									{organization.name}
+								</Link>
+								<ChevronRight className="size-3.5 text-muted-foreground/60" />
+								<Link
+									href={`/${orgSlug}/event/${eventSlug}`}
+									className="font-semibold text-muted-foreground hover:text-foreground transition-colors truncate"
+								>
+									{event.title}
+								</Link>
+								<ChevronRight className="size-3.5 text-muted-foreground/60" />
+								<span className="font-bold text-foreground truncate">
+									{category.name}
+								</span>
+							</div>
+
+							<Button asChild variant="ghost" size="sm" className="h-8 gap-1 text-xs">
+								<Link href={`/${orgSlug}/event/${eventSlug}`}>
+									<ArrowLeft className="size-3.5" /> Back to Event
+								</Link>
+							</Button>
+						</div>
+					</header>
+
+					{isUpcoming && event.startDate && (
+						<div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
+							<Clock className="size-4 shrink-0" />
+							<p className="text-xs font-bold uppercase tracking-wider">
+								Voting has not started yet &mdash; opens on {new Date(event.startDate).toLocaleString("en-GH", {
+									dateStyle: "medium",
+									timeStyle: "short",
+								})}.
+							</p>
+						</div>
+					)}
+
+					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+						<div className="space-y-6 max-w-4xl">
+							<div className="flex flex-wrap items-center gap-2">
+								<Badge
+									className="text-xs font-bold rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none"
+								>
+									Voting Category
+								</Badge>
+								{isInternalVoting && (
+									<Badge
+										variant="outline"
+										className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-900/60 gap-1 rounded-sm"
+									>
+										<Lock className="size-3" /> Member Ballot
+									</Badge>
+								)}
+							</div>
+
+							<h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground tracking-tight uppercase leading-[1.1] font-millik">
+								{category.name}
+							</h1>
+
+							{category.description && (
+								<div className="max-w-3xl text-sm sm:text-base text-muted-foreground leading-relaxed">
+									<RichTextDisplay content={category.description} />
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
 
 				<PanAfricanDivider />
 

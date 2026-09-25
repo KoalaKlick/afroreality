@@ -1,12 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Vote, Users, ChevronRight, Clock } from "lucide-react";
+import { Vote, Users, ChevronRight, Clock, Sparkles } from "lucide-react";
 import { Section } from "@/components/Landing/shared/Section";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
 import { getEventImageUrl } from "@/lib/image-url-utils";
+import { cn } from "@/lib/utils";
+import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
 
 interface EventVotingCategoriesProps {
 	readonly categories: any[];
@@ -28,6 +31,19 @@ export function EventVotingCategories({
 	isUpcoming = false,
 	startDate,
 }: EventVotingCategoriesProps) {
+	const [targetNominee, setTargetNominee] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		const params = new URLSearchParams(window.location.search);
+		const paramCode = params.get("nominee") || params.get("code");
+		const hashVal = window.location.hash.replace(/^#/, "").replace(/^nominee-/, "");
+		const code = (paramCode || hashVal || "").trim().toUpperCase();
+		if (code) {
+			setTargetNominee(code);
+		}
+	}, []);
+
 	return (
 		<Section
 			maxWidth="7xl"
@@ -54,12 +70,42 @@ export function EventVotingCategories({
 
 				{categories.length > 0 ? (
 					<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-6">
-						{categories.map((category) => (
-							<div key={category.id} className="@container h-full">
-								<Link
-									href={`/${orgSlug}/event/${eventSlug}/category/${category.id}`}
-									className="group relative flex flex-col @sm:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer border border-border/80 shadow-xs"
-								>
+						{categories.map((category) => {
+							const matchingNominee = targetNominee
+								? category.votingOptions?.find((n: any, idx: number) => {
+										const code = (
+											n.nomineeCode ||
+											`${extractCategoryPrefix(category.name)}${String(idx + 1).padStart(2, "0")}`
+										).toUpperCase();
+										return (
+											code === targetNominee ||
+											n.id.toUpperCase() === targetNominee ||
+											n.nomineeCode?.toUpperCase() === targetNominee
+										);
+								  })
+								: null;
+
+							const categoryHref = matchingNominee
+								? `/${orgSlug}/event/${eventSlug}/category/${category.id}?nominee=${encodeURIComponent(targetNominee!)}#${encodeURIComponent(targetNominee!)}`
+								: `/${orgSlug}/event/${eventSlug}/category/${category.id}`;
+
+							return (
+								<div key={category.id} className="@container h-full relative">
+									{matchingNominee && (
+										<div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shadow-md border-2 border-background animate-bounce whitespace-nowrap">
+											<Sparkles className="size-3 fill-current" />
+											<span>Candidate {matchingNominee.nomineeCode || targetNominee} is here!</span>
+										</div>
+									)}
+									<Link
+										href={categoryHref}
+										className={cn(
+											"group relative flex flex-col @sm:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer border shadow-xs",
+											matchingNominee
+												? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg shadow-primary/20"
+												: "border-border/80"
+										)}
+									>
 									{/* Poster Container (Left in row, Top in col) */}
 									<div className="relative aspect-4/5 w-full @sm:w-40 @md:w-48 @lg:w-48 rounded-xl bg-muted shadow-none shrink-0">
 										<div className="relative w-full h-full overflow-hidden rounded-xl">
@@ -136,7 +182,8 @@ export function EventVotingCategories({
 									</div>
 								</Link>
 							</div>
-						))}
+						);
+					})}
 					</div>
 				) : (
 					<div className="flex flex-col items-center justify-center py-12 text-center">

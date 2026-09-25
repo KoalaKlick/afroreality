@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Vote, Share2, Sparkles, BarChart2, Hash, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
 	Sheet,
 	SheetContent,
@@ -74,6 +75,7 @@ export function NomineeGrid({
 	const [selectedNominee, setSelectedNominee] = useState<VotingOption | null>(
 		null,
 	);
+	const [highlightedCode, setHighlightedCode] = useState<string | null>(null);
 
 	const isFree = Number(votePrice) === 0;
 
@@ -86,6 +88,69 @@ export function NomineeGrid({
 	const resultDisplayType =
 		templateConfig?.resultDisplayType === "count" ? "count" : "percentage";
 
+	const getEffectiveNomineeCode = (nominee: VotingOption, index?: number) => {
+		if (nominee.nomineeCode) return nominee.nomineeCode;
+		const idx = index !== undefined ? index : nominees.findIndex((n) => n.id === nominee.id);
+		return `${extractCategoryPrefix(categoryName)}${String((idx >= 0 ? idx : 0) + 1).padStart(2, "0")}`;
+	};
+
+	// Detect nominee from URL hash (#CODE) or search params (?nominee=CODE), scroll to it, and highlight
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+
+		const detectAndHighlight = () => {
+			const searchParams = new URLSearchParams(window.location.search);
+			const paramCode = searchParams.get("nominee") || searchParams.get("code");
+			const rawHash = window.location.hash.replace(/^#/, "");
+			const cleanHash = rawHash.replace(/^nominee-/, "");
+			const target = (paramCode || cleanHash || "").trim().toUpperCase();
+
+			if (!target) return;
+
+			const matchedNominee = nominees.find((n, idx) => {
+				const code = getEffectiveNomineeCode(n, idx).toUpperCase();
+				return (
+					code === target ||
+					n.id.toUpperCase() === target ||
+					n.nomineeCode?.toUpperCase() === target ||
+					n.optionText.trim().toUpperCase() === target
+				);
+			});
+
+			if (matchedNominee) {
+				const effectiveCode = getEffectiveNomineeCode(
+					matchedNominee,
+					nominees.indexOf(matchedNominee)
+				).toUpperCase();
+				setHighlightedCode(effectiveCode);
+
+				const scrollToTarget = () => {
+					const el =
+						document.getElementById(effectiveCode) ||
+						document.getElementById(`nominee-${effectiveCode}`) ||
+						document.getElementById(matchedNominee.id);
+					if (el) {
+						el.scrollIntoView({ behavior: "smooth", block: "center" });
+					}
+				};
+
+				const t1 = setTimeout(scrollToTarget, 200);
+				const t2 = setTimeout(scrollToTarget, 650);
+				return () => {
+					clearTimeout(t1);
+					clearTimeout(t2);
+				};
+			}
+		};
+
+		const cleanup = detectAndHighlight();
+		window.addEventListener("hashchange", detectAndHighlight);
+		return () => {
+			if (typeof cleanup === "function") cleanup();
+			window.removeEventListener("hashchange", detectAndHighlight);
+		};
+	}, [nominees, categoryName]);
+
 	const handleOpenVoteModal = (nominee: VotingOption) => {
 		setSelectedNominee(nominee);
 		setVoteModalOpen(true);
@@ -96,14 +161,29 @@ export function NomineeGrid({
 		setSheetOpen(true);
 	};
 
-	const handleShare = async (e: React.MouseEvent, nominee: VotingOption) => {
+	const handleShare = async (e: React.MouseEvent, nominee: VotingOption, index?: number) => {
 		e.stopPropagation();
+		const effectiveCode = getEffectiveNomineeCode(nominee, index);
+		let nomineeUrl = "";
+		if (typeof window !== "undefined") {
+			const origin = window.location.origin;
+			const pathname =
+				orgSlug && eventSlug && categoryId
+					? `/${orgSlug}/event/${eventSlug}/category/${categoryId}`
+					: window.location.pathname;
+			const url = new URL(`${origin}${pathname}`);
+			url.searchParams.set("nominee", effectiveCode);
+			url.hash = effectiveCode;
+			nomineeUrl = url.toString();
+		}
+
 		await shareNominee({
 			optionText: nominee.optionText,
-			nomineeCode: nominee.nomineeCode,
+			nomineeCode: effectiveCode,
 			bio: nominee.description || nominee.bio,
 			imageUrl: nominee.imageUrl,
 			categoryName: categoryName,
+			url: nomineeUrl,
 		});
 	};
 
@@ -131,6 +211,13 @@ export function NomineeGrid({
 		<div className="@container">
 			<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
 				{nominees.concat().map((nominee, index) => {
+					const effectiveCode = getEffectiveNomineeCode(nominee, index);
+					const isTarget = Boolean(
+						highlightedCode &&
+							(highlightedCode === effectiveCode.toUpperCase() ||
+								highlightedCode === nominee.id.toUpperCase() ||
+								highlightedCode === nominee.nomineeCode?.toUpperCase())
+					);
 					const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
 					const votePercentage =
 						totalCategoryVotes > 0
@@ -138,10 +225,29 @@ export function NomineeGrid({
 							: 0;
 
 					return (
-						<div key={`${nominee.id}-${index}`} className="@container h-full">
+						<div
+							key={`${nominee.id}-${index}`}
+							id={effectiveCode}
+							className="@container h-full scroll-mt-28 relative"
+						>
+							{/* Anchor targets so both #CODE and #nominee-CODE and #id work */}
+							<div
+								id={`nominee-${effectiveCode}`}
+								className="absolute -top-28 pointer-events-none"
+							/>
+							<div
+								id={nominee.id}
+								className="absolute -top-28 pointer-events-none"
+							/>
+
 							<div
 								onClick={() => handleOpenSheet(nominee)}
-								className="group relative flex flex-col @md:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer border border-border/80 shadow-xs"
+								className={cn(
+									"group relative flex flex-col @md:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer border shadow-xs",
+									isTarget
+										? "border-secondary ring-offset-2 ring-offset-background shadow-lg shadow-secondary/20"
+										: "border-border/80"
+								)}
 							>
 								{/* Nominee Avatar / Poster (Left in row, Top in col) */}
 								<div className="relative aspect-4/5 w-full @md:w-48 max-h-72 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
@@ -149,7 +255,7 @@ export function NomineeGrid({
 										<img
 											src={getEventImageUrl(nominee.imageUrl) || ""}
 											alt={nominee.optionText}
-											className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+											className="size-full object-cover transition-transform duration-500 group-hover:scale-102"
 										/>
 									) : (
 										<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-4 text-center">
@@ -159,13 +265,18 @@ export function NomineeGrid({
 
 									<div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-200" />
 
-									{/* Top-Left Code Badge (mirrors EventCard top-left badge) */}
-									<div className="absolute top-2.5 left-2.5 bg-background/95 backdrop-blur-md rounded-md py-1 px-2.5 flex flex-col items-center justify-center min-w-[48px] border border-border/80 shadow-none z-10">
+									{/* Top-Left Code Badge */}
+									<div
+										className={cn(
+											"absolute top-2.5 left-2.5 bg-background/95 backdrop-blur-md rounded-md py-1 px-2.5 flex flex-col items-center justify-center min-w-[48px] border shadow-none z-10 transition-colors",
+											"border-border/80 text-foreground"
+										)}
+									>
 										<span className="text-[9px] font-bold uppercase text-muted-foreground tracking-wider">
 											CODE
 										</span>
 										<span className="text-sm font-bold font-mono text-primary leading-none mt-0.5">
-											{nominee.nomineeCode || `${extractCategoryPrefix(categoryName)}${String(index + 1).padStart(2, "0")}`}
+											{effectiveCode}
 										</span>
 									</div>
 
@@ -186,9 +297,11 @@ export function NomineeGrid({
 								<div className="flex-1 flex flex-col justify-between min-w-0 gap-2.5">
 									{/* Nominee Meta */}
 									<div className="flex flex-col gap-1 px-0.5">
-										<h4 className="font-bold text-base @sm:text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-											{nominee.optionText}
-										</h4>
+										<div className="flex items-center gap-2">
+											<h4 className="font-bold text-base @sm:text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+												{nominee.optionText}
+											</h4>
+										</div>
 										{(nominee.description || nominee.bio) && (
 											<p className="text-xs text-muted-foreground line-clamp-2 @sm:line-clamp-3 leading-relaxed">
 												{stripHtml(nominee.description || nominee.bio)}
@@ -202,7 +315,7 @@ export function NomineeGrid({
 											variant="ghost"
 											size="icon"
 											className="size-8 rounded-full shrink-0"
-											onClick={(e) => handleShare(e, nominee)}
+											onClick={(e) => handleShare(e, nominee, index)}
 											title="Share Nominee"
 										>
 											<Share2 className="size-3.5 text-muted-foreground" />
@@ -214,7 +327,11 @@ export function NomineeGrid({
 												e.stopPropagation();
 												handleOpenVoteModal(nominee);
 											}}
-											className="text-xs font-bold gap-1.5 h-8 flex-1"
+											className={cn(
+												"text-xs font-bold gap-1.5 h-8 flex-1 transition-all",
+												isTarget &&
+													"shadow-md shadow-primary/30 ring-1 ring-primary-foreground/30 font-extrabold"
+											)}
 											disabled={isEnded || isUpcoming}
 										>
 											<Vote className="size-3.5" />
@@ -252,19 +369,31 @@ export function NomineeGrid({
 							totalCategoryVotes > 0
 								? (selectedVotes / totalCategoryVotes) * 100
 								: 0;
+						const selectedCode = getEffectiveNomineeCode(selectedNominee);
+						const isSelectedTarget = Boolean(
+							highlightedCode &&
+								(highlightedCode === selectedCode.toUpperCase() ||
+									highlightedCode === selectedNominee.id.toUpperCase() ||
+									highlightedCode === selectedNominee.nomineeCode?.toUpperCase())
+						);
 
 						return (
 							<div className="flex-1 flex flex-col min-h-0">
 								<SheetHeader className="shrink-0 text-left space-y-1">
-									<SheetTitle className="text-2xl font-black uppercase tracking-tight">
-										{selectedNominee.optionText}
-									</SheetTitle>
-									{selectedNominee.nomineeCode && (
-										<div className="flex items-center gap-1.5 text-xs font-mono font-bold text-primary">
-											<Hash className="size-3.5" />
-											<span>{selectedNominee.nomineeCode}</span>
-										</div>
-									)}
+									<div className="flex items-center justify-between gap-2">
+										<SheetTitle className="text-2xl font-black uppercase tracking-tight">
+											{selectedNominee.optionText}
+										</SheetTitle>
+										{isSelectedTarget && (
+											<span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-bold border border-primary/20 shrink-0">
+												<span>Shared Nominee</span>
+											</span>
+										)}
+									</div>
+									<div className="flex items-center gap-1.5 text-xs font-mono font-bold text-primary">
+										<Hash className="size-3.5" />
+										<span>{selectedCode}</span>
+									</div>
 								</SheetHeader>
 
 								<div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -298,7 +427,6 @@ export function NomineeGrid({
 								{/* Why Vote For Me / Description */}
 								<div className="space-y-2 rounded-xl p-4 bg-muted/40 border border-border/60">
 									<h5 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-										<Sparkles className="size-3.5 text-primary" />
 										<span>Why Vote For Me</span>
 									</h5>
 									{(selectedNominee.description || selectedNominee.bio) ? (
@@ -458,10 +586,9 @@ export function PublicNomineeSheet({
 						eventSlug={eventSlug}
 						trigger={
 							<Button
-								className="shrink-0 font-semibold shadow-xs hover:opacity-90 active:scale-95 transition-all border-0"
+								className="shrink-0 font-semibold shadow-xs text-background hover:opacity-90 active:scale-95 transition-all border-0"
 								style={{
 									backgroundColor: "var(--color-brand-secondary, #FFD100)",
-									color: secondaryTextColor,
 								}}
 							>
 								Nominate Candidate

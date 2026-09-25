@@ -107,8 +107,28 @@ export interface ShareNomineeParams {
  * Rich share for Nominees / Candidates with picture attached
  */
 export async function shareNominee(nominee: ShareNomineeParams) {
-	const shareUrl =
+	let shareUrl =
 		nominee.url || (typeof window !== "undefined" ? window.location.href : "");
+
+	// Ensure the nominee code is attached to the share URL both as query param and anchor hash
+	if (shareUrl && nominee.nomineeCode) {
+		try {
+			const parsed = new URL(shareUrl);
+			if (!parsed.searchParams.has("nominee")) {
+				parsed.searchParams.set("nominee", nominee.nomineeCode);
+			}
+			if (!parsed.hash) {
+				parsed.hash = nominee.nomineeCode;
+			}
+			shareUrl = parsed.toString();
+		} catch {
+			if (!shareUrl.includes("nominee=")) {
+				const separator = shareUrl.includes("?") ? "&" : "?";
+				shareUrl = `${shareUrl}${separator}nominee=${encodeURIComponent(nominee.nomineeCode)}#${encodeURIComponent(nominee.nomineeCode)}`;
+			}
+		}
+	}
+
 	const imageUrl = getEventImageUrl(nominee.imageUrl);
 	const bioText = stripHtml(nominee.bio || nominee.description);
 
@@ -154,6 +174,7 @@ export async function shareNominee(nominee: ShareNomineeParams) {
 			await navigator.share({
 				title: `Vote for ${nominee.optionText}`,
 				text: caption,
+				url: shareUrl,
 			});
 			return;
 		} catch {
