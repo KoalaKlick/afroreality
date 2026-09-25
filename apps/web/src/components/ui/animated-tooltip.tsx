@@ -77,7 +77,7 @@ function TooltipAvatar({ item }: { readonly item: TooltipItem }) {
 							rotate,
 							whiteSpace: "nowrap",
 						}}
-						className="absolute -top-14 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center justify-center rounded-xl bg-popover/95 backdrop-blur-md px-3.5 py-1.5 shadow-2xl border border-border pointer-events-none"
+						className="absolute -top-14 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center justify-center rounded-sm bg-popover/95 backdrop-blur-md px-3.5 py-1.5 shadow-2xl border border-border pointer-events-none"
 					>
 						<div className="relative z-30 text-xs font-black uppercase tracking-tight text-popover-foreground">
 							{item.name}
