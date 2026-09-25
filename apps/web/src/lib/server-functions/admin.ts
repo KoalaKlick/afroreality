@@ -429,7 +429,7 @@ export interface EventDepositRules {
 	refundWindowDays: number;
 }
 
-export const DEFAULT_DEPOSIT_RULES: EventDepositRules = {
+const DEFAULT_DEPOSIT_RULES: EventDepositRules = {
 	enabled: true,
 	amount: 100,
 	scope: "first_event_only",
