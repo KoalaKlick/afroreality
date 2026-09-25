@@ -3,12 +3,8 @@
 import Link from "next/link";
 import {
 	Calendar,
-	MapPin,
 	Building2,
-	Globe,
-	ImageIcon,
 	ChevronRight,
-	Trophy,
 	ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +15,6 @@ import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
-import { EventLocationDisplayMap } from "@/components/shared/map";
 import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 
 interface EventSidebarCardProps {
@@ -80,13 +75,7 @@ export function EventSidebarCard({
 	} = formatEventDisplay(event);
 
 	return (
-		<div
-			className="rounded-2xl bg-card overflow-hidden flex flex-col h-full max-h-full border border-border/60 shadow-xs"
-			style={{
-				backgroundColor:
-					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-			}}
-		>
+		<div className="rounded-2xl bg-white dark:bg-card overflow-hidden flex flex-col border border-border/80 shadow-xs">
 			{/* Banner / Cover with Overlay Title & Org Logo */}
 			<div className="relative h-48 sm:h-52 shrink-0 w-full overflow-hidden bg-muted">
 				{bannerImage ? (
@@ -134,16 +123,21 @@ export function EventSidebarCard({
 			</div>
 
 			{/* Info & Meta Header */}
-			<div className="p-5 sm:p-6 flex flex-col flex-1 min-h-0 space-y-4 overflow-hidden">
+			<div className="p-5 sm:p-6 flex flex-col space-y-4">
 				<div className="space-y-3 shrink-0">
-					{/* Event Meta Details */}
-					<div className="space-y-2 text-xs text-muted-foreground">
-						{formattedDate && (
-							<div className="flex items-center gap-2.5">
+					{/* Event Date & Social Links at Top Right */}
+					<div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+						{formattedDate ? (
+							<div className="flex items-center gap-2 min-w-0">
 								<Calendar className="size-3.5 text-primary shrink-0" />
-								<span>
+								<span className="truncate font-medium">
 									{formattedDate} {formattedTime ? `at ${formattedTime}` : ""}
 								</span>
+							</div>
+						) : <div />}
+						{socialLinks.length > 0 && (
+							<div className="shrink-0 flex items-center">
+								<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
 							</div>
 						)}
 					</div>
@@ -167,8 +161,8 @@ export function EventSidebarCard({
 
 				<PanAfricanDivider className="shrink-0" />
 
-				{/* Scrollable Body: About Event, Socials, Galleries, Sponsors */}
-				<div className="flex-1 min-h-0 overflow-y-auto pr-1.5 space-y-5 custom-scrollbar">
+				{/* Body: About Event, Galleries, Sponsors */}
+				<div className="space-y-4">
 					{/* About Event */}
 					<div className="space-y-2">
 						<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground">
@@ -184,40 +178,6 @@ export function EventSidebarCard({
 							)}
 						</div>
 					</div>
-
-					{/* Location Map */}
-					{!event.isVirtual &&
-						event.latitude !== null &&
-						event.latitude !== undefined &&
-						event.longitude !== null &&
-						event.longitude !== undefined && (
-							<div className="space-y-2 pt-3 border-t border-dashed">
-								<h3 className="text-xs font-medium    text-muted-foreground flex items-center gap-2">
-									<span className="uppercase tracking-widest font-millik">Venue Map</span>
-								<span className="text-[11px] font-normal text-muted-foreground truncate flex items-center gap-1">
-									<MapPin className="size-3 text-primary shrink-0" />
-									{locationText}
-								</span>
-								</h3>
-								
-								<EventLocationDisplayMap
-									latitude={event.latitude}
-									longitude={event.longitude}
-									venueName={event.venueName}
-									heightClass="aspect-[7/2]"
-								/>
-							</div>
-						)}
-
-					{/* Event Social Links */}
-					{socialLinks.length > 0 && (
-						<div className="space-y-2.5 pt-3 border-t border-dashed">
-							<h3 className="text-xs font-medium font-millik tracking-widest uppercase text-muted-foreground">
-								Event Socials
-							</h3>
-							<SocialLinksList socialLinks={socialLinks} iconSize="sm" />
-						</div>
-					)}
 
 					{/* External Photo Albums */}
 					{galleryLinks.length > 0 && (

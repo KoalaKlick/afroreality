@@ -230,7 +230,7 @@ export function RetroTicketPass({
 			<div className="size-full flex items-center justify-center p-6">
 				<div className="flex flex-col items-center gap-2">
 					<div className="border-4 border-black p-2 bg-white rotate-[-1deg]">
-						<QrCode className="size-16 text-slate-900" />
+						<QrCode className="size-14 text-slate-900" />
 					</div>
 					<div className="text-center space-y-1">
 						<div className="text-[10px] font-black tracking-[0.2em]">

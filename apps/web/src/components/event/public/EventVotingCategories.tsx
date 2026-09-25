@@ -31,13 +31,9 @@ export function EventVotingCategories({
 	return (
 		<Section
 			maxWidth="7xl"
-			className="py-4 transition-colors @container"
-			style={{
-				backgroundColor:
-					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-			}}
+			className="py-4 transition-colors @container  px-0! sm:px-0! lg:px-0!"
 		>
-			<div>
+			<div className="">
 				<div className="flex items-center gap-3 mb-4">
 					<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
 						Vote Categories
@@ -62,7 +58,7 @@ export function EventVotingCategories({
 							<div key={category.id} className="@container h-full">
 								<Link
 									href={`/${orgSlug}/event/${eventSlug}/category/${category.id}`}
-									className="group relative flex flex-col @sm:flex-row justify-between h-full gap-3 rounded-2xl bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer"
+									className="group relative flex flex-col @sm:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer border border-border/80 shadow-xs"
 								>
 									{/* Poster Container (Left in row, Top in col) */}
 									<div className="relative aspect-4/5 w-full @sm:w-40 @md:w-48 @lg:w-48 rounded-xl bg-muted shadow-none shrink-0">

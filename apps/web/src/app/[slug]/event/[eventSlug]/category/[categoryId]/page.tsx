@@ -107,9 +107,9 @@ export default async function PublicCategoryPage({
 	);
 
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
-
+	const brandPrimary = primaryColor || "#009A44";
 	const brandVars = {
-		"--color-brand-primary": primaryColor || "#009A44",
+		"--color-brand-primary": brandPrimary,
 		"--color-brand-secondary": secondaryColor || "#FFD100",
 		"--color-brand-tertiary": tertiaryColor || "#EF3340",
 	} as React.CSSProperties;
@@ -178,8 +178,11 @@ export default async function PublicCategoryPage({
 
 	return (
 		<main
-			className="min-h-[100svh] bg-background text-foreground flex flex-col justify-between"
-			style={brandVars}
+			className="min-h-[100svh] text-foreground flex flex-col justify-between"
+			style={{
+				...brandVars,
+				backgroundColor: `color-mix(in srgb, ${brandPrimary} 7%, #ffffff)`,
+			}}
 		>
 			{/* Mobile / Tablet View (< xl) */}
 			<div className="flex flex-col xl:hidden flex-1 @container/content">
@@ -273,12 +276,8 @@ export default async function PublicCategoryPage({
 
 				<PanAfricanDivider />
 
-				<main
+				<div
 					className="flex-1 w-full py-12 transition-colors"
-					style={{
-						backgroundColor:
-							"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-					}}
 				>
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 						<div className="mb-6">
@@ -291,7 +290,7 @@ export default async function PublicCategoryPage({
 						</div>
 						{nomineeContent}
 					</div>
-				</main>
+				</div>
 
 				{(sponsors.length > 0 || galleryLinks.length > 0 || socialLinks.length > 0) && (
 					<Section maxWidth="7xl" className="py-14 border-t bg-background">
@@ -428,13 +427,7 @@ export default async function PublicCategoryPage({
 								</p>
 							</div>
 						)}
-						<div
-							className="rounded-2xl bg-card p-8 transition-colors"
-							style={{
-								backgroundColor:
-									"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-							}}
-						>
+						<div className="space-y-6">
 							<div className="mb-6">
 								<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
 									Nominees & Candidates

@@ -5,6 +5,7 @@ import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { EventCreationCTABanner } from "@/components/shared/EventCreationCTABanner";
 import { EventHero } from "@/components/event/public/EventHero";
 import { EventSidebarCard } from "@/components/event/public/EventSidebarCard";
+import { EventVenueCard } from "@/components/event/public/EventVenueCard";
 import { EventVotingCategories } from "@/components/event/public/EventVotingCategories";
 import { EventDetailsSection } from "@/components/event/public/EventDetailsSection";
 import { StandardEventContent } from "@/components/event/public/StandardEventContent";
@@ -99,9 +100,9 @@ export default async function PublicEventPage({
 	const socialLinks = Array.from(socialLinksMap.values());
 
 	const { primaryColor, secondaryColor, tertiaryColor } = organization;
-
+	const brandPrimary = primaryColor || "#009A44";
 	const brandVars = {
-		"--color-brand-primary": primaryColor || "#009A44",
+		"--color-brand-primary": brandPrimary,
 		"--color-brand-secondary": secondaryColor || "#FFD100",
 		"--color-brand-tertiary": tertiaryColor || "#EF3340",
 	} as React.CSSProperties;
@@ -188,8 +189,11 @@ export default async function PublicEventPage({
 
 	return (
 		<main
-			className="min-h-[100svh] bg-background @7xl:bg-primary- text-foreground flex flex-col justify-between"
-			style={brandVars}
+			className="min-h-[100svh] text-foreground flex flex-col justify-between"
+			style={{
+				...brandVars,
+				backgroundColor: `color-mix(in srgb, ${brandPrimary} 7%, #ffffff)`,
+			}}
 		>
 			{/* Schema.org JSON-LD Structured Data */}
 			<script
@@ -234,10 +238,6 @@ export default async function PublicEventPage({
 						<Section
 							maxWidth="7xl"
 							className="py-16 transition-colors"
-							style={{
-								backgroundColor:
-									"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-							}}
 						>
 							{ticketsContent}
 						</Section>
@@ -290,7 +290,7 @@ export default async function PublicEventPage({
 				)}
 				<div className="grid grid-cols-12 gap-8 w-full items-start">
 					{/* Left Column: Sticky Sidebar Panel */}
-					<aside className="col-span-4 sticky top-6 max-h-[calc(100svh-3rem)] overflow-y-auto pr-1">
+					<aside className="col-span-4 sticky top-6 max-h-[calc(100svh-3rem)] overflow-y-auto pr-1 space-y-4">
 						<EventSidebarCard
 							event={event}
 							socialLinks={socialLinks}
@@ -299,12 +299,28 @@ export default async function PublicEventPage({
 							orgSlug={orgSlug}
 							eventSlug={eventSlug}
 						/>
+
+						{/* Venue Location Card below the main event card */}
+						{!event.isVirtual &&
+							event.latitude !== null &&
+							event.latitude !== undefined &&
+							event.longitude !== null &&
+							event.longitude !== undefined && (
+								<EventVenueCard
+									latitude={event.latitude}
+									longitude={event.longitude}
+									venueName={event.venueName}
+									venueAddress={event.venueAddress}
+									venueCity={event.venueCity}
+									venueCountry={event.venueCountry}
+								/>
+							)}
 					</aside>
 
 					{/* Right Column: Content Feed */}
 					<div className="col-span-8 space-y-6">
 						{isVoting && (
-							<div id="voting" className="rounded-t-2xl bg-card overflow-hidden">
+							<div id="voting" className="overflow-hidden">
 								<EventVotingCategories
 									categories={votingCategories}
 									orgSlug={orgSlug}
@@ -318,11 +334,7 @@ export default async function PublicEventPage({
 						{isTicketed && (
 							<div
 								id="tickets"
-								className="rounded-t-2xl border bg-card p-8 transition-colors"
-								style={{
-									backgroundColor:
-										"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-								}}
+								className="rounded-2xl border border-border/60 bg-card p-8 transition-colors shadow-xs"
 							>
 								{ticketsContent}
 							</div>
@@ -338,14 +350,8 @@ export default async function PublicEventPage({
 
 						{/* Event Photos Showcase for Desktop */}
 						{((event as any).galleryImages?.length > 0) && (
-							<div className="rounded-b-2xl bg-card space-y-4">
-								<div className="p-6"
-								style={{
-									backgroundColor:
-										"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-								}}
-								>
-	<div className="flex items-center justify-between">
+							<div className="rounded-2xl bg-card border border-border/60 p-6 space-y-4 shadow-xs">
+								<div className="flex items-center justify-between">
 									<h3 className="text-xl font-medium font-millik uppercase text-muted-foreground flex  gap-2 items-center-safe">
 										{/* <ImageIcon className="size-5 text-primary" /> */}
 										Event Highlight
@@ -358,9 +364,6 @@ export default async function PublicEventPage({
 									images={(event as any).galleryImages}
 									maxDisplay={5}
 								/>
-
-								</div>
-							
 							</div>
 						)}
 					</div>

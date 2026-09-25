@@ -73,13 +73,7 @@ export function CategorySidebarCard({
 	const templateImg = getEventImageUrl(category.templateImage) || eventBannerImg;
 
 	return (
-		<div
-			className="rounded-2xl bg-card overflow-hidden flex flex-col h-full max-h-full border border-border/60 shadow-xs"
-			style={{
-				backgroundColor:
-					"color-mix(in srgb, var(--color-brand-primary, #009A44) 3.5%, transparent)",
-			}}
-		>
+		<div className="rounded-2xl bg-white dark:bg-card overflow-hidden flex flex-col h-full max-h-full border border-border/80 shadow-xs">
 			{/* Banner / Cover with Overlay Title & Event Badge */}
 			<div className="relative h-48 sm:h-52 shrink-0 w-full overflow-hidden bg-muted">
 				{templateImg ? (
