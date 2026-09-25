@@ -1,7 +1,7 @@
 import { getTransporter, getMailSender, transporter, mailFromName, mailFromEmail } from "@/lib/mail/transport";
 import { getOrgImageUrl } from "@/lib/image-url-utils";
 
-// Shared design tokens matching the AfroReality email system, derived from
+// Shared design tokens matching the Fextiva email system, derived from
 // the 3 brand colors in logo.svg:
 //   primary   = #53967a (green/teal)
 //   secondary = #e88722 (orange/amber)
@@ -23,7 +23,7 @@ const FONT_STACK =
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif';
 
 function getBrandName(): string {
-  return process.env.SMTP_FROM_NAME || "AfroReality";
+  return process.env.SMTP_FROM_NAME || "Fextiva";
 }
 
 function emailShell({
@@ -186,7 +186,7 @@ export async function sendVerificationEmail({
 }) {
   try {
     const sender = getMailSender();
-    const brand = sender.name || "AfroReality";
+    const brand = sender.name || "Fextiva";
     const body = `
       ${greeting(name)}
       ${paragraphs(`Use the code below to verify your ${escapeHtml(brand)} account:`)}
@@ -226,7 +226,7 @@ export async function sendPasswordResetEmail({
 }) {
   try {
     const sender = getMailSender();
-    const brand = sender.name || "AfroReality";
+    const brand = sender.name || "Fextiva";
     const body = `
       ${greeting(name)}
       ${paragraphs(`We received a request to reset the password for your ${escapeHtml(brand)} account.`)}
@@ -262,7 +262,7 @@ export async function sendPasswordChangedEmail({
 }) {
   try {
     const sender = getMailSender();
-    const brand = sender.name || "AfroReality";
+    const brand = sender.name || "Fextiva";
     const body = `
       ${greeting(name)}
       ${paragraphs(

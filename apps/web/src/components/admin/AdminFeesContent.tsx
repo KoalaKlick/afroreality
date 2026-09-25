@@ -912,7 +912,7 @@ export function AdminFeesContent({
 								className="text-xs h-9"
 							/>
 							<p className="text-[11px] text-muted-foreground">
-								Number of withdrawals per 7 days where Afroreality absorbs the transfer fee. Subsequent withdrawals will have the transfer fee deducted from the organizer&apos;s payout.
+								Number of withdrawals per 7 days where Fextiva absorbs the transfer fee. Subsequent withdrawals will have the transfer fee deducted from the organizer's payout.
 							</p>
 						</div>
 					</div>

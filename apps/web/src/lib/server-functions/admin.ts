@@ -1433,7 +1433,7 @@ export async function adminProcessSecurityDepositRefund(data: {
 			transactionReference: txRef,
 			amount: Number(payment.amount),
 			currency: payment.currency,
-			merchantNote: `Afroreality security deposit refund for event: ${meta.eventTitle || meta.eventId || "Event"}`,
+			merchantNote: `Fextiva security deposit refund for event: ${meta.eventTitle || meta.eventId || "Event"}`,
 		});
 
 		if (!refundRes.success) {

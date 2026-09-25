@@ -561,7 +561,7 @@ export async function processPayment(
 			},
 			body: JSON.stringify({
 				amount: amountPesewas,
-				email: `${normalizePhone(phoneNumber)}@afroreality.com`,
+				email: `${normalizePhone(phoneNumber)}@fextiva.com`,
 				currency: "GHS",
 				reference,
 				mobile_money: {

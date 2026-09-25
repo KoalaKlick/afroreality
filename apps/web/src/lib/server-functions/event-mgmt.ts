@@ -445,7 +445,7 @@ export async function initializeEventDepositPayment(data: {
 			select: { email: true, fullName: true },
 		});
 
-		const email = user?.email || org?.contactEmail || "organizer@afroreality.com";
+		const email = user?.email || org?.contactEmail || "organizer@fextiva.com";
 
 		// 1. Create Pending Payment Record with isEventDeposit: true
 		await prisma.payment.create({

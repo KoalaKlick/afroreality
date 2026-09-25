@@ -18,12 +18,12 @@ export function getTransporter() {
 }
 
 export function getMailSender() {
-  const name = process.env.SMTP_FROM_NAME || "AfroReality";
+  const name = process.env.SMTP_FROM_NAME || "Fextiva";
   const user = process.env.SMTP_USER?.trim();
   const fromEmail = process.env.SMTP_FROM_EMAIL?.trim();
 
   // For Gmail SMTP, the envelope 'from' must be the authenticated user address to avoid delivery rejection
-  const address = fromEmail || user || "noreply@afroreality.com";
+  const address = fromEmail || user || "noreply@fextiva.com";
 
   return {
     name,
@@ -44,6 +44,6 @@ export const transporter = new Proxy({} as nodemailer.Transporter, {
   },
 });
 
-export const mailFromName = process.env.SMTP_FROM_NAME || "AfroReality";
-export const mailFromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || "noreply@afroreality.com";
+export const mailFromName = process.env.SMTP_FROM_NAME || "Fextiva";
+export const mailFromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || "noreply@fextiva.com";
 

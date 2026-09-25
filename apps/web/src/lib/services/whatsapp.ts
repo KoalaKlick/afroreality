@@ -1,5 +1,5 @@
 // src/lib/services/whatsapp.ts
-// WhatsApp Cloud API Integration for Fextiva (Afroreality)
+// WhatsApp Cloud API Integration for Fextiva
 
 import { getFrontendBaseUrl } from "@/lib/utils";
 import { prisma } from "@repo/db";
