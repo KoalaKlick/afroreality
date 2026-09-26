@@ -25,6 +25,8 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { addPlatformAdminUser, removePlatformAdminUser } from "@/lib/server-functions/admin";
+import { SuperAdmin2FADialog } from "@/components/super-admin/SuperAdmin2FADialog";
+import { Smartphone, CheckCircle2 } from "lucide-react";
 
 interface SuperAdminsContentProps {
 	rootAdmin: string;
@@ -94,6 +96,53 @@ export function SuperAdminsContent({
 					</p>
 				</div>
 			</div>
+
+			{/* Two-Factor Authentication (2FA) Security Card */}
+			<Card className="border border-border bg-card rounded-none shadow-none">
+				<CardHeader className="pb-3 border-b border-border rounded-none shadow-none">
+					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+						<div>
+							<CardTitle className="text-sm font-bold flex items-center gap-2">
+								<ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+								Platform Security & Two-Factor Authentication (2FA)
+							</CardTitle>
+							<CardDescription className="text-xs mt-1">
+								Enforced two-factor authentication protecting platform governance and financial settings.
+							</CardDescription>
+						</div>
+						<SuperAdmin2FADialog adminEmail={rootAdmin} />
+					</div>
+				</CardHeader>
+				<CardContent className="pt-4 space-y-3 rounded-none shadow-none">
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+						<div className="p-3 border border-border bg-muted/30 rounded-none space-y-1">
+							<div className="flex items-center gap-1.5 font-bold text-foreground">
+								<Smartphone className="size-3.5 text-primary" />
+								<span>Authenticator App (TOTP)</span>
+								<Badge variant="outline" className="text-[10px] ml-auto bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+									Enforced
+								</Badge>
+							</div>
+							<p className="text-[11px] text-muted-foreground leading-relaxed">
+								Google Authenticator, Microsoft Authenticator, or 1Password code required during every platform sign-in.
+							</p>
+						</div>
+
+						<div className="p-3 border border-border bg-muted/30 rounded-none space-y-1">
+							<div className="flex items-center gap-1.5 font-bold text-foreground">
+								<Mail className="size-3.5 text-primary" />
+								<span>2-Step Email Verification</span>
+								<Badge variant="outline" className="text-[10px] ml-auto bg-primary/10 text-primary border-primary/30">
+									Active Backup
+								</Badge>
+							</div>
+							<p className="text-[11px] text-muted-foreground leading-relaxed">
+								Administrators can also choose to receive an instant 6-digit OTP code directly to their registered email address.
+							</p>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
 			{/* Add New Admin Form */}
 			<Card className="border border-border bg-card rounded-none shadow-none">

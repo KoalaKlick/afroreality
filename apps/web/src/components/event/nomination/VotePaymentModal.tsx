@@ -26,6 +26,7 @@ import {
 	Phone,
 } from "lucide-react";
 import { initiatePublicVote } from "@/lib/server-functions/public-checkout";
+import { VoteSuccessAnimation } from "@/components/voting/VoteSuccessAnimation";
 import { toast } from "sonner";
 
 interface VotingOption {
@@ -90,10 +91,26 @@ export function VotePaymentModal({
 
 	const handleClose = useCallback(
 		(nextOpen: boolean) => {
-			if (!nextOpen) resetModal();
+			if (!nextOpen) {
+				if (step === "success" && nominee && typeof window !== "undefined") {
+					const addedVotes = isInternalVoting ? 1 : voteCount;
+					window.dispatchEvent(
+						new CustomEvent("vote-confirmed", {
+							detail: {
+								optionId: nominee.id,
+								nomineeCode: nominee.nomineeCode,
+								nomineeName: nominee.optionText,
+								addedVotes,
+								timestamp: Date.now(),
+							},
+						})
+					);
+				}
+				resetModal();
+			}
 			onOpenChange(nextOpen);
 		},
-		[onOpenChange, resetModal],
+		[onOpenChange, resetModal, step, nominee, isInternalVoting, voteCount],
 	);
 
 	if (!nominee) return null;
@@ -388,13 +405,11 @@ export function VotePaymentModal({
 				)}
 
 				{step === "success" && (
-					<div className="py-8 text-center space-y-5">
-						<div className="size-14 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto dark:bg-green-950/50 dark:text-green-400">
-							<CheckCircle2 className="size-8" />
-						</div>
+					<div className="py-4 text-center space-y-4">
+						<VoteSuccessAnimation size="md" brandVars={brandVars} />
 
 						<div className="space-y-1">
-							<h4 className="font-bold text-lg text-foreground">
+							<h4 className="font-bold text-lg text-foreground tracking-tight">
 								Vote Cast Successfully!
 							</h4>
 							<p className="text-xs text-muted-foreground max-w-xs mx-auto">
@@ -405,7 +420,7 @@ export function VotePaymentModal({
 
 						<Button
 							onClick={() => handleClose(false)}
-							className="w-full text-xs h-9 font-bold"
+							className="w-full text-xs h-9 font-bold shadow-sm"
 						>
 							Done
 						</Button>

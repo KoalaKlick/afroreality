@@ -31,7 +31,17 @@ export interface AuthContextType {
     email?: string;
     password: string;
     redirectTo?: string;
-  }) => Promise<{ data?: SafeUserDto | null; error: AuthError | null }>;
+  }) => Promise<{
+    data?: SafeUserDto | null;
+    error: AuthError | null;
+    requires2FA?: boolean;
+    isSetup?: boolean;
+    email?: string;
+    challengeToken?: string;
+    secret?: string;
+    qrCodeUri?: string;
+    hasEmailOtpOption?: boolean;
+  }>;
   /** Legacy alias kept for compatibility — positional form. */
   register: (email: string, pass: string, fullName: string, username?: string) => Promise<any>;
   signUp: (data: {
@@ -122,6 +132,20 @@ export function AuthProvider({
             needsVerification: true,
             email,
           },
+        };
+      }
+
+      if (res.requires2FA) {
+        return {
+          data: null,
+          error: null,
+          requires2FA: true,
+          isSetup: res.isSetup,
+          email: res.email,
+          challengeToken: res.challengeToken,
+          secret: res.secret,
+          qrCodeUri: res.qrCodeUri,
+          hasEmailOtpOption: res.hasEmailOtpOption,
         };
       }
 

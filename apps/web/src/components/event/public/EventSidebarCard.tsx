@@ -75,7 +75,7 @@ export function EventSidebarCard({
 	} = formatEventDisplay(event);
 
 	return (
-		<div className="rounded-2xl bg-white dark:bg-card overflow-hidden flex flex-col border border-border/80 shadow-xs">
+		<div className="rounded-2xl bg-background overflow-hidden flex flex-col border border-border/80 shadow-xs">
 			{/* Banner / Cover with Overlay Title & Org Logo */}
 			<div className="relative h-48 sm:h-52 shrink-0 w-full overflow-hidden bg-muted">
 				{bannerImage ? (

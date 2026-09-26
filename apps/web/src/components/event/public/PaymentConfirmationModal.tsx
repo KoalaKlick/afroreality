@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getPaymentStatusByReference } from "@/lib/server-functions/public-checkout";
+import { VoteSuccessAnimation } from "@/components/voting/VoteSuccessAnimation";
 
 type CallbackState = "idle" | "verifying" | "success" | "failed";
 
@@ -44,6 +45,27 @@ function PaymentConfirmationModalContent() {
 	const pollCountRef = useRef(0);
 
 	const handleClose = useCallback(() => {
+		if (state === "success" && payment && typeof window !== "undefined") {
+			const meta = payment.metadata || {};
+			const purpose = payment.purpose || meta.purpose || "";
+			const isVote = purpose === "vote_purchase" || !!meta.categoryId || !!meta.optionId;
+			if (isVote) {
+				const optionId = meta.optionId || meta.nomineeId;
+				const addedVotes = Number(meta.voteCount || 1);
+				window.dispatchEvent(
+					new CustomEvent("vote-confirmed", {
+						detail: {
+							optionId,
+							nomineeCode: meta.nomineeCode,
+							nomineeName: meta.nomineeName,
+							addedVotes,
+							timestamp: Date.now(),
+						},
+					})
+				);
+			}
+		}
+
 		setIsOpen(false);
 		// Clean up query params from URL without page reload
 		const params = new URLSearchParams(searchParams.toString());
@@ -53,7 +75,7 @@ function PaymentConfirmationModalContent() {
 		const newUrl = newQuery ? `${pathname}?${newQuery}` : pathname;
 		router.replace(newUrl, { scroll: false });
 		router.refresh();
-	}, [pathname, router, searchParams]);
+	}, [pathname, router, searchParams, state, payment]);
 
 	const checkStatus = useCallback(
 		async (ref: string) => {
@@ -162,12 +184,28 @@ function PaymentConfirmationModalContent() {
 					{/* ── 2. Success State ── */}
 					{state === "success" && (
 						<div className="py-2 space-y-4 w-full">
-							<div className="relative w-16 h-16 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center mx-auto shadow-sm">
-								<CheckCircle2 className="w-9 h-9 text-green-600 dark:text-green-400" />
-								<div className="absolute -top-1 -right-1 bg-amber-400 text-black p-1 rounded-full shadow-xs">
-									<Sparkles className="size-3" />
+							{isVotePayment ? (
+								<VoteSuccessAnimation size="md" />
+							) : (
+								<div
+									className="relative w-16 h-16 rounded-full border flex items-center justify-center mx-auto shadow-sm"
+									style={{
+										backgroundColor: "color-mix(in srgb, var(--color-brand-primary, #009A44) 15%, transparent)",
+										borderColor: "color-mix(in srgb, var(--color-brand-primary, #009A44) 30%, transparent)",
+									}}
+								>
+									<CheckCircle2
+										className="w-9 h-9"
+										style={{ color: "var(--color-brand-primary, #009A44)" }}
+									/>
+									<div
+										className="absolute -top-1 -right-1 text-black p-1 rounded-full shadow-xs"
+										style={{ backgroundColor: "var(--color-brand-secondary, #FFD100)" }}
+									>
+										<Sparkles className="size-3" />
+									</div>
 								</div>
-							</div>
+							)}
 
 							<div>
 								<h3 className="text-xl font-black uppercase tracking-tight">
@@ -202,7 +240,10 @@ function PaymentConfirmationModalContent() {
 										<span className="text-muted-foreground font-medium">
 											Amount Paid
 										</span>
-										<span className="font-bold text-green-600 dark:text-green-400 text-sm">
+										<span
+											className="font-bold text-sm"
+											style={{ color: "var(--color-brand-primary, #009A44)" }}
+										>
 											{payment.currency || "GHS"}{" "}
 											{Number(payment.amount).toFixed(2)}
 										</span>

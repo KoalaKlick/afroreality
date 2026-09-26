@@ -5,6 +5,12 @@ import bcrypt from "bcryptjs";
 import { signSession, setSessionCookie, clearSessionCookie } from "@/lib/session";
 import { toSafeUserDto } from "@/lib/dal/auth";
 import { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangedEmail } from "@/lib/email/auth";
+import { isPlatformAdmin } from "@/lib/admin/admin-auth";
+import {
+  getSuperAdmin2FASecret,
+  initiateSuperAdmin2FASetup,
+} from "@/lib/server-functions/admin-2fa";
+import { create2FAChallengeToken } from "@/lib/auth/totp";
 
 // ============================================================
 // Auth service (email + password)
@@ -111,22 +117,32 @@ export async function loginAction({
         });
       }
 
-      const token = await signSession({
-        userId: superUser.id,
-        email: superUser.email,
-        emailVerified: true,
-        fullName: superUser.fullName || "Super Administrator",
-        username: superUser.username || "superadmin",
-        onboardingCompleted: true,
-      });
+      // Check 2FA for Super Admin
+      const totpSecret = await getSuperAdmin2FASecret(superUser.email);
+      const challengeToken = create2FAChallengeToken(superUser.email);
 
-      await setSessionCookie(token);
+      if (!totpSecret) {
+        const setup = await initiateSuperAdmin2FASetup(superUser.email);
+        return {
+          success: false,
+          requires2FA: true,
+          isSetup: true,
+          method: "totp",
+          email: superUser.email,
+          challengeToken,
+          secret: setup.secret,
+          qrCodeUri: setup.otpauthUri,
+        };
+      }
 
       return {
-        success: true,
-        user: toSafeUserDto(superUser),
-        emailVerified: true,
-        onboardingCompleted: true,
+        success: false,
+        requires2FA: true,
+        isSetup: false,
+        method: "totp",
+        email: superUser.email,
+        challengeToken,
+        hasEmailOtpOption: true,
       };
     }
 
@@ -143,6 +159,37 @@ export async function loginAction({
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       return { success: false, error: "Invalid email/username or password" };
+    }
+
+    // Check if user is Super Admin / Platform Admin
+    const isSuper = await isPlatformAdmin(user.email);
+    if (isSuper) {
+      const totpSecret = await getSuperAdmin2FASecret(user.email);
+      const challengeToken = create2FAChallengeToken(user.email);
+
+      if (!totpSecret) {
+        const setup = await initiateSuperAdmin2FASetup(user.email);
+        return {
+          success: false,
+          requires2FA: true,
+          isSetup: true,
+          method: "totp",
+          email: user.email,
+          challengeToken,
+          secret: setup.secret,
+          qrCodeUri: setup.otpauthUri,
+        };
+      }
+
+      return {
+        success: false,
+        requires2FA: true,
+        isSetup: false,
+        method: "totp",
+        email: user.email,
+        challengeToken,
+        hasEmailOtpOption: true,
+      };
     }
 
 

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getPaymentStatusByReference } from "@/lib/server-functions/public-checkout";
+import { VoteSuccessAnimation } from "@/components/voting/VoteSuccessAnimation";
 
 type CallbackState = "verifying" | "success" | "failed" | "unknown";
 
@@ -149,12 +150,16 @@ function PaymentCallbackContent() {
 						{/* ── 2. Success State ── */}
 						{state === "success" && (
 							<>
-								<div className="relative w-20 h-20 rounded-full bg-[#009A44]/15 border border-[#009A44]/40 flex items-center justify-center mb-6 shadow-lg shadow-[#009A44]/10">
-									<CheckCircle2 className="w-11 h-11 text-[#009A44]" />
-									<div className="absolute -top-1 -right-1 bg-[#FFD100] text-black p-1 rounded-full shadow-xs">
-										<Sparkles className="size-3.5" />
+								{isVotePayment ? (
+									<VoteSuccessAnimation size="lg" className="mb-4" />
+								) : (
+									<div className="relative w-20 h-20 rounded-full bg-[#009A44]/15 border border-[#009A44]/40 flex items-center justify-center mb-6 shadow-lg shadow-[#009A44]/10">
+										<CheckCircle2 className="w-11 h-11 text-[#009A44]" />
+										<div className="absolute -top-1 -right-1 bg-[#FFD100] text-black p-1 rounded-full shadow-xs">
+											<Sparkles className="size-3.5" />
+										</div>
 									</div>
-								</div>
+								)}
 
 								<h1 className="text-2xl font-black uppercase tracking-tight mb-2">
 									{isTicketPayment

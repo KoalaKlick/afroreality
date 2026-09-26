@@ -17,6 +17,7 @@ import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { shareNominee } from "@/lib/utils/share-utils";
 import { NoNomineeIllustration } from "@/components/common/NoNomineeIllustration";
 import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
+import { AnimatedVoteBadge } from "@/components/voting/AnimatedVoteBadge";
 
 interface VotingOption {
 	id: string;
@@ -76,6 +77,60 @@ export function NomineeGrid({
 		null,
 	);
 	const [highlightedCode, setHighlightedCode] = useState<string | null>(null);
+	const [recentlyVoted, setRecentlyVoted] = useState<{
+		optionId: string;
+		addedVotes: number;
+		timestamp: number;
+	} | null>(null);
+
+	// Listen for confirmed votes from VotePaymentModal or PaymentConfirmationModal
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+
+		const handleVoteConfirmed = (e: Event) => {
+			const detail = (e as CustomEvent).detail;
+			if (!detail) return;
+			const { optionId, nomineeCode, nomineeName, addedVotes } = detail;
+
+			const matched = nominees.find(
+				(n, idx) =>
+					(optionId && (n.id === optionId || n.id.toUpperCase() === String(optionId).toUpperCase())) ||
+					(nomineeCode && getEffectiveNomineeCode(n, idx).toUpperCase() === String(nomineeCode).toUpperCase()) ||
+					(nomineeName && n.optionText.trim().toLowerCase() === String(nomineeName).trim().toLowerCase())
+			);
+
+			const targetId = matched?.id || optionId;
+			if (targetId) {
+				const count = Math.max(1, Number(addedVotes || 1));
+				setRecentlyVoted({
+					optionId: targetId,
+					addedVotes: count,
+					timestamp: Date.now(),
+				});
+
+				// Smoothly scroll to the target nominee so voter immediately sees their vote count increment
+				setTimeout(() => {
+					const effectiveCode = matched ? getEffectiveNomineeCode(matched) : null;
+					const el =
+						(effectiveCode && document.getElementById(effectiveCode)) ||
+						(targetId && document.getElementById(targetId)) ||
+						(effectiveCode && document.getElementById(`nominee-${effectiveCode}`));
+					if (el) {
+						el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+					}
+				}, 150);
+
+				// Reset recently voted state after animation completes
+				const timer = setTimeout(() => {
+					setRecentlyVoted((curr) => (curr?.optionId === targetId ? null : curr));
+				}, 4000);
+				return () => clearTimeout(timer);
+			}
+		};
+
+		window.addEventListener("vote-confirmed", handleVoteConfirmed);
+		return () => window.removeEventListener("vote-confirmed", handleVoteConfirmed);
+	}, [nominees, categoryName]);
 
 	const isFree = Number(votePrice) === 0;
 
@@ -218,6 +273,8 @@ export function NomineeGrid({
 								highlightedCode === nominee.id.toUpperCase() ||
 								highlightedCode === nominee.nomineeCode?.toUpperCase())
 					);
+					const isJustVoted = recentlyVoted?.optionId === nominee.id;
+					const addedVotesForNominee = isJustVoted ? recentlyVoted.addedVotes : 0;
 					const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
 					const votePercentage =
 						totalCategoryVotes > 0
@@ -243,10 +300,12 @@ export function NomineeGrid({
 							<div
 								onClick={() => handleOpenSheet(nominee)}
 								className={cn(
-									"group relative flex flex-col @md:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-300 hover:shadow-md cursor-pointer border shadow-xs",
-									isTarget
-										? "border-secondary ring-offset-2 ring-offset-background shadow-lg shadow-secondary/20"
-										: "border-border/80"
+									"group relative flex flex-col @md:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-500 hover:shadow-md cursor-pointer border shadow-xs",
+									isJustVoted
+										? "border-primary ring-2 ring-primary/50 shadow-lg shadow-primary/20 scale-[1.01]"
+										: isTarget
+											? "border-secondary ring-offset-2 ring-offset-background shadow-lg shadow-secondary/20"
+											: "border-border/80"
 								)}
 							>
 								{/* Nominee Avatar / Poster (Left in row, Top in col) */}
@@ -280,15 +339,16 @@ export function NomineeGrid({
 										</span>
 									</div>
 
-									{/* Real-Time Live Standings Badge on Image (if enabled) */}
+									{/* Real-Time Live Standings Badge on Image with Animated Increment */}
 									{showTotalVotesPublicly && (
-										<div className="absolute bottom-2.5 left-2.5 rounded-md bg-background/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold border border-border/70 flex items-center gap-1 shadow-xs text-foreground z-10">
-											<BarChart2 className="size-3 text-primary" />
-											<span>
-												{resultDisplayType === "count"
-													? `${nomineeVotes.toLocaleString()} votes`
-													: `${votePercentage.toFixed(1)}%`}
-											</span>
+										<div className="absolute bottom-2.5 left-2.5 z-10">
+											<AnimatedVoteBadge
+												currentVotes={nomineeVotes}
+												totalVotes={totalCategoryVotes}
+												displayType={resultDisplayType}
+												isRecentlyVoted={isJustVoted}
+												addedVotes={addedVotesForNominee}
+											/>
 										</div>
 									)}
 								</div>
@@ -413,13 +473,14 @@ export function NomineeGrid({
 
 									{/* Real-Time Live Standings Badge on Sheet Image */}
 									{showTotalVotesPublicly && (
-										<div className="absolute bottom-3 left-3 rounded-md bg-background/90 backdrop-blur-md px-3 py-1.5 text-xs font-bold border border-border/60 flex items-center gap-1.5 shadow-md text-foreground">
-											<BarChart2 className="size-3.5 text-primary" />
-											<span>
-												{resultDisplayType === "count"
-													? `${selectedVotes.toLocaleString()} votes`
-													: `${selectedPct.toFixed(1)}%`}
-											</span>
+										<div className="absolute bottom-3 left-3 z-10">
+											<AnimatedVoteBadge
+												currentVotes={selectedVotes}
+												totalVotes={totalCategoryVotes}
+												displayType={resultDisplayType}
+												isRecentlyVoted={recentlyVoted?.optionId === selectedNominee.id}
+												addedVotes={recentlyVoted?.optionId === selectedNominee.id ? recentlyVoted.addedVotes : 0}
+											/>
 										</div>
 									)}
 								</div>

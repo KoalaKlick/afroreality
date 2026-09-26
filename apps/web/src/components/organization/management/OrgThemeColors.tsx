@@ -415,7 +415,6 @@ export function OrgThemeColors({
 					<div className="space-y-2 p-3 rounded-xl border bg-muted/20">
 						<div className="flex items-center justify-between">
 							<span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-								<Sparkles className="size-3.5 text-primary" />
 								Curated Themes
 							</span>
 							<span className="text-[10px] text-muted-foreground">Click to apply 3-color palette</span>
@@ -435,7 +434,7 @@ export function OrgThemeColors({
 										className={cn(
 											"shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all cursor-pointer",
 											isActive
-												? "border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary shadow-2xs"
+												? "border-primary bg-primary/10 text-primary font-semibold shadow-2xs"
 												: "border-border/60 bg-card hover:border-primary/40 hover:bg-accent/40"
 										)}
 										title={theme.name}

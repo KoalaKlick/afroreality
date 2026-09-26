@@ -9,6 +9,7 @@ import { GoogleIcon } from "@/components/shared/google-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
+import { TwoFactorChallenge, type TwoFactorChallengeData } from "@/components/auth/TwoFactorChallenge";
 
 export function LoginForm({
 	verified,
@@ -21,6 +22,7 @@ export function LoginForm({
 	const [identifier, setIdentifier] = useState("");
 	const [password, setPassword] = useState("");
 	const [submitting, setSubmitting] = useState(false);
+	const [twoFactorData, setTwoFactorData] = useState<TwoFactorChallengeData | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -39,11 +41,15 @@ export function LoginForm({
 		setSubmitting(true);
 
 		try {
-			await signInWithPassword({
+			const res = await signInWithPassword({
 				identifier: cleanId,
 				password: cleanPass,
 				redirectTo: next ?? undefined,
 			});
+
+			if ((res as any)?.requires2FA) {
+				setTwoFactorData(res as any);
+			}
 		} catch (err: any) {
 			// Toast is handled in auth-provider
 		} finally {
@@ -54,6 +60,16 @@ export function LoginForm({
 	const handleGoogleSignIn = () => {
 		signInWithOAuth("google");
 	};
+
+	if (twoFactorData) {
+		return (
+			<TwoFactorChallenge
+				data={twoFactorData}
+				onCancel={() => setTwoFactorData(null)}
+				redirectTo={next}
+			/>
+		);
+	}
 
 	return (
 		<div className="space-y-6">

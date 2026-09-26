@@ -213,6 +213,51 @@ export async function sendVerificationEmail({
   }
 }
 
+export async function sendAdmin2StepVerificationEmail({
+  email,
+  name,
+  otp,
+}: {
+  email: string;
+  name?: string;
+  otp: string;
+}) {
+  try {
+    const sender = getMailSender();
+    const brand = sender.name || "Fextiva";
+    const body = `
+      ${greeting(name)}
+      ${paragraphs(`A sign-in attempt was initiated for your <strong>${escapeHtml(brand)} Super Administrator</strong> account.`)}
+      ${paragraphs("Use the 2-step verification code below to authorize your session:")}
+      ${otpBox({
+        label: "Your Super Admin 2-Step Verification Code",
+        code: otp,
+        accentBg: "#ecfdf5",
+        accentBorder: ACCENT_PRIMARY,
+        accentText: "#065f46",
+        expiry: "Valid for 10 minutes",
+      })}
+      ${muted("If you did not initiate this sign-in attempt, please immediately change your password and contact platform security.")}
+    `;
+
+    const html = emailShell({ preview: `Super Admin 2-Step Verification Code: ${otp}`, body });
+    const client = getTransporter();
+
+    const info = await client.sendMail({
+      from: sender.formatted,
+      to: email,
+      subject: `[Security] Super Admin 2-Step Verification Code - ${brand}`,
+      html,
+    });
+
+    console.log("[EMAIL] Admin 2FA email sent to", email, "messageId:", info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error: any) {
+    console.error("[EMAIL] Failed to send admin 2FA email:", error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function sendPasswordResetEmail({
   email,
   name,
