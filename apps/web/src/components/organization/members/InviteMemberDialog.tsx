@@ -88,11 +88,8 @@ export function InviteMemberDialog({
 				<DialogHeader>
 					<DialogTitle>Invite a Member</DialogTitle>
 				</DialogHeader>
-				<div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs">
+				<div className="flex items-center justify-between p-3 rounded-md bg-primary/5 text-xs">
 					<div className="flex items-center gap-2.5">
-						<div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-							<ShieldCheck className="size-4" />
-						</div>
 						<div>
 							<p className="font-semibold text-foreground">Fextiva Super Admin</p>
 							<p className="text-[11px] text-muted-foreground">{FEXTIVA_SUPER_ADMIN_EMAIL}</p>
@@ -100,13 +97,12 @@ export function InviteMemberDialog({
 					</div>
 					<Button
 						type="button"
-						variant="outline"
-						size="sm"
+						variant="primary"
+						size="xs"
 						onClick={() => {
 							setInviteEmail(FEXTIVA_SUPER_ADMIN_EMAIL);
 							setInviteRole("admin");
 						}}
-						className="h-7 text-xs font-semibold border-primary/40 text-primary hover:bg-primary/10 hover:border-primary"
 					>
 						Quick Fill
 					</Button>
