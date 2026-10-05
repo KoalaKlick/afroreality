@@ -2,6 +2,7 @@ import { prisma } from "@repo/db";
 import { createTicketToken } from "@/lib/ticket-crypto";
 import { generateNomineeCode } from "@/lib/server-functions/voting-options";
 import { sendNominationConfirmationEmail } from "@/lib/email/nomination";
+import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
 import {
 	sendTicketWhatsAppNotification,
 	sendVoteReceiptWhatsAppNotification,
@@ -195,22 +196,71 @@ export async function fulfillSuccessfulPayment({
 					metadata.phone_number ||
 					metadata.attendeePhone ||
 					null;
+
+				// Fetch event once for notifications
+				const notifEvent = await prisma.event.findUnique({
+					where: { id: eventId },
+					select: {
+						title: true,
+						flierImage: true,
+						bannerImage: true,
+						organization: { select: { name: true } },
+					},
+				});
+
 				if (buyerPhone && generatedTickets.length > 0) {
 					try {
-						const event = await prisma.event.findUnique({
-							where: { id: eventId },
-							select: { title: true, flierImage: true, bannerImage: true },
-						});
 						await sendTicketWhatsAppNotification({
 							phone: buyerPhone,
 							attendeeName: buyerName,
-							eventTitle: event?.title || "Fextiva Event",
+							eventTitle: notifEvent?.title || "Fextiva Event",
 							ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
 							ticketToken: generatedTickets[0]?.token || undefined,
-							bannerImageUrl: event?.flierImage || event?.bannerImage || undefined,
+							bannerImageUrl: notifEvent?.flierImage || notifEvent?.bannerImage || undefined,
 						});
 					} catch (waErr) {
 						console.error("[WhatsApp] Error sending ticket confirmation:", waErr);
+					}
+				}
+
+				// Send individual email confirmations for each attendee who has an email
+				if (notifEvent && generatedTickets.length > 0) {
+					const attendees: Array<{ name: string; email?: string | null }> =
+						Array.isArray(metadata.attendees) ? metadata.attendees : [];
+					const unitPrice = Number(metadata.baseAmount || 0) / Math.max(generatedTickets.length, 1);
+
+					for (let i = 0; i < generatedTickets.length; i++) {
+						const tkt = generatedTickets[i];
+						// Retrieve attendee email from the fetched ticket record
+						const ticketRecord = await prisma.ticket.findUnique({
+							where: { id: tkt.id },
+							select: {
+								attendeeName: true,
+								attendeeEmail: true,
+								ticketType: { select: { name: true } },
+							},
+						});
+						const recipientEmail = ticketRecord?.attendeeEmail;
+						if (!recipientEmail) continue;
+
+						const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fextiva.com";
+						const passViewUrl = `${baseUrl}/ticket/view?token=${tkt.token}`;
+
+						sendTicketConfirmationEmail({
+							email: recipientEmail,
+							attendeeName: ticketRecord?.attendeeName || buyerName,
+							eventName: notifEvent.title,
+							organizationName: notifEvent.organization?.name || "Fextiva",
+							ticketTypeName: ticketRecord?.ticketType?.name || metadata.ticketTypeName || "Ticket",
+							ticketCode: tkt.ticketCode,
+							viewUrl: passViewUrl,
+							bannerUrl: notifEvent.flierImage || notifEvent.bannerImage,
+							isFree: false,
+							amountPaid: unitPrice,
+							currency: "GHS",
+						}).catch((err) =>
+							console.error(`[EMAIL:TICKET] Failed for ticket ${tkt.ticketCode}:`, err),
+						);
 					}
 				}
 			}

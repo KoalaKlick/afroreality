@@ -8,6 +8,7 @@ import { computeChargeAmount, toPesewas, round2 } from "@/lib/utils/pricing";
 import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 import { submitPublicNomination } from "@/lib/server-functions/voting-options";
+import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
 
 export interface AttendeeInput {
 	name: string;
@@ -221,6 +222,32 @@ export async function initiatePublicTicketCheckout({
 				},
 			});
 
+			// Send individual confirmation emails to each attendee who provided an email
+			const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fextiva.com";
+			for (const tkt of tickets) {
+				const ticketRecord = await prisma.ticket.findUnique({
+					where: { id: tkt.id },
+					select: { attendeeName: true, attendeeEmail: true },
+				});
+				const recipientEmail = ticketRecord?.attendeeEmail;
+				if (!recipientEmail) continue;
+
+				const passViewUrl = `${baseUrl}/ticket/view?token=${tkt.token}`;
+				sendTicketConfirmationEmail({
+					email: recipientEmail,
+					attendeeName: ticketRecord?.attendeeName || buyerName,
+					eventName: ticketType.event.title,
+					organizationName: ticketType.event.organization?.name || "Fextiva",
+					ticketTypeName: ticketType.name,
+					ticketCode: tkt.ticketCode,
+					viewUrl: passViewUrl,
+					bannerUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage,
+					isFree: true,
+				}).catch((err) =>
+					console.error(`[EMAIL:TICKET] Free ticket email failed for ${tkt.ticketCode}:`, err),
+				);
+			}
+
 			return {
 				success: true,
 				isFree: true,
@@ -230,6 +257,7 @@ export async function initiatePublicTicketCheckout({
 				viewUrl: `/ticket/view?token=${tickets[0]?.token}`,
 			};
 		}
+
 
 		// Paid Ticket: Initialize Paystack Transaction with exact surcharge & subaccount routing
 		const callbackUrl = `${getFrontendBaseUrl()}/${organization.slug}/event/${ticketType.event.slug}`;
