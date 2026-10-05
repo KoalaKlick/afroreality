@@ -200,6 +200,7 @@ export async function fulfillSuccessfulPayment({
 					metadata.phone ||
 					metadata.phone_number ||
 					metadata.attendeePhone ||
+					order?.buyerPhone ||
 					null;
 
 				// Fetch event once for notifications
@@ -215,7 +216,7 @@ export async function fulfillSuccessfulPayment({
 
 				if (buyerPhone && generatedTickets.length > 0) {
 					try {
-						await sendTicketWhatsAppNotification({
+						const waRes = await sendTicketWhatsAppNotification({
 							phone: buyerPhone,
 							attendeeName: buyerName,
 							eventTitle: notifEvent?.title || "Fextiva Event",
@@ -223,6 +224,13 @@ export async function fulfillSuccessfulPayment({
 							ticketToken: generatedTickets[0]?.token || undefined,
 							bannerImageUrl: notifEvent?.flierImage || notifEvent?.bannerImage || undefined,
 						});
+
+						if (waRes.success) {
+							await prisma.ticket.updateMany({
+								where: { id: { in: generatedTickets.map((t) => t.id) } },
+								data: { whatsappSent: true },
+							});
+						}
 					} catch (waErr) {
 						console.error("[WhatsApp] Error sending ticket confirmation:", waErr);
 					}
