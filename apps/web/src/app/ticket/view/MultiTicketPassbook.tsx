@@ -214,35 +214,14 @@ export function MultiTicketPassbook({
 
 			{/* Action row — Copy + Share icons, then Download */}
 			<div className="w-full max-w-xl flex flex-col items-center gap-3 print:hidden min-w-0">
-				{/* Compact icon pair */}
-				<div className="flex items-center gap-2">
-					<button
-						type="button"
-						onClick={handleCopyLink}
-						title="Copy pass link"
-						className="size-9 rounded-xl border border-border/80 bg-card text-muted-foreground flex items-center justify-center hover:bg-accent hover:text-foreground transition-colors cursor-pointer shadow-sm"
-					>
-						{copied ? (
-							<Check className="size-4 text-emerald-600" />
-						) : (
-							<Copy className="size-4" />
-						)}
-					</button>
-					<button
-						type="button"
-						onClick={handleShare}
-						title="Share pass"
-						className="size-9 rounded-xl border border-border/80 bg-card text-muted-foreground flex items-center justify-center hover:bg-accent hover:text-foreground transition-colors cursor-pointer shadow-sm"
-					>
-						<Share2 className="size-4" />
-					</button>
-				</div>
 
 				{/* Download / Print row */}
 				<TicketDownloadButton
 					ticketCode={activePass.ticketCode}
 					eventTitle={event.title}
 				/>
+
+				
 			</div>
 
 			{/* Hidden Offscreen Export Containers */}

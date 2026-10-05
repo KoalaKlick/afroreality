@@ -221,7 +221,7 @@ export default async function TicketViewPage({
 			{/* Main Ticket Display Container */}
 			<main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 flex flex-col items-center justify-center space-y-8">
 				<div className="text-center space-y-1.5 print:hidden">
-					<h1 className="text-2xl sm:text-3xl font-millik font-black text-foreground tracking-tight">
+					<h1 className="text-2xl sm:text-3xl font-millik font-black text-muted-foreground ">
 						{event.title}
 					</h1>
 					<p className="text-xs text-muted-foreground">

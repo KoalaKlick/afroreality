@@ -215,9 +215,10 @@ export function TicketDownloadButton({
 								</span>
 							</div>
 						</DropdownMenuItem>
-					</DropdownMenuContent>
+						</DropdownMenuContent>
 				</DropdownMenu>
-			</div>
+				</div>
+
 		</div>
 	);
 }
