@@ -7,6 +7,7 @@ import {
 	sendTicketWhatsAppNotification,
 	sendVoteReceiptWhatsAppNotification,
 } from "@/lib/services/whatsapp";
+import { getFrontendBaseUrl } from "@/lib/utils";
 
 export interface FulfillmentResult {
 	success: boolean;
@@ -229,9 +230,38 @@ export async function fulfillSuccessfulPayment({
 
 				// Send individual email + WhatsApp confirmations for each attendee
 				if (notifEvent && generatedTickets.length > 0) {
-					const attendees: Array<{ name: string; email?: string | null; phone?: string | null }> =
-						Array.isArray(metadata.attendees) ? metadata.attendees : [];
 					const unitPrice = Number(metadata.baseAmount || 0) / Math.max(generatedTickets.length, 1);
+					const totalAmount = Number(metadata.baseAmount || metadata.totalToCharge || payment.amount || 0);
+
+					const baseUrl = getFrontendBaseUrl();
+					const primaryTicket = generatedTickets[0];
+					const primaryPassViewUrl = `${baseUrl}/ticket/view?token=${primaryTicket.token}`;
+					const cleanBuyerEmail = buyerEmail ? String(buyerEmail).trim().toLowerCase() : null;
+					const emailedAddresses = new Set<string>();
+
+					// 1. Primary buyer order confirmation with master pass link
+					if (cleanBuyerEmail) {
+						emailedAddresses.add(cleanBuyerEmail);
+						sendTicketConfirmationEmail({
+							email: cleanBuyerEmail,
+							attendeeName: buyerName,
+							eventName: notifEvent.title,
+							organizationName: notifEvent.organization?.name || "Fextiva",
+							ticketTypeName: metadata.ticketTypeName || "Ticket",
+							ticketCode: primaryTicket.ticketCode,
+							viewUrl: primaryPassViewUrl,
+							bannerUrl: notifEvent.flierImage || notifEvent.bannerImage,
+							isFree: false,
+							amountPaid: totalAmount,
+							currency: "GHS",
+							isPrimaryBuyer: true,
+							orderNumber: metadata.orderNumber || order?.orderNumber,
+							totalTickets: generatedTickets.length,
+							allTicketCodes: generatedTickets.map((t) => t.ticketCode),
+						}).catch((err) =>
+							console.error(`[EMAIL:TICKET] Failed for buyer ${cleanBuyerEmail}:`, err),
+						);
+					}
 
 					for (let i = 0; i < generatedTickets.length; i++) {
 						const tkt = generatedTickets[i];
@@ -246,15 +276,15 @@ export async function fulfillSuccessfulPayment({
 							},
 						});
 
-						const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fextiva.com";
 						const passViewUrl = `${baseUrl}/ticket/view?token=${tkt.token}`;
 
-						// Email
-						const recipientEmail = ticketRecord?.attendeeEmail;
-						if (recipientEmail) {
+						// Email attendee if not already emailed as buyer
+						const recipientEmail = ticketRecord?.attendeeEmail ? ticketRecord.attendeeEmail.trim().toLowerCase() : null;
+						if (recipientEmail && !emailedAddresses.has(recipientEmail)) {
+							emailedAddresses.add(recipientEmail);
 							sendTicketConfirmationEmail({
 								email: recipientEmail,
-								attendeeName: ticketRecord?.attendeeName || buyerName,
+								attendeeName: ticketRecord?.attendeeName || "Attendee",
 								eventName: notifEvent.title,
 								organizationName: notifEvent.organization?.name || "Fextiva",
 								ticketTypeName: ticketRecord?.ticketType?.name || metadata.ticketTypeName || "Ticket",
@@ -264,6 +294,8 @@ export async function fulfillSuccessfulPayment({
 								isFree: false,
 								amountPaid: unitPrice,
 								currency: "GHS",
+								isPrimaryBuyer: false,
+								totalTickets: 1,
 							}).catch((err) =>
 								console.error(`[EMAIL:TICKET] Failed for ticket ${tkt.ticketCode}:`, err),
 							);

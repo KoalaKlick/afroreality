@@ -12,6 +12,7 @@ import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
 import { StatusBadge } from "@/components/common/status-badge";
 import { MultiTicketPassbook } from "./MultiTicketPassbook";
+import { getEventImageUrl } from "@/lib/image-url-utils";
 
 import type { Metadata } from "next";
 
@@ -39,7 +40,12 @@ export async function generateMetadata({
 	if (!ticket) return { title: "Ticket | fextiva" };
 
 	const { event } = ticket;
-	const ogImage = event.flierImage || event.bannerImage || null;
+	const resolvedImg = getEventImageUrl(event.flierImage || event.bannerImage);
+	const ogImage = resolvedImg
+		? resolvedImg.startsWith("http")
+			? resolvedImg
+			: `${getFrontendBaseUrl()}${resolvedImg.startsWith("/") ? "" : "/"}${resolvedImg}`
+		: null;
 	const venueStr = event.isVirtual
 		? "Virtual / Online Event"
 		: [event.venueName, event.venueCity].filter(Boolean).join(", ") || "Venue TBA";
@@ -125,10 +131,10 @@ export default async function TicketViewPage({
 	// Load all tickets belonging to this order if an orderId exists
 	const rawOrderTickets = ticket.orderId
 		? await prisma.ticket.findMany({
-				where: { orderId: ticket.orderId },
-				include: { ticketType: true },
-				orderBy: { createdAt: "asc" },
-		  })
+			where: { orderId: ticket.orderId },
+			include: { ticketType: true },
+			orderBy: { createdAt: "asc" },
+		})
 		: [ticket];
 
 	// Security & Privacy: Only the primary user (the first ticket in the order) can view
@@ -193,7 +199,7 @@ export default async function TicketViewPage({
 	const venueLabel = event.isVirtual
 		? "Virtual / Online Event"
 		: [event.venueName, event.venueCity].filter(Boolean).join(", ") ||
-		  "Venue TBA";
+		"Venue TBA";
 
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -211,7 +217,7 @@ export default async function TicketViewPage({
 						variant="approved"
 						text={
 							passes.length > 1
-								? `Order Passbook (${passes.length} Passes)`
+								? `Order Passes (${passes.length})`
 								: "Official Ticket Pass"
 						}
 					/>
@@ -221,7 +227,7 @@ export default async function TicketViewPage({
 			{/* Main Ticket Display Container */}
 			<main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 flex flex-col items-center justify-center space-y-8">
 				<div className="text-center space-y-1.5 print:hidden">
-					<h1 className="text-2xl sm:text-3xl font-millik font-black text-muted-foreground ">
+					<h1 className="text-2xl sm:text-3xl font-millik font-black text-foreground tracking-tight">
 						{event.title}
 					</h1>
 					<p className="text-xs text-muted-foreground">
@@ -230,7 +236,14 @@ export default async function TicketViewPage({
 							: "Click the card to flip front/back. Download for high-resolution offline access."}
 					</p>
 				</div>
-
+				{/* <button
+					type="button"
+					onClick={handleShare}
+					title="Share pass"
+					className="size-9 rounded-xl border border-border/80 bg-card text-muted-foreground flex items-center justify-center hover:bg-accent hover:text-foreground transition-colors cursor-pointer shadow-sm"
+				>
+					<Share2 className="size-4" />
+				</button> */}
 				{/* Multi-Ticket Passbook Wallet Component */}
 				<MultiTicketPassbook
 					passes={passes}

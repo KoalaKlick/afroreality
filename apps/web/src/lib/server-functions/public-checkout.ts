@@ -241,8 +241,36 @@ export async function initiatePublicTicketCheckout({
 				}
 			}
 
-			// Send individual confirmation emails + WhatsApp to each attendee
-			const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fextiva.com";
+			// Send confirmation email to primary buyer, plus individual confirmations to attendees
+			const baseUrl = getFrontendBaseUrl();
+			const primaryTicket = tickets[0];
+			const primaryPassViewUrl = `${baseUrl}/ticket/view?token=${primaryTicket?.token}`;
+			const cleanBuyerEmail = buyerEmail ? buyerEmail.trim().toLowerCase() : null;
+			const emailedAddresses = new Set<string>();
+
+			// 1. Primary buyer order confirmation with master pass link
+			if (cleanBuyerEmail && primaryTicket) {
+				emailedAddresses.add(cleanBuyerEmail);
+				sendTicketConfirmationEmail({
+					email: cleanBuyerEmail,
+					attendeeName: buyerName,
+					eventName: ticketType.event.title,
+					organizationName: ticketType.event.organization?.name || "Fextiva",
+					ticketTypeName: ticketType.name,
+					ticketCode: primaryTicket.ticketCode,
+					viewUrl: primaryPassViewUrl,
+					bannerUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage,
+					isFree: true,
+					isPrimaryBuyer: true,
+					orderNumber,
+					totalTickets: tickets.length,
+					allTicketCodes: tickets.map((t) => t.ticketCode),
+				}).catch((err) =>
+					console.error(`[EMAIL:TICKET] Free ticket buyer email failed for ${orderNumber}:`, err),
+				);
+			}
+
+			// 2. Individual attendee confirmations
 			for (const tkt of tickets) {
 				const ticketRecord = await prisma.ticket.findUnique({
 					where: { id: tkt.id },
@@ -251,12 +279,13 @@ export async function initiatePublicTicketCheckout({
 
 				const passViewUrl = `${baseUrl}/ticket/view?token=${tkt.token}`;
 
-				// Email
-				const recipientEmail = ticketRecord?.attendeeEmail;
-				if (recipientEmail) {
+				// Email attendee if not already emailed as buyer
+				const recipientEmail = ticketRecord?.attendeeEmail ? ticketRecord.attendeeEmail.trim().toLowerCase() : null;
+				if (recipientEmail && !emailedAddresses.has(recipientEmail)) {
+					emailedAddresses.add(recipientEmail);
 					sendTicketConfirmationEmail({
 						email: recipientEmail,
-						attendeeName: ticketRecord?.attendeeName || buyerName,
+						attendeeName: ticketRecord?.attendeeName || "Attendee",
 						eventName: ticketType.event.title,
 						organizationName: ticketType.event.organization?.name || "Fextiva",
 						ticketTypeName: ticketType.name,
@@ -264,6 +293,8 @@ export async function initiatePublicTicketCheckout({
 						viewUrl: passViewUrl,
 						bannerUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage,
 						isFree: true,
+						isPrimaryBuyer: false,
+						totalTickets: 1,
 					}).catch((err) =>
 						console.error(`[EMAIL:TICKET] Free ticket email failed for ${tkt.ticketCode}:`, err),
 					);

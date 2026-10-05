@@ -89,36 +89,20 @@ export function MultiTicketPassbook({
 		}
 	};
 
-	const handleShare = async () => {
-		// Use native share sheet on mobile — falls back to copy on desktop
-		if (navigator.share) {
-			try {
-				await navigator.share({
-					title: `${event.title} — Official Ticket`,
-					text: `Your official admission pass for ${event.title}${event.venue ? ` at ${event.venue}` : ""}`,
-					url: activePass.directUrl,
-				});
-			} catch {
-				// User cancelled or share failed — silently ignore
-			}
-		} else {
-			await handleCopyLink();
-		}
-	};
 
 	return (
 		<div className="w-full flex flex-col items-center space-y-5 min-w-0">
 			{/* Multi-Pass Wallet Selector (shown if > 1 pass) */}
 			{isMultiPass && (
-				<div className="w-full max-w-xl bg-card border border-border/80 rounded-2xl p-3 sm:p-4 shadow-none print:hidden space-y-3 min-w-0">
+				<div className="w-full max-w-xl bg-tertiary-50 rounded-lg p-3 sm:p-4 shadow-none print:hidden space-y-3 min-w-0">
 					<div className="flex items-center justify-between gap-2 min-w-0">
 						<div className="flex items-center gap-2 min-w-0">
-							<div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+							<div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
 								<Layers className="size-4" />
 							</div>
 							<div className="min-w-0">
 								<p className="text-xs font-bold text-foreground flex items-center gap-1.5 truncate">
-									Order Passbook
+									Order ID
 									{orderNumber && (
 										<span className="font-mono font-medium text-[11px] text-muted-foreground shrink-0">
 											#{orderNumber}
@@ -168,16 +152,15 @@ export function MultiTicketPassbook({
 									key={pass.id}
 									type="button"
 									onClick={() => setActiveIdx(idx)}
-									className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 border cursor-pointer ${
-										isSelected
+									className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 border cursor-pointer ${isSelected
 											? "bg-emerald-600 text-white border-emerald-600 scale-[1.02]"
 											: "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/60"
-									}`}
+										}`}
 								>
 									<span className="font-mono text-[10px] opacity-80">
 										#{idx + 1}
 									</span>
-									<span className="truncate max-w-[80px]">
+									<span className="truncate max-w-20">
 										{pass.attendeeName}
 									</span>
 									{isSelected && <CheckCircle2 className="size-3 shrink-0" />}
@@ -185,6 +168,12 @@ export function MultiTicketPassbook({
 							);
 						})}
 					</div>
+
+					{/* Privacy footnote */}
+					<p className="text-[10px] text-muted-foreground/60 flex items-center gap-1 pt-0.5">
+						<span>🔒</span>
+						Attendee names are abbreviated to initials for privacy
+					</p>
 				</div>
 			)}
 
@@ -212,16 +201,31 @@ export function MultiTicketPassbook({
 				/>
 			</div>
 
-			{/* Action row — Copy + Share icons, then Download */}
+			{/* Action row — Share, Copy Link, Print, and Download */}
 			<div className="w-full max-w-xl flex flex-col items-center gap-3 print:hidden min-w-0">
+				<div className="flex flex-wrap items-center justify-center gap-2">
 
-				{/* Download / Print row */}
-				<TicketDownloadButton
-					ticketCode={activePass.ticketCode}
-					eventTitle={event.title}
-				/>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={handleCopyLink}
+						className="text-xs gap-1.5 h-9 border-border/80 hover:bg-accent cursor-pointer"
+						title="Copy Pass Link"
+					>
+						{copied ? (
+							<Check className="size-3.5 text-emerald-600" />
+						) : (
+							<Copy className="size-3.5" />
+						)}
+						{copied ? "Link Copied" : "Copy Link"}
+					</Button>
 
-				
+					{/* Download / Print actions */}
+					<TicketDownloadButton
+						ticketCode={activePass.ticketCode}
+						eventTitle={event.title}
+					/>
+				</div>
 			</div>
 
 			{/* Hidden Offscreen Export Containers */}
@@ -231,7 +235,7 @@ export function MultiTicketPassbook({
 			>
 				<div
 					id="ticket-export-front"
-					className="bg-transparent p-0 w-[560px] min-w-[560px]"
+					className="bg-transparent p-0 w-140 min-w-140"
 				>
 					<TicketRenderer
 						variant={activePass.designVariant}
@@ -255,7 +259,7 @@ export function MultiTicketPassbook({
 
 				<div
 					id="ticket-export-back"
-					className="bg-transparent p-0 w-[560px] min-w-[560px]"
+					className="bg-transparent p-0 w-140 min-w-140"
 				>
 					<TicketRenderer
 						variant={activePass.designVariant}
@@ -276,10 +280,9 @@ export function MultiTicketPassbook({
 						exportSide="back"
 					/>
 				</div>
-
 				<div
 					id="ticket-export-both"
-					className="bg-transparent p-0 w-[560px] min-w-[560px]"
+					className="bg-transparent p-0 w-140 min-w-140"
 				>
 					<TicketRenderer
 						variant={activePass.designVariant}
