@@ -21,13 +21,13 @@ export async function GET(request: NextRequest) {
 			try {
 				return new URL(DEFAULT_STORAGE_BASE_URL).hostname.toLowerCase();
 			} catch {
-				return "pub-7eea00abc69849599238b5352b41898f.r2.dev";
+				return "cdn.fextiva.com";
 			}
 		})();
 
 		const allowedHosts = (
 			process.env.IMAGE_PROXY_ALLOWED_HOSTS ||
-			`${defaultHost},pub-7eea00abc69849599238b5352b41898f.r2.dev`
+			`${defaultHost},cdn.fextiva.com,pub-7eea00abc69849599238b5352b41898f.r2.dev`
 		)
 			.split(",")
 			.map((h) => h.trim().toLowerCase());

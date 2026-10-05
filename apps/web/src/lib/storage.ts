@@ -37,7 +37,7 @@ export function buildPublicUrl(key: string): string {
 	const prefix =
 		process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
 		process.env.R2_PUBLIC_URL_PREFIX ||
-		"https://pub-7eea00abc69849599238b5352b41898f.r2.dev";
+		"https://cdn.fextiva.com";
 	const cleanPrefix = prefix.replace(/\/+$/, "");
 	const cleanKey = key.replace(/^\/+/, "");
 	return `${cleanPrefix}/${cleanKey}`;
@@ -49,7 +49,7 @@ export function extractKeyFromUrl(fileUrl: string): string | null {
 		const prefix =
 			process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
 			process.env.R2_PUBLIC_URL_PREFIX ||
-			"https://pub-7eea00abc69849599238b5352b41898f.r2.dev";
+			"https://cdn.fextiva.com";
 		if (prefix && fileUrl.startsWith(prefix)) {
 			return fileUrl.slice(prefix.length).replace(/^\/+/, "");
 		}

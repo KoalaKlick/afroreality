@@ -11,7 +11,7 @@ export const DEFAULT_STORAGE_BASE_URL =
 	process.env.NEXT_PUBLIC_R2_PUBLIC_URL ||
 	process.env.R2_PUBLIC_URL_PREFIX ||
 	process.env.NEXT_PUBLIC_STORAGE_URL ||
-	"https://pub-7eea00abc69849599238b5352b41898f.r2.dev";
+	"https://cdn.fextiva.com";
 
 export function isFullUrl(pathOrUrl: string | null | undefined): boolean {
 	if (!pathOrUrl) return false;
