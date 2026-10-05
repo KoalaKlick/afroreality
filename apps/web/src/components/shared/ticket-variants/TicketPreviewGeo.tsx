@@ -593,7 +593,7 @@ export function TicketCardGeo({
       <TicketClipPath id={ghostClipId} />
 
       <div
-        className="relative w-full aspect-[560/210] min-h-[190px]"
+        className="relative w-full aspect-[560/210] min-h-[190px] cursor-grab active:cursor-grabbing"
         onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >
         {stacked &&
