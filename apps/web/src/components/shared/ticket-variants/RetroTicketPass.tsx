@@ -267,13 +267,14 @@ export function RetroTicketPass({
 
 	return (
 		<div
-			className={cn("cursor-grab active:cursor-grabbing select-none", className)}
-			style={{ perspective: 1200 }}
+			className={cn("select-none", className)}
+			style={{ perspective: 1200, cursor: "grab" }}
 		>
 			<TicketClipPath id={clipId} />
 
 			<div
-				className="relative w-full max-w-[560px] h-[210px]"
+				className="relative w-full max-w-[560px] h-[210px] active:cursor-grabbing"
+				style={{ cursor: "grab" }}
 				onClick={() => setFlipped((f) => !f)}
 			>
 				<div

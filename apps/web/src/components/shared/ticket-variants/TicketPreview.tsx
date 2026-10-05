@@ -495,15 +495,19 @@ export function TicketCard({
 
   return (
     <div
-      className={`cursor-grab active:cursor-grabbing select-none w-full max-w-[560px] ${className ?? ""}`}
-      style={{ perspective: 1200 }}
+      className={`select-none w-full max-w-[560px] ${className ?? ""}`}
+      style={{
+        perspective: 1200,
+        cursor: disableFlip ? undefined : "grab",
+      }}
     >
       {/* Hidden SVG that defines the clip-paths */}
       <TicketClipPath id={clipId} />
       <TicketClipPath id={ghostClipId} />
 
       <div
-        className="relative w-full aspect-[560/210] min-h-[190px] cursor-grab active:cursor-grabbing"
+        className={`relative w-full aspect-[560/210] min-h-[190px] ${disableFlip ? "" : "active:cursor-grabbing"}`}
+        style={{ cursor: disableFlip ? undefined : "grab" }}
         onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >
         {/* Ghost (stacked) copies */}

@@ -495,14 +495,15 @@ export function ClassicTicketPass({
 
 	return (
 		<div
-			className={`cursor-grab active:cursor-grabbing select-none @container ${className ?? ""}`}
-			style={{ perspective: 1200 }}
+			className={`select-none @container ${className ?? ""}`}
+			style={{ perspective: 1200, cursor: "grab" }}
 		>
 			<TicketClipPath id={clipId} />
 			<TicketClipPath id={ghostClipId} />
 
 			<div
-				className="relative w-full max-w-[560px] h-[210px]"
+				className="relative w-full max-w-[560px] h-[210px] active:cursor-grabbing"
+				style={{ cursor: "grab" }}
 				onClick={() => setFlipped((f) => !f)}
 			>
 				{stacked &&
