@@ -178,6 +178,8 @@ export async function getAdminOverviewData(): Promise<AdminOverviewStats> {
 	const paymentsByEvent = new Map<string, { gross: number; platformFee: number; organizerReceives: number }[]>();
 	for (const p of payments) {
 		const meta = (p.metadata as any) || {};
+		// Skip deposit payments – they are refundable security deposits, not event revenue
+		if (meta.isEventDeposit) continue;
 		const evId = meta.eventId || meta.event_id;
 		if (evId) {
 			const base = Number(meta.baseAmount ?? p.amount ?? 0);
@@ -520,6 +522,8 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 	const paymentsByEvent = new Map<string, { gross: number; platformFee: number; organizerReceives: number }[]>();
 	for (const p of allPayments) {
 		const meta = (p.metadata as any) || {};
+		// Skip deposit payments – they are refundable security deposits, not event revenue
+		if (meta.isEventDeposit) continue;
 		const evId = meta.eventId || meta.event_id;
 		if (evId) {
 			const base = Number(meta.baseAmount ?? p.amount ?? 0);
@@ -815,6 +819,8 @@ export async function getAdminEventsList(): Promise<AdminEventItem[]> {
 	const paymentsByEvent = new Map<string, { gross: number; platformFee: number; organizerReceives: number; purpose?: string }[]>();
 	for (const p of allPayments) {
 		const meta = (p.metadata as any) || {};
+		// Skip deposit payments – they are refundable security deposits, not event revenue
+		if (meta.isEventDeposit) continue;
 		const evId = meta.eventId || meta.event_id;
 		if (evId) {
 			const base = Number(meta.baseAmount ?? p.amount ?? 0);

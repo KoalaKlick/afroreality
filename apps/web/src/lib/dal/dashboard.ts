@@ -166,6 +166,8 @@ export async function getDashboardOverview(orgId?: string | null) {
 
     for (const p of orgPayments) {
       const meta = (p.metadata as any) || {};
+      // Skip deposit payments – they are refundable security deposits, not event revenue
+      if (meta.isEventDeposit) continue;
       const baseAmount = Number(meta.baseAmount ?? p.amount ?? 0);
       const platformFee = Number(meta.platformFee ?? 0);
       const organizerReceives = Number(meta.organizerReceives ?? (baseAmount - platformFee));
