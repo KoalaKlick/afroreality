@@ -268,10 +268,6 @@ export async function sendTicketConfirmationEmail(
           : `Your ticket has a unique QR code for gate admission. Present it on your phone or print it for entry.`}
       </p>
 
-      <p style="margin:12px 0 0;font-size:12px;color:${TEXT_MUTED};line-height:1.5;text-align:center;">
-        Trouble clicking? Copy and open: <a href="${viewUrl}" target="_blank" style="color:${ACCENT_PRIMARY};text-decoration:underline;word-break:break-all;">${viewUrl}</a>
-      </p>
-
       <div style="margin-top:32px;padding-top:20px;border-top:1px solid ${DIVIDER};text-align:center;">
         <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};">
           &copy; ${new Date().getFullYear()} ${escapeHtml(organizationName)} &middot; Powered by Fextiva
