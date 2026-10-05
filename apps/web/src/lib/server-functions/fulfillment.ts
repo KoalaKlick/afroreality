@@ -139,17 +139,27 @@ export async function fulfillSuccessfulPayment({
 
 					// Generate Tickets if not yet generated
 					if (order.tickets.length === 0 && ticketTypeId) {
+						const attendees = Array.isArray(metadata.attendees) ? metadata.attendees : [];
 						for (let i = 0; i < quantity; i++) {
 							const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
 							const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
+							const attendee = attendees[i];
+							const attendeeName =
+								(attendee && typeof attendee.name === "string" && attendee.name.trim()) ||
+								buyerName;
+							const attendeeEmail =
+								(attendee && typeof attendee.email === "string" && attendee.email.trim()) ||
+								buyerEmail ||
+								null;
+
 							const ticket = await prisma.ticket.create({
 								data: {
 									orderId: order.id,
 									ticketTypeId,
 									eventId: eventId || order.eventId,
 									ticketCode,
-									attendeeName: buyerName,
-									attendeeEmail: buyerEmail,
+									attendeeName,
+									attendeeEmail,
 									checkInStatus: "not_checked_in",
 								},
 							});

@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { requireSession } from '../session';
 import { serializeJsonSafe } from '../utils';
 import { MIN_PAID_TICKET_PRICE } from '../constants/pricing';
-import { verifyTicketToken } from '@/lib/ticket-crypto';
 
 import { logEventActivity } from '../audit/audit-logger';
 
@@ -214,65 +213,4 @@ export async function deleteTicketType({ data }: { data: any }): Promise<any> {
   }
 
   return { success: true };
-}
-
-/**
- * Public/Authorized action to update the attendee name/email on a ticket.
- * Requires a valid token belonging to any ticket in the same order.
- */
-export async function updateTicketAttendee({
-  token,
-  ticketId,
-  attendeeName,
-  attendeeEmail,
-}: {
-  token: string;
-  ticketId: string;
-  attendeeName: string;
-  attendeeEmail?: string | null;
-}) {
-  const verified = verifyTicketToken(token);
-  if (!verified) {
-    throw new Error("Invalid ticket authorization token.");
-  }
-
-  // Authorizing ticket
-  const authTicket = await prisma.ticket.findUnique({
-    where: { id: verified.ticketId },
-    select: { id: true, orderId: true },
-  });
-
-  if (!authTicket) {
-    throw new Error("Authorizing ticket could not be found.");
-  }
-
-  // Target ticket
-  const targetTicket = await prisma.ticket.findUnique({
-    where: { id: ticketId },
-    select: { id: true, orderId: true },
-  });
-
-  if (!targetTicket) {
-    throw new Error("Ticket not found.");
-  }
-
-  // Must belong to the same order (or be the same ticket)
-  if (targetTicket.id !== authTicket.id && (!authTicket.orderId || targetTicket.orderId !== authTicket.orderId)) {
-    throw new Error("You are not authorized to update this ticket.");
-  }
-
-  const updated = await prisma.ticket.update({
-    where: { id: ticketId },
-    data: {
-      attendeeName: attendeeName.trim() || null,
-      attendeeEmail: attendeeEmail?.trim() || null,
-    },
-  });
-
-  revalidatePath("/ticket/view");
-  return {
-    success: true,
-    attendeeName: updated.attendeeName,
-    attendeeEmail: updated.attendeeEmail,
-  };
 }

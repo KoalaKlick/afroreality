@@ -9,6 +9,12 @@ import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 import { submitPublicNomination } from "@/lib/server-functions/voting-options";
 
+export interface AttendeeInput {
+	name: string;
+	email?: string | null;
+	phone?: string | null;
+}
+
 export interface PublicTicketCheckoutInput {
 	eventId: string;
 	ticketTypeId: string;
@@ -16,6 +22,7 @@ export interface PublicTicketCheckoutInput {
 	buyerName: string;
 	buyerEmail?: string;
 	buyerPhone: string;
+	attendees?: AttendeeInput[];
 }
 
 export interface PublicVoteInput {
@@ -183,14 +190,17 @@ export async function initiatePublicTicketCheckout({
 			for (let i = 0; i < quantity; i++) {
 				const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
 				const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
+				const attendee = data.attendees?.[i];
+				const attendeeName = attendee?.name?.trim() || buyerName;
+				const attendeeEmail = attendee?.email?.trim() || buyerEmail?.trim() || null;
 				const ticket = await prisma.ticket.create({
 					data: {
 						orderId: order.id,
 						ticketTypeId,
 						eventId,
 						ticketCode,
-						attendeeName: buyerName,
-						attendeeEmail: buyerEmail?.trim() || null,
+						attendeeName,
+						attendeeEmail,
 						checkInStatus: "not_checked_in",
 					},
 				});
@@ -243,6 +253,7 @@ export async function initiatePublicTicketCheckout({
 				buyerName,
 				buyerEmail: buyerEmail?.trim() || null,
 				buyerPhone,
+				attendees: data.attendees || [],
 				organizationId: organization.id,
 				orgSlug: organization.slug,
 				eventSlug: ticketType.event.slug,

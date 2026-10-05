@@ -192,14 +192,14 @@ export default async function TicketViewPage({
 				/>
 
 				{/* Security / Confidentiality Notice */}
-				<div className="w-full max-w-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 p-4 rounded-2xl shadow-xs print:hidden">
+				<div className="w-full max-w-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 p-4 rounded-xl print:hidden">
 					<div className="flex items-start gap-3">
 						<div className="size-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
 							<ShieldAlert className="size-4" />
 						</div>
 						<div className="space-y-1 text-xs text-left">
 							<p className="font-bold text-amber-900 dark:text-amber-300">
-								Confidential Admission Notice
+									Do Not Share This URL or Ticket Code
 							</p>
 							<p className="text-muted-foreground leading-relaxed">
 								Each ticket pass and QR code in this booking is unique and admits one entry at the gate. If you purchased passes for friends, use the <strong className="text-foreground">"Share Pass via WhatsApp"</strong> button to send their dedicated pass directly to them. Do not publish full QR codes publicly online.

@@ -3,23 +3,17 @@
 import { useState } from "react";
 import { TicketRenderer } from "@/components/shared/ticket-variants/TicketRenderer";
 import { TicketDownloadButton } from "./TicketDownloadButton";
-import { updateTicketAttendee } from "@/lib/server-functions/ticket";
 import {
 	ChevronLeft,
 	ChevronRight,
-	Share2,
 	Copy,
 	Check,
-	Pencil,
 	User,
 	Layers,
-	ShieldCheck,
 	CheckCircle2,
 	MessageCircle,
-	Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export interface TicketPassItem {
@@ -78,37 +72,22 @@ export function MultiTicketPassbook({
 		initialIndex >= 0 ? initialIndex : 0,
 	);
 	const [copied, setCopied] = useState(false);
-	const [isEditingName, setIsEditingName] = useState(false);
-	const [editNameValue, setEditNameValue] = useState("");
-	const [isSavingName, setIsSavingName] = useState(false);
-
-	// Local state for attendee names to support immediate optimistic edits
-	const [namesMap, setNamesMap] = useState<Record<string, string>>(() => {
-		const initialMap: Record<string, string> = {};
-		for (const p of passes) {
-			initialMap[p.id] = p.attendeeName;
-		}
-		return initialMap;
-	});
 
 	const activePass = passes[activeIdx] ?? passes[0];
 	if (!activePass) return null;
 
-	const currentAttendeeName =
-		namesMap[activePass.id] || activePass.attendeeName || "Valued Guest";
+	const currentAttendeeName = activePass.attendeeName || "Valued Guest";
 	const isMultiPass = passes.length > 1;
 
 	const handlePrev = () => {
 		if (activeIdx > 0) {
 			setActiveIdx(activeIdx - 1);
-			setIsEditingName(false);
 		}
 	};
 
 	const handleNext = () => {
 		if (activeIdx < passes.length - 1) {
 			setActiveIdx(activeIdx + 1);
-			setIsEditingName(false);
 		}
 	};
 
@@ -142,49 +121,11 @@ export function MultiTicketPassbook({
 		window.open(url, "_blank");
 	};
 
-	const startEditingName = () => {
-		setEditNameValue(currentAttendeeName);
-		setIsEditingName(true);
-	};
-
-	const handleSaveName = async () => {
-		const trimmed = editNameValue.trim();
-		if (!trimmed) {
-			toast.error("Attendee name cannot be empty");
-			return;
-		}
-
-		try {
-			setIsSavingName(true);
-			// Optimistic update
-			setNamesMap((prev) => ({ ...prev, [activePass.id]: trimmed }));
-			setIsEditingName(false);
-
-			await updateTicketAttendee({
-				token: authorizingToken,
-				ticketId: activePass.id,
-				attendeeName: trimmed,
-			});
-
-			toast.success(`Pass assigned to ${trimmed}!`);
-		} catch (err: any) {
-			console.error("Failed to update attendee name:", err);
-			toast.error(err.message || "Failed to update attendee name");
-			// Revert on error
-			setNamesMap((prev) => ({
-				...prev,
-				[activePass.id]: activePass.attendeeName,
-			}));
-		} finally {
-			setIsSavingName(false);
-		}
-	};
-
 	return (
 		<div className="w-full flex flex-col items-center space-y-6">
 			{/* Multi-Pass Wallet Carousel / Segmented Selector (shown if > 1 pass) */}
 			{isMultiPass && (
-				<div className="w-full max-w-xl bg-card border border-border/80 rounded-2xl p-3 sm:p-4 shadow-xs print:hidden space-y-3">
+				<div className="w-full max-w-xl bg-card border border-border/80 rounded-2xl p-3 sm:p-4 shadow-none print:hidden space-y-3">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
 							<div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -212,7 +153,7 @@ export function MultiTicketPassbook({
 								size="icon"
 								onClick={handlePrev}
 								disabled={activeIdx === 0}
-								className="size-8 rounded-lg border-border/80"
+								className="size-8 rounded-lg border-border/80 shadow-none cursor-pointer"
 								title="Previous Pass"
 							>
 								<ChevronLeft className="size-4" />
@@ -225,7 +166,7 @@ export function MultiTicketPassbook({
 								size="icon"
 								onClick={handleNext}
 								disabled={activeIdx === passes.length - 1}
-								className="size-8 rounded-lg border-border/80"
+								className="size-8 rounded-lg border-border/80 shadow-none cursor-pointer"
 								title="Next Pass"
 							>
 								<ChevronRight className="size-4" />
@@ -237,18 +178,15 @@ export function MultiTicketPassbook({
 					<div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
 						{passes.map((pass, idx) => {
 							const isSelected = idx === activeIdx;
-							const name = namesMap[pass.id] || pass.attendeeName || `Pass #${idx + 1}`;
+							const name = pass.attendeeName || `Pass #${idx + 1}`;
 							return (
 								<button
 									key={pass.id}
 									type="button"
-									onClick={() => {
-										setActiveIdx(idx);
-										setIsEditingName(false);
-									}}
+									onClick={() => setActiveIdx(idx)}
 									className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 border cursor-pointer ${
 										isSelected
-											? "bg-emerald-600 text-white border-emerald-600 shadow-xs scale-[1.02]"
+											? "bg-emerald-600 text-white border-emerald-600 scale-[1.02]"
 											: "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/60"
 									}`}
 								>
@@ -288,9 +226,9 @@ export function MultiTicketPassbook({
 				/>
 			</div>
 
-			{/* Pass Management & Attendee Personalization Card */}
-			<div className="w-full max-w-xl bg-card border border-border/80 rounded-2xl p-4 shadow-xs space-y-4 print:hidden">
-				{/* Attendee Name Row */}
+			{/* Pass Details & Secure Share Card */}
+			<div className="w-full max-w-xl bg-card border border-border/80 rounded-2xl p-4 shadow-none space-y-4 print:hidden">
+				{/* Attendee Name & Code Row */}
 				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
 					<div className="flex items-center gap-2.5 min-w-0">
 						<div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -300,51 +238,9 @@ export function MultiTicketPassbook({
 							<p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
 								Pass Assigned To
 							</p>
-							{isEditingName ? (
-								<div className="flex items-center gap-2 mt-1">
-									<Input
-										value={editNameValue}
-										onChange={(e) => setEditNameValue(e.target.value)}
-										placeholder="Attendee full name"
-										className="h-8 text-xs w-48"
-										autoFocus
-										onKeyDown={(e) => {
-											if (e.key === "Enter") handleSaveName();
-											if (e.key === "Escape") setIsEditingName(false);
-										}}
-									/>
-									<Button
-										size="sm"
-										onClick={handleSaveName}
-										disabled={isSavingName}
-										className="h-8 text-xs px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-									>
-										Save
-									</Button>
-									<Button
-										variant="ghost"
-										size="sm"
-										onClick={() => setIsEditingName(false)}
-										className="h-8 text-xs px-2"
-									>
-										Cancel
-									</Button>
-								</div>
-							) : (
-								<div className="flex items-center gap-2">
-									<p className="text-sm font-bold text-foreground truncate">
-										{currentAttendeeName}
-									</p>
-									<button
-										type="button"
-										onClick={startEditingName}
-										className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted transition-colors cursor-pointer"
-										title="Edit attendee name"
-									>
-										<Pencil className="size-3" />
-									</button>
-								</div>
-							)}
+							<p className="text-sm font-bold text-foreground truncate">
+								{currentAttendeeName}
+							</p>
 						</div>
 					</div>
 
@@ -366,7 +262,7 @@ export function MultiTicketPassbook({
 						variant="outline"
 						size="sm"
 						onClick={handleShareWhatsApp}
-						className="h-9 text-xs font-semibold gap-2 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer"
+						className="h-9 text-xs font-semibold gap-2 border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 shadow-none cursor-pointer"
 					>
 						<MessageCircle className="size-4 text-emerald-600" />
 						Share Pass via WhatsApp
@@ -377,7 +273,7 @@ export function MultiTicketPassbook({
 						variant="outline"
 						size="sm"
 						onClick={handleCopyLink}
-						className="h-9 text-xs font-semibold gap-2 border-border/80 hover:bg-accent cursor-pointer"
+						className="h-9 text-xs font-semibold gap-2 border-border/80 hover:bg-accent shadow-none cursor-pointer"
 					>
 						{copied ? (
 							<Check className="size-4 text-emerald-600" />
