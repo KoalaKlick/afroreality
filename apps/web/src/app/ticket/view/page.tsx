@@ -13,14 +13,54 @@ import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
 import { StatusBadge } from "@/components/common/status-badge";
 import { MultiTicketPassbook } from "./MultiTicketPassbook";
 
+import type { Metadata } from "next";
+
 interface TicketViewPageProps {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export const metadata = {
-	title: "Official Event Ticket | fextiva",
-	description: "View and download your official event ticket and admission pass.",
-};
+/** Dynamic OG metadata so the ticket URL renders as a rich card on WhatsApp / social */
+export async function generateMetadata({
+	searchParams,
+}: TicketViewPageProps): Promise<Metadata> {
+	const params = await searchParams;
+	const token = typeof params.token === "string" ? params.token : "";
+	if (!token) return { title: "Ticket | fextiva" };
+
+	const { verifyTicketToken } = await import("@/lib/ticket-crypto");
+	const verified = verifyTicketToken(token);
+	if (!verified) return { title: "Ticket | fextiva" };
+
+	const { prisma } = await import("@repo/db");
+	const ticket = await prisma.ticket.findUnique({
+		where: { id: verified.ticketId },
+		include: { event: { include: { organization: true } }, ticketType: true },
+	});
+	if (!ticket) return { title: "Ticket | fextiva" };
+
+	const { event } = ticket;
+	const ogImage = event.flierImage || event.bannerImage || null;
+	const venueStr = event.isVirtual
+		? "Virtual / Online Event"
+		: [event.venueName, event.venueCity].filter(Boolean).join(", ") || "Venue TBA";
+
+	return {
+		title: `${event.title} — Official Ticket | fextiva`,
+		description: `Your admission pass for ${event.title}${venueStr ? ` · ${venueStr}` : ""}. View and download your official ticket.`,
+		openGraph: {
+			title: `${event.title} — Official Ticket`,
+			description: `Tap to view your official admission pass for ${event.title}.`,
+			...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630 }] } : {}),
+			type: "website",
+		},
+		twitter: {
+			card: ogImage ? "summary_large_image" : "summary",
+			title: `${event.title} — Official Ticket`,
+			description: `Tap to view your official admission pass for ${event.title}.`,
+			...(ogImage ? { images: [ogImage] } : {}),
+		},
+	};
+}
 
 export default async function TicketViewPage({
 	searchParams,
@@ -83,7 +123,7 @@ export default async function TicketViewPage({
 	const { organization } = event;
 
 	// Load all tickets belonging to this order if an orderId exists
-	const allOrderTickets = ticket.orderId
+	const rawOrderTickets = ticket.orderId
 		? await prisma.ticket.findMany({
 				where: { orderId: ticket.orderId },
 				include: { ticketType: true },
@@ -91,7 +131,22 @@ export default async function TicketViewPage({
 		  })
 		: [ticket];
 
+	// Security & Privacy: Only the primary user (the first ticket in the order) can view
+	// all passes in the order passbook. Individual attendees only see their own single ticket pass.
+	const isPrimaryUser =
+		rawOrderTickets.length > 0 && rawOrderTickets[0]?.id === ticket.id;
+	const allOrderTickets = isPrimaryUser ? rawOrderTickets : [ticket];
+
 	const baseUrl = getFrontendBaseUrl();
+
+	/** Converts a full name into privacy-safe initials, e.g. "John Doe" → "J. D." */
+	function toInitials(name: string): string {
+		return name
+			.trim()
+			.split(/\s+/)
+			.map((part) => part[0]?.toUpperCase() + ".")
+			.join(" ");
+	}
 
 	const passes = allOrderTickets.map((t, index) => {
 		const tToken = createTicketToken(t.id, t.ticketCode);
@@ -105,16 +160,23 @@ export default async function TicketViewPage({
 		const tVerifyUrl = `${baseUrl}/ticket/verify?token=${tToken}`;
 		const tDirectUrl = `${baseUrl}/ticket/view?token=${tToken}`;
 
+		// Privacy: use initials instead of full names so a lost/shared link
+		// cannot reveal the ticket holder's identity.
+		const rawName =
+			t.attendeeName ||
+			order?.buyerName ||
+			null;
+		const attendeeLabel = rawName
+			? toInitials(rawName)
+			: allOrderTickets.length > 1
+				? `Pass #${index + 1}`
+				: "Guest";
+
 		return {
 			id: t.id,
 			ticketCode: t.ticketCode,
-			attendeeName:
-				t.attendeeName ||
-				order?.buyerName ||
-				(allOrderTickets.length > 1
-					? `Attendee #${index + 1}`
-					: "Valued Guest"),
-			attendeeEmail: t.attendeeEmail || null,
+			attendeeName: attendeeLabel,
+			attendeeEmail: null, // never expose email
 			ticketType: t.ticketType.name,
 			designVariant: t.ticketType.designVariant || "classic",
 			primaryColor: tPrimaryColor,
@@ -174,8 +236,6 @@ export default async function TicketViewPage({
 					passes={passes}
 					initialSelectedTicketId={ticket.id}
 					orderNumber={order?.orderNumber}
-					buyerName={order?.buyerName || undefined}
-					buyerPhone={order?.buyerPhone || undefined}
 					event={{
 						id: event.id,
 						title: event.title,
@@ -188,21 +248,20 @@ export default async function TicketViewPage({
 						name: organization.name,
 						logoUrl: organization.logoUrl,
 					}}
-					authorizingToken={token}
 				/>
 
-				{/* Security / Confidentiality Notice */}
-				<div className="w-full max-w-xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 p-4 rounded-xl print:hidden">
-					<div className="flex items-start gap-3">
-						<div className="size-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-							<ShieldAlert className="size-4" />
+				{/* Security Notice - Reverted to no border, precise & simple */}
+				<div className="w-full max-w-xl bg-amber-500/5 dark:bg-amber-950/20 p-3.5 rounded-xl print:hidden">
+					<div className="flex items-start gap-2.5">
+						<div className="size-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+							<ShieldAlert className="size-3.5" />
 						</div>
-						<div className="space-y-1 text-xs text-left">
+						<div className="space-y-0.5 text-xs text-left">
 							<p className="font-bold text-amber-900 dark:text-amber-300">
-									Do Not Share This URL or Ticket Code
+								Keep Your Pass Private
 							</p>
-							<p className="text-muted-foreground leading-relaxed">
-								Each ticket pass and QR code in this booking is unique and admits one entry at the gate. If you purchased passes for friends, use the <strong className="text-foreground">"Share Pass via WhatsApp"</strong> button to send their dedicated pass directly to them. Do not publish full QR codes publicly online.
+							<p className="text-muted-foreground leading-relaxed text-[11px]">
+								Each QR code admits one entry at the gate. Do not publish or share your pass link publicly.
 							</p>
 						</div>
 					</div>

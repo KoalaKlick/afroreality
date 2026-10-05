@@ -135,12 +135,12 @@ function Stub({
 }) {
   return (
     <div
-      className="w-[72px] shrink-0 flex items-center justify-center relative"
+      className="w-8 sm:w-[72px] shrink-0 flex items-center justify-center relative overflow-hidden"
       style={{ background: backgroundColor }}
     >
       <StubDash side={side} borderColor={borderColor} />
       <span
-        className="text-[10px] font-black tracking-[0.22em] uppercase opacity-70"
+        className="text-[8px] sm:text-[10px] font-black tracking-[0.15em] sm:tracking-[0.22em] uppercase opacity-70 truncate max-h-[85%]"
         style={{
           fontFamily: "'Courier New', monospace",
           color: primaryColor,
@@ -289,7 +289,7 @@ export function TicketCard({
         label={ticketType} 
       />
 
-      <div className="flex-1 flex items-center gap-3.5 px-5 py-4 overflow-hidden relative">
+      <div className="flex-1 flex items-center gap-2 sm:gap-3.5 px-2.5 sm:px-5 py-2 sm:py-4 overflow-hidden relative min-w-0">
         {heroImageUrl && (
           <>
             <Image
@@ -310,34 +310,34 @@ export function TicketCard({
 
         <div className="flex-1 min-w-0 relative z-10">
           <span
-            className="block text-xs font-black tracking-[0.22em] uppercase mb-0.5"
+            className="block text-[8px] sm:text-xs font-black tracking-[0.15em] sm:tracking-[0.22em] uppercase mb-0.5 truncate"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             {ticketType}
           </span>
-          <div className="text-base font-bold uppercase truncate leading-tight text-foreground">
+          <div className="text-xs sm:text-base font-bold uppercase truncate leading-tight text-foreground">
             {eventName}
           </div>
-          <div className="flex flex-col gap-1 mt-1.5">
+          <div className="flex flex-col gap-0.5 sm:gap-1 mt-1 sm:mt-1.5">
             <div>
               <div
-                className="text-[10px] font-bold tracking-[0.15em] uppercase"
+                className="text-[8px] sm:text-[10px] font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase"
                 style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
               >
                 Date &amp; Time
               </div>
-              <div className="text-xs text-muted-foreground truncate">
+              <div className="text-[9px] sm:text-xs text-muted-foreground truncate">
                 {dateTime}
               </div>
             </div>
             <div>
               <div
-                className="text-[10px] font-bold tracking-[0.15em] uppercase"
+                className="text-[8px] sm:text-[10px] font-bold tracking-[0.12em] sm:tracking-[0.15em] uppercase"
                 style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
               >
                 Venue
               </div>
-              <div className="text-xs text-muted-foreground truncate">
+              <div className="text-[9px] sm:text-xs text-muted-foreground truncate">
                 {venue}
               </div>
             </div>
@@ -349,22 +349,22 @@ export function TicketCard({
           style={{ background: primaryShades[200] || primaryColor }}
         />
 
-        <div className="shrink-0 flex flex-col items-center gap-1.5 relative z-10">
+        <div className="shrink-0 flex flex-col items-center gap-1 sm:gap-1.5 relative z-10">
           {logoDisplayUrl ? (
             <img
               src={logoDisplayUrl}
               alt={organizationName}
-              className="size-8 rounded-full object-cover border"
+              className="size-6 sm:size-8 rounded-full object-cover border"
             />
           ) : null}
           <div
-            className="text-[9px] font-black tracking-[0.15em] uppercase text-center opacity-60"
+            className="text-[7px] sm:text-[9px] font-black tracking-[0.12em] sm:tracking-[0.15em] uppercase text-center opacity-60"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             Organizer
           </div>
           <div
-            className="text-[11px] font-bold text-center max-w-[90px] truncate text-foreground"
+            className="text-[9px] sm:text-[11px] font-bold text-center max-w-[60px] sm:max-w-[90px] truncate text-foreground"
           >
             {organizationName}
           </div>
@@ -495,7 +495,7 @@ export function TicketCard({
 
   return (
     <div
-      className={`select-none w-full max-w-[560px] ${className ?? ""}`}
+      className={`select-none w-full max-w-[560px] min-w-0 ${className ?? ""}`}
       style={{
         perspective: 1200,
         cursor: disableFlip ? undefined : "grab",
@@ -506,7 +506,7 @@ export function TicketCard({
       <TicketClipPath id={ghostClipId} />
 
       <div
-        className={`relative w-full aspect-[560/210] min-h-[190px] ${disableFlip ? "" : "active:cursor-grabbing"}`}
+        className={`relative w-full aspect-[560/210] min-h-0 ${disableFlip ? "" : "active:cursor-grabbing"}`}
         style={{ cursor: disableFlip ? undefined : "grab" }}
         onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >

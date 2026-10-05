@@ -128,7 +128,7 @@ export function TicketCardRetro({
       </div>
 
       {/* Left: Event Visual */}
-      <div className="w-1/3 h-full relative border-r-2 border-dashed border-black/10">
+      <div className="w-1/3 h-full relative border-r-2 border-dashed border-black/10 shrink-0">
         {(() => {
           const imageUrl = getEventImageUrl(flierImage);
           if (imageUrl) {
@@ -148,46 +148,46 @@ export function TicketCardRetro({
           );
         })()}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-3 left-3 right-3 text-white">
-          <div className="text-[8px] font-bold tracking-tighter opacity-70">ADMIT ONE</div>
-          <div className="text-[10px] font-bold truncate uppercase">{organizationName}</div>
+        <div className="absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 text-white">
+          <div className="text-[7px] sm:text-[8px] font-bold tracking-tighter opacity-70">ADMIT ONE</div>
+          <div className="text-[8px] sm:text-[10px] font-bold truncate uppercase">{organizationName}</div>
         </div>
       </div>
 
       {/* Center/Right: Details */}
-      <div className="flex-1 flex flex-col p-5 relative">
-        <div className="absolute top-4 right-4 border-2 border-black/80 px-2 py-0.5 rotate-3 font-black text-xs">
+      <div className="flex-1 flex flex-col p-2.5 sm:p-5 relative min-w-0 overflow-hidden">
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 border border-black/80 sm:border-2 px-1.5 py-0.5 rotate-3 font-black text-[8px] sm:text-xs">
           {ticketType?.toUpperCase()}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-1 sm:space-y-4 min-w-0 pr-12 sm:pr-0">
           <div>
-            <div className="text-[10px] font-bold text-muted-foreground mb-0.5">EVENT TITLE</div>
-            <h3 className="text-xl font-black leading-tight tracking-tight uppercase line-clamp-2" style={{ color: primaryColor }}>
+            <div className="text-[7px] sm:text-[10px] font-bold text-muted-foreground mb-0.5">EVENT TITLE</div>
+            <h3 className="text-xs sm:text-xl font-black leading-tight tracking-tight uppercase line-clamp-1 sm:line-clamp-2" style={{ color: primaryColor }}>
               {eventName}
             </h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-[8px] font-bold text-muted-foreground mb-0.5">DATE & TIME</div>
-              <div className="text-[11px] font-bold leading-none">{dateTime}</div>
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-4 min-w-0">
+            <div className="min-w-0">
+              <div className="text-[7px] sm:text-[8px] font-bold text-muted-foreground mb-0.5">DATE & TIME</div>
+              <div className="text-[9px] sm:text-[11px] font-bold leading-tight truncate">{dateTime}</div>
             </div>
-            <div>
-              <div className="text-[8px] font-bold text-muted-foreground mb-0.5">VENUE</div>
-              <div className="text-[11px] font-bold leading-none truncate">{venue}</div>
+            <div className="min-w-0">
+              <div className="text-[7px] sm:text-[8px] font-bold text-muted-foreground mb-0.5">VENUE</div>
+              <div className="text-[9px] sm:text-[11px] font-bold leading-tight truncate">{venue}</div>
             </div>
           </div>
         </div>
 
-        <div className="mt-auto flex items-end justify-between">
-          <div>
-            <div className="text-[8px] font-bold text-muted-foreground mb-0.5">HOLDER</div>
-            <div className="text-[11px] font-black uppercase">{buyerName || "---"}</div>
+        <div className="mt-auto flex items-end justify-between min-w-0 pt-1">
+          <div className="min-w-0">
+            <div className="text-[7px] sm:text-[8px] font-bold text-muted-foreground mb-0.5">HOLDER</div>
+            <div className="text-[8px] sm:text-[11px] font-black uppercase truncate max-w-[80px] sm:max-w-none">{buyerName || "---"}</div>
           </div>
-          <div className="text-right">
-            <div className="text-[8px] font-bold text-muted-foreground mb-0.5">TICKET ID</div>
-            <div className="text-[11px] font-mono tracking-widest">{ticketCode}</div>
+          <div className="text-right min-w-0">
+            <div className="text-[7px] sm:text-[8px] font-bold text-muted-foreground mb-0.5">TICKET ID</div>
+            <div className="text-[8px] sm:text-[11px] font-mono tracking-wider sm:tracking-widest truncate">{ticketCode}</div>
           </div>
         </div>
       </div>
@@ -220,24 +220,25 @@ export function TicketCardRetro({
     >
       <DotPattern color={primaryColor} />
       <TicketOutline color={primaryShades[200]} />
-      <div className="w-full h-full flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="border-4 border-black p-2.5 bg-white rotate-[-1deg] shadow-xs">
+      <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
+        <div className="flex flex-col items-center gap-1 sm:gap-1.5">
+          <div className="border-2 sm:border-4 border-black p-1.5 sm:p-2.5 bg-white rotate-[-1deg] shadow-xs">
             {qrPayload ? (
               <QRCode 
                 value={qrPayload} 
-                size={exportMode ? 132 : 122} 
+                size={exportMode ? 132 : 96} 
+                className="size-20 sm:size-28"
                 fgColor="#1a1a1a"
                 bgColor="#ffffff"
                 level="M"
               />
             ) : (
-              <div className="w-28 h-28 bg-muted animate-pulse" />
+              <div className="size-20 sm:size-28 bg-muted animate-pulse" />
             )}
           </div>
-          <div className="text-center space-y-1">
-            <div className="text-[10px] font-black tracking-[0.2em]">VALIDATE AT GATE</div>
-            <div className="text-[8px] opacity-60 max-w-[200px]">
+          <div className="text-center space-y-0.5 sm:space-y-1">
+            <div className="text-[8px] sm:text-[10px] font-black tracking-[0.2em]">VALIDATE AT GATE</div>
+            <div className="text-[7px] sm:text-[8px] opacity-60 max-w-[200px] truncate">
               DO NOT FOLD OR MUTILATE. VOID IF DETACHED. fextiva OFFICIAL DOCUMENT.
             </div>
           </div>
@@ -266,7 +267,7 @@ export function TicketCardRetro({
 
   return (
     <div
-      className={cn("select-none w-full max-w-[560px] @container", className)}
+      className={cn("select-none w-full max-w-[560px] @container min-w-0", className)}
       style={{
         perspective: 1200,
         cursor: disableFlip ? undefined : "grab",
@@ -276,7 +277,7 @@ export function TicketCardRetro({
 
       <div
         className={cn(
-          "relative w-full aspect-[560/210] min-h-[190px]",
+          "relative w-full aspect-[560/210] min-h-0",
           !disableFlip && "active:cursor-grabbing"
         )}
         style={{ cursor: disableFlip ? undefined : "grab" }}

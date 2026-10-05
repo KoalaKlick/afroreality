@@ -108,7 +108,7 @@ export default async function PublicEventPage({
 	} as React.CSSProperties;
 
 	const ticketsContent = (
-		<div className="space-y-6">
+		<div className="space-y-6 w-full max-w-full min-w-0 overflow-hidden">
 			{ticketTypes.length > 0 ? (
 				<>
 					<div className="flex flex-col gap-1 mb-2">
@@ -189,7 +189,7 @@ export default async function PublicEventPage({
 
 	return (
 		<main
-			className="min-h-[100svh] text-foreground flex flex-col justify-between"
+			className="min-h-[100svh] text-foreground flex flex-col justify-between w-full max-w-full overflow-x-hidden"
 			style={{
 				...brandVars,
 				backgroundColor: `color-mix(in srgb, ${brandPrimary} 7%, #ffffff)`,
@@ -202,7 +202,7 @@ export default async function PublicEventPage({
 			/>
 
 			{/* Mobile / Tablet View (< xl) */}
-			<div className="flex flex-col xl:hidden flex-1">
+			<div className="flex flex-col xl:hidden flex-1 w-full max-w-full overflow-x-hidden min-w-0">
 				{isEnded && (
 					<div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
 						<AlertTriangle className="size-4 shrink-0" />

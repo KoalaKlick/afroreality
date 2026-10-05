@@ -61,6 +61,7 @@ model Ticket {
   ticketCode    String              @unique @map("ticket_code")
   attendeeName  String?             @map("attendee_name")
   attendeeEmail String?             @map("attendee_email")
+  attendeePhone String?             @map("attendee_phone")
   checkInStatus TicketCheckInStatus @default(not_checked_in) @map("check_in_status")
   checkedInAt   DateTime?           @map("checked_in_at") @db.Timestamptz(6)
   checkedInBy   String?             @map("checked_in_by") @db.Uuid

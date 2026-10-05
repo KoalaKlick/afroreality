@@ -152,6 +152,9 @@ export async function fulfillSuccessfulPayment({
 								(attendee && typeof attendee.email === "string" && attendee.email.trim()) ||
 								buyerEmail ||
 								null;
+							const attendeePhone =
+								(attendee && typeof attendee.phone === "string" && attendee.phone.trim()) ||
+								null;
 
 							const ticket = await prisma.ticket.create({
 								data: {
@@ -161,6 +164,7 @@ export async function fulfillSuccessfulPayment({
 									ticketCode,
 									attendeeName,
 									attendeeEmail,
+									attendeePhone,
 									checkInStatus: "not_checked_in",
 								},
 							});
@@ -223,44 +227,62 @@ export async function fulfillSuccessfulPayment({
 					}
 				}
 
-				// Send individual email confirmations for each attendee who has an email
+				// Send individual email + WhatsApp confirmations for each attendee
 				if (notifEvent && generatedTickets.length > 0) {
-					const attendees: Array<{ name: string; email?: string | null }> =
+					const attendees: Array<{ name: string; email?: string | null; phone?: string | null }> =
 						Array.isArray(metadata.attendees) ? metadata.attendees : [];
 					const unitPrice = Number(metadata.baseAmount || 0) / Math.max(generatedTickets.length, 1);
 
 					for (let i = 0; i < generatedTickets.length; i++) {
 						const tkt = generatedTickets[i];
-						// Retrieve attendee email from the fetched ticket record
+						// Retrieve attendee details from the fetched ticket record
 						const ticketRecord = await prisma.ticket.findUnique({
 							where: { id: tkt.id },
 							select: {
 								attendeeName: true,
 								attendeeEmail: true,
+								attendeePhone: true,
 								ticketType: { select: { name: true } },
 							},
 						});
-						const recipientEmail = ticketRecord?.attendeeEmail;
-						if (!recipientEmail) continue;
 
 						const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fextiva.com";
 						const passViewUrl = `${baseUrl}/ticket/view?token=${tkt.token}`;
 
-						sendTicketConfirmationEmail({
-							email: recipientEmail,
-							attendeeName: ticketRecord?.attendeeName || buyerName,
-							eventName: notifEvent.title,
-							organizationName: notifEvent.organization?.name || "Fextiva",
-							ticketTypeName: ticketRecord?.ticketType?.name || metadata.ticketTypeName || "Ticket",
-							ticketCode: tkt.ticketCode,
-							viewUrl: passViewUrl,
-							bannerUrl: notifEvent.flierImage || notifEvent.bannerImage,
-							isFree: false,
-							amountPaid: unitPrice,
-							currency: "GHS",
-						}).catch((err) =>
-							console.error(`[EMAIL:TICKET] Failed for ticket ${tkt.ticketCode}:`, err),
-						);
+						// Email
+						const recipientEmail = ticketRecord?.attendeeEmail;
+						if (recipientEmail) {
+							sendTicketConfirmationEmail({
+								email: recipientEmail,
+								attendeeName: ticketRecord?.attendeeName || buyerName,
+								eventName: notifEvent.title,
+								organizationName: notifEvent.organization?.name || "Fextiva",
+								ticketTypeName: ticketRecord?.ticketType?.name || metadata.ticketTypeName || "Ticket",
+								ticketCode: tkt.ticketCode,
+								viewUrl: passViewUrl,
+								bannerUrl: notifEvent.flierImage || notifEvent.bannerImage,
+								isFree: false,
+								amountPaid: unitPrice,
+								currency: "GHS",
+							}).catch((err) =>
+								console.error(`[EMAIL:TICKET] Failed for ticket ${tkt.ticketCode}:`, err),
+							);
+						}
+
+						// WhatsApp — send to each attendee with their own phone (skip if same as buyer)
+						const attendeePhoneVal = ticketRecord?.attendeePhone;
+						if (attendeePhoneVal && attendeePhoneVal !== buyerPhone) {
+							sendTicketWhatsAppNotification({
+								phone: attendeePhoneVal,
+								attendeeName: ticketRecord?.attendeeName || "Attendee",
+								eventTitle: notifEvent.title,
+								ticketCode: tkt.ticketCode,
+								ticketToken: tkt.token,
+								bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
+							}).catch((waErr) =>
+								console.error(`[WhatsApp] Error sending attendee ticket for ${tkt.ticketCode}:`, waErr),
+							);
+						}
 					}
 				}
 			}

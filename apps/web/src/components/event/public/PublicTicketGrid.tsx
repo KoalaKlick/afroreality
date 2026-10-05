@@ -113,7 +113,7 @@ export function PublicTicketGrid({
 
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 w-full max-w-full min-w-0">
         {tickets.map((ticket) => {
           const primaryColor = ticket.primaryColor || ticket.color || orgPrimary;
           const secondaryColor = ticket.secondaryColor || orgSecondary;
@@ -158,27 +158,29 @@ export function PublicTicketGrid({
                   setSelectedTicket(ticket);
                 }
               }}
-              className="group text-left transition-all w-full h-full flex flex-col justify-between"
+              className="group text-left transition-all w-full max-w-full min-w-0 flex flex-col justify-between overflow-hidden"
             >
-              <div className="space-y-3.5 h-full flex flex-col justify-between w-full">
+              <div className="space-y-3.5 h-full flex flex-col justify-between w-full max-w-full min-w-0 overflow-hidden">
                 {/* Visual Ticket Preview */}
-                <TicketRenderer
-                  variant={ticket.designVariant}
-                  className="w-full mx-auto"
-                  primaryColor={primaryColor}
-                  secondaryColor={secondaryColor}
-                  logoUrl={organization.logoUrl}
-                  flierImage={event.flierImage}
-                  bannerImage={event.bannerImage}
-                  organizationName={organization.name}
-                  eventName={event.title}
-                  ticketType={ticket.name}
-                  dateTime={dateTime}
-                  venue={venue}
-                  ticketCode={`TIER-${ticket.orderIdx + 1}`}
-                  stacked={false}
-                  disableFlip={true}
-                />
+                <div className="w-full max-w-full min-w-0 overflow-hidden flex justify-center">
+                  <TicketRenderer
+                    variant={ticket.designVariant}
+                    className="w-full max-w-full min-w-0 mx-auto"
+                    primaryColor={primaryColor}
+                    secondaryColor={secondaryColor}
+                    logoUrl={organization.logoUrl}
+                    flierImage={event.flierImage}
+                    bannerImage={event.bannerImage}
+                    organizationName={organization.name}
+                    eventName={event.title}
+                    ticketType={ticket.name}
+                    dateTime={dateTime}
+                    venue={venue}
+                    ticketCode={`TIER-${ticket.orderIdx + 1}`}
+                    stacked={false}
+                    disableFlip={true}
+                  />
+                </div>
 
                 {/* Price and Cute Action Button */}
                 <div className="flex items-center justify-between gap-3 px-1 pt-2 border-t border-border/40">
@@ -207,7 +209,7 @@ export function PublicTicketGrid({
                         e.stopPropagation();
                         setTicketToPurchase(ticket);
                       }}
-                      className="text-xs font-bold gap-1.5 h-8 px-3.5"
+                      className="text-xs font-bold gap-1.5 h-8 px-3.5 whitespace-nowrap shrink-0"
                       disabled={isDisabled}
                     >
                       <TicketIcon className="size-3.5" />

@@ -9,6 +9,7 @@ import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 import { submitPublicNomination } from "@/lib/server-functions/voting-options";
 import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
+import { sendTicketWhatsAppNotification } from "@/lib/services/whatsapp";
 
 export interface AttendeeInput {
 	name: string;
@@ -194,6 +195,7 @@ export async function initiatePublicTicketCheckout({
 				const attendee = data.attendees?.[i];
 				const attendeeName = attendee?.name?.trim() || buyerName;
 				const attendeeEmail = attendee?.email?.trim() || buyerEmail?.trim() || null;
+				const attendeePhone = attendee?.phone?.toString().trim() || null;
 				const ticket = await prisma.ticket.create({
 					data: {
 						orderId: order.id,
@@ -202,6 +204,7 @@ export async function initiatePublicTicketCheckout({
 						ticketCode,
 						attendeeName,
 						attendeeEmail,
+						attendeePhone,
 						checkInStatus: "not_checked_in",
 					},
 				});
@@ -222,30 +225,64 @@ export async function initiatePublicTicketCheckout({
 				},
 			});
 
-			// Send individual confirmation emails to each attendee who provided an email
+			// Send buyer WhatsApp notification with all ticket codes
+			if (buyerPhone && tickets.length > 0) {
+				try {
+					await sendTicketWhatsAppNotification({
+						phone: buyerPhone,
+						attendeeName: buyerName,
+						eventTitle: ticketType.event.title,
+						ticketCode: tickets.map((t) => t.ticketCode).join(", "),
+						ticketToken: tickets[0]?.token || undefined,
+						bannerImageUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage || undefined,
+					});
+				} catch (waErr) {
+					console.error("[WhatsApp] Error sending free ticket buyer confirmation:", waErr);
+				}
+			}
+
+			// Send individual confirmation emails + WhatsApp to each attendee
 			const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fextiva.com";
 			for (const tkt of tickets) {
 				const ticketRecord = await prisma.ticket.findUnique({
 					where: { id: tkt.id },
-					select: { attendeeName: true, attendeeEmail: true },
+					select: { attendeeName: true, attendeeEmail: true, attendeePhone: true },
 				});
-				const recipientEmail = ticketRecord?.attendeeEmail;
-				if (!recipientEmail) continue;
 
 				const passViewUrl = `${baseUrl}/ticket/view?token=${tkt.token}`;
-				sendTicketConfirmationEmail({
-					email: recipientEmail,
-					attendeeName: ticketRecord?.attendeeName || buyerName,
-					eventName: ticketType.event.title,
-					organizationName: ticketType.event.organization?.name || "Fextiva",
-					ticketTypeName: ticketType.name,
-					ticketCode: tkt.ticketCode,
-					viewUrl: passViewUrl,
-					bannerUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage,
-					isFree: true,
-				}).catch((err) =>
-					console.error(`[EMAIL:TICKET] Free ticket email failed for ${tkt.ticketCode}:`, err),
-				);
+
+				// Email
+				const recipientEmail = ticketRecord?.attendeeEmail;
+				if (recipientEmail) {
+					sendTicketConfirmationEmail({
+						email: recipientEmail,
+						attendeeName: ticketRecord?.attendeeName || buyerName,
+						eventName: ticketType.event.title,
+						organizationName: ticketType.event.organization?.name || "Fextiva",
+						ticketTypeName: ticketType.name,
+						ticketCode: tkt.ticketCode,
+						viewUrl: passViewUrl,
+						bannerUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage,
+						isFree: true,
+					}).catch((err) =>
+						console.error(`[EMAIL:TICKET] Free ticket email failed for ${tkt.ticketCode}:`, err),
+					);
+				}
+
+				// WhatsApp — send to each attendee who has their own phone (skip if same as buyer, buyer already got theirs)
+				const attendeePhoneVal = ticketRecord?.attendeePhone;
+				if (attendeePhoneVal && attendeePhoneVal !== buyerPhone) {
+					sendTicketWhatsAppNotification({
+						phone: attendeePhoneVal,
+						attendeeName: ticketRecord?.attendeeName || "Attendee",
+						eventTitle: ticketType.event.title,
+						ticketCode: tkt.ticketCode,
+						ticketToken: tkt.token,
+						bannerImageUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage || undefined,
+					}).catch((waErr) =>
+						console.error(`[WhatsApp] Error sending attendee ticket for ${tkt.ticketCode}:`, waErr),
+					);
+				}
 			}
 
 			return {
@@ -281,7 +318,7 @@ export async function initiatePublicTicketCheckout({
 				buyerName,
 				buyerEmail: buyerEmail?.trim() || null,
 				buyerPhone,
-				attendees: data.attendees || [],
+				attendees: (data.attendees || []) as any,
 				organizationId: organization.id,
 				orgSlug: organization.slug,
 				eventSlug: ticketType.event.slug,
@@ -325,6 +362,7 @@ export async function initiatePublicTicketCheckout({
 					buyerName,
 					buyerEmail,
 					buyerPhone,
+					attendees: (data.attendees || []) as any,
 					organizationId: organization.id,
 					orgSlug: organization.slug,
 					eventSlug: ticketType.event.slug,

@@ -2,6 +2,7 @@
 // WhatsApp Cloud API Integration for Fextiva
 
 import { getFrontendBaseUrl } from "@/lib/utils";
+import { getImageUrl } from "@/lib/image-url-utils";
 import { prisma } from "@repo/db";
 
 const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN || "";
@@ -30,9 +31,11 @@ function isMetaAccessibleImageUrl(url: string | undefined | null): boolean {
 	try {
 		const parsed = new URL(url);
 		if (parsed.protocol !== "https:") return false;
+		// WhatsApp/Meta template image headers only support JPEG and PNG (not WebP)
+		if (parsed.pathname.toLowerCase().endsWith(".webp")) return false;
 		// Reject known private/CDN patterns that Meta cannot fetch
 		const blockedPatterns = [
-			/\.r2\.dev$/i,          // Cloudflare R2
+			/\.r2\.dev$/i, // Cloudflare R2
 			/\.r2\.cloudflarestorage\.com$/i,
 			/localhost/i,
 			/127\.0\.0\.1/,
@@ -45,23 +48,23 @@ function isMetaAccessibleImageUrl(url: string | undefined | null): boolean {
 }
 
 /**
- * Rewrites a CDN/R2 image URL to go through the app's own image proxy
- * so that third-party services (e.g. Meta's WhatsApp API) can fetch it.
+ * Rewrites a CDN/R2 or WebP image URL to go through the app's own image proxy
+ * so that third-party services (e.g. Meta's WhatsApp API) can fetch it in JPEG format.
  *
  * Example:
  *   https://pub-abc.r2.dev/events/img.webp
- *   → https://fextiva.com/api/image-proxy?url=https%3A%2F%2Fpub-abc.r2.dev%2F...
+ *   → https://fextiva.com/api/image-proxy?url=https%3A%2F%2Fpub-abc.r2.dev%2F...&format=jpeg
  *
- * If the URL is already publicly accessible, it is returned unchanged.
+ * If the URL is already publicly accessible and in a supported format, it is returned unchanged.
  */
 function toProxiedImageUrl(url: string | undefined | null): string | null {
 	if (!url) return null;
-	// If Meta can already reach it, use it directly
+	// If Meta can already reach it and format is supported, use it directly
 	if (isMetaAccessibleImageUrl(url)) return url;
 	const baseUrl = getFrontendBaseUrl();
 	// Only proxy if we have a real public base URL (not localhost)
 	if (!baseUrl || baseUrl.includes("localhost")) return null;
-	return `${baseUrl}/api/image-proxy?url=${encodeURIComponent(url)}`;
+	return `${baseUrl}/api/image-proxy?url=${encodeURIComponent(url)}&format=jpeg`;
 }
 
 
@@ -302,9 +305,11 @@ export async function sendTicketWhatsAppNotification({
 		? `${baseUrl}/android-chrome-512x512.png`
 		: "https://fextiva.com/android-chrome-512x512.png";
 
+	// Resolve relative R2 storage keys (e.g. "events/abc.webp") to full URLs
+	const resolvedBanner = bannerImageUrl ? getImageUrl(bannerImageUrl) : undefined;
 	// Rewrite blocked CDN URLs (e.g. R2) through our own domain proxy so Meta can fetch them.
 	// Falls back to null (no header) if we can't make a public URL.
-	const safeImageUrl = toProxiedImageUrl(bannerImageUrl) ?? toProxiedImageUrl(defaultLogoBanner);
+	const safeImageUrl = toProxiedImageUrl(resolvedBanner) ?? toProxiedImageUrl(defaultLogoBanner);
 
 	const bodyAndButton: WhatsAppTemplateComponent[] = [
 		{
@@ -454,8 +459,10 @@ export async function sendNomineeReportWhatsAppNotification({
 			? `${baseUrl}/android-chrome-512x512.png`
 			: "https://fextiva.com/android-chrome-512x512.png";
 
+	// Resolve relative R2 storage keys (e.g. "events/abc.webp") to full URLs
+	const resolvedBanner = bannerImageUrl ? getImageUrl(bannerImageUrl) : undefined;
 	// Rewrite R2/CDN URLs through our proxy so Meta can fetch them
-	const safeHeaderImage = toProxiedImageUrl(bannerImageUrl) ?? toProxiedImageUrl(defaultLogoBanner);
+	const safeHeaderImage = toProxiedImageUrl(resolvedBanner) ?? toProxiedImageUrl(defaultLogoBanner);
 
 	// The public portal path for this nominee's category
 	// e.g. "afrofest/event/awards-2026/category/cm123..." or shortlink "c/cm123..."

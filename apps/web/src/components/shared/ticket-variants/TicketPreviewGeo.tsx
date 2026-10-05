@@ -586,7 +586,7 @@ export function TicketCardGeo({
 
   return (
     <div
-      className={`select-none w-full max-w-[560px] ${className ?? ""}`}
+      className={`select-none w-full max-w-[560px] min-w-0 ${className ?? ""}`}
       style={{
         perspective: 1200,
         cursor: disableFlip ? undefined : "grab",
@@ -596,7 +596,7 @@ export function TicketCardGeo({
       <TicketClipPath id={ghostClipId} />
 
       <div
-        className={`relative w-full aspect-[560/210] min-h-[190px] ${disableFlip ? "" : "active:cursor-grabbing"}`}
+        className={`relative w-full aspect-[560/210] min-h-0 ${disableFlip ? "" : "active:cursor-grabbing"}`}
         style={{ cursor: disableFlip ? undefined : "grab" }}
         onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >

@@ -231,8 +231,7 @@ function FrontFace({
 
       {/* ── Left: Photo / Hero Panel ── */}
       <div
-        className="relative shrink-0 overflow-hidden"
-        style={{ width: 180 }}
+        className="relative shrink-0 overflow-hidden w-[32%] sm:w-[180px] max-w-[180px]"
       >
         {heroImageUrl ? (
           <>
@@ -602,7 +601,7 @@ export function TicketCard2({
 
   return (
     <div
-      className={`select-none w-full max-w-[560px] @container ${className ?? ""}`}
+      className={`select-none w-full max-w-[560px] min-w-0 @container ${className ?? ""}`}
       style={{
         perspective: 1200,
         cursor: disableFlip ? undefined : "grab",
@@ -612,7 +611,7 @@ export function TicketCard2({
       <TicketClipPath id={ghostClipId} />
 
       <div
-        className={`relative w-full aspect-[560/210] min-h-[190px] ${disableFlip ? "" : "active:cursor-grabbing"}`}
+        className={`relative w-full aspect-[560/210] min-h-0 ${disableFlip ? "" : "active:cursor-grabbing"}`}
         style={{ cursor: disableFlip ? undefined : "grab" }}
         onClick={disableFlip ? undefined : () => setFlipped((f) => !f)}
       >

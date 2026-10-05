@@ -543,6 +543,7 @@ exports.Prisma.TicketScalarFieldEnum = {
   ticketCode: 'ticketCode',
   attendeeName: 'attendeeName',
   attendeeEmail: 'attendeeEmail',
+  attendeePhone: 'attendeePhone',
   checkInStatus: 'checkInStatus',
   checkedInAt: 'checkedInAt',
   checkedInBy: 'checkedInBy',

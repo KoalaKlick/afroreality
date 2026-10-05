@@ -16,6 +16,7 @@ import {
 	XCircle,
 	ExternalLink,
 	Copy,
+	Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ type ModalStep = "checkout" | "processing" | "success" | "error";
 interface AttendeeEntry {
 	name: string;
 	email: string;
+	phone: string;
 }
 
 export function PublicTicketPaymentModal({
@@ -145,7 +147,7 @@ export function PublicTicketPaymentModal({
 		setAttendees((prev) => {
 			const updated = [...prev];
 			while (updated.length < clamped) {
-				updated.push({ name: "", email: "" });
+				updated.push({ name: "", email: "", phone: "" });
 			}
 			return updated.slice(0, clamped);
 		});
@@ -160,6 +162,7 @@ export function PublicTicketPaymentModal({
 			const updated = Array.from({ length: quantity }).map((_, idx) => ({
 				name: idx === 0 ? buyerName.trim() : `${buyerName.trim()} (Guest #${idx + 1})`,
 				email: idx === 0 ? email.trim() : prev[idx]?.email || "",
+				phone: idx === 0 ? phone.trim() : prev[idx]?.phone || "",
 			}));
 			return updated;
 		});
@@ -197,6 +200,7 @@ export function PublicTicketPaymentModal({
 			return {
 				name: att?.name?.trim() || `${buyerName.trim()} (Guest #${idx + 1})`,
 				email: att?.email?.trim() || undefined,
+				phone: att?.phone?.trim() || undefined,
 			};
 		});
 
@@ -367,7 +371,7 @@ export function PublicTicketPaymentModal({
 										/>
 									</div>
 									<p className="text-[10px] text-muted-foreground">
-										Required for payment prompt and WhatsApp ticket link delivery.
+										Used to send your ticket pass via WhatsApp. Not used for payment.
 									</p>
 								</div>
 
@@ -416,14 +420,14 @@ export function PublicTicketPaymentModal({
 										</Button>
 									</div>
 									<p className="text-[11px] text-muted-foreground leading-relaxed">
-										Enter individual attendee details for each ticket so gate admission passes are accurately labeled and tamper-proof.
+										Each pass holder will receive their own ticket via WhatsApp and email if provided.
 									</p>
 
 									{/* Vertical List of Additional Attendee Fields */}
 									<div className="space-y-3">
 										{Array.from({ length: quantity - 1 }).map((_, i) => {
 											const passNum = i + 2;
-											const current = attendees[passNum - 1] || { name: "", email: "" };
+											const current = attendees[passNum - 1] || { name: "", email: "", phone: "" };
 											return (
 												<div
 													key={passNum}
@@ -439,9 +443,10 @@ export function PublicTicketPaymentModal({
 														</span>
 													</div>
 
+													{/* Full Name */}
 													<div className="space-y-1">
 														<Label className="text-[11px] text-muted-foreground">
-															Attendee Full Name
+															Full Name
 														</Label>
 														<Input
 															placeholder={`Attendee #${passNum} Full Name`}
@@ -450,14 +455,9 @@ export function PublicTicketPaymentModal({
 																const val = e.target.value;
 																setAttendees((prev) => {
 																	const copy = [...prev];
-																	while (copy.length < quantity) {
-																		copy.push({ name: "", email: "" });
-																	}
-																	copy[passNum - 1] = {
-																		...copy[passNum - 1],
-																		name: val,
-																		email: copy[passNum - 1]?.email || "",
-																	};
+																	while (copy.length < quantity) copy.push({ name: "", email: "", phone: "" });
+																	const existing = copy[passNum - 1] ?? { name: "", email: "", phone: "" };
+																	copy[passNum - 1] = { ...existing, name: val };
 																	return copy;
 																});
 															}}
@@ -466,6 +466,37 @@ export function PublicTicketPaymentModal({
 														/>
 													</div>
 
+													{/* WhatsApp Phone */}
+													<div className="space-y-1">
+														<Label className="text-[11px] text-muted-foreground">
+															WhatsApp Number (Optional)
+														</Label>
+														<div className="relative">
+															<Smartphone className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" />
+															<Input
+																type="tel"
+																placeholder="024 123 4567 (optional)"
+																value={current.phone}
+																onChange={(e) => {
+																	const val = e.target.value;
+																	setAttendees((prev) => {
+																		const copy = [...prev];
+																		while (copy.length < quantity) copy.push({ name: "", email: "", phone: "" });
+																		const existing = copy[passNum - 1] ?? { name: "", email: "", phone: "" };
+																		copy[passNum - 1] = { ...existing, phone: val };
+																		return copy;
+																	});
+																}}
+																className="pl-9 h-9 text-xs border-border/80 bg-background"
+																disabled={loading}
+															/>
+														</div>
+														<p className="text-[10px] text-muted-foreground">
+															Their pass will be sent directly to this number via WhatsApp.
+														</p>
+													</div>
+
+													{/* Email */}
 													<div className="space-y-1">
 														<Label className="text-[11px] text-muted-foreground">
 															Email (Optional)
@@ -478,14 +509,9 @@ export function PublicTicketPaymentModal({
 																const val = e.target.value;
 																setAttendees((prev) => {
 																	const copy = [...prev];
-																	while (copy.length < quantity) {
-																		copy.push({ name: "", email: "" });
-																	}
-																	copy[passNum - 1] = {
-																		...copy[passNum - 1],
-																		email: val,
-																		name: copy[passNum - 1]?.name || "",
-																	};
+																	while (copy.length < quantity) copy.push({ name: "", email: "", phone: "" });
+																	const existing = copy[passNum - 1] ?? { name: "", email: "", phone: "" };
+																	copy[passNum - 1] = { ...existing, email: val };
 																	return copy;
 																});
 															}}

@@ -37274,6 +37274,7 @@ export namespace Prisma {
     ticketCode: string | null
     attendeeName: string | null
     attendeeEmail: string | null
+    attendeePhone: string | null
     checkInStatus: $Enums.TicketCheckInStatus | null
     checkedInAt: Date | null
     checkedInBy: string | null
@@ -37291,6 +37292,7 @@ export namespace Prisma {
     ticketCode: string | null
     attendeeName: string | null
     attendeeEmail: string | null
+    attendeePhone: string | null
     checkInStatus: $Enums.TicketCheckInStatus | null
     checkedInAt: Date | null
     checkedInBy: string | null
@@ -37308,6 +37310,7 @@ export namespace Prisma {
     ticketCode: number
     attendeeName: number
     attendeeEmail: number
+    attendeePhone: number
     checkInStatus: number
     checkedInAt: number
     checkedInBy: number
@@ -37327,6 +37330,7 @@ export namespace Prisma {
     ticketCode?: true
     attendeeName?: true
     attendeeEmail?: true
+    attendeePhone?: true
     checkInStatus?: true
     checkedInAt?: true
     checkedInBy?: true
@@ -37344,6 +37348,7 @@ export namespace Prisma {
     ticketCode?: true
     attendeeName?: true
     attendeeEmail?: true
+    attendeePhone?: true
     checkInStatus?: true
     checkedInAt?: true
     checkedInBy?: true
@@ -37361,6 +37366,7 @@ export namespace Prisma {
     ticketCode?: true
     attendeeName?: true
     attendeeEmail?: true
+    attendeePhone?: true
     checkInStatus?: true
     checkedInAt?: true
     checkedInBy?: true
@@ -37451,6 +37457,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName: string | null
     attendeeEmail: string | null
+    attendeePhone: string | null
     checkInStatus: $Enums.TicketCheckInStatus
     checkedInAt: Date | null
     checkedInBy: string | null
@@ -37485,6 +37492,7 @@ export namespace Prisma {
     ticketCode?: boolean
     attendeeName?: boolean
     attendeeEmail?: boolean
+    attendeePhone?: boolean
     checkInStatus?: boolean
     checkedInAt?: boolean
     checkedInBy?: boolean
@@ -37505,6 +37513,7 @@ export namespace Prisma {
     ticketCode?: boolean
     attendeeName?: boolean
     attendeeEmail?: boolean
+    attendeePhone?: boolean
     checkInStatus?: boolean
     checkedInAt?: boolean
     checkedInBy?: boolean
@@ -37525,6 +37534,7 @@ export namespace Prisma {
     ticketCode?: boolean
     attendeeName?: boolean
     attendeeEmail?: boolean
+    attendeePhone?: boolean
     checkInStatus?: boolean
     checkedInAt?: boolean
     checkedInBy?: boolean
@@ -37545,6 +37555,7 @@ export namespace Prisma {
     ticketCode?: boolean
     attendeeName?: boolean
     attendeeEmail?: boolean
+    attendeePhone?: boolean
     checkInStatus?: boolean
     checkedInAt?: boolean
     checkedInBy?: boolean
@@ -37554,7 +37565,7 @@ export namespace Prisma {
     whatsappSent?: boolean
   }
 
-  export type TicketOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "eventId" | "ticketTypeId" | "ticketCode" | "attendeeName" | "attendeeEmail" | "checkInStatus" | "checkedInAt" | "checkedInBy" | "createdAt" | "updatedAt" | "smsSent" | "whatsappSent", ExtArgs["result"]["ticket"]>
+  export type TicketOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "eventId" | "ticketTypeId" | "ticketCode" | "attendeeName" | "attendeeEmail" | "attendeePhone" | "checkInStatus" | "checkedInAt" | "checkedInBy" | "createdAt" | "updatedAt" | "smsSent" | "whatsappSent", ExtArgs["result"]["ticket"]>
   export type TicketInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     event?: boolean | EventDefaultArgs<ExtArgs>
     order?: boolean | TicketOrderDefaultArgs<ExtArgs>
@@ -37586,6 +37597,7 @@ export namespace Prisma {
       ticketCode: string
       attendeeName: string | null
       attendeeEmail: string | null
+      attendeePhone: string | null
       checkInStatus: $Enums.TicketCheckInStatus
       checkedInAt: Date | null
       checkedInBy: string | null
@@ -38026,6 +38038,7 @@ export namespace Prisma {
     readonly ticketCode: FieldRef<"Ticket", 'String'>
     readonly attendeeName: FieldRef<"Ticket", 'String'>
     readonly attendeeEmail: FieldRef<"Ticket", 'String'>
+    readonly attendeePhone: FieldRef<"Ticket", 'String'>
     readonly checkInStatus: FieldRef<"Ticket", 'TicketCheckInStatus'>
     readonly checkedInAt: FieldRef<"Ticket", 'DateTime'>
     readonly checkedInBy: FieldRef<"Ticket", 'String'>
@@ -50090,6 +50103,7 @@ export namespace Prisma {
     ticketCode: 'ticketCode',
     attendeeName: 'attendeeName',
     attendeeEmail: 'attendeeEmail',
+    attendeePhone: 'attendeePhone',
     checkInStatus: 'checkInStatus',
     checkedInAt: 'checkedInAt',
     checkedInBy: 'checkedInBy',
@@ -53375,6 +53389,7 @@ export namespace Prisma {
     ticketCode?: StringFilter<"Ticket"> | string
     attendeeName?: StringNullableFilter<"Ticket"> | string | null
     attendeeEmail?: StringNullableFilter<"Ticket"> | string | null
+    attendeePhone?: StringNullableFilter<"Ticket"> | string | null
     checkInStatus?: EnumTicketCheckInStatusFilter<"Ticket"> | $Enums.TicketCheckInStatus
     checkedInAt?: DateTimeNullableFilter<"Ticket"> | Date | string | null
     checkedInBy?: UuidNullableFilter<"Ticket"> | string | null
@@ -53395,6 +53410,7 @@ export namespace Prisma {
     ticketCode?: SortOrder
     attendeeName?: SortOrderInput | SortOrder
     attendeeEmail?: SortOrderInput | SortOrder
+    attendeePhone?: SortOrderInput | SortOrder
     checkInStatus?: SortOrder
     checkedInAt?: SortOrderInput | SortOrder
     checkedInBy?: SortOrderInput | SortOrder
@@ -53418,6 +53434,7 @@ export namespace Prisma {
     ticketTypeId?: UuidFilter<"Ticket"> | string
     attendeeName?: StringNullableFilter<"Ticket"> | string | null
     attendeeEmail?: StringNullableFilter<"Ticket"> | string | null
+    attendeePhone?: StringNullableFilter<"Ticket"> | string | null
     checkInStatus?: EnumTicketCheckInStatusFilter<"Ticket"> | $Enums.TicketCheckInStatus
     checkedInAt?: DateTimeNullableFilter<"Ticket"> | Date | string | null
     checkedInBy?: UuidNullableFilter<"Ticket"> | string | null
@@ -53438,6 +53455,7 @@ export namespace Prisma {
     ticketCode?: SortOrder
     attendeeName?: SortOrderInput | SortOrder
     attendeeEmail?: SortOrderInput | SortOrder
+    attendeePhone?: SortOrderInput | SortOrder
     checkInStatus?: SortOrder
     checkedInAt?: SortOrderInput | SortOrder
     checkedInBy?: SortOrderInput | SortOrder
@@ -53461,6 +53479,7 @@ export namespace Prisma {
     ticketCode?: StringWithAggregatesFilter<"Ticket"> | string
     attendeeName?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
     attendeeEmail?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
+    attendeePhone?: StringNullableWithAggregatesFilter<"Ticket"> | string | null
     checkInStatus?: EnumTicketCheckInStatusWithAggregatesFilter<"Ticket"> | $Enums.TicketCheckInStatus
     checkedInAt?: DateTimeNullableWithAggregatesFilter<"Ticket"> | Date | string | null
     checkedInBy?: UuidNullableWithAggregatesFilter<"Ticket"> | string | null
@@ -57386,6 +57405,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -57406,6 +57426,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -57420,6 +57441,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -57440,6 +57462,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -57457,6 +57480,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -57471,6 +57495,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -57488,6 +57513,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -61030,6 +61056,7 @@ export namespace Prisma {
     ticketCode?: SortOrder
     attendeeName?: SortOrder
     attendeeEmail?: SortOrder
+    attendeePhone?: SortOrder
     checkInStatus?: SortOrder
     checkedInAt?: SortOrder
     checkedInBy?: SortOrder
@@ -61047,6 +61074,7 @@ export namespace Prisma {
     ticketCode?: SortOrder
     attendeeName?: SortOrder
     attendeeEmail?: SortOrder
+    attendeePhone?: SortOrder
     checkInStatus?: SortOrder
     checkedInAt?: SortOrder
     checkedInBy?: SortOrder
@@ -61064,6 +61092,7 @@ export namespace Prisma {
     ticketCode?: SortOrder
     attendeeName?: SortOrder
     attendeeEmail?: SortOrder
+    attendeePhone?: SortOrder
     checkInStatus?: SortOrder
     checkedInAt?: SortOrder
     checkedInBy?: SortOrder
@@ -66344,6 +66373,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -66362,6 +66392,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -66974,6 +67005,7 @@ export namespace Prisma {
     ticketCode?: StringFilter<"Ticket"> | string
     attendeeName?: StringNullableFilter<"Ticket"> | string | null
     attendeeEmail?: StringNullableFilter<"Ticket"> | string | null
+    attendeePhone?: StringNullableFilter<"Ticket"> | string | null
     checkInStatus?: EnumTicketCheckInStatusFilter<"Ticket"> | $Enums.TicketCheckInStatus
     checkedInAt?: DateTimeNullableFilter<"Ticket"> | Date | string | null
     checkedInBy?: UuidNullableFilter<"Ticket"> | string | null
@@ -72873,6 +72905,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -72891,6 +72924,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -73253,6 +73287,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -73271,6 +73306,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -77100,6 +77136,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -77441,6 +77478,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77459,6 +77497,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77475,6 +77514,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79124,6 +79164,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -79138,6 +79179,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79156,6 +79198,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79172,6 +79215,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79188,6 +79232,7 @@ export namespace Prisma {
     ticketCode: string
     attendeeName?: string | null
     attendeeEmail?: string | null
+    attendeePhone?: string | null
     checkInStatus?: $Enums.TicketCheckInStatus
     checkedInAt?: Date | string | null
     checkedInBy?: string | null
@@ -79202,6 +79247,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79220,6 +79266,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -79236,6 +79283,7 @@ export namespace Prisma {
     ticketCode?: StringFieldUpdateOperationsInput | string
     attendeeName?: NullableStringFieldUpdateOperationsInput | string | null
     attendeeEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    attendeePhone?: NullableStringFieldUpdateOperationsInput | string | null
     checkInStatus?: EnumTicketCheckInStatusFieldUpdateOperationsInput | $Enums.TicketCheckInStatus
     checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     checkedInBy?: NullableStringFieldUpdateOperationsInput | string | null
