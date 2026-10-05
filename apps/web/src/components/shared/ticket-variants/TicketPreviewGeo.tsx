@@ -586,7 +586,7 @@ export function TicketCardGeo({
 
   return (
     <div
-      className={`cursor-pointer select-none w-full max-w-[560px] ${className ?? ""}`}
+      className={`cursor-grab active:cursor-grabbing select-none w-full max-w-[560px] ${className ?? ""}`}
       style={{ perspective: 1200 }}
     >
       <TicketClipPath id={clipId} />

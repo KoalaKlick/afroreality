@@ -266,7 +266,7 @@ export function TicketCardRetro({
 
   return (
     <div
-      className={cn("cursor-pointer select-none w-full max-w-[560px] @container", className)}
+      className={cn("cursor-grab active:cursor-grabbing select-none w-full max-w-[560px] @container", className)}
       style={{ perspective: 1200 }}
     >
       <TicketClipPath id={clipId} />

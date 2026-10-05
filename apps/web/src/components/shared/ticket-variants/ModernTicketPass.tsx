@@ -350,7 +350,7 @@ export function ModernTicketPass({
 
 	return (
 		<div
-			className={`cursor-pointer select-none ${className}`}
+			className={`cursor-grab active:cursor-grabbing select-none ${className}`}
 			style={{ perspective: 1200 }}
 		>
 			<TicketClipPath id={clipId} />

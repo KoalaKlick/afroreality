@@ -495,7 +495,7 @@ export function ClassicTicketPass({
 
 	return (
 		<div
-			className={`cursor-pointer select-none @container ${className ?? ""}`}
+			className={`cursor-grab active:cursor-grabbing select-none @container ${className ?? ""}`}
 			style={{ perspective: 1200 }}
 		>
 			<TicketClipPath id={clipId} />

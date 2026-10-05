@@ -46,6 +46,7 @@ export function TicketDownloadButton({
 		return str.replace(/[^a-zA-Z0-9-_]/g, "_").slice(0, 40);
 	};
 
+
 	const handleDownload = async (target: ExportTarget) => {
 		const elementId =
 			target === "front"
@@ -70,15 +71,38 @@ export function TicketDownloadButton({
 
 		try {
 			setActiveExport(target);
-			// Small delay to ensure fonts, QR SVG, and layout settle
 			await new Promise((resolve) => setTimeout(resolve, 350));
 
-			const dataUrl = await htmlToImage.toPng(node, {
-				quality: 1.0,
-				pixelRatio: 3, // Crisp high-res 300+ DPI output
-				skipAutoScale: true,
-				cacheBust: true,
-			});
+			// Temporarily monkeypatch window.fetch so html-to-image's internal
+			// image re-fetches are routed through our same-origin proxy.
+			// This is necessary because html-to-image clones the DOM and re-fetches
+			// every image src it finds — it doesn't expose a URL-rewriting hook.
+			const originalFetch = window.fetch;
+			window.fetch = (input, init) => {
+				const url =
+					typeof input === "string"
+						? input
+						: input instanceof URL
+							? input.href
+							: (input as Request).url;
+				if (url.startsWith("https://") || url.startsWith("http://")) {
+					const proxied = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+					return originalFetch(proxied, init);
+				}
+				return originalFetch(input, init);
+			};
+
+			let dataUrl: string;
+			try {
+				dataUrl = await htmlToImage.toPng(node, {
+					quality: 1.0,
+					pixelRatio: 3,
+					skipAutoScale: true,
+				});
+			} finally {
+				// Always restore original fetch, even if toPng throws
+				window.fetch = originalFetch;
+			}
 
 			const cleanEvent = sanitizeFileName(eventTitle);
 			const cleanCode = sanitizeFileName(ticketCode);
