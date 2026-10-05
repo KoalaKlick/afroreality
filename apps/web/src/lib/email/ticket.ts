@@ -106,6 +106,8 @@ export interface SendTicketConfirmationEmailInput {
 	totalTickets?: number;
 	/** All ticket codes in booking */
 	allTicketCodes?: string[];
+	/** All attendee names in booking (for multi-ticket orders) */
+	attendeeNames?: string[];
 }
 
 export async function sendTicketConfirmationEmail(
@@ -128,20 +130,21 @@ export async function sendTicketConfirmationEmail(
 			orderNumber,
 			totalTickets = 1,
 			allTicketCodes,
+			attendeeNames,
 		} = params;
 
 		const isMulti = totalTickets > 1;
 		const subject = isPrimaryBuyer
 			? isMulti
-				? `Booking Confirmed: ${eventName} (${totalTickets} Passes) ✓`
-				: `Your Ticket Pass — ${eventName} ✓`
-			: `Your ${ticketTypeName} Pass — ${eventName} ✓`;
+				? `Booking Confirmed: ${eventName} (${totalTickets} Tickets) ✓`
+				: `Your Ticket — ${eventName} ✓`
+			: `Your Ticket — ${eventName} ✓`;
 
 		const previewText = isPrimaryBuyer
 			? isMulti
-				? `Your booking for ${eventName} (${totalTickets} passes) is confirmed`
-				: `Your ticket pass for ${eventName} is confirmed`
-			: `Your ${ticketTypeName} pass for ${eventName} is confirmed`;
+				? `Your booking for ${eventName} (${totalTickets} tickets) is confirmed`
+				: `Your ticket for ${eventName} is confirmed`
+			: `Your ticket for ${eventName} is confirmed`;
 
 		const amountDisplay =
 			isFree || !amountPaid
@@ -155,94 +158,101 @@ export async function sendTicketConfirmationEmail(
 			: "Ticket Confirmed";
 
 		const introGreeting = isPrimaryBuyer
-			? `Hi <strong>${escapeHtml(attendeeName)}</strong>, your booking for <strong>${escapeHtml(eventName)}</strong> is confirmed and ready below.`
-			: `Hi <strong>${escapeHtml(attendeeName)}</strong>, your admission pass has been confirmed and is ready below. Please keep this email safe — your QR code is your key to the gate.`;
+			? isMulti
+				? `Hi <strong>${escapeHtml(attendeeName)}</strong>, your booking for <strong>${escapeHtml(eventName)}</strong> is confirmed. You can view, download, or share your tickets below.`
+				: `Hi <strong>${escapeHtml(attendeeName)}</strong>, your ticket for <strong>${escapeHtml(eventName)}</strong> is confirmed. You can view or download your ticket below.`
+			: `Hi <strong>${escapeHtml(attendeeName)}</strong>, your ticket for <strong>${escapeHtml(eventName)}</strong> is confirmed. You can view or download your ticket below.`;
 
 		const body = `
-      <div style="margin-bottom:24px;">
-        <p style="margin:0 0 4px 0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
           ${headerTitle}
         </p>
-        <h1 style="margin:0;font-size:26px;font-weight:900;color:#111827;line-height:1.2;">
+        <h1 style="margin:0;font-size:24px;font-weight:900;color:#111827;line-height:1.25;">
           You're going to ${escapeHtml(eventName)}!
         </h1>
       </div>
 
-      <p style="margin:0 0 20px;font-size:15px;color:${TEXT_BODY};line-height:1.6;">
+      <p style="margin:0 0 24px;font-size:15px;color:${TEXT_BODY};line-height:1.6;">
         ${introGreeting}
       </p>
 
-      <!-- Ticket Card -->
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
-        style="border:1.5px solid ${DIVIDER};background-color:#f9fafb;margin-bottom:24px;border-radius:8px;">
+      <!-- Ticket Details (Flush left with text above, no card border/background) -->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:28px;">
         <tr>
-          <td style="padding:20px 24px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-              <tr>
-                <td>
-                  <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:${TEXT_MUTED};">
-                    ${isMulti ? "Tier &amp; Passes" : "Ticket Tier"}
-                  </p>
-                  <p style="margin:0;font-size:18px;font-weight:900;color:#111827;">
-                    ${isMulti ? `${totalTickets} &times; ${escapeHtml(ticketTypeName)}` : escapeHtml(ticketTypeName)}
-                  </p>
-                </td>
-                <td align="right" valign="top">
-                  <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:${TEXT_MUTED};">
-                    ${isPrimaryBuyer ? "Total Paid" : "Amount"}
-                  </p>
-                  <p style="margin:0;font-size:18px;font-weight:900;color:${ACCENT_PRIMARY};">
-                    ${escapeHtml(amountDisplay)}
-                  </p>
-                </td>
-              </tr>
-              ${orderNumber ? `
-              <tr>
-                <td colspan="2" style="padding-top:14px;border-top:1px solid ${DIVIDER};">
-                  <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:${TEXT_MUTED};">
-                    Order ID
-                  </p>
-                  <p style="margin:0;font-size:15px;font-weight:800;letter-spacing:0.04em;font-family:monospace;color:#111827;">
-                    #${escapeHtml(orderNumber)}
-                  </p>
-                </td>
-              </tr>
-              ` : ""}
-              <tr>
-                <td colspan="2" style="padding-top:12px;${orderNumber ? "" : `border-top:1px solid ${DIVIDER};`}">
-                  <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:${TEXT_MUTED};">
-                    ${isMulti ? "Ticket Codes" : "Ticket Code"}
-                  </p>
-                  <p style="margin:0;font-size:${isMulti ? "13px" : "18px"};font-weight:800;letter-spacing:0.06em;font-family:monospace;color:#111827;line-height:1.4;">
-                    ${allTicketCodes && allTicketCodes.length > 0 ? escapeHtml(allTicketCodes.join(", ")) : escapeHtml(ticketCode)}
-                  </p>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2" style="padding-top:12px;">
-                  <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:${TEXT_MUTED};">
-                    ${isPrimaryBuyer ? "Booking Contact" : "Pass Holder"}
-                  </p>
-                  <p style="margin:0;font-size:15px;font-weight:700;color:#111827;">
-                    ${escapeHtml(attendeeName)}
-                  </p>
-                </td>
-              </tr>
-            </table>
+          <td style="padding-bottom:12px;">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+              Ticket Tier
+            </p>
+            <p style="margin:0;font-size:16px;font-weight:800;color:#111827;">
+              ${isMulti ? `${totalTickets} &times; ${escapeHtml(ticketTypeName)}` : escapeHtml(ticketTypeName)}
+            </p>
+          </td>
+          <td align="right" valign="top" style="padding-bottom:12px;">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+              ${isPrimaryBuyer ? "Total Paid" : "Amount"}
+            </p>
+            <p style="margin:0;font-size:16px;font-weight:800;color:${ACCENT_PRIMARY};">
+              ${escapeHtml(amountDisplay)}
+            </p>
           </td>
         </tr>
+        ${orderNumber ? `
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+              Order ID
+            </p>
+            <p style="margin:0;font-size:14px;font-weight:700;font-family:monospace;color:#111827;">
+              #${escapeHtml(orderNumber)}
+            </p>
+          </td>
+        </tr>
+        ` : ""}
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+              ${isMulti ? "Ticket Codes" : "Ticket Code"}
+            </p>
+            <p style="margin:0;font-size:14px;font-weight:800;font-family:monospace;color:#111827;line-height:1.4;">
+              ${allTicketCodes && allTicketCodes.length > 0 ? escapeHtml(allTicketCodes.join(", ")) : escapeHtml(ticketCode)}
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+              ${isPrimaryBuyer ? "Buyer Name" : "Attendee"}
+            </p>
+            <p style="margin:0;font-size:15px;font-weight:700;color:#111827;">
+              ${escapeHtml(attendeeName)}
+            </p>
+          </td>
+        </tr>
+        ${attendeeNames && attendeeNames.length > 1 ? `
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+              Attendees
+            </p>
+            <p style="margin:0;font-size:14px;font-weight:600;color:#111827;line-height:1.5;">
+              ${attendeeNames.map(n => escapeHtml(n)).join('<br />')}
+            </p>
+          </td>
+        </tr>
+        ` : ""}
       </table>
 
-      <!-- View Pass CTA -->
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:20px;">
+      <!-- View Ticket CTA -->
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;">
         <tr>
           <td align="center">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td align="center" bgcolor="${ACCENT_PRIMARY}" style="border-radius:8px;background-color:${ACCENT_PRIMARY};">
                   <a href="${viewUrl}" target="_blank"
-                    style="display:inline-block;padding:14px 32px;background-color:${ACCENT_PRIMARY};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;border-radius:8px;">
-                    ${isPrimaryBuyer && isMulti ? "View &amp; Manage Your Passes" : "View &amp; Download Your Pass"}
+                    style="display:inline-block;padding:14px 36px;background-color:${ACCENT_PRIMARY};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;border-radius:8px;">
+                    ${isMulti ? "View Your Tickets" : "View Your Ticket"}
                   </a>
                 </td>
               </tr>
@@ -251,29 +261,16 @@ export async function sendTicketConfirmationEmail(
         </tr>
       </table>
 
-      <!-- Direct Link Box (Visible in all clients) -->
-      <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px 18px;margin-bottom:24px;">
-        <p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#166534;">
-          ${isPrimaryBuyer && isMulti ? "Direct Booking &amp; Passes Link:" : "Direct Pass Link:"}
-        </p>
-        <a href="${viewUrl}" target="_blank" style="font-size:13px;color:#15803d;font-weight:600;word-break:break-all;text-decoration:underline;line-height:1.4;">
-          ${viewUrl}
-        </a>
-      </div>
+      <!-- Simple Entry Note -->
+      <p style="margin:16px 0 0;font-size:13px;color:${TEXT_MUTED};line-height:1.5;text-align:center;">
+        ${isMulti
+          ? `Each ticket has a unique QR code for entry. Click the button above to view and download your tickets.`
+          : `Your ticket has a unique QR code for gate admission. Present it on your phone or print it for entry.`}
+      </p>
 
-      <!-- Security Notice -->
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
-        style="border:1px solid #fde68a;background-color:#fffbeb;margin-bottom:24px;border-radius:8px;">
-        <tr>
-          <td style="padding:14px 16px;font-size:13px;color:#92400e;line-height:1.5;">
-            <strong>&#9888; ${isPrimaryBuyer && isMulti ? "Booking Passes Access" : "Confidential Pass Link"}</strong><br />
-            ${isPrimaryBuyer && isMulti
-              ? `This link gives you access to all <strong>${totalTickets} passes</strong> in your booking. You can flip each pass, download gate passes, or share individual links with your attendees.`
-              : `This pass link and QR code is unique to <strong>${escapeHtml(attendeeName)}</strong> and admits one person at the gate. Do not share this email or QR code publicly.`
-            }
-          </td>
-        </tr>
-      </table>
+      <p style="margin:12px 0 0;font-size:12px;color:${TEXT_MUTED};line-height:1.5;text-align:center;">
+        Trouble clicking? Copy and open: <a href="${viewUrl}" target="_blank" style="color:${ACCENT_PRIMARY};text-decoration:underline;word-break:break-all;">${viewUrl}</a>
+      </p>
 
       <div style="margin-top:32px;padding-top:20px;border-top:1px solid ${DIVIDER};text-align:center;">
         <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};">

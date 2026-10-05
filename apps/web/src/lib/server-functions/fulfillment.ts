@@ -214,6 +214,18 @@ export async function fulfillSuccessfulPayment({
 					},
 				});
 
+				// Collect all attendee names from generated tickets for multi-ticket notifications
+				const allAttendeeNames: string[] = [];
+				if (generatedTickets.length > 1) {
+					for (const tkt of generatedTickets) {
+						const rec = await prisma.ticket.findUnique({
+							where: { id: tkt.id },
+							select: { attendeeName: true },
+						});
+						allAttendeeNames.push(rec?.attendeeName || "Attendee");
+					}
+				}
+
 				if (buyerPhone && generatedTickets.length > 0) {
 					try {
 						const waRes = await sendTicketWhatsAppNotification({
@@ -223,6 +235,7 @@ export async function fulfillSuccessfulPayment({
 							ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
 							ticketToken: generatedTickets[0]?.token || undefined,
 							bannerImageUrl: notifEvent?.flierImage || notifEvent?.bannerImage || undefined,
+							attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 						});
 
 						if (waRes.success) {
@@ -266,6 +279,7 @@ export async function fulfillSuccessfulPayment({
 							orderNumber: metadata.orderNumber || order?.orderNumber,
 							totalTickets: generatedTickets.length,
 							allTicketCodes: generatedTickets.map((t) => t.ticketCode),
+						attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 						}).catch((err) =>
 							console.error(`[EMAIL:TICKET] Failed for buyer ${cleanBuyerEmail}:`, err),
 						);

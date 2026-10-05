@@ -291,6 +291,7 @@ export async function sendTicketWhatsAppNotification({
 	ticketUrl,
 	ticketToken,
 	bannerImageUrl,
+	attendeeNames,
 }: {
 	phone: string;
 	attendeeName: string;
@@ -299,6 +300,7 @@ export async function sendTicketWhatsAppNotification({
 	ticketUrl?: string;
 	ticketToken?: string;
 	bannerImageUrl?: string;
+	attendeeNames?: string[];
 }): Promise<SendWhatsAppResponse> {
 	const baseUrl = getFrontendBaseUrl();
 	const defaultLogoBanner = baseUrl.startsWith("http") && !baseUrl.includes("localhost")
@@ -311,6 +313,11 @@ export async function sendTicketWhatsAppNotification({
 	// Falls back to null (no header) if we can't make a public URL.
 	const safeImageUrl = toProxiedImageUrl(resolvedBanner) ?? toProxiedImageUrl(defaultLogoBanner);
 
+	const displayAttendee =
+		attendeeNames && attendeeNames.length > 1
+			? attendeeNames.join(", ")
+			: attendeeName || "Attendee";
+
 	const bodyAndButton: WhatsAppTemplateComponent[] = [
 		{
 			type: "body",
@@ -318,7 +325,7 @@ export async function sendTicketWhatsAppNotification({
 				{ type: "text", text: attendeeName || "Attendee" },
 				{ type: "text", text: eventTitle },
 				{ type: "text", text: ticketCode },
-				{ type: "text", text: attendeeName || "Attendee" },
+				{ type: "text", text: displayAttendee },
 			],
 		},
 	];
@@ -363,7 +370,11 @@ export async function sendTicketWhatsAppNotification({
 
 	// 3. If template is still unavailable/pending, fall back to plain text
 	if (!templateRes.success) {
-		const fallbackText = `🎟️ *Fextiva Ticket Confirmed*\n\nHi ${attendeeName || "there"},\nYour ticket for *${eventTitle}* is confirmed!\n\n*Ticket ID:* ${ticketCode}${ticketUrl ? `\n\nView Ticket: ${ticketUrl}` : ""}\n\nThank you for choosing Fextiva!`;
+		const attendeesLine =
+			attendeeNames && attendeeNames.length > 1
+				? `\n*Attendees:* ${attendeeNames.join(", ")}`
+				: "";
+		const fallbackText = `🎟️ *Fextiva Ticket Confirmed*\n\nHi ${attendeeName || "there"},\nYour ticket for *${eventTitle}* is confirmed!\n\n*Ticket ID:* ${ticketCode}${attendeesLine}${ticketUrl ? `\n\nView Ticket: ${ticketUrl}` : ""}\n\nThank you for choosing Fextiva!`;
 		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
 	}
 

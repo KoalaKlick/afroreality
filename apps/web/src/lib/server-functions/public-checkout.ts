@@ -225,6 +225,18 @@ export async function initiatePublicTicketCheckout({
 				},
 			});
 
+			// Collect all attendee names for multi-ticket free orders
+			const freeAttendeeNames: string[] = [];
+			if (tickets.length > 1) {
+				for (const tkt of tickets) {
+					const rec = await prisma.ticket.findUnique({
+						where: { id: tkt.id },
+						select: { attendeeName: true },
+					});
+					freeAttendeeNames.push(rec?.attendeeName || "Attendee");
+				}
+			}
+
 			// Send buyer WhatsApp notification with all ticket codes
 			if (buyerPhone && tickets.length > 0) {
 				try {
@@ -235,6 +247,7 @@ export async function initiatePublicTicketCheckout({
 						ticketCode: tickets.map((t) => t.ticketCode).join(", "),
 						ticketToken: tickets[0]?.token || undefined,
 						bannerImageUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage || undefined,
+						attendeeNames: freeAttendeeNames.length > 1 ? freeAttendeeNames : undefined,
 					});
 				} catch (waErr) {
 					console.error("[WhatsApp] Error sending free ticket buyer confirmation:", waErr);
@@ -265,6 +278,7 @@ export async function initiatePublicTicketCheckout({
 					orderNumber,
 					totalTickets: tickets.length,
 					allTicketCodes: tickets.map((t) => t.ticketCode),
+					attendeeNames: freeAttendeeNames.length > 1 ? freeAttendeeNames : undefined,
 				}).catch((err) =>
 					console.error(`[EMAIL:TICKET] Free ticket buyer email failed for ${orderNumber}:`, err),
 				);
