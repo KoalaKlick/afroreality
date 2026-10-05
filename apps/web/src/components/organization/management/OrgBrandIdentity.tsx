@@ -21,9 +21,11 @@ import type { useImageUpload } from "@/hooks/use-image-upload";
 import { DOMAIN_NAME } from "@/lib/constants/branding";
 import { cleanStorageKey, getOrgImageUrl } from "@/lib/image-url-utils";
 import { getFrontendBaseUrl } from "@/lib/utils";
+import { updateOrganizationBrandImage } from "@/lib/server-functions/organization";
 import { toast } from "sonner";
 
 interface OrgBrandIdentityProps {
+	readonly organizationId?: string;
 	readonly name: string;
 	readonly setName: (name: string) => void;
 	readonly slug: string;
@@ -35,10 +37,13 @@ interface OrgBrandIdentityProps {
 	readonly setBannerUrl: (url: string) => void;
 	readonly logoUpload: ReturnType<typeof useImageUpload>;
 	readonly bannerUpload: ReturnType<typeof useImageUpload>;
+	readonly onLogoSaved?: (url: string) => void;
+	readonly onBannerSaved?: (url: string) => void;
 	readonly disabled?: boolean;
 }
 
 export function OrgBrandIdentity({
+	organizationId,
 	name,
 	setName,
 	slug,
@@ -50,6 +55,8 @@ export function OrgBrandIdentity({
 	setBannerUrl,
 	logoUpload,
 	bannerUpload,
+	onLogoSaved,
+	onBannerSaved,
 	disabled = false,
 }: OrgBrandIdentityProps) {
 	const logoInputRef = useRef<HTMLInputElement>(null);
@@ -71,34 +78,114 @@ export function OrgBrandIdentity({
 	async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0];
 		if (!file) return;
-		const res = await logoUpload.upload(file, logoUrl || undefined);
-		if (res) {
-			const relativeKey = cleanStorageKey(res.key || res.url);
-			setLogoUrl(relativeKey);
+
+		try {
+			// Upload file to Cloudflare R2 without prematurely deleting old image
+			const res = await logoUpload.upload(file);
+			if (res) {
+				const relativeKey = cleanStorageKey(res.key || res.url);
+
+				// Automatically save to database upon upload so assets are never lost or orphaned
+				if (organizationId) {
+					await updateOrganizationBrandImage({
+						data: {
+							organizationId,
+							field: "logoUrl",
+							imageUrl: relativeKey,
+						},
+					});
+				}
+
+				setLogoUrl(relativeKey);
+				onLogoSaved?.(relativeKey);
+				toast.success("Organization logo updated and saved!");
+			}
+		} catch (err: any) {
+			toast.error(err?.message || "Failed to update logo");
+		} finally {
+			if (logoInputRef.current) {
+				logoInputRef.current.value = "";
+			}
 		}
 	}
 
 	async function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0];
 		if (!file) return;
-		const res = await bannerUpload.upload(file, bannerUrl || undefined);
-		if (res) {
-			const relativeKey = cleanStorageKey(res.key || res.url);
-			setBannerUrl(relativeKey);
+
+		try {
+			// Upload file to Cloudflare R2 without prematurely deleting old image
+			const res = await bannerUpload.upload(file);
+			if (res) {
+				const relativeKey = cleanStorageKey(res.key || res.url);
+
+				// Automatically save to database upon upload so assets are never lost or orphaned
+				if (organizationId) {
+					await updateOrganizationBrandImage({
+						data: {
+							organizationId,
+							field: "bannerUrl",
+							imageUrl: relativeKey,
+						},
+					});
+				}
+
+				setBannerUrl(relativeKey);
+				onBannerSaved?.(relativeKey);
+				toast.success("Organization banner updated and saved!");
+			}
+		} catch (err: any) {
+			toast.error(err?.message || "Failed to update banner");
+		} finally {
+			if (bannerInputRef.current) {
+				bannerInputRef.current.value = "";
+			}
 		}
 	}
 
-	function handleRemoveLogo() {
-		setLogoUrl("");
-		if (logoInputRef.current) {
-			logoInputRef.current.value = "";
+	async function handleRemoveLogo() {
+		try {
+			if (organizationId && logoUrl) {
+				await updateOrganizationBrandImage({
+					data: {
+						organizationId,
+						field: "logoUrl",
+						imageUrl: null,
+					},
+				});
+			}
+			setLogoUrl("");
+			onLogoSaved?.("");
+			toast.success("Organization logo removed");
+		} catch (err: any) {
+			toast.error(err?.message || "Failed to remove logo");
+		} finally {
+			if (logoInputRef.current) {
+				logoInputRef.current.value = "";
+			}
 		}
 	}
 
-	function handleRemoveBanner() {
-		setBannerUrl("");
-		if (bannerInputRef.current) {
-			bannerInputRef.current.value = "";
+	async function handleRemoveBanner() {
+		try {
+			if (organizationId && bannerUrl) {
+				await updateOrganizationBrandImage({
+					data: {
+						organizationId,
+						field: "bannerUrl",
+						imageUrl: null,
+					},
+				});
+			}
+			setBannerUrl("");
+			onBannerSaved?.("");
+			toast.success("Organization banner removed");
+		} catch (err: any) {
+			toast.error(err?.message || "Failed to remove banner");
+		} finally {
+			if (bannerInputRef.current) {
+				bannerInputRef.current.value = "";
+			}
 		}
 	}
 

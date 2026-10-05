@@ -79,10 +79,17 @@ export async function completeOnboardingFlow({ data }: { data: any }): Promise<a
   return { success: true, profile: updated };
 }
 
+import { deleteFromR2ByUrl } from "../storage";
+
 export async function updateProfileSettings({ data }: { data: any }): Promise<any> {
   const session = await getSession();
   if (!session) throw new Error("Unauthorized");
   const userId = session.id;
+
+  const currentProfile = await prisma.profile.findUnique({
+    where: { id: userId },
+    select: { avatarUrl: true },
+  });
 
   const updated = await prisma.profile.update({
     where: { id: userId },
@@ -92,6 +99,14 @@ export async function updateProfileSettings({ data }: { data: any }): Promise<an
       avatarUrl: data.avatarUrl,
     },
   });
+
+  if (
+    currentProfile?.avatarUrl &&
+    data.avatarUrl !== undefined &&
+    currentProfile.avatarUrl !== data.avatarUrl
+  ) {
+    await deleteFromR2ByUrl(currentProfile.avatarUrl).catch(() => {});
+  }
 
   return { success: true, profile: updated };
 }

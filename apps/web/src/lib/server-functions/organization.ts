@@ -113,6 +113,52 @@ export async function createOrganizationAccount({
 	return serializeJsonSafe(org);
 }
 
+import { deleteFromR2ByUrl } from "../storage";
+
+export async function updateOrganizationBrandImage({
+	data,
+}: {
+	data: {
+		organizationId: string;
+		field: "logoUrl" | "bannerUrl";
+		imageUrl: string | null;
+	};
+}): Promise<{ success: boolean; imageUrl: string | null }> {
+	const { organizationId, field, imageUrl } = data;
+	await requireOrgRole(organizationId, ["owner", "admin"]);
+
+	if (field !== "logoUrl" && field !== "bannerUrl") {
+		throw new Error("Invalid brand image field");
+	}
+
+	// 1. Fetch current image so we can delete old asset after successful DB update
+	const current = await prisma.organization.findUnique({
+		where: { id: organizationId },
+		select: { [field]: true, slug: true },
+	});
+	const oldUrl = current ? (current as any)[field] : null;
+
+	// 2. Commit update to database
+	await prisma.organization.update({
+		where: { id: organizationId },
+		data: { [field]: imageUrl },
+	});
+
+	// 3. Only delete old image from Cloudflare R2 AFTER database update succeeds
+	if (oldUrl && oldUrl !== imageUrl) {
+		await deleteFromR2ByUrl(oldUrl).catch((err) => {
+			console.warn(`[R2] Failed to delete previous ${field}:`, err);
+		});
+	}
+
+	revalidatePath("/organization/manage");
+	if (current?.slug) {
+		revalidatePath(`/${current.slug}`);
+	}
+
+	return { success: true, imageUrl };
+}
+
 export async function updateOrganizationSettings({
 	data,
 }: {
@@ -120,6 +166,12 @@ export async function updateOrganizationSettings({
 }): Promise<any> {
 	const { id, socialLinks, ...rest } = data;
 	await requireOrgRole(id, ["owner", "admin"]);
+
+	// Fetch current org to track old image URLs if changed
+	const currentOrg = await prisma.organization.findUnique({
+		where: { id },
+		select: { logoUrl: true, bannerUrl: true, slug: true },
+	});
 
 	const updated = await prisma.$transaction(async (tx) => {
 		const org = await tx.organization.update({
@@ -144,7 +196,28 @@ export async function updateOrganizationSettings({
 		return org;
 	});
 
+	// Safely clean up old images in Cloudflare R2 ONLY AFTER DB transaction succeeded
+	if (currentOrg) {
+		if (
+			rest.logoUrl !== undefined &&
+			currentOrg.logoUrl &&
+			currentOrg.logoUrl !== rest.logoUrl
+		) {
+			await deleteFromR2ByUrl(currentOrg.logoUrl).catch(() => {});
+		}
+		if (
+			rest.bannerUrl !== undefined &&
+			currentOrg.bannerUrl &&
+			currentOrg.bannerUrl !== rest.bannerUrl
+		) {
+			await deleteFromR2ByUrl(currentOrg.bannerUrl).catch(() => {});
+		}
+	}
+
 	revalidatePath("/organization/manage");
+	if (currentOrg?.slug) {
+		revalidatePath(`/${currentOrg.slug}`);
+	}
 	return serializeJsonSafe(updated);
 }
 

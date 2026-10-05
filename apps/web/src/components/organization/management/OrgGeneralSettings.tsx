@@ -269,6 +269,7 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 
 			<form onSubmit={handleSubmit} className="space-y-6">
 				<OrgBrandIdentity
+					organizationId={organization.id}
 					name={name}
 					setName={setName}
 					slug={organization.slug}
@@ -280,6 +281,14 @@ export function OrgGeneralSettings({ organization }: OrgGeneralSettingsProps) {
 					setBannerUrl={setBannerUrl}
 					logoUpload={logoUpload}
 					bannerUpload={bannerUpload}
+					onLogoSaved={(newUrl) => {
+						setLogoUrl(newUrl);
+						setLastSaved((prev) => ({ ...prev, logoUrl: newUrl }));
+					}}
+					onBannerSaved={(newUrl) => {
+						setBannerUrl(newUrl);
+						setLastSaved((prev) => ({ ...prev, bannerUrl: newUrl }));
+					}}
 					disabled={!canManageSettings}
 				/>
 

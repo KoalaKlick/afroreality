@@ -43,9 +43,9 @@ export async function POST(req: Request) {
 			}
 		}
 
-		if (oldUrl) {
-			await deleteFromR2ByUrl(oldUrl).catch(() => {});
-		}
+		// Note: We do NOT delete oldUrl here. Deletion of old assets must only
+		// happen once the database update/save is confirmed to prevent losing files
+		// if a user leaves the page or cancels before saving.
 
 		const bytes = await file.arrayBuffer();
 		const buffer = Buffer.from(bytes);

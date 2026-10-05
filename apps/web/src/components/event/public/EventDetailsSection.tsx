@@ -70,13 +70,13 @@ export function EventDetailsSection({
 			className="py-16 border-t bg-background"
 		>
 			<div className="mx-auto">
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+				<div className="grid grid-cols-1 md:grid-cols-12 gap-16">
 					{/* Left: About and/or Venue Map */}
 					<div
 						className={
 							hasRightContent
-								? "md:col-span-2 space-y-8 scroll-mt-10"
-								: "md:col-span-3 space-y-8 scroll-mt-10"
+								? "md:col-span-7 space-y-8 scroll-mt-10"
+								: "md:col-span-12 space-y-8 scroll-mt-10"
 						}
 						id="details"
 					>
@@ -127,7 +127,7 @@ export function EventDetailsSection({
 
 					{/* Right: Media, External Albums & Sponsors */}
 					{hasRightContent && (
-						<div className="space-y-10">
+						<div className="space-y-10 md:col-span-5">
 							{galleryImages.length > 0 && (
 								<div className="space-y-4">
 									<div>

@@ -99,7 +99,7 @@ export function UserProfileSheet({
 			return;
 		}
 
-		const res = await uploadAvatar(file, avatarPath || undefined);
+		const res = await uploadAvatar(file);
 		if (res) {
 			const relativeKey = cleanStorageKey(res.key || res.url);
 			setAvatarPath(relativeKey);

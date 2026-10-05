@@ -100,7 +100,7 @@ export function EventGallery({ images, className }: EventGalleryProps) {
 
 				{/* Corner view indicator on hover (only when no +N overlay) */}
 				{!isLastWithMore && (
-					<div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60 backdrop-blur-md rounded-full p-1.5 text-white shadow-md z-15">
+					<div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60 backdrop-blur-md rounded-full p-1.5 text-white shadow-md z-20">
 						<Maximize2 className="size-3.5" />
 					</div>
 				)}
@@ -147,15 +147,15 @@ export function EventGallery({ images, className }: EventGalleryProps) {
 
 					{/* CASE 3: Three Images - 1 Tall Portrait Hero Left, 2 Stacked Landscapes Right */}
 					{count === 3 && (
-						<div className="grid grid-cols-12 gap-1.5 sm:gap-2 aspect-16/10 sm:aspect-16/9 w-full h-[340px] sm:h-[420px] md:h-[480px]">
+						<div className="grid grid-cols-12 gap-1.5 sm:gap-2 w-full h-[320px] sm:h-[400px] md:h-[460px]">
 							<div className="col-span-7 h-full">
 								{renderImageCell(validImages[0], 0, "h-full")}
 							</div>
-							<div className="col-span-5 grid grid-rows-2 gap-1.5 sm:gap-2 h-full">
-								<div className="h-full">
+							<div className="col-span-5 flex flex-col gap-1.5 sm:gap-2 h-full">
+								<div className="flex-1 min-h-0">
 									{renderImageCell(validImages[1], 1, "h-full")}
 								</div>
-								<div className="h-full">
+								<div className="flex-1 min-h-0">
 									{renderImageCell(validImages[2], 2, "h-full")}
 								</div>
 							</div>
@@ -189,7 +189,7 @@ export function EventGallery({ images, className }: EventGalleryProps) {
 
 					{/* CASE 5+: Five or More Images - Editorial Mosaic with Hero + Staggered Right Grid + More Overlay */}
 					{count >= 5 && (
-						<div className="grid grid-cols-12 gap-1.5 sm:gap-2 aspect-16/10 sm:aspect-16/9 w-full h-[360px] sm:h-[440px] md:h-[500px]">
+						<div className="grid grid-cols-12 gap-1.5 sm:gap-2 w-full h-[360px] sm:h-[440px] md:h-[500px]">
 							{/* Large Featured Hero Card */}
 							<div className="col-span-7 h-full">
 								{renderImageCell(validImages[0], 0, "h-full")}
@@ -210,7 +210,7 @@ export function EventGallery({ images, className }: EventGalleryProps) {
 											3,
 											"h-full",
 											true,
-											count - 3,
+											count - 4,
 										)}
 									</div>
 								</div>
