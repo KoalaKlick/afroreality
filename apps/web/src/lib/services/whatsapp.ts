@@ -334,7 +334,7 @@ export async function sendTicketWhatsAppNotification({
 		bodyAndButton.push({
 			type: "button",
 			sub_type: "url",
-			index: "0",
+			index: 0,
 			parameters: [{ type: "text", text: ticketToken || ticketCode }],
 		});
 	}
@@ -490,7 +490,7 @@ export async function sendNomineeReportWhatsAppNotification({
 						: eventSlug || "");
 
 	// Dynamic parameter for the "View Progress" button (replaces {{1}} in https://fextiva.com/{{1}})
-	const buttonParam = publicCategoryPath;
+	const buttonParam = (publicCategoryPath || "").replace(/^\/+/, "").trim();
 
 	// When organizer hides standings/positions, first attempt the 4-variable utility template (fextiva_nominee_summary_en)
 	if (!showRank) {
@@ -519,7 +519,7 @@ export async function sendNomineeReportWhatsAppNotification({
 			noRankComponents.push({
 				type: "button",
 				sub_type: "url",
-				index: "0",
+				index: 0,
 				parameters: [{ type: "text", text: buttonParam }],
 			});
 		}
@@ -576,7 +576,7 @@ export async function sendNomineeReportWhatsAppNotification({
 		componentsWithHeader.push({
 			type: "button",
 			sub_type: "url",
-			index: "0",
+			index: 0,
 			parameters: [{ type: "text", text: buttonParam }],
 		});
 	}
