@@ -35,7 +35,7 @@ export async function fulfillSuccessfulPayment({
 		}
 
 		// 1. Fetch Payment record
-		const payment = await prisma.payment.findUnique({
+		let payment = await prisma.payment.findUnique({
 			where: { reference },
 			include: {
 				ticketOrders: {
@@ -43,6 +43,24 @@ export async function fulfillSuccessfulPayment({
 				},
 			},
 		});
+
+		const meta = (payment?.metadata as any) || (paystackData?.metadata as any) || {};
+
+		// If not found by reference, check if it's an event deposit
+		if (!payment && meta.isEventDeposit && meta.eventId) {
+			payment = await prisma.payment.findFirst({
+				where: {
+					status: "pending",
+					metadata: { path: ["eventId"], equals: meta.eventId },
+				},
+				include: {
+					ticketOrders: {
+						include: { tickets: true },
+					},
+				},
+				orderBy: { createdAt: "desc" },
+			});
+		}
 
 		if (!payment) {
 			console.error(`[FULFILLMENT] Payment not found for reference: ${reference}`);
@@ -353,6 +371,12 @@ export async function fulfillSuccessfulPayment({
 		// 5. Organization Wallet & Transaction Ledger Updates
 		// Security deposits are held in platform escrow and MUST NEVER credit organizer wallet balances.
 		if (metadata.isEventDeposit) {
+			if (metadata.eventId) {
+				await prisma.event.updateMany({
+					where: { id: metadata.eventId, status: "draft" },
+					data: { status: "published", publishedAt: new Date() },
+				});
+			}
 			return {
 				success: true,
 				payment: updatedPayment,

@@ -6,6 +6,7 @@ export const paystack = {
 			email,
 			amount,
 			currency = "GHS",
+			reference,
 			callback_url,
 			metadata,
 			subaccount,
@@ -16,6 +17,7 @@ export const paystack = {
 			email: string;
 			amount: number;
 			currency?: string;
+			reference?: string;
 			callback_url?: string;
 			metadata?: any;
 			subaccount?: string;
@@ -30,6 +32,10 @@ export const paystack = {
 				callback_url,
 				metadata,
 			};
+
+			if (reference) {
+				payload.reference = reference;
+			}
 
 			if (subaccount) {
 				payload.subaccount = subaccount;

@@ -476,6 +476,7 @@ export async function initializeEventDepositPayment(data: {
 		const callbackUrl = `${baseUrl.replace(/\/$/, "")}/my-events/${event.id}?deposit_ref=${reference}`;
 
 		const paystackRes = await paystack.transaction.initialize({
+			reference,
 			email,
 			amount: Math.round(amount * 100),
 			currency: "GHS",
@@ -509,10 +510,18 @@ export async function initializeEventDepositPayment(data: {
 			};
 		}
 
+		const finalReference = paystackRes.data?.reference || reference;
+		if (finalReference !== reference) {
+			await prisma.payment.updateMany({
+				where: { reference },
+				data: { reference: finalReference },
+			});
+		}
+
 		return {
 			success: true,
 			authorizationUrl: paystackRes.data.authorization_url,
-			reference,
+			reference: finalReference,
 			accessCode: paystackRes.data.access_code,
 			amount,
 		};
@@ -528,6 +537,7 @@ export async function initializeEventDepositPayment(data: {
 export async function verifyEventDepositPayment(data: {
 	reference: string;
 	eventId: string;
+	localReference?: string;
 }): Promise<{
 	success: boolean;
 	alreadyCompleted?: boolean;
@@ -537,19 +547,74 @@ export async function verifyEventDepositPayment(data: {
 	try {
 		const { session, event } = await requireEventRole(data.eventId, ["owner", "admin"]);
 
-		const payment = await prisma.payment.findUnique({
-			where: { reference: data.reference },
+		// 1. If a deposit is already verified for this event, auto-publish and return success
+		const completedPayment = await prisma.payment.findFirst({
+			where: {
+				status: "completed",
+				metadata: { path: ["eventId"], equals: data.eventId },
+			},
 		});
 
-		if (!payment) {
-			return { success: false, error: "Payment record not found." };
-		}
-
-		if (payment.status === "completed") {
+		if (completedPayment && (completedPayment.metadata as any)?.isEventDeposit === true) {
+			if (event.status === "draft") {
+				await prisma.event.update({
+					where: { id: data.eventId },
+					data: { status: "published", publishedAt: new Date() },
+				});
+				revalidatePath(`/my-events/${data.eventId}`);
+			}
 			return { success: true, alreadyCompleted: true, message: "Deposit already verified." };
 		}
 
-		const verifyRes = await paystack.transaction.verify(data.reference);
+		// 2. Locate payment record by primary reference, local reference, or pending event deposit
+		let payment = await prisma.payment.findUnique({
+			where: { reference: data.reference },
+		});
+
+		if (!payment && data.localReference) {
+			payment = await prisma.payment.findUnique({
+				where: { reference: data.localReference },
+			});
+		}
+
+		if (!payment) {
+			payment = await prisma.payment.findFirst({
+				where: {
+					status: "pending",
+					metadata: { path: ["eventId"], equals: data.eventId },
+				},
+				orderBy: { createdAt: "desc" },
+			});
+		}
+
+		if (payment && payment.status === "completed") {
+			if (event.status === "draft") {
+				await prisma.event.update({
+					where: { id: data.eventId },
+					data: { status: "published", publishedAt: new Date() },
+				});
+				revalidatePath(`/my-events/${data.eventId}`);
+			}
+			return { success: true, alreadyCompleted: true, message: "Deposit already verified." };
+		}
+
+		// 3. Verify on Paystack (try primary reference, then fallbacks if needed)
+		let verifyRes = await paystack.transaction.verify(data.reference);
+
+		if ((!verifyRes.status || verifyRes.data?.status !== "success") && data.localReference && data.localReference !== data.reference) {
+			const altRes = await paystack.transaction.verify(data.localReference);
+			if (altRes.status && altRes.data?.status === "success") {
+				verifyRes = altRes;
+			}
+		}
+
+		if ((!verifyRes.status || verifyRes.data?.status !== "success") && payment?.reference && payment.reference !== data.reference) {
+			const altRes = await paystack.transaction.verify(payment.reference);
+			if (altRes.status && altRes.data?.status === "success") {
+				verifyRes = altRes;
+			}
+		}
+
 		if (!verifyRes.status || verifyRes.data?.status !== "success") {
 			return {
 				success: false,
@@ -558,26 +623,69 @@ export async function verifyEventDepositPayment(data: {
 		}
 
 		const now = new Date();
-		const currentMeta = (payment.metadata as any) || {};
+		const currentMeta = (payment?.metadata as any) || {};
 
-		await prisma.payment.update({
-			where: { id: payment.id },
-			data: {
-				status: "completed",
-				verifiedAt: now,
-				providerReference: String(verifyRes.data.id || ""),
-				paystackTransactionId: String(verifyRes.data.id || ""),
-				providerResponse: verifyRes.data,
-				metadata: {
-					...currentMeta,
-					depositStatus: "held",
-					verifiedAt: now.toISOString(),
-					paidAt: verifyRes.data.paid_at || now.toISOString(),
-					channel: verifyRes.data.channel,
-					currency: verifyRes.data.currency,
+		if (payment) {
+			await prisma.payment.update({
+				where: { id: payment.id },
+				data: {
+					status: "completed",
+					verifiedAt: now,
+					providerReference: String(verifyRes.data.id || verifyRes.data.reference || ""),
+					paystackTransactionId: String(verifyRes.data.id || ""),
+					providerResponse: verifyRes.data,
+					metadata: {
+						...currentMeta,
+						depositStatus: "held",
+						verifiedAt: now.toISOString(),
+						paidAt: verifyRes.data.paid_at || now.toISOString(),
+						channel: verifyRes.data.channel,
+						currency: verifyRes.data.currency,
+						paystackReference: verifyRes.data.reference,
+					},
 				},
-			},
-		});
+			});
+		} else {
+			await prisma.payment.create({
+				data: {
+					reference: verifyRes.data.reference || data.reference,
+					userId: session.userId,
+					email: verifyRes.data.customer?.email || "organizer@fextiva.com",
+					purpose: "wallet_topup",
+					amount: Number(verifyRes.data.amount) / 100,
+					currency: verifyRes.data.currency || "GHS",
+					provider: "paystack",
+					status: "completed",
+					verifiedAt: now,
+					providerReference: String(verifyRes.data.id || ""),
+					paystackTransactionId: String(verifyRes.data.id || ""),
+					providerResponse: verifyRes.data,
+					metadata: {
+						isEventDeposit: true,
+						depositStatus: "held",
+						eventId: data.eventId,
+						eventTitle: event.title,
+						organizationId: event.organizationId,
+						organizationName: (event as any).organization?.name || "Organization",
+						userId: session.userId,
+						refundWindowDays: 2,
+						verifiedAt: now.toISOString(),
+						paidAt: verifyRes.data.paid_at || now.toISOString(),
+					},
+				},
+			});
+		}
+
+		// Auto-publish draft event once security deposit is confirmed
+		if (event.status === "draft") {
+			await prisma.event.update({
+				where: { id: data.eventId },
+				data: {
+					status: "published",
+					publishedAt: now,
+				},
+			});
+		}
 
 		await logEventActivity({
 			eventId: data.eventId,
@@ -586,15 +694,17 @@ export async function verifyEventDepositPayment(data: {
 			action: "event_deposit_paid",
 			entityType: "event",
 			entityId: data.eventId,
-			description: `Paid refundable event security deposit of GHS ${Number(payment.amount).toFixed(2)}`,
+			description: `Paid refundable event security deposit of GHS ${Number(payment?.amount || verifyRes.data.amount / 100).toFixed(2)}`,
 			metadata: {
-				reference: data.reference,
-				amount: Number(payment.amount),
+				reference: verifyRes.data.reference || data.reference,
+				amount: Number(payment?.amount || verifyRes.data.amount / 100),
 				depositStatus: "held",
 			},
 		});
 
 		revalidatePath(`/my-events/${data.eventId}`);
+		revalidatePath("/my-events");
+		revalidatePath("/dashboard");
 		revalidatePath("/super/deposits");
 
 		return {

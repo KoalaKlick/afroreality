@@ -135,26 +135,22 @@ export function EventDetailHeader({
 	// URL searchParams to check for deposit payment callback
 	const searchParams = useSearchParams();
 	const depositRef = searchParams.get("deposit_ref");
+	const paystackRef = searchParams.get("reference") || searchParams.get("trxref");
+	const activeDepositRef = paystackRef || depositRef;
 
 	useEffect(() => {
-		if (depositRef && event.status !== "published") {
+		if (activeDepositRef && event.status !== "published") {
 			(async () => {
 				try {
 					toast.loading("Verifying your security deposit...", { id: "verify-deposit" });
 					const verifyRes = await verifyEventDepositPayment({
-						reference: depositRef,
+						reference: activeDepositRef,
+						localReference: depositRef || undefined,
 						eventId: event.id,
 					});
 
 					if (verifyRes.success) {
-						toast.success("Security deposit verified! Publishing event...", { id: "verify-deposit" });
-						await updateExistingEvent({
-							data: {
-								id: event.id,
-								status: "published",
-							},
-						});
-						toast.success("Event published live!");
+						toast.success("Security deposit verified! Event is published live!", { id: "verify-deposit" });
 						if (onRefresh) onRefresh();
 						router.replace(window.location.pathname);
 					} else {
@@ -166,7 +162,7 @@ export function EventDetailHeader({
 				}
 			})();
 		}
-	}, [depositRef, event.id, event.status, onRefresh, router]);
+	}, [activeDepositRef, depositRef, event.id, event.status, onRefresh, router]);
 
 	// Editable state
 	const [editingTitle, setEditingTitle] = useState(false);

@@ -201,14 +201,26 @@ export default {
 			const paystackTransactionId = String(data.id || "");
 
 			// 4. Idempotency Check — Check Payment record in database
-			const payments = await sql`
+			let payments = await sql`
 				SELECT id, reference, status, purpose, amount, currency, metadata 
 				FROM payments 
 				WHERE reference = ${reference} 
 				LIMIT 1
 			`;
 
-			const payment = payments[0] || null;
+			let payment = payments[0] || null;
+
+			// If not found by reference, check if it's an event deposit
+			if (!payment && metadata.isEventDeposit && metadata.eventId) {
+				const depPayments = await sql`
+					SELECT id, reference, status, purpose, amount, currency, metadata 
+					FROM payments 
+					WHERE metadata->>'eventId' = ${metadata.eventId} AND status = 'pending'
+					ORDER BY created_at DESC
+					LIMIT 1
+				`;
+				payment = depPayments[0] || null;
+			}
 
 			if (payment && payment.status === "completed") {
 				return new Response("Already completed", { status: 200 });
@@ -226,6 +238,15 @@ export default {
 						paystack_transaction_id = ${paystackTransactionId},
 						updated_at = NOW() 
 					WHERE id = ${paymentId}
+				`;
+			}
+
+			// If this is an event deposit, auto-publish event
+			if (metadata.isEventDeposit && metadata.eventId) {
+				await sql`
+					UPDATE events 
+					SET status = 'published', published_at = NOW(), updated_at = NOW() 
+					WHERE id = ${metadata.eventId} AND status = 'draft'
 				`;
 			}
 
@@ -334,6 +355,11 @@ export default {
 			}
 
 			// 6. Organization Wallet & Transaction Ledger Updates
+			// Security deposits are held in platform escrow and MUST NOT credit organizer wallet balances.
+			if (metadata.isEventDeposit) {
+				return new Response("OK - Deposit handled", { status: 200 });
+			}
+
 			let organizationId = metadata.organizationId || metadata.orgId;
 			if (!organizationId) {
 				const eventId = metadata.eventId || metadata.event_id;
