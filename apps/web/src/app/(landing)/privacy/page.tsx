@@ -115,7 +115,7 @@ export default function PrivacyPolicyPage() {
 						</p>
 						<ul className="list-disc pl-5 space-y-1.5 text-sm">
 							<li><strong className="text-foreground">Event Organizers:</strong> When you register for an event or purchase a ticket, the event organizer receives attendee details (e.g., ticket holder name, email, check-in status) required for event administration.</li>
-							<li><strong className="text-foreground">Service Providers:</strong> Trusted third-party vendors who assist us in operating our platform, including cloud hosting, email delivery (e.g., Brevo/Gmail), telecom USSD gateways, and payment processing (e.g., Paystack). All service providers are bound by strict confidentiality and data protection obligations.</li>
+							<li><strong className="text-foreground">Service Providers:</strong> Trusted third-party vendors who assist us in operating our platform, including cloud hosting, email delivery (e.g., Gmail), telecom USSD gateways, and payment processing (e.g., Paystack). All service providers are bound by strict confidentiality and data protection obligations.</li>
 							<li><strong className="text-foreground">Legal &amp; Safety Compliance:</strong> When required by law, subpoena, or in good faith belief that disclosure is reasonably necessary to protect the rights, property, or safety of users or the public.</li>
 						</ul>
 					</section>

@@ -483,7 +483,7 @@ export default {
 				}
 			}
 
-			// 7. Dispatch to Background Delivery Queue (brevo email/sms) if configured
+			// 7. Dispatch to Background Delivery Queue (sms/notifications) if configured
 			if (env.DELIVERY_QUEUE) {
 				await env.DELIVERY_QUEUE.send({
 					type: "PAYMENT_SUCCESS",

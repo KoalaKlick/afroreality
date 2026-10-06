@@ -24,7 +24,7 @@ export async function isPlatformAdmin(email?: string | null): Promise<boolean> {
 		: [];
 	if (envAdmins.includes(normalized)) return true;
 
-	const senderEmail = process.env.BREVO_SENDER_EMAIL?.trim().toLowerCase();
+	const senderEmail = process.env.SMTP_FROM_EMAIL?.trim().toLowerCase();
 	if (senderEmail && normalized === senderEmail) return true;
 
 	if (["admin@afroreality.com", "admin@fextiva.com"].includes(normalized)) {
@@ -66,7 +66,7 @@ export function isPlatformAdminEmail(email?: string | null): boolean {
 		: [];
 	if (envAdmins.includes(normalized)) return true;
 
-	const senderEmail = process.env.BREVO_SENDER_EMAIL?.trim().toLowerCase();
+	const senderEmail = process.env.SMTP_FROM_EMAIL?.trim().toLowerCase();
 	if (senderEmail && normalized === senderEmail) return true;
 
 	if (["admin@afroreality.com", "admin@fextiva.com"].includes(normalized)) {
