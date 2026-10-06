@@ -6,6 +6,7 @@ import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
 import {
 	sendTicketWhatsAppNotification,
 	sendVoteReceiptWhatsAppNotification,
+	normalizePhoneNumber,
 } from "@/lib/services/whatsapp";
 import { getFrontendBaseUrl } from "@/lib/utils";
 
@@ -229,21 +230,28 @@ export async function fulfillSuccessfulPayment({
 
 				if (buyerPhone && generatedTickets.length > 0) {
 					try {
-						const waRes = await sendTicketWhatsAppNotification({
-							phone: buyerPhone,
-							attendeeName: buyerName,
-							eventTitle: notifEvent?.title || "Fextiva Event",
-							ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
-							ticketToken: generatedTickets[0]?.token || undefined,
-							bannerImageUrl: notifEvent?.flierImage || notifEvent?.bannerImage || undefined,
-							attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+						// Atomic guard: claim whatsappSent=true for all unsent tickets in one query.
+						// If another process already marked them, affected count will be 0 and we skip.
+						const claimed = await prisma.ticket.updateMany({
+							where: {
+								id: { in: generatedTickets.map((t) => t.id) },
+								whatsappSent: false,
+							},
+							data: { whatsappSent: true },
 						});
 
-						if (waRes.success) {
-							await prisma.ticket.updateMany({
-								where: { id: { in: generatedTickets.map((t) => t.id) } },
-								data: { whatsappSent: true },
+						if (claimed.count > 0) {
+							await sendTicketWhatsAppNotification({
+								phone: buyerPhone,
+								attendeeName: buyerName,
+								eventTitle: notifEvent?.title || "Fextiva Event",
+								ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
+								ticketToken: generatedTickets[0]?.token || undefined,
+								bannerImageUrl: notifEvent?.flierImage || notifEvent?.bannerImage || undefined,
+								attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 							});
+						} else {
+							console.log(`[WhatsApp] Buyer notification already sent for tickets, skipping duplicate.`);
 						}
 					} catch (waErr) {
 						console.error("[WhatsApp] Error sending ticket confirmation:", waErr);
@@ -295,6 +303,7 @@ export async function fulfillSuccessfulPayment({
 								attendeeName: true,
 								attendeeEmail: true,
 								attendeePhone: true,
+								whatsappSent: true,
 								ticketType: { select: { name: true } },
 							},
 						});
@@ -324,9 +333,10 @@ export async function fulfillSuccessfulPayment({
 							);
 						}
 
-						// WhatsApp — send to each attendee with their own phone (skip if same as buyer)
+						// WhatsApp — send to each attendee with their own phone (skip if same as buyer or already sent)
 						const attendeePhoneVal = ticketRecord?.attendeePhone;
-						if (attendeePhoneVal && attendeePhoneVal !== buyerPhone) {
+						const attendeeAlreadySent = (ticketRecord as any)?.whatsappSent === true;
+						if (attendeePhoneVal && attendeePhoneVal !== buyerPhone && !attendeeAlreadySent) {
 							sendTicketWhatsAppNotification({
 								phone: attendeePhoneVal,
 								attendeeName: ticketRecord?.attendeeName || "Attendee",
@@ -801,23 +811,30 @@ async function dispatchPendingNotificationsIfAny({
 				}
 
 				// 1. Send WhatsApp notification
-				if (buyerPhone && notifEvent && (unsentWhatsapp || !alreadyDispatched)) {
+				// Atomic guard: only send if we can claim at least one unsent ticket.
+				// This prevents duplicate sends when webhook + callback race each other.
+				if (buyerPhone && notifEvent && unsentWhatsapp) {
 					try {
-						const waRes = await sendTicketWhatsAppNotification({
-							phone: buyerPhone,
-							attendeeName: buyerName,
-							eventTitle: notifEvent.title || "Fextiva Event",
-							ticketCode: formattedTickets.map((t: any) => t.ticketCode).join(", "),
-							ticketToken: formattedTickets[0]?.token || undefined,
-							bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
-							attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+						const claimed = await prisma.ticket.updateMany({
+							where: {
+								id: { in: tickets.map((t: any) => t.id) },
+								whatsappSent: false,
+							},
+							data: { whatsappSent: true },
 						});
 
-						if (waRes.success) {
-							await prisma.ticket.updateMany({
-								where: { id: { in: tickets.map((t: any) => t.id) } },
-								data: { whatsappSent: true },
+						if (claimed.count > 0) {
+							await sendTicketWhatsAppNotification({
+								phone: buyerPhone,
+								attendeeName: buyerName,
+								eventTitle: notifEvent.title || "Fextiva Event",
+								ticketCode: formattedTickets.map((t: any) => t.ticketCode).join(", "),
+								ticketToken: formattedTickets[0]?.token || undefined,
+								bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
+								attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 							});
+						} else {
+							console.log(`[WhatsApp] Recovery: buyer notification already claimed, skipping duplicate.`);
 						}
 					} catch (waErr) {
 						console.error("[WhatsApp] Error sending ticket confirmation on recovery:", waErr);

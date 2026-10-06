@@ -40,7 +40,7 @@ function emailShell({
     : "";
   const brand = getBrandName();
 
-  return `
+  	return `
     <!doctype html>
     <html>
       <head>
@@ -69,28 +69,16 @@ function emailShell({
 
                 ${bannerUrl ? `<tr><td style="padding:0;">${bannerSection}</td></tr>` : ""}
 
-                <!-- Brand header -->
-                <tr>
-                  <td style="padding:24px 40px 16px;text-align:center;">
-                    <p style="margin:0;font-size:24px;font-weight:900;color:${TEXT_PRIMARY};letter-spacing:-0.5px;text-transform:uppercase;">${escapeHtml(brand)}</p>
-                    <p style="margin:4px 0 0;font-size:11px;color:${TEXT_MUTED};letter-spacing:0.04em;">Empowering African Events</p>
-                  </td>
-                </tr>
-
-                <tr><td style="border-top:1px solid ${DIVIDER};font-size:0;line-height:0;">&nbsp;</td></tr>
-
                 <!-- Body -->
                 <tr>
-                  <td style="padding:28px 40px;">
+                  <td style="padding:32px 40px;">
                     ${body}
                   </td>
                 </tr>
 
-                <tr><td style="border-top:1px solid ${DIVIDER};font-size:0;line-height:0;">&nbsp;</td></tr>
-
                 <!-- Footer -->
                 <tr>
-                  <td style="padding:16px 40px 24px;background-color:${FOOTER_BG};">
+                  <td style="padding:16px 40px 24px;border-top:1px solid ${DIVIDER};">
                     <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};text-align:center;">
                       &copy; ${new Date().getFullYear()} ${escapeHtml(brand)}. All rights reserved.
                     </p>
@@ -117,25 +105,22 @@ function escapeHtml(input: string): string {
 function otpBox({
   label,
   code,
-  accentBg,
-  accentBorder,
-  accentText,
   expiry,
 }: {
   label: string;
   code: string;
-  accentBg: string;
-  accentBorder: string;
-  accentText: string;
+  accentBg?: string;
+  accentBorder?: string;
+  accentText?: string;
   expiry?: string;
 }): string {
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;background-color:${accentBg};border:2px dashed ${accentBorder};border-radius:12px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;">
       <tr>
-        <td style="padding:20px;text-align:center;">
-          <p style="margin:0 0 8px;font-size:12px;color:${accentText};font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(label)}</p>
-          <p style="margin:0;font-size:34px;font-weight:800;letter-spacing:10px;color:${accentText};font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${escapeHtml(code)}</p>
-          ${expiry ? `<p style="margin:8px 0 0;font-size:12px;color:${accentText};">${escapeHtml(expiry)}</p>` : ""}
+        <td style="padding:12px 0;border-top:1px solid ${DIVIDER};">
+          <p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">${escapeHtml(label)}</p>
+          <p style="margin:0;font-size:28px;font-weight:800;letter-spacing:6px;color:${TEXT_PRIMARY};font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${escapeHtml(code)}</p>
+          ${expiry ? `<p style="margin:6px 0 0;font-size:12px;color:${TEXT_MUTED};">${escapeHtml(expiry)}</p>` : ""}
         </td>
       </tr>
     </table>
@@ -422,12 +407,8 @@ export async function sendEventVotingKeyEmail({
         </tr>
       </table>
       ${paragraphs(`Hello <strong>${escapeHtml(name)}</strong>,`, `You have been registered as a verified voter for <strong>${escapeHtml(eventName)}</strong>. Below is your confidential voting key required to cast your ballot:`)}
-      ${otpBox({ label: "Your Private Voting Key", code: votingKey, accentBg: "#f3f4f6", accentBorder: ACCENT_PRIMARY, accentText: "#111827" })}
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0;background-color:#f8f5f1;border:1px solid #f3c390;border-radius:8px;">
-        <tr><td style="padding:12px 16px;font-size:12px;color:#78430c;line-height:1.5;">&#128274; <strong>Ballot Secrecy:</strong> This key is strictly private and belongs to you. Organization administrators and organizers cannot see this key.</td></tr>
-      </table>
+      ${otpBox({ label: "Your Private Voting Key", code: votingKey, expiry: "Keep this code private. Organizers cannot see it." })}
       ${votingUrl ? primaryButton({ label: "Go to Voting Portal", href: votingUrl, color: ACCENT_PRIMARY }) : ""}
-      <p style="margin:24px 0 0;font-size:12px;color:${TEXT_FOOTER};border-top:1px solid ${DIVIDER};padding-top:16px;text-align:center;">&copy; ${new Date().getFullYear()} ${escapeHtml(organizationName)} &middot; Powered by fextiva</p>
     `;
 
     const html = emailShell({

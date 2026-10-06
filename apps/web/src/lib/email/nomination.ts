@@ -1,5 +1,4 @@
-import { transporter, mailFromName, mailFromEmail } from "@/lib/mail/transport";
-import { getOrgImageUrl } from "@/lib/image-url-utils";
+import { transporter, mailFromEmail } from "@/lib/mail/transport";
 
 const ACCENT_PRIMARY = "#53967a";
 const ACCENT_SECONDARY = "#e88722";
@@ -11,7 +10,6 @@ const TEXT_FOOTER = "#9ca3af";
 const SURFACE = "#ffffff";
 const PAGE_BG = "#f4f4f5";
 const DIVIDER = "#e5e7eb";
-const BORDER_RADIUS = "0px";
 const FONT_STACK =
 	'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif';
 
@@ -50,8 +48,7 @@ function emailShell({
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:${PAGE_BG};">
           <tr>
             <td align="center" style="padding:40px 16px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="520" style="max-width:520px;width:100%;background-color:${SURFACE};border-radius:${BORDER_RADIUS};overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-                <!-- Tri-color brand accent bar -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="520" style="max-width:520px;width:100%;background-color:${SURFACE};overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
                 <tr>
                   <td style="padding:0;">
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -98,7 +95,7 @@ export async function sendNominationConfirmationEmail(
 	try {
 		const {
 			email,
-			recipientName = "Valued Candidate",
+			recipientName,
 			nomineeName,
 			categoryName,
 			eventName,
@@ -113,73 +110,76 @@ export async function sendNominationConfirmationEmail(
 		const codeToUse = confirmationCode || deletionCode;
 		const isLive = status ? status === "approved" : Boolean(codeToUse);
 		const previewText = isLive
-			? `Nomination confirmed for ${nomineeName} at ${eventName}`
-			: `Nomination received for ${nomineeName} at ${eventName}`;
+			? `Nomination confirmed — ${nomineeName}, ${eventName}`
+			: `Nomination received — ${nomineeName}, ${eventName}`;
+
+		const greeting = recipientName ? `Hi ${escapeHtml(recipientName)},` : "Hi,";
+		const statusLine = isLive
+			? `The nomination of <strong>${escapeHtml(nomineeName)}</strong> for <strong>${escapeHtml(categoryName)}</strong> at <strong>${escapeHtml(eventName)}</strong> is confirmed and now live on the voting list.`
+			: `The nomination of <strong>${escapeHtml(nomineeName)}</strong> for <strong>${escapeHtml(categoryName)}</strong> at <strong>${escapeHtml(eventName)}</strong> has been received and is pending organizer review.`;
 
 		const body = `
-      <div style="margin-bottom:24px;">
-        <p style="margin:0;font-size:12px;font-weight:700;text-transform:uppercase;color:${ACCENT_PRIMARY};letter-spacing:0.05em;">
-          ${escapeHtml(organizationName)} &bull; ${escapeHtml(eventName)}
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+          ${isLive ? "Nomination Confirmed" : "Nomination Received"}
         </p>
-        <h2 style="margin:6px 0 0;font-size:22px;font-weight:800;color:${TEXT_PRIMARY};line-height:1.25;">
-          ${isLive ? "Nomination Confirmed &amp; Live" : "Nomination Received"}
-        </h2>
+        <h1 style="margin:0;font-size:24px;font-weight:900;color:${TEXT_PRIMARY};line-height:1.25;">
+          ${escapeHtml(nomineeName)}
+        </h1>
       </div>
 
-      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
-        Hello <strong>${escapeHtml(recipientName)}</strong>,
+      <p style="margin:0 0 24px;font-size:15px;color:${TEXT_BODY};line-height:1.6;">
+        ${greeting}<br />${statusLine}
       </p>
 
-      <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
-        Your nomination of <strong>${escapeHtml(nomineeName)}</strong> for the <strong>${escapeHtml(categoryName)}</strong> category at <strong>${escapeHtml(eventName)}</strong> has been ${
-					isLive
-						? "<span style='color:#059669;font-weight:700;'>confirmed and is now live</span> on the official voting list."
-						: "<span style='color:#d97706;font-weight:700;'>received and is currently pending review</span> by event organizers."
-				}
-      </p>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:28px;">
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">Category</p>
+            <p style="margin:0;font-size:15px;font-weight:700;color:${TEXT_PRIMARY};">${escapeHtml(categoryName)}</p>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">Event</p>
+            <p style="margin:0;font-size:15px;font-weight:700;color:${TEXT_PRIMARY};">${escapeHtml(eventName)}</p>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">Status</p>
+            <p style="margin:0;font-size:15px;font-weight:700;color:${isLive ? "#059669" : "#d97706"};">${isLive ? "Live" : "Pending Review"}</p>
+          </td>
+        </tr>
+        ${codeToUse ? `
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">Withdrawal Code</p>
+            <p style="margin:0;font-size:18px;font-weight:800;font-family:monospace;color:${TEXT_PRIMARY};letter-spacing:3px;">${escapeHtml(codeToUse)}</p>
+            <p style="margin:4px 0 0;font-size:12px;color:${TEXT_MUTED};">Keep this private. Required to withdraw or make changes to this nomination.</p>
+          </td>
+        </tr>
+        ` : ""}
+      </table>
 
-      ${
-				codeToUse
-					? `
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;background-color:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;">
-          <tr>
-            <td style="padding:20px;text-align:center;">
-              <p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${TEXT_MUTED};">
-                Nominee Confirmation Code
-              </p>
-              <p style="margin:0;font-size:32px;font-weight:900;letter-spacing:6px;color:#1e3a8a;font-family:monospace;">
-                ${escapeHtml(codeToUse)}
-              </p>
-            </td>
-          </tr>
-        </table>
-
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 24px;background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
-          <tr>
-            <td style="padding:14px 16px;font-size:13px;color:#1e40af;line-height:1.5;">
-              &#128274; <strong>Keep this Confirmation Code private.</strong> Only enter it in-platform to approve a change or request you agree to (similar to a Mobile Money OTP). Organizers will never ask for your code directly.
-            </td>
-          </tr>
-        </table>
-      `
-					: `
-        <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${TEXT_MUTED};">
-          You will receive an automated confirmation notice once the organizer completes review of the candidate submission.
-        </p>
-      `
-			}
-
-      ${
-				eventUrl
-					? `
-        <div style="margin:24px 0;text-align:center;">
-          <a href="${escapeHtml(eventUrl)}" style="display:inline-block;padding:12px 28px;background-color:${ACCENT_PRIMARY};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;">
-            View Event &amp; Standings
-          </a>
-        </div>
-      `
-					: ""
-			}
+      ${eventUrl ? `
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="${ACCENT_PRIMARY}" style="border-radius:8px;background-color:${ACCENT_PRIMARY};">
+                  <a href="${escapeHtml(eventUrl)}" target="_blank"
+                    style="display:inline-block;padding:14px 36px;background-color:${ACCENT_PRIMARY};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;border-radius:8px;">
+                    View Event &amp; Standings
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+      ` : ""}
 
       <div style="margin-top:32px;padding-top:20px;border-top:1px solid ${DIVIDER};text-align:center;">
         <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};">
@@ -188,11 +188,7 @@ export async function sendNominationConfirmationEmail(
       </div>
     `;
 
-		const html = emailShell({
-			preview: previewText,
-			bannerUrl,
-			body,
-		});
+		const html = emailShell({ preview: previewText, bannerUrl, body });
 
 		const info = await transporter.sendMail({
 			from: `"${organizationName} via Fextiva" <${mailFromEmail}>`,
@@ -201,12 +197,7 @@ export async function sendNominationConfirmationEmail(
 			html,
 		});
 
-		console.log(
-			"[EMAIL] Nomination confirmation sent to",
-			email,
-			"messageId:",
-			info.messageId,
-		);
+		console.log("[EMAIL] Nomination confirmation sent to", email, "messageId:", info.messageId);
 		return { success: true, messageId: info.messageId };
 	} catch (error: any) {
 		console.error("[EMAIL] Failed to send nomination email:", error);
@@ -233,7 +224,7 @@ export async function sendNomineeChangeRequestEmail(
 	try {
 		const {
 			email,
-			recipientName = "Valued Nominee",
+			recipientName,
 			nomineeName,
 			categoryName,
 			eventName,
@@ -246,55 +237,60 @@ export async function sendNomineeChangeRequestEmail(
 
 		const isDelete = requestType === "DELETE";
 		const previewText = isDelete
-			? `Action required: Profile deletion request for ${nomineeName}`
-			: `Action required: Profile update request for ${nomineeName}`;
+			? `Action required: Deletion request for ${nomineeName}`
+			: `Action required: Profile update for ${nomineeName}`;
+
+		const greeting = recipientName ? `Hi ${escapeHtml(recipientName)},` : "Hi,";
+		const actionLine = isDelete
+			? `The organizer for <strong>${escapeHtml(eventName)}</strong> has requested the removal of the nominee profile <strong>${escapeHtml(nomineeName)}</strong> from the <strong>${escapeHtml(categoryName)}</strong> category.`
+			: `The organizer for <strong>${escapeHtml(eventName)}</strong> has submitted an update request for <strong>${escapeHtml(nomineeName)}</strong> in the <strong>${escapeHtml(categoryName)}</strong> category.`;
 
 		const body = `
-      <div style="margin-bottom:24px;">
-        <p style="margin:0;font-size:12px;font-weight:700;text-transform:uppercase;color:${ACCENT_PRIMARY};letter-spacing:0.05em;">
-          ${escapeHtml(organizationName)} &bull; ${escapeHtml(eventName)}
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+          Action Required
         </p>
-        <h2 style="margin:6px 0 0;font-size:22px;font-weight:800;color:${TEXT_PRIMARY};line-height:1.25;">
-          ${isDelete ? "Profile Deletion Request" : "Profile Update Request"}
-        </h2>
+        <h1 style="margin:0;font-size:24px;font-weight:900;color:${TEXT_PRIMARY};line-height:1.25;">
+          ${isDelete ? "Nominee Deletion Request" : "Nominee Update Request"}
+        </h1>
       </div>
 
-      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
-        Hello <strong>${escapeHtml(recipientName)}</strong>,
+      <p style="margin:0 0 24px;font-size:15px;color:${TEXT_BODY};line-height:1.6;">
+        ${greeting}<br />${actionLine}
       </p>
 
-      <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
-        The organizer for <strong>${escapeHtml(eventName)}</strong> has requested ${
-					isDelete
-						? `to <strong>delete</strong> your nominee profile (<em>${escapeHtml(nomineeName)}</em>) from the <strong>${escapeHtml(categoryName)}</strong> category.`
-						: `an update to your nominee profile (<em>${escapeHtml(nomineeName)}</em>) in the <strong>${escapeHtml(categoryName)}</strong> category.`
-				}
-      </p>
-
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0;background-color:#f8fafc;border:1px solid ${DIVIDER};border-radius:10px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:28px;">
         <tr>
-          <td style="padding:18px;">
-            <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;color:${TEXT_MUTED};letter-spacing:0.05em;">
-              ${isDelete ? "Proposed Action:" : "Proposed Changes:"}
-            </p>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">${isDelete ? "Proposed Action" : "Proposed Changes"}</p>
             ${changesSummaryHtml}
           </td>
         </tr>
-      </table>
-
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 24px;background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
         <tr>
-          <td style="padding:14px 16px;font-size:13px;color:#1e40af;line-height:1.5;">
-            &#128274; <strong>How to approve:</strong> Click the button below to review this request in-platform. You will be asked to enter your 6-digit Confirmation Code to approve or decline this change. Do not share your code with anyone.
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0;font-size:13px;color:${TEXT_MUTED};line-height:1.5;">
+              Click the button below to review this request in-platform. You will be prompted for your 6-digit code to approve or decline.
+            </p>
           </td>
         </tr>
       </table>
 
-      <div style="margin:28px 0;text-align:center;">
-        <a href="${escapeHtml(confirmUrl)}" style="display:inline-block;padding:14px 32px;background-color:${isDelete ? "#dc2626" : ACCENT_PRIMARY};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.12);">
-          ${isDelete ? "Review &amp; Approve Deletion" : "Review &amp; Approve Changes"}
-        </a>
-      </div>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;">
+        <tr>
+          <td align="center">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="${isDelete ? "#dc2626" : ACCENT_PRIMARY}" style="border-radius:8px;">
+                  <a href="${escapeHtml(confirmUrl)}" target="_blank"
+                    style="display:inline-block;padding:14px 36px;background-color:${isDelete ? "#dc2626" : ACCENT_PRIMARY};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;border-radius:8px;">
+                    ${isDelete ? "Review &amp; Confirm Deletion" : "Review &amp; Confirm Changes"}
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
 
       <div style="margin-top:32px;padding-top:20px;border-top:1px solid ${DIVIDER};text-align:center;">
         <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};">
@@ -303,25 +299,16 @@ export async function sendNomineeChangeRequestEmail(
       </div>
     `;
 
-		const html = emailShell({
-			preview: previewText,
-			bannerUrl,
-			body,
-		});
+		const html = emailShell({ preview: previewText, bannerUrl, body });
 
 		const info = await transporter.sendMail({
 			from: `"${organizationName} via Fextiva" <${mailFromEmail}>`,
 			to: email,
-			subject: `Action Required: ${isDelete ? "Nominee Deletion Request" : "Nominee Update Request"} - ${nomineeName}`,
+			subject: `Action Required: ${isDelete ? "Nominee Deletion" : "Nominee Update"} — ${nomineeName}`,
 			html,
 		});
 
-		console.log(
-			"[EMAIL] Nominee change request sent to",
-			email,
-			"messageId:",
-			info.messageId,
-		);
+		console.log("[EMAIL] Nominee change request sent to", email, "messageId:", info.messageId);
 		return { success: true, messageId: info.messageId };
 	} catch (error: any) {
 		console.error("[EMAIL] Failed to send nominee change request email:", error);
@@ -346,7 +333,7 @@ export async function sendNomineeUpdateNotificationEmail(
 	try {
 		const {
 			email,
-			recipientName = "Valued Nominee",
+			recipientName,
 			nomineeName,
 			categoryName,
 			eventName,
@@ -355,41 +342,36 @@ export async function sendNomineeUpdateNotificationEmail(
 			bannerUrl,
 		} = params;
 
-		const previewText = `Update Notice: Your nominee details for ${eventName} have been updated`;
+		const previewText = `Nominee profile updated — ${nomineeName}, ${eventName}`;
+		const greeting = recipientName ? `Hi ${escapeHtml(recipientName)},` : "Hi,";
 
 		const body = `
-      <div style="margin-bottom:24px;">
-        <p style="margin:0;font-size:12px;font-weight:700;text-transform:uppercase;color:${ACCENT_PRIMARY};letter-spacing:0.05em;">
-          ${escapeHtml(organizationName)} &bull; ${escapeHtml(eventName)}
+      <div style="margin-bottom:20px;">
+        <p style="margin:0 0 4px 0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">
+          Profile Update Notice
         </p>
-        <h2 style="margin:6px 0 0;font-size:22px;font-weight:800;color:${TEXT_PRIMARY};line-height:1.25;">
-          Nominee Details Updated
-        </h2>
+        <h1 style="margin:0;font-size:24px;font-weight:900;color:${TEXT_PRIMARY};line-height:1.25;">
+          ${escapeHtml(nomineeName)}
+        </h1>
       </div>
 
-      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
-        Hello <strong>${escapeHtml(recipientName)}</strong>,
+      <p style="margin:0 0 24px;font-size:15px;color:${TEXT_BODY};line-height:1.6;">
+        ${greeting}<br />
+        The organizer for <strong>${escapeHtml(eventName)}</strong> has updated the nominee profile for <strong>${escapeHtml(nomineeName)}</strong> in the <strong>${escapeHtml(categoryName)}</strong> category.
       </p>
 
-      <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:${TEXT_BODY};">
-        The organizer for <strong>${escapeHtml(eventName)}</strong> has updated the nominee profile details for <strong>${escapeHtml(nomineeName)}</strong> in the <strong>${escapeHtml(categoryName)}</strong> category.
-      </p>
-
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0;background-color:#f8fafc;border:1px solid ${DIVIDER};border-radius:10px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:28px;">
         <tr>
-          <td style="padding:18px;">
-            <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;color:${TEXT_MUTED};letter-spacing:0.05em;">
-              Updated Details:
-            </p>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">Updated Details</p>
             ${changesSummaryHtml}
           </td>
         </tr>
-      </table>
-
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 24px;background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
         <tr>
-          <td style="padding:14px 16px;font-size:13px;color:#166534;line-height:1.5;">
-            &#10003; <strong>Informational Notice:</strong> This change has been recorded in the event's audit trail. No further action is required from you.
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0;font-size:13px;color:${TEXT_MUTED};line-height:1.5;">
+              No action is required. This notice has been recorded for your reference.
+            </p>
           </td>
         </tr>
       </table>
@@ -401,29 +383,19 @@ export async function sendNomineeUpdateNotificationEmail(
       </div>
     `;
 
-		const html = emailShell({
-			preview: previewText,
-			bannerUrl,
-			body,
-		});
+		const html = emailShell({ preview: previewText, bannerUrl, body });
 
 		const info = await transporter.sendMail({
 			from: `"${organizationName} via Fextiva" <${mailFromEmail}>`,
 			to: email,
-			subject: `Notice: Nominee Profile Updated - ${nomineeName} (${eventName})`,
+			subject: `Notice: Nominee Profile Updated — ${nomineeName} (${eventName})`,
 			html,
 		});
 
-		console.log(
-			"[EMAIL] Nominee update notification sent to",
-			email,
-			"messageId:",
-			info.messageId,
-		);
+		console.log("[EMAIL] Nominee update notification sent to", email, "messageId:", info.messageId);
 		return { success: true, messageId: info.messageId };
 	} catch (error: any) {
 		console.error("[EMAIL] Failed to send nominee update notification email:", error);
 		return { success: false, error: error.message };
 	}
 }
-
