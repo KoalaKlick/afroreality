@@ -212,7 +212,14 @@ export async function fulfillSuccessfulPayment({
 						title: true,
 						flierImage: true,
 						bannerImage: true,
-						organization: { select: { name: true } },
+						organization: {
+							select: {
+								name: true,
+								primaryColor: true,
+								secondaryColor: true,
+								tertiaryColor: true,
+							},
+						},
 					},
 				});
 
@@ -288,7 +295,12 @@ export async function fulfillSuccessfulPayment({
 							orderNumber: metadata.orderNumber || order?.orderNumber,
 							totalTickets: generatedTickets.length,
 							allTicketCodes: generatedTickets.map((t) => t.ticketCode),
-						attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+							attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+							orgColors: notifEvent.organization ? {
+								primary: notifEvent.organization.primaryColor || undefined,
+								secondary: notifEvent.organization.secondaryColor || undefined,
+								tertiary: notifEvent.organization.tertiaryColor || undefined,
+							} : undefined,
 						}).catch((err) =>
 							console.error(`[EMAIL:TICKET] Failed for buyer ${cleanBuyerEmail}:`, err),
 						);
@@ -328,6 +340,11 @@ export async function fulfillSuccessfulPayment({
 								currency: "GHS",
 								isPrimaryBuyer: false,
 								totalTickets: 1,
+								orgColors: notifEvent.organization ? {
+									primary: notifEvent.organization.primaryColor || undefined,
+									secondary: notifEvent.organization.secondaryColor || undefined,
+									tertiary: notifEvent.organization.tertiaryColor || undefined,
+								} : undefined,
 							}).catch((err) =>
 								console.error(`[EMAIL:TICKET] Failed for ticket ${tkt.ticketCode}:`, err),
 							);
@@ -787,14 +804,21 @@ async function dispatchPendingNotificationsIfAny({
 
 				const notifEvent = eventId
 					? await prisma.event.findUnique({
-							where: { id: eventId },
-							select: {
-								title: true,
-								flierImage: true,
-								bannerImage: true,
-								organization: { select: { name: true } },
+						where: { id: eventId },
+						select: {
+							title: true,
+							flierImage: true,
+							bannerImage: true,
+							organization: {
+								select: {
+									name: true,
+									primaryColor: true,
+									secondaryColor: true,
+									tertiaryColor: true,
+								},
 							},
-					  })
+						},
+					})
 					: null;
 
 				const formattedTickets = tickets.map((t: any) => ({
@@ -867,6 +891,11 @@ async function dispatchPendingNotificationsIfAny({
 							totalTickets: tickets.length,
 							allTicketCodes: formattedTickets.map((t: any) => t.ticketCode),
 							attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+							orgColors: notifEvent.organization ? {
+								primary: notifEvent.organization.primaryColor || undefined,
+								secondary: notifEvent.organization.secondaryColor || undefined,
+								tertiary: notifEvent.organization.tertiaryColor || undefined,
+							} : undefined,
 						});
 					} catch (emailErr) {
 						console.error("[EMAIL:TICKET] Error sending confirmation on recovery:", emailErr);
@@ -882,7 +911,7 @@ async function dispatchPendingNotificationsIfAny({
 							notificationsDispatched: true,
 						},
 					},
-				}).catch(() => {});
+				}).catch(() => { });
 			}
 		}
 
@@ -902,9 +931,9 @@ async function dispatchPendingNotificationsIfAny({
 				try {
 					const option = optionId
 						? await prisma.votingOption.findUnique({
-								where: { id: optionId },
-								include: { category: true },
-						  })
+							where: { id: optionId },
+							include: { category: true },
+						})
 						: null;
 
 					await sendVoteReceiptWhatsAppNotification({
@@ -924,7 +953,7 @@ async function dispatchPendingNotificationsIfAny({
 								voteNotificationSent: true,
 							},
 						},
-					}).catch(() => {});
+					}).catch(() => { });
 				} catch (waErr) {
 					console.error("[WhatsApp] Error sending vote receipt on recovery:", waErr);
 				}
@@ -960,6 +989,11 @@ async function dispatchPendingNotificationsIfAny({
 								organizationName: option.event?.organization?.name || "Fextiva",
 								bannerUrl: option.event?.bannerImage || option.event?.flierImage,
 								eventUrl: option.event?.slug ? `${getFrontendBaseUrl()}/event/${option.event.slug}` : undefined,
+								orgColors: option.event?.organization ? {
+									primary: option.event.organization.primaryColor || undefined,
+									secondary: option.event.organization.secondaryColor || undefined,
+									tertiary: option.event.organization.tertiaryColor || undefined,
+								} : undefined,
 							});
 
 							await prisma.payment.update({
@@ -970,7 +1004,7 @@ async function dispatchPendingNotificationsIfAny({
 										nominationNotificationSent: true,
 									},
 								},
-							}).catch(() => {});
+							}).catch(() => { });
 						}
 					}
 				} catch (nomErr) {

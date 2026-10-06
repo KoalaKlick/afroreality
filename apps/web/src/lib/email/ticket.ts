@@ -1,4 +1,6 @@
 import { transporter, mailFromEmail } from "@/lib/mail/transport";
+import { getFrontendBaseUrl } from "@/lib/utils";
+import { getOrgImageUrl } from "@/lib/image-url-utils";
 
 const ACCENT_PRIMARY = "#53967a";
 const ACCENT_SECONDARY = "#e88722";
@@ -25,11 +27,18 @@ function emailShell({
 	preview,
 	bannerUrl,
 	body,
+	orgColors,
 }: {
 	preview: string;
 	bannerUrl?: string | null;
 	body: string;
+	orgColors?: { primary?: string; secondary?: string; tertiary?: string };
 }): string {
+	const bar1 = orgColors?.tertiary || ACCENT_TERTIARY;
+	const bar2 = orgColors?.secondary || ACCENT_SECONDARY;
+	const bar3 = orgColors?.primary || ACCENT_PRIMARY;
+	const fextivaLogoUrl = `${getFrontendBaseUrl()}/android-chrome-192x192.png`;
+
 	const bannerSection = bannerUrl
 		? `<img src="${bannerUrl}" alt="Event banner" style="display:block;width:100%;height:160px;object-fit:cover;" />`
 		: "";
@@ -53,9 +62,9 @@ function emailShell({
                   <td style="padding:0;">
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                       <tr>
-                        <td style="height:4px;width:33.33%;background-color:${ACCENT_TERTIARY};font-size:0;line-height:0;">&nbsp;</td>
-                        <td style="height:4px;width:33.33%;background-color:${ACCENT_SECONDARY};font-size:0;line-height:0;">&nbsp;</td>
-                        <td style="height:4px;width:33.33%;background-color:${ACCENT_PRIMARY};font-size:0;line-height:0;">&nbsp;</td>
+                        <td style="height:4px;width:33.33%;background-color:${bar1};font-size:0;line-height:0;">&nbsp;</td>
+                        <td style="height:4px;width:33.33%;background-color:${bar2};font-size:0;line-height:0;">&nbsp;</td>
+                        <td style="height:4px;width:33.33%;background-color:${bar3};font-size:0;line-height:0;">&nbsp;</td>
                       </tr>
                     </table>
                   </td>
@@ -64,6 +73,21 @@ function emailShell({
                 <tr>
                   <td style="padding:32px 36px;">
                     ${body}
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td style="padding:14px 36px 20px;border-top:1px solid ${DIVIDER};">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td style="font-size:11px;color:${TEXT_FOOTER};">
+                          &copy; ${new Date().getFullYear()} Powered by Fextiva
+                        </td>
+                        <td align="right">
+                          <img src="${fextivaLogoUrl}" alt="Fextiva" width="20" height="20" style="width:20px;height:20px;border-radius:4px;display:block;" />
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
@@ -108,6 +132,8 @@ export interface SendTicketConfirmationEmailInput {
 	allTicketCodes?: string[];
 	/** All attendee names in booking (for multi-ticket orders) */
 	attendeeNames?: string[];
+	/** Optional organization theme colors (primary, secondary, tertiary) */
+	orgColors?: { primary?: string; secondary?: string; tertiary?: string };
 }
 
 export async function sendTicketConfirmationEmail(
@@ -131,7 +157,10 @@ export async function sendTicketConfirmationEmail(
 			totalTickets = 1,
 			allTicketCodes,
 			attendeeNames,
+			orgColors,
 		} = params;
+
+		const btnColor = orgColors?.primary || ACCENT_PRIMARY;
 
 		const isMulti = totalTickets > 1;
 		const subject = isPrimaryBuyer
@@ -249,9 +278,9 @@ export async function sendTicketConfirmationEmail(
           <td align="center">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td align="center" bgcolor="${ACCENT_PRIMARY}" style="border-radius:8px;background-color:${ACCENT_PRIMARY};">
+                <td align="center" bgcolor="${btnColor}" style="border-radius:8px;background-color:${btnColor};">
                   <a href="${viewUrl}" target="_blank"
-                    style="display:inline-block;padding:14px 36px;background-color:${ACCENT_PRIMARY};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;border-radius:8px;">
+                    style="display:inline-block;padding:14px 36px;background-color:${btnColor};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:0.08em;border-radius:8px;">
                     ${isMulti ? "View Your Tickets" : "View Your Ticket"}
                   </a>
                 </td>
@@ -261,21 +290,15 @@ export async function sendTicketConfirmationEmail(
         </tr>
       </table>
 
-      <!-- Simple Entry Note -->
+      <!-- Entry note -->
       <p style="margin:16px 0 0;font-size:13px;color:${TEXT_MUTED};line-height:1.5;text-align:center;">
         ${isMulti
           ? `Each ticket has a unique QR code for entry. Click the button above to view and download your tickets.`
           : `Your ticket has a unique QR code for gate admission. Present it on your phone or print it for entry.`}
       </p>
-
-      <div style="margin-top:32px;padding-top:20px;border-top:1px solid ${DIVIDER};text-align:center;">
-        <p style="margin:0;font-size:12px;color:${TEXT_FOOTER};">
-          &copy; ${new Date().getFullYear()} ${escapeHtml(organizationName)} &middot; Powered by Fextiva
-        </p>
-      </div>
     `;
 
-		const html = emailShell({ preview: previewText, bannerUrl, body });
+		const html = emailShell({ preview: previewText, bannerUrl, body, orgColors });
 
 		const info = await transporter.sendMail({
 			from: `"${organizationName} via Fextiva" <${mailFromEmail}>`,

@@ -39,7 +39,7 @@ export function EventsList({
 	}
 
 	return (
-		<div className="grid gap-4">
+		<div className="grid gap-4 @5xl:grid-cols-2">
 			{events.map((event) => (
 				<HorizontalEventCard
 					key={event.id}

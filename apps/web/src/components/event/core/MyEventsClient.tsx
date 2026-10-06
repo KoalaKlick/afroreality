@@ -52,7 +52,7 @@ export function MyEventsClient({ events, stats }: MyEventsClientProps) {
 	};
 
 	return (
-		<div className="flex flex-1 flex-col gap-6">
+		<div className="flex flex-1 flex-col gap-6 @container/page">
 			{/* 3D Customizable Stats */}
 			<CustomizableEventStats
 				stats={stats}
