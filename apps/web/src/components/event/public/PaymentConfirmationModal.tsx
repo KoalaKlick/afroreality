@@ -121,7 +121,7 @@ function PaymentConfirmationModalContent() {
 			intervalId = setInterval(async () => {
 				pollCountRef.current += 1;
 				const isDone = await checkStatus(reference!);
-				if (isDone || pollCountRef.current >= 25) {
+				if (isDone || pollCountRef.current >= 60) {
 					if (intervalId) clearInterval(intervalId);
 					if (!isDone && state === "verifying") {
 						setState("failed");

@@ -3,6 +3,7 @@ import { neon } from "@neondatabase/serverless";
 export interface Env {
 	DATABASE_URL: string;
 	PAYSTACK_SECRET_KEY: string;
+	APP_URL?: string;
 	DELIVERY_QUEUE?: {
 		send(msg: any): Promise<void>;
 	};
@@ -75,6 +76,22 @@ export default {
 			if (!isValid) {
 				console.warn("[WEBHOOK] Invalid HMAC SHA512 signature rejected.");
 				return new Response("Invalid signature", { status: 401 });
+			}
+
+			// Forward webhook immediately to Next.js application endpoint for rich fulfillment & notifications (WhatsApp, Email)
+			const appBaseUrl = (env.APP_URL || "https://fextiva.com").replace(/\/$/, "");
+			try {
+				const fwdRes = await fetch(`${appBaseUrl}/api/webhooks/paystack`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"x-paystack-signature": signature || "",
+					},
+					body: bodyText,
+				});
+				console.log(`[WEBHOOK] Forwarded to Next.js (${appBaseUrl}): status ${fwdRes.status}`);
+			} catch (fwdErr) {
+				console.error("[WEBHOOK-FORWARD-ERROR] Could not forward to Next.js:", fwdErr);
 			}
 
 			const event = JSON.parse(bodyText);

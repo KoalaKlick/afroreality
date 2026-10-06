@@ -1127,6 +1127,27 @@ export async function getPaymentStatusByReference({
 			} catch (verifyErr) {
 				console.error("Paystack verification error on callback:", verifyErr);
 			}
+		} else {
+			// If already completed (e.g. by Cloudflare Worker webhook), ensure pending notifications (WhatsApp / Email) are delivered
+			try {
+				await fulfillSuccessfulPayment({
+					reference,
+				});
+
+				const refreshed = await prisma.payment.findUnique({
+					where: { id: payment.id },
+					include: {
+						ticketOrders: {
+							include: {
+								tickets: true,
+							},
+						},
+					},
+				});
+				if (refreshed) payment = refreshed;
+			} catch (fulfillErr) {
+				console.error("Error ensuring notifications on completed payment callback:", fulfillErr);
+			}
 		}
 
 		const metadata = (payment.metadata as any) || {};

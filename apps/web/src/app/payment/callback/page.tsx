@@ -76,11 +76,11 @@ function PaymentCallbackContent() {
 			const isDone = await checkStatus();
 			if (isDone) return;
 
-			// Poll every 2 seconds for up to 60 seconds (30 polls)
+			// Poll every 2 seconds for up to 120 seconds (60 polls)
 			intervalId = setInterval(async () => {
 				pollCountRef.current += 1;
 				const done = await checkStatus();
-				if (done || pollCountRef.current >= 30) {
+				if (done || pollCountRef.current >= 60) {
 					if (intervalId) clearInterval(intervalId);
 					if (!done && state === "verifying") {
 						setState("failed");

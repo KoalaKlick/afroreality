@@ -69,8 +69,11 @@ export async function fulfillSuccessfulPayment({
 			return { success: false, error: `Payment not found: ${reference}` };
 		}
 
-		// 2. Idempotency Check — if already completed, do not double-increment
+		const metadata = (payment.metadata as any) || (paystackData?.metadata as any) || {};
+
+		// 2. Idempotency Check — if already completed, do not double-increment, but ensure notifications are dispatched
 		if (payment.status === "completed") {
+			await dispatchPendingNotificationsIfAny({ payment, metadata, paystackData });
 			return {
 				success: true,
 				alreadyCompleted: true,
@@ -79,8 +82,6 @@ export async function fulfillSuccessfulPayment({
 				tickets: payment.ticketOrders?.[0]?.tickets || [],
 			};
 		}
-
-		const metadata = (payment.metadata as any) || (paystackData?.metadata as any) || {};
 		const now = new Date();
 		const paystackTransactionId = String(paystackData?.id || payment.paystackTransactionId || "");
 
@@ -722,6 +723,244 @@ export async function fulfillPayoutTransfer({
 	} catch (error: any) {
 		console.error("[FULFILLMENT-PAYOUT-ERROR]", error);
 		return { success: false, error: error.message };
+	}
+}
+
+/**
+ * Dispatches pending WhatsApp and Email notifications if they were not already sent.
+ * Essential when payment was marked completed by Cloudflare Worker or webhook prior to rich notification delivery.
+ */
+async function dispatchPendingNotificationsIfAny({
+	payment,
+	metadata,
+	paystackData,
+}: {
+	payment: any;
+	metadata: any;
+	paystackData?: any;
+}) {
+	try {
+		const purpose = payment.purpose || metadata?.purpose || "general";
+
+		// A: Ticket Purchase Notifications
+		if (purpose === "ticket_purchase") {
+			let order = payment.ticketOrders?.[0];
+			if (!order) {
+				order = await prisma.ticketOrder.findFirst({
+					where: { paymentId: payment.id },
+					include: { tickets: true },
+				});
+			}
+
+			const tickets = order?.tickets || [];
+			const alreadyDispatched = metadata?.notificationsDispatched === true;
+			const unsentWhatsapp = tickets.some((t: any) => !t.whatsappSent);
+
+			if ((!alreadyDispatched || unsentWhatsapp) && tickets.length > 0) {
+				const eventId = metadata.eventId || order?.eventId;
+				const buyerName =
+					metadata.buyerName ||
+					metadata.attendeeName ||
+					order?.buyerName ||
+					`Attendee (${metadata.phoneNumber || payment.email})`;
+				const buyerPhone =
+					metadata.buyerPhone ||
+					metadata.phone ||
+					metadata.phone_number ||
+					metadata.attendeePhone ||
+					order?.buyerPhone ||
+					null;
+				const buyerEmail =
+					metadata.buyerEmail ||
+					metadata.attendeeEmail ||
+					payment.email;
+
+				const notifEvent = eventId
+					? await prisma.event.findUnique({
+							where: { id: eventId },
+							select: {
+								title: true,
+								flierImage: true,
+								bannerImage: true,
+								organization: { select: { name: true } },
+							},
+					  })
+					: null;
+
+				const formattedTickets = tickets.map((t: any) => ({
+					id: t.id,
+					ticketCode: t.ticketCode,
+					token: createTicketToken(t.id, t.ticketCode),
+				}));
+
+				const allAttendeeNames: string[] = [];
+				for (const tkt of tickets) {
+					if (tkt.attendeeName) {
+						allAttendeeNames.push(tkt.attendeeName);
+					}
+				}
+
+				// 1. Send WhatsApp notification
+				if (buyerPhone && notifEvent && (unsentWhatsapp || !alreadyDispatched)) {
+					try {
+						const waRes = await sendTicketWhatsAppNotification({
+							phone: buyerPhone,
+							attendeeName: buyerName,
+							eventTitle: notifEvent.title || "Fextiva Event",
+							ticketCode: formattedTickets.map((t: any) => t.ticketCode).join(", "),
+							ticketToken: formattedTickets[0]?.token || undefined,
+							bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
+							attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+						});
+
+						if (waRes.success) {
+							await prisma.ticket.updateMany({
+								where: { id: { in: tickets.map((t: any) => t.id) } },
+								data: { whatsappSent: true },
+							});
+						}
+					} catch (waErr) {
+						console.error("[WhatsApp] Error sending ticket confirmation on recovery:", waErr);
+					}
+				}
+
+				// 2. Send Email notification
+				if (buyerEmail && notifEvent && !alreadyDispatched) {
+					const cleanBuyerEmail = String(buyerEmail).trim().toLowerCase();
+					const baseUrl = getFrontendBaseUrl();
+					const primaryTicket = formattedTickets[0];
+					const primaryPassViewUrl = `${baseUrl}/ticket/view?token=${primaryTicket.token}`;
+					const totalAmount = Number(metadata.baseAmount || metadata.totalToCharge || payment.amount || 0);
+
+					try {
+						await sendTicketConfirmationEmail({
+							email: cleanBuyerEmail,
+							attendeeName: buyerName,
+							eventName: notifEvent.title,
+							organizationName: notifEvent.organization?.name || "Fextiva",
+							ticketTypeName: metadata.ticketTypeName || "Ticket",
+							ticketCode: primaryTicket.ticketCode,
+							viewUrl: primaryPassViewUrl,
+							bannerUrl: notifEvent.flierImage || notifEvent.bannerImage,
+							isFree: false,
+							amountPaid: totalAmount,
+							currency: "GHS",
+							isPrimaryBuyer: true,
+							orderNumber: metadata.orderNumber || order?.orderNumber,
+							totalTickets: tickets.length,
+							allTicketCodes: formattedTickets.map((t: any) => t.ticketCode),
+							attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+						});
+					} catch (emailErr) {
+						console.error("[EMAIL:TICKET] Error sending confirmation on recovery:", emailErr);
+					}
+				}
+
+				// Mark metadata to prevent duplicate emails
+				await prisma.payment.update({
+					where: { id: payment.id },
+					data: {
+						metadata: {
+							...metadata,
+							notificationsDispatched: true,
+						},
+					},
+				}).catch(() => {});
+			}
+		}
+
+		// B: Voting Notifications
+		if (purpose === "voting" || purpose === "vote_purchase") {
+			const voterPhone =
+				metadata.voterPhone ||
+				metadata.phone ||
+				metadata.phone_number ||
+				paystackData?.customer?.phone;
+			const alreadyNotified = metadata.voteNotificationSent === true;
+
+			if (voterPhone && !alreadyNotified) {
+				const optionId = metadata.optionId || metadata.votingOptionId || metadata.option_id;
+				const voteCount = Math.max(1, Number(metadata.voteCount) || Number(metadata.quantity) || 1);
+
+				try {
+					const option = optionId
+						? await prisma.votingOption.findUnique({
+								where: { id: optionId },
+								include: { category: true },
+						  })
+						: null;
+
+					await sendVoteReceiptWhatsAppNotification({
+						phone: voterPhone,
+						voterName: metadata.voterName || undefined,
+						nomineeName: option?.optionText || "Nominee",
+						categoryName: option?.category?.name || undefined,
+						votesCount: voteCount,
+						reference: payment.reference,
+					});
+
+					await prisma.payment.update({
+						where: { id: payment.id },
+						data: {
+							metadata: {
+								...metadata,
+								voteNotificationSent: true,
+							},
+						},
+					}).catch(() => {});
+				} catch (waErr) {
+					console.error("[WhatsApp] Error sending vote receipt on recovery:", waErr);
+				}
+			}
+		}
+
+		// C: Nomination Notifications
+		if (purpose === "nomination") {
+			const alreadyNotified = metadata.nominationNotificationSent === true;
+			const optionId = metadata.optionId || metadata.nomineeId;
+
+			if (!alreadyNotified && optionId) {
+				try {
+					const option = await prisma.votingOption.findUnique({
+						where: { id: optionId },
+						include: {
+							category: true,
+							event: { include: { organization: true } },
+						},
+					});
+
+					if (option) {
+						const recipientEmail = option.nominatedByEmail || option.email || payment.email;
+						if (recipientEmail) {
+							await sendNominationConfirmationEmail({
+								email: recipientEmail,
+								recipientName: option.nominatedByName || recipientEmail,
+								nomineeName: option.optionText,
+								categoryName: option.category?.name || "Category",
+								eventName: option.event?.title || "Event",
+								deletionCode: option.deletionCode || undefined,
+								requiresApproval: option.status === "pending",
+								eventUrl: option.event?.slug ? `${getFrontendBaseUrl()}/event/${option.event.slug}` : undefined,
+							});
+
+							await prisma.payment.update({
+								where: { id: payment.id },
+								data: {
+									metadata: {
+										...metadata,
+										nominationNotificationSent: true,
+									},
+								},
+							}).catch(() => {});
+						}
+					}
+				} catch (nomErr) {
+					console.error("[Nomination] Error sending email on recovery:", nomErr);
+				}
+			}
+		}
+	} catch (err) {
+		console.error("[FULFILLMENT] Exception in dispatchPendingNotificationsIfAny:", err);
 	}
 }
 
