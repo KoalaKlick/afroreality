@@ -938,8 +938,10 @@ async function dispatchPendingNotificationsIfAny({
 								nomineeName: option.optionText,
 								categoryName: option.category?.name || "Category",
 								eventName: option.event?.title || "Event",
-								deletionCode: option.deletionCode || undefined,
-								requiresApproval: option.status === "pending",
+								status: option.status,
+								deletionCode: option.status === "approved" ? option.deletionCode : null,
+								organizationName: option.event?.organization?.name || "Fextiva",
+								bannerUrl: option.event?.bannerImage || option.event?.flierImage,
 								eventUrl: option.event?.slug ? `${getFrontendBaseUrl()}/event/${option.event.slug}` : undefined,
 							});
 
