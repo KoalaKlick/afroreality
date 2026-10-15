@@ -107,7 +107,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
+      <body className="min-h-screen overflow-x-hidden bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
         <AuthProvider>{children}</AuthProvider>
         <Toaster richColors position="top-right" closeButton />
       </body>
