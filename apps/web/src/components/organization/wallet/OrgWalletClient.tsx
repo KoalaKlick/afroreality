@@ -307,7 +307,7 @@ export function OrgWalletClient({
 				]}
 			/>
 
-			<div className="flex flex-1 flex-col gap-6 p-6">
+			<div className="flex flex-1 flex-col gap-4 sm:gap-6">
 				{/* 1. Status Cards at the Very Top */}
 				<WalletBalanceSummary
 					organizationId={organization.id}

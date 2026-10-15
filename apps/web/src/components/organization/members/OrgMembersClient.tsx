@@ -72,7 +72,7 @@ export function OrgMembersClient({
 				]}
 			/>
 
-			<div className="flex flex-1 flex-col gap-6 p-6">
+			<div className="flex flex-1 flex-col gap-4 sm:gap-6">
 				<Tabs defaultValue={defaultTab} className="space-y-6">
 					<Card>
 						<CardHeader>

@@ -74,7 +74,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 					/>
 
 					{/* Page Main Content */}
-					<div className="relative flex-1 flex flex-col p-4 sm:p-6 md:p-8">
+					<div className="relative flex-1 flex flex-col min-w-0 p-2 sm:p-4 md:p-6 lg:p-8">
 						<div className="flex flex-1 flex-col gap-6">
 							{children}
 						</div>

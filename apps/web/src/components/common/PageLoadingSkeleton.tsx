@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function PageLoadingSkeleton() {
 	return (
-		<div className="flex flex-1 flex-col gap-6 p-6 animate-in fade-in duration-200">
+		<div className="flex flex-1 flex-col gap-4 sm:gap-6 animate-in fade-in duration-200">
 			{/* Breadcrumb / Header skeleton */}
 			<div className="flex items-center justify-between">
 				<div className="space-y-2">
