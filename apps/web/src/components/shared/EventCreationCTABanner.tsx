@@ -30,7 +30,7 @@ export function EventCreationCTABanner({
 				<div className="absolute inset-0 bg-black/40" />
 
 				{/* Inner container — reusable Card holds everything */}
-				<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-y-clip">
 					<Card className="relative shadow-2xl gap-0 py-0 flex flex-col md:flex-row justify-between">
 
 						{/* Left: Text + buttons */}
@@ -64,7 +64,7 @@ export function EventCreationCTABanner({
 						{/* Right: 3 people images — @container for responsive placement */}
 						<div className="flex-1 grow relative min-h-72 @container pointer-events-none select-none">
 							{/* Person 3 – back (woman with brand-responsive attire color) */}
-							<div className="absolute bottom-0 z-[1] @max-md:-left-16 @min-md:left-0 w-auto @max-md:h-full h-[85%] aspect-square pointer-events-auto isolate group">
+							<div className="absolute -bottom-6 z-[1] @max-md:-left-16 @min-md:left-0 w-auto @max-md:h-full h-[85%] aspect-square pointer-events-auto isolate group">
 								<img
 									src="/landing/cta/create-event-3-base.webp"
 									alt=""
