@@ -175,6 +175,14 @@ const EVENT_INCLUDE = {
 	ticketTypes: true,
 } as const;
 
+function getCurrentEventsWhere(now: Date = new Date()) {
+	return {
+		hasUssd: true,
+		status: { in: ["published", "ongoing"] as any },
+		OR: [{ endDate: null }, { endDate: { gte: now } }],
+	};
+}
+
 async function fetchEventByCode(code: string) {
 	return prisma.event.findFirst({
 		where: {
@@ -687,8 +695,9 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 
 	// 2. Welcome screen (Depth 0)
 	if (depth === 0) {
+		const now = new Date();
 		const events = await prisma.event.findMany({
-			where: { hasUssd: true },
+			where: getCurrentEventsWhere(now),
 			select: { id: true, title: true, ussdCode: true },
 			orderBy: { createdAt: "desc" },
 			take: MAX_LISTED_EVENTS,
@@ -724,8 +733,9 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 		const selectedIdx = Number.parseInt(firstInput, 10);
 
 		// Try listed-index first (user picked from the welcome menu)
+		const now = new Date();
 		const listedEvents = await prisma.event.findMany({
-			where: { hasUssd: true },
+			where: getCurrentEventsWhere(now),
 			include: EVENT_INCLUDE,
 			orderBy: { createdAt: "desc" },
 			take: MAX_LISTED_EVENTS,
@@ -751,6 +761,19 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 
 	if (!event) {
 		return "END Event not found. Check your code.";
+	}
+
+	const now = new Date();
+	if (event.status === "draft") {
+		return "END Event not available. Check your code.";
+	}
+
+	if (
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(event.endDate && new Date(event.endDate) < now)
+	) {
+		return "END This event has ended.";
 	}
 
 	// 4. Route by event type

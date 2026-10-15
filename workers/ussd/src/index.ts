@@ -127,7 +127,7 @@ export function buildPaginatedMenu(
 // Database Helpers via direct PostgreSQL connection
 export async function fetchEventByCode(sql: any, code: string) {
 	const events = await sql`
-		SELECT id, title, has_ussd, ussd_code, type, organization_id 
+		SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date
 		FROM events 
 		WHERE ussd_code = ${code} AND has_ussd = true
 		LIMIT 1
@@ -639,6 +639,27 @@ export async function handleVotingFlow(
 	phoneNumber: string,
 	paystackSecret: string,
 ): Promise<Response> {
+	const now = new Date();
+	const startDate = event.start_date || event.startDate;
+	const endDate = event.end_date || event.endDate;
+
+	if (startDate && new Date(startDate) > now) {
+		const startStr = new Date(startDate).toLocaleDateString("en-GH", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		});
+		return textResponse(`END Voting has not started yet. Voting opens on ${startStr}.`);
+	}
+
+	if (
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(endDate && new Date(endDate) < now)
+	) {
+		return textResponse("END Voting for this event has ended.");
+	}
+
 	const categories = details.categories || [];
 	if (categories.length === 0)
 		return textResponse("END No voting categories available.");
@@ -737,6 +758,16 @@ export async function handleTicketFlow(
 	phoneNumber: string,
 	paystackSecret: string,
 ): Promise<Response> {
+	const now = new Date();
+	const endDate = event.end_date || event.endDate;
+	if (
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(endDate && new Date(endDate) < now)
+	) {
+		return textResponse("END Ticket sales for this event have ended.");
+	}
+
 	const tickets = details.ticketTypes || [];
 	if (tickets.length === 0)
 		return textResponse("END No tickets available.");
@@ -879,6 +910,8 @@ export async function handleUssdCore(
 			SELECT id, title, ussd_code 
 			FROM events 
 			WHERE has_ussd = true 
+			  AND status IN ('published', 'ongoing')
+			  AND (end_date IS NULL OR end_date >= NOW())
 			ORDER BY created_at DESC 
 			LIMIT ${maxEvents}
 		`;
@@ -921,9 +954,11 @@ export async function handleUssdCore(
 			);
 
 			const listedEvents = await sql`
-				SELECT id, title, has_ussd, ussd_code, type, organization_id 
+				SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date
 				FROM events 
 				WHERE has_ussd = true 
+				  AND status IN ('published', 'ongoing')
+				  AND (end_date IS NULL OR end_date >= NOW())
 				ORDER BY created_at DESC 
 				LIMIT ${maxEvents}
 			`;
@@ -937,6 +972,20 @@ export async function handleUssdCore(
 
 	if (!event) {
 		return textResponse("END Event not found. Check your code.");
+	}
+
+	const now = new Date();
+	if (event.status === "draft") {
+		return textResponse("END Event not available. Check your code.");
+	}
+
+	const endDate = event.end_date || event.endDate;
+	if (
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(endDate && new Date(endDate) < now)
+	) {
+		return textResponse("END This event has ended.");
 	}
 
 	const details = await fetchEventDetails(sql, event.id);
