@@ -4,6 +4,8 @@
 import {
 	ArrowDownToLine,
 	ArrowLeftRight,
+	Calendar,
+	ChevronDown,
 	Clock,
 	DollarSign,
 	CheckCircle2,
@@ -15,13 +17,22 @@ import {
 	KeyRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { ConfirmPasswordDialog } from "@/components/shared/ConfirmPasswordDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import {
 	Dialog,
 	DialogContent,
@@ -92,6 +103,28 @@ export function OrgWalletClient({
 	// Search filter state
 	const [searchQuery, setSearchQuery] = useState("");
 
+	// Event inflows list from wallet
+	const eventInflows = useMemo(
+		() => (wallet as any)?.eventInflows || [],
+		[wallet],
+	);
+
+	// Event filter state for ledger
+	const [selectedEventId, setSelectedEventId] = useState<string>("all");
+
+	// Event reference for withdrawal
+	const [withdrawalEventId, setWithdrawalEventId] = useState<string>("all");
+
+	const selectedEvent = useMemo(
+		() => eventInflows.find((e: any) => e.id === selectedEventId),
+		[eventInflows, selectedEventId],
+	);
+
+	const selectedWithdrawalEvent = useMemo(
+		() => eventInflows.find((e: any) => e.id === withdrawalEventId),
+		[eventInflows, withdrawalEventId],
+	);
+
 	// Payout drawer state
 	const [isPayoutDrawerOpen, setIsPayoutDrawerOpen] = useState(false);
 
@@ -159,46 +192,132 @@ export function OrgWalletClient({
 		[outflows],
 	);
 
-	// Filter by search query
+	// Filter by event and search query
 	const filterTransactions = (list: Transaction[]) => {
-		if (!searchQuery.trim()) return list;
+		let result = list;
+		if (selectedEventId !== "all") {
+			result = result.filter(
+				(t) => t.eventId === selectedEventId || (t.event && t.event.id === selectedEventId),
+			);
+		}
+		if (!searchQuery.trim()) return result;
 		const query = searchQuery.toLowerCase().trim();
-		return list.filter((t) => {
+		return result.filter((t) => {
 			const refMatch = t.reference?.toLowerCase().includes(query);
 			const descMatch = t.description?.toLowerCase().includes(query);
 			const typeMatch = t.type?.toLowerCase().includes(query);
 			const categoryMatch = t.category?.toLowerCase().includes(query);
 			const amountMatch = t.amount?.toString().includes(query);
 			const statusMatch = t.status?.toLowerCase().includes(query);
-			return refMatch || descMatch || typeMatch || categoryMatch || amountMatch || statusMatch;
+			const eventMatch = t.event?.title?.toLowerCase().includes(query);
+			return refMatch || descMatch || typeMatch || categoryMatch || amountMatch || statusMatch || eventMatch;
 		});
 	};
 
 	const filteredAll = useMemo(
 		() => filterTransactions(transactions),
-		[transactions, searchQuery],
+		[transactions, searchQuery, selectedEventId],
 	);
 	const filteredInflows = useMemo(
 		() => filterTransactions(inflows),
-		[inflows, searchQuery],
+		[inflows, searchQuery, selectedEventId],
 	);
 	const filteredOutflows = useMemo(
 		() => filterTransactions(outflows),
-		[outflows, searchQuery],
+		[outflows, searchQuery, selectedEventId],
 	);
+
+	const filteredPayouts = useMemo(() => {
+		let result = payouts;
+		if (selectedEventId !== "all") {
+			result = result.filter(
+				(p) =>
+					p.eventId === selectedEventId ||
+					(p.event && p.event.id === selectedEventId) ||
+					(selectedEvent && p.notes && p.notes.includes(selectedEvent.title)),
+			);
+		}
+		if (!searchQuery.trim()) return result;
+		const query = searchQuery.toLowerCase().trim();
+		return result.filter((p) => {
+			const refMatch = p.reference?.toLowerCase().includes(query);
+			const accMatch = p.accountNumber?.toLowerCase().includes(query);
+			const nameMatch = p.accountName?.toLowerCase().includes(query);
+			const bankMatch = p.bankName?.toLowerCase().includes(query);
+			const statusMatch = p.status?.toLowerCase().includes(query);
+			const notesMatch = p.notes?.toLowerCase().includes(query);
+			const eventMatch = p.event?.title?.toLowerCase().includes(query);
+			return refMatch || accMatch || nameMatch || bankMatch || statusMatch || notesMatch || eventMatch;
+		});
+	}, [payouts, searchQuery, selectedEventId, selectedEvent]);
+
+	const eventOutflowAmount = useMemo(() => {
+		if (selectedEventId === "all") return null;
+		return filteredOutflows
+			.filter((t) => t.status === "completed")
+			.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+	}, [selectedEventId, filteredOutflows]);
 
 	const minWithdrawalAmount = Number((wallet as any)?.minWithdrawalAmount ?? 20);
 	const transferFee = Number((wallet as any)?.transferFee ?? 1.0);
 	const isNextWithdrawalFree = Boolean((wallet as any)?.isNextWithdrawalFree ?? true);
 
+	// Calculate net available allocation for a given event
+	const getEventNetAllocation = useCallback(
+		(eventId: string) => {
+			if (eventId === "all") return availableBalance;
+			const ev = eventInflows.find((e: any) => e.id === eventId);
+			if (!ev) return availableBalance;
+			const eventInflow = Number(ev.totalInflow || 0);
+
+			// Calculate debits (completed, pending, processing) belonging to this event
+			const eventDebits = outflows
+				.filter(
+					(t) =>
+						(t.eventId === eventId ||
+							t.event?.id === eventId ||
+							(ev.title && (t.description?.includes(ev.title) || t.notes?.includes(ev.title)))) &&
+						(t.status === "completed" || t.status === "pending" || t.status === "processing"),
+				)
+				.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+			const net = Math.max(0, Math.round((eventInflow - eventDebits) * 100) / 100);
+			return Math.min(net, availableBalance);
+		},
+		[availableBalance, eventInflows, outflows],
+	);
+
+	const selectedEventAllocation = useMemo(() => {
+		if (withdrawalEventId === "all") return availableBalance;
+		return getEventNetAllocation(withdrawalEventId);
+	}, [withdrawalEventId, availableBalance, getEventNetAllocation]);
+
+	const effectiveMaxAmount =
+		withdrawalEventId !== "all"
+			? Math.min(selectedEventAllocation, availableBalance)
+			: availableBalance;
+
 	const parsedAmount = Number.parseFloat(withdrawalAmount);
 	const isValidWithdrawalAmount =
 		!Number.isNaN(parsedAmount) &&
 		parsedAmount >= minWithdrawalAmount &&
-		parsedAmount <= availableBalance;
+		parsedAmount <= effectiveMaxAmount;
 
 	const calculatedFee = isNextWithdrawalFree ? 0 : transferFee;
 	const netPayoutAmount = Math.max(0, Math.round((parsedAmount - calculatedFee) * 100) / 100);
+
+	function handleWithdrawalEventChange(eventId: string) {
+		setWithdrawalEventId(eventId);
+		if (eventId === "all") {
+			setWithdrawalAmount("");
+			setWithdrawalMemo("");
+		} else {
+			const ev = eventInflows.find((e: any) => e.id === eventId);
+			const alloc = getEventNetAllocation(eventId);
+			setWithdrawalAmount(alloc > 0 ? alloc.toFixed(2) : "");
+			setWithdrawalMemo(ev?.title ? `${ev.title} Payout` : "");
+		}
+	}
 
 	function handleOpenWithdrawal() {
 		if (wallet?.isLocked) {
@@ -210,8 +329,17 @@ export function OrgWalletClient({
 			setIsPayoutDrawerOpen(true);
 			return;
 		}
-		setWithdrawalAmount("");
-		setWithdrawalMemo("");
+		const initialEventId = selectedEventId !== "all" ? selectedEventId : "all";
+		setWithdrawalEventId(initialEventId);
+		if (initialEventId !== "all") {
+			const ev = eventInflows.find((e: any) => e.id === initialEventId);
+			const alloc = getEventNetAllocation(initialEventId);
+			setWithdrawalAmount(alloc > 0 ? alloc.toFixed(2) : "");
+			setWithdrawalMemo(ev?.title ? `${ev.title} Payout` : "");
+		} else {
+			setWithdrawalAmount("");
+			setWithdrawalMemo("");
+		}
 		setIsWithdrawOpen(true);
 	}
 
@@ -219,6 +347,12 @@ export function OrgWalletClient({
 		if (Number.isNaN(parsedAmount) || parsedAmount < minWithdrawalAmount) {
 			toast.error(
 				`Minimum withdrawal amount is ${currency} ${minWithdrawalAmount.toFixed(2)}.`,
+			);
+			return;
+		}
+		if (withdrawalEventId !== "all" && parsedAmount > selectedEventAllocation) {
+			toast.error(
+				`Amount exceeds ${selectedWithdrawalEvent?.title || "event"} allocation (${currency} ${selectedEventAllocation.toFixed(2)})`,
 			);
 			return;
 		}
@@ -243,12 +377,14 @@ export function OrgWalletClient({
 					accountNumber: organization.paystackAccountNumber ?? "",
 					accountName: organization.paystackAccountName ?? "",
 					description: withdrawalMemo || undefined,
+					eventId: withdrawalEventId !== "all" ? withdrawalEventId : undefined,
 				},
 			});
 
 			setIsConfirmOpen(false);
 			setWithdrawalAmount("");
 			setWithdrawalMemo("");
+			setWithdrawalEventId("all");
 
 			if (result.requiresOtp) {
 				toast.success("Withdrawal request submitted! It is currently being processed.");
@@ -323,6 +459,8 @@ export function OrgWalletClient({
 					pendingBalance={pendingBalance}
 					pendingDebits={pendingDebits}
 					isLocked={!!wallet?.isLocked}
+					eventFilterTitle={selectedEvent ? selectedEvent.title : null}
+					eventFilterInflow={selectedEvent ? Number(selectedEvent.totalInflow || 0) : null}
 					totalRevenue={
 						typeof (wallet as any)?.totalInflows === "number"
 							? Number((wallet as any).totalInflows)
@@ -331,9 +469,11 @@ export function OrgWalletClient({
 								: availableBalance + (wallet?.pendingCredits ?? 0)
 					}
 					totalWithdrawn={
-						typeof (wallet as any)?.totalPayouts === "number"
-							? Number((wallet as any).totalPayouts)
-							: totalOutflowAmount
+						eventOutflowAmount !== null
+							? eventOutflowAmount
+							: typeof (wallet as any)?.totalPayouts === "number"
+								? Number((wallet as any).totalPayouts)
+								: totalOutflowAmount
 					}
 					currency={currency}
 				/>
@@ -421,46 +561,118 @@ export function OrgWalletClient({
 							</div>
 						</CardHeader>
 						<CardContent>
-							<TabsList
-								variant="brand"
-								className="flex overflow-x-auto w-full p-1.5 gap-1.5 rounded-sm"
-							>
-								<TabsTrigger
+							<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+								<TabsList
 									variant="brand"
-									value="all"
-									className="gap-1.5"
+									className="flex overflow-x-auto p-1.5 gap-1.5 rounded-sm"
 								>
-									<ArrowLeftRight className="h-4 w-4" />
-									<span>All Activity</span>
-								</TabsTrigger>
+									<TabsTrigger
+										variant="brand"
+										value="all"
+										className="gap-1.5"
+									>
+										<ArrowLeftRight className="h-4 w-4" />
+										<span>All Activity</span>
+									</TabsTrigger>
 
-								<TabsTrigger
-									variant="brand"
-									value="received"
-									className="gap-1.5"
-								>
-									<DollarSign className="h-4 w-4" />
-									<span>Revenue (Inflows)</span>
-								</TabsTrigger>
+									<TabsTrigger
+										variant="brand"
+										value="received"
+										className="gap-1.5"
+									>
+										<DollarSign className="h-4 w-4" />
+										<span>Revenue (Inflows)</span>
+									</TabsTrigger>
 
-								<TabsTrigger
-									variant="brand"
-									value="withdrawals"
-									className="gap-1.5"
-								>
-									<ArrowDownToLine className="h-4 w-4" />
-									<span>Outflows (Debits)</span>
-								</TabsTrigger>
+									<TabsTrigger
+										variant="brand"
+										value="withdrawals"
+										className="gap-1.5"
+									>
+										<ArrowDownToLine className="h-4 w-4" />
+										<span>Outflows (Debits)</span>
+									</TabsTrigger>
 
-								<TabsTrigger
-									variant="brand"
-									value="payouts"
-									className="gap-1.5"
-								>
-									<Landmark className="h-4 w-4" />
-									<span>Payout History ({totalPayouts})</span>
-								</TabsTrigger>
-							</TabsList>
+									<TabsTrigger
+										variant="brand"
+										value="payouts"
+										className="gap-1.5"
+									>
+										<Landmark className="h-4 w-4" />
+										<span>
+											Payout History ({selectedEventId !== "all" ? filteredPayouts.length : totalPayouts})
+										</span>
+									</TabsTrigger>
+								</TabsList>
+
+								{/* Event Filter Select button at the right side of the tabs */}
+								{eventInflows.length > 0 && (
+									<div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													variant="outline"
+													size="sm"
+													className="h-9 w-full sm:w-[240px] justify-between text-xs bg-background font-normal gap-2 shadow-xs"
+												>
+													<div className="flex items-center gap-2 truncate">
+														<Calendar className="size-3.5 text-muted-foreground shrink-0" />
+														<span className="truncate font-medium">
+															{selectedEventId === "all"
+																? "All Events"
+																: eventInflows.find((e: any) => e.id === selectedEventId)?.title || "Filter by Event"}
+														</span>
+													</div>
+													<ChevronDown className="size-3.5 opacity-50 shrink-0" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end" className="w-72 max-h-80 overflow-y-auto">
+												<DropdownMenuRadioGroup value={selectedEventId} onValueChange={setSelectedEventId}>
+													<DropdownMenuRadioItem value="all" className="flex items-center justify-between cursor-pointer py-2">
+														<span className="font-medium">All Events</span>
+														<span className="text-[10px] text-muted-foreground font-mono">
+															{currency} {totalInflowAmount.toFixed(2)}
+														</span>
+													</DropdownMenuRadioItem>
+													<DropdownMenuSeparator />
+													{eventInflows.map((ev: any) => (
+														<DropdownMenuRadioItem
+															key={ev.id}
+															value={ev.id}
+															className="flex items-center justify-between cursor-pointer py-2"
+														>
+															<span className="truncate font-medium">{ev.title}</span>
+															<div className="flex items-center gap-1.5 shrink-0 ml-2">
+																{ev.isOngoing && (
+																	<span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded border border-emerald-500/20">
+																		<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+																		Ongoing
+																	</span>
+																)}
+																<span className="text-[10px] text-muted-foreground font-mono">
+																	{currency} {Number(ev.totalInflow || 0).toFixed(2)}
+																</span>
+															</div>
+														</DropdownMenuRadioItem>
+													))}
+												</DropdownMenuRadioGroup>
+											</DropdownMenuContent>
+										</DropdownMenu>
+
+										{selectedEventId !== "all" && (
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => setSelectedEventId("all")}
+												className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0"
+												title="Clear filter"
+											>
+												Reset
+											</Button>
+										)}
+									</div>
+								)}
+							</div>
 						</CardContent>
 					</Card>
 
@@ -468,7 +680,7 @@ export function OrgWalletClient({
 					<Card>
 						<CardContent className="pt-6 space-y-4">
 							{/* Search Bar */}
-							<div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+							<div className="flex items-center justify-between gap-3">
 								<div className="relative w-full sm:w-72">
 									<Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 									<Input
@@ -479,6 +691,16 @@ export function OrgWalletClient({
 										className="pl-8 text-sm h-9 bg-background"
 									/>
 								</div>
+								{searchQuery && (
+									<Button
+										variant="ghost"
+										size="sm"
+										onClick={() => setSearchQuery("")}
+										className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0"
+									>
+										Clear Search
+									</Button>
+								)}
 							</div>
 
 							{/* Tab 1: All Activity */}
@@ -486,10 +708,11 @@ export function OrgWalletClient({
 								<TransactionsTable
 									transactions={filteredAll}
 									total={filteredAll.length}
+									onSelectEvent={(id) => setSelectedEventId(id)}
 									emptyTitle="No transactions found"
 									emptyDescription={
-										searchQuery
-											? "No transactions match your search query."
+										searchQuery || selectedEventId !== "all"
+											? "No transactions match your current search or event filter."
 											: "There are no transactions recorded in this wallet yet."
 									}
 									emptyVariant="money"
@@ -501,10 +724,11 @@ export function OrgWalletClient({
 								<TransactionsTable
 									transactions={filteredInflows}
 									total={filteredInflows.length}
+									onSelectEvent={(id) => setSelectedEventId(id)}
 									emptyTitle="No revenue records found"
 									emptyDescription={
-										searchQuery
-											? "No revenue records match your search."
+										searchQuery || selectedEventId !== "all"
+											? "No revenue records match your current search or event filter."
 											: "Ticket sales and vote payments will appear here as revenue."
 									}
 									emptyVariant="money"
@@ -516,10 +740,11 @@ export function OrgWalletClient({
 								<TransactionsTable
 									transactions={filteredOutflows}
 									total={filteredOutflows.length}
+									onSelectEvent={(id) => setSelectedEventId(id)}
 									emptyTitle="No payout records found"
 									emptyDescription={
-										searchQuery
-											? "No payout records match your search."
+										searchQuery || selectedEventId !== "all"
+											? "No payout records match your search or event filter."
 											: "Disbursements and withdrawals to your payout account will appear here."
 									}
 									emptyVariant="payment"
@@ -529,12 +754,16 @@ export function OrgWalletClient({
 							{/* Tab 4: Detailed Payout History */}
 							<TabsContent value="payouts" className="m-0 space-y-4">
 								<PayoutsHistoryTable
-									payouts={payouts}
-									total={totalPayouts}
+									payouts={filteredPayouts}
+									total={filteredPayouts.length}
 									onCancelPayout={(payout) => handleCancelPayout(payout.id)}
 									onSyncPayout={handleSyncPayout}
 									emptyTitle="No withdrawal history"
-									emptyDescription="When you submit a withdrawal request, its destination account number, recipient, and processing status will appear here."
+									emptyDescription={
+										searchQuery || selectedEventId !== "all"
+											? "No payout records match your current search or event filter."
+											: "When you submit a withdrawal request, its destination account number, recipient, and processing status will appear here."
+									}
 									emptyVariant="payment"
 								/>
 							</TabsContent>
@@ -589,7 +818,7 @@ export function OrgWalletClient({
 
 			{/* Withdrawal Modal Dialog */}
 			<Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-				<DialogContent className="sm:max-w-md">
+				<DialogContent className="sm:max-w-2xl">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<ArrowDownToLine className="size-5 text-primary" />
@@ -643,6 +872,90 @@ export function OrgWalletClient({
 							</div>
 						)}
 
+						{/* Event Allocation Reference */}
+						{eventInflows.length > 0 && (
+							<div className="space-y-1.5">
+								<div className="flex items-center justify-between">
+									<Label htmlFor="withdraw-event" className="text-xs font-semibold">
+										Event Allocation (Optional)
+									</Label>
+									{withdrawalEventId !== "all" && (
+										<button
+											type="button"
+											className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer"
+											onClick={() => handleWithdrawalEventChange("all")}
+										>
+											Clear
+										</button>
+									)}
+								</div>
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button
+											id="withdraw-event"
+											variant="outline"
+											size="sm"
+											className="h-9 w-full justify-between text-xs bg-background font-normal"
+										>
+											<div className="flex items-center gap-2 truncate">
+												<Calendar className="size-3.5 text-muted-foreground shrink-0" />
+												<span className="truncate">
+													{withdrawalEventId === "all"
+														? "General (All Events)"
+														: eventInflows.find((e: any) => e.id === withdrawalEventId)?.title || "Select Event"}
+												</span>
+											</div>
+											<ChevronDown className="size-3.5 opacity-50 shrink-0" />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-72 overflow-y-auto">
+										<DropdownMenuRadioGroup value={withdrawalEventId} onValueChange={handleWithdrawalEventChange}>
+											<DropdownMenuRadioItem value="all" className="py-2 cursor-pointer">
+												<span className="font-medium">General (All Events)</span>
+											</DropdownMenuRadioItem>
+											<DropdownMenuSeparator />
+											{eventInflows.map((ev: any) => (
+												<DropdownMenuRadioItem
+													key={ev.id}
+													value={ev.id}
+													className="flex items-center justify-between py-2 cursor-pointer"
+												>
+													<span className="truncate font-medium">{ev.title}</span>
+													<div className="flex items-center gap-1.5 shrink-0 ml-2">
+														{ev.isOngoing && (
+															<span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded border border-emerald-500/20">
+																Ongoing
+															</span>
+														)}
+														{Number(ev.totalInflow || 0) > 0 && (
+															<span className="text-[10px] text-muted-foreground font-mono">
+																({currency} {Number(ev.totalInflow || 0).toFixed(2)})
+															</span>
+														)}
+													</div>
+												</DropdownMenuRadioItem>
+											))}
+										</DropdownMenuRadioGroup>
+									</DropdownMenuContent>
+								</DropdownMenu>
+								{selectedWithdrawalEvent && (
+									<div className="flex items-center justify-between text-[11px] text-muted-foreground">
+										<span>
+											Available allocation:{" "}
+											<span className="font-semibold text-foreground">
+												{currency} {selectedEventAllocation.toFixed(2)}
+											</span>
+										</span>
+										{selectedWithdrawalEvent.isOngoing && (
+											<span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+												Ongoing Event
+											</span>
+										)}
+									</div>
+								)}
+							</div>
+						)}
+
 						{/* Amount Input */}
 						<div className="space-y-1.5">
 							<div className="flex items-center justify-between">
@@ -654,16 +967,20 @@ export function OrgWalletClient({
 									variant="ghost"
 									size="sm"
 									className="h-6 px-2 text-[11px] text-primary hover:text-primary font-medium"
-									onClick={() => setWithdrawalAmount(availableBalance.toString())}
+									onClick={() =>
+										setWithdrawalAmount(
+											effectiveMaxAmount > 0 ? effectiveMaxAmount.toFixed(2) : "0",
+										)
+									}
 								>
-									Withdraw Max
+									{withdrawalEventId !== "all" ? "Withdraw Event Max" : "Withdraw Max"}
 								</Button>
 							</div>
 							<Input
 								id="withdraw-amount"
 								type="number"
 								min={minWithdrawalAmount}
-								max={availableBalance}
+								max={effectiveMaxAmount}
 								step="0.01"
 								value={withdrawalAmount}
 								onChange={(e) => setWithdrawalAmount(e.target.value)}
@@ -673,7 +990,18 @@ export function OrgWalletClient({
 							/>
 							<div className="flex items-center justify-between text-[11px]">
 								<span className="text-muted-foreground">
-									Minimum withdrawal: <span className="font-semibold text-foreground">{currency} {minWithdrawalAmount.toFixed(2)}</span>
+									Minimum:{" "}
+									<span className="font-semibold text-foreground">
+										{currency} {minWithdrawalAmount.toFixed(2)}
+									</span>
+									{withdrawalEventId !== "all" && (
+										<>
+											{" "}• Event Cap:{" "}
+											<span className="font-semibold text-foreground">
+												{currency} {selectedEventAllocation.toFixed(2)}
+											</span>
+										</>
+									)}
 								</span>
 								{parsedAmount > 0 && parsedAmount < minWithdrawalAmount && (
 									<span className="text-destructive font-medium">
@@ -681,6 +1009,11 @@ export function OrgWalletClient({
 									</span>
 								)}
 							</div>
+							{withdrawalEventId !== "all" && parsedAmount > selectedEventAllocation && (
+								<p className="text-[11px] text-destructive font-medium">
+									Amount exceeds event allocation ({currency} {selectedEventAllocation.toFixed(2)})
+								</p>
+							)}
 							{parsedAmount > availableBalance && (
 								<p className="text-[11px] text-destructive font-medium">
 									Amount exceeds available balance ({currency} {availableBalance.toFixed(2)})
@@ -771,7 +1104,7 @@ export function OrgWalletClient({
 				open={isConfirmOpen}
 				onOpenChange={setIsConfirmOpen}
 				title="Confirm Withdrawal Request"
-				description={`You are about to submit a withdrawal of ${currency} ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"} (${isNextWithdrawalFree ? "Free weekly payout" : `Fee: ${currency} ${calculatedFee.toFixed(2)}`} • Net to receive: ${currency} ${netPayoutAmount.toFixed(2)}) to your verified payout account (${organization.paystackAccountNumber || "MoMo/Bank"}). Please enter your password to authorize this transaction.`}
+				description={`You are about to submit a withdrawal of ${currency} ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"}${selectedWithdrawalEvent ? ` for "${selectedWithdrawalEvent.title}"` : ""} (${isNextWithdrawalFree ? "Free weekly payout" : `Fee: ${currency} ${calculatedFee.toFixed(2)}`} • Net to receive: ${currency} ${netPayoutAmount.toFixed(2)}) to your verified payout account (${organization.paystackAccountNumber || "MoMo/Bank"}). Please enter your password to authorize this transaction.`}
 				confirmLabel="Authorize & Submit"
 				onConfirm={handleConfirmedWithdraw}
 			/>

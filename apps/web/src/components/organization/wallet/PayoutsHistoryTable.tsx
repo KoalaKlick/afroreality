@@ -71,7 +71,13 @@ export function PayoutsHistoryTable({
 							<span className="font-mono text-xs font-semibold text-foreground truncate">
 								{ref}
 							</span>
-							{desc && (
+							{row.original.event && (
+								<span className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground truncate">
+									<span className="text-muted-foreground">Event:</span>
+									<span className="truncate">{row.original.event.title}</span>
+								</span>
+							)}
+							{desc && (!row.original.event || !desc.includes(row.original.event.title)) && (
 								<span className="text-[11px] text-muted-foreground truncate">
 									{desc}
 								</span>

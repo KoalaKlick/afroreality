@@ -79,7 +79,7 @@ export default async function OrgWalletPage({
 
   const [wallet, transactionsRes, payoutsRes, activityLogsRes] = await Promise.all([
     getOrgWallet({ data: { organizationId: organization.id } }),
-    getOrgTransactions({ data: { organizationId: organization.id, page: 1, limit: 20 } }),
+    getOrgTransactions({ data: { organizationId: organization.id, page: 1, limit: 100 } }),
     getOrgPayouts({ data: { organizationId: organization.id, page: 1, limit: 20 } }),
     getOrgActivityLogs({ data: { organizationId: organization.id, page: 1, limit: 20 } }),
   ]);

@@ -12,12 +12,14 @@ export async function creditOrgWallet({
 	reference: string;
 }): Promise<void> {
 	let organizationId = metadata.organizationId || metadata.orgId;
-	if (!organizationId) {
-		const eventId = metadata.eventId || metadata.event_id || payment.ticketOrders?.[0]?.eventId;
-		if (eventId) {
-			const ev = await prisma.event.findUnique({ where: { id: eventId }, select: { organizationId: true } });
+	const eventId = metadata.eventId || metadata.event_id || payment.ticketOrders?.[0]?.eventId || payment.votes?.[0]?.eventId;
+	let eventTitle: string | null = null;
+	if (eventId) {
+		const ev = await prisma.event.findUnique({ where: { id: eventId }, select: { organizationId: true, title: true } });
+		if (!organizationId) {
 			organizationId = ev?.organizationId;
 		}
+		eventTitle = ev?.title || null;
 	}
 	if (!organizationId) return;
 
@@ -46,6 +48,7 @@ export async function creditOrgWallet({
 			where: { id: wallet.id },
 			data: { balance: { increment: organizerReceives }, lastTransactionAt: now },
 		});
+		const eventPrefix = eventTitle ? `${eventTitle} • ` : "";
 		await prisma.transaction.create({
 			data: {
 				reference: `TXN-IN-${reference}`,
@@ -59,7 +62,7 @@ export async function creditOrgWallet({
 				feeAmount: platformFee,
 				balanceBefore: currentBalance,
 				balanceAfter: currentBalance + organizerReceives,
-				description: `${cleanLabel} Revenue (${reference}) - Net: GHS ${organizerReceives.toFixed(2)}, Fee: GHS ${platformFee.toFixed(2)}`,
+				description: `${eventPrefix}${cleanLabel} Revenue (${reference}) - Net: GHS ${organizerReceives.toFixed(2)}, Fee: GHS ${platformFee.toFixed(2)}`,
 				completedAt: now,
 			},
 		});

@@ -13,6 +13,7 @@ import { DataTablePagination } from "@/components/common/data-table-pagination";
 import { StatusBadge } from "@/components/common/status-badge";
 import type { EmptyStateVariant } from "@/components/shared/EmptyState";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/ui/table";
 import { useDataTable } from "@/hooks/use-data-table";
 import type { Transaction } from "@/lib/types/payment";
@@ -24,6 +25,7 @@ interface TransactionsTableProps {
 	readonly emptyTitle?: string;
 	readonly emptyDescription?: string;
 	readonly emptyVariant?: EmptyStateVariant;
+	readonly onSelectEvent?: (eventId: string) => void;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -46,6 +48,7 @@ export function TransactionsTable({
 	emptyTitle = "No transactions yet",
 	emptyDescription = "There are no transactions recorded in this ledger view yet.",
 	emptyVariant = "money",
+	onSelectEvent,
 }: TransactionsTableProps) {
 	const columns = useMemo<ColumnDef<Transaction>[]>(
 		() => [
@@ -98,16 +101,43 @@ export function TransactionsTable({
 				},
 			},
 			{
-				id: "category",
+				id: "event",
 				header: ({ column }) => (
-					<DataTableColumnHeader column={column} title="Category" />
+					<DataTableColumnHeader column={column} title="Event" />
 				),
 				cell: ({ row }) => {
-					const category = row.original.category;
+					const event = row.original.event;
+					if (!event) {
+						return <span className="text-xs text-muted-foreground/60">—</span>;
+					}
 					return (
-						<span className="text-xs font-medium text-muted-foreground">
-							{categoryLabels[category] ?? category}
-						</span>
+						<div className="flex items-center gap-1.5 max-w-[170px]">
+							{onSelectEvent ? (
+								<button
+									type="button"
+									onClick={() => onSelectEvent(event.id)}
+									className="text-xs font-medium text-foreground hover:text-primary transition-colors truncate text-left underline-offset-2 hover:underline"
+									title={`Filter by ${event.title}`}
+								>
+									{event.title}
+								</button>
+							) : (
+								<span
+									className="text-xs font-medium text-foreground truncate"
+									title={event.title}
+								>
+									{event.title}
+								</span>
+							)}
+							{event.isOngoing && (
+								<Badge
+									variant="outline"
+									className="text-[9px] h-4 px-1 shrink-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-semibold"
+								>
+									Ongoing
+								</Badge>
+							)}
+						</div>
 					);
 				},
 			},
@@ -119,7 +149,7 @@ export function TransactionsTable({
 				cell: ({ row }) => {
 					const rawDesc = row.getValue("description") as string | null;
 					const category = row.original.category;
-					
+
 					// Format friendly description without raw tokens
 					let displayDesc = rawDesc || categoryLabels[category] || "Transaction";
 					displayDesc = displayDesc
@@ -139,7 +169,7 @@ export function TransactionsTable({
 
 					return (
 						<div className="flex flex-col max-w-sm truncate">
-							<span className="text-xs text-muted-foreground truncate">
+							<span className="text-xs text-foreground font-medium truncate">
 								{displayDesc}
 							</span>
 						</div>

@@ -1,3 +1,18 @@
+export interface EventInflowSummary {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+  lifecycleStatus: 'draft' | 'upcoming' | 'ongoing' | 'ended' | 'cancelled';
+  isOngoing: boolean;
+  startDate?: string | null;
+  endDate?: string | null;
+  totalInflow: number;
+  grossInflow?: number;
+  transactionCount: number;
+  lastInflowAt?: string | null;
+}
+
 export interface Transaction {
   id: string;
   reference: string;
@@ -12,8 +27,18 @@ export interface Transaction {
   balanceBefore?: number | null;
   balanceAfter?: number | null;
   description?: string | null;
+  notes?: string | null;
   completedAt?: string | Date | null;
   createdAt: string | Date;
+  eventId?: string | null;
+  event?: {
+    id: string;
+    title: string;
+    slug?: string;
+    status?: string;
+    lifecycleStatus?: string;
+    isOngoing?: boolean;
+  } | null;
 }
 
 export interface PayoutAccount {
@@ -49,6 +74,12 @@ export interface PayoutRecord {
   failedAt?: string | Date | null;
   createdAt: string | Date;
   updatedAt: string | Date;
+  eventId?: string | null;
+  event?: {
+    id: string;
+    title: string;
+    slug?: string;
+  } | null;
 }
 
 export interface ActivityLogRecord {
@@ -81,5 +112,6 @@ export interface Wallet {
   lockReason?: string | null;
   payoutAccount?: PayoutAccount | null;
   payouts?: PayoutRecord[];
+  eventInflows?: EventInflowSummary[];
 }
 

@@ -6,6 +6,7 @@ import { requireSession } from "../session";
 import { serializeJsonSafe } from "../utils";
 import { requireOrgRole } from "./auth-helpers";
 import { isTPlusOneSettled, getSettlementDate, getNextUpcomingSettlementDate } from "@/lib/utils/settlement";
+import { getEventLifecycleStatus } from "@/lib/event-status";
 import {
 	verifyPaystackTransfer,
 	finalizePaystackTransfer,
@@ -84,10 +85,11 @@ export async function getOrgWallet({
 	try {
 		const orgEvents = await prisma.event.findMany({
 			where: { organizationId: data.organizationId },
-			select: { id: true, title: true },
+			select: { id: true, title: true, slug: true, status: true, startDate: true, endDate: true },
 		});
 		const eventIds = orgEvents.map((e) => e.id);
 		const eventIdSet = new Set(eventIds);
+		const orgEventsMap = new Map(orgEvents.map((e) => [e.id, e]));
 
 		if (eventIds.length > 0) {
 			const existingTxns = await prisma.transaction.findMany({
@@ -152,6 +154,10 @@ export async function getOrgWallet({
 				// Record credit transaction if not yet logged
 				if (!existingPaymentCredits.has(p.id)) {
 					const creditRef = `TXN-IN-${p.reference}`;
+					const evId = meta.eventId || meta.event_id || p.ticketOrders?.[0]?.eventId || p.votes?.[0]?.eventId;
+					const ev = evId && orgEventsMap.has(evId) ? orgEventsMap.get(evId) : null;
+					const eventPrefix = ev ? `${ev.title} • ` : "";
+
 					await prisma.transaction.create({
 						data: {
 							reference: creditRef,
@@ -165,7 +171,8 @@ export async function getOrgWallet({
 							feeAmount: platformFee,
 							balanceBefore: wallet.balance,
 							balanceAfter: Number(wallet.balance) + balanceToAdd + organizerReceives,
-							description: `${cleanLabel} Revenue (${p.reference}) - Net: GHS ${organizerReceives.toFixed(2)}, Platform Fee: GHS ${platformFee.toFixed(2)}`,
+							description: `${eventPrefix}${cleanLabel} Revenue (${p.reference}) - Net: GHS ${organizerReceives.toFixed(2)}, Platform Fee: GHS ${platformFee.toFixed(2)}`,
+							notes: ev ? `Event: ${ev.title} (${ev.id})` : undefined,
 							completedAt: completedDate,
 						},
 					});
@@ -251,7 +258,22 @@ export async function getOrgWallet({
 			// Reconcile wallet balance directly from completed transactions
 			const completedTxns = await prisma.transaction.findMany({
 				where: { walletId: wallet.id, status: "completed" },
-				select: { type: true, amount: true, feeAmount: true, completedAt: true, createdAt: true },
+				select: {
+					type: true,
+					amount: true,
+					feeAmount: true,
+					completedAt: true,
+					createdAt: true,
+					notes: true,
+					description: true,
+					payment: {
+						select: {
+							metadata: true,
+							ticketOrders: { select: { eventId: true }, take: 1 },
+							votes: { select: { eventId: true }, take: 1 },
+						},
+					},
+				},
 			});
 			const totalCreditSum = Math.round(
 				completedTxns
@@ -270,6 +292,82 @@ export async function getOrgWallet({
 					.reduce((sum, t) => sum + Number(t.amount || 0), 0) * 100
 			) / 100;
 			const trueBalance = Math.round(Math.max(0, totalCreditSum - totalDebitSum) * 100) / 100;
+
+			// Per-Event Inflows Calculation
+			const eventInflowMap = new Map<
+				string,
+				{ totalInflow: number; grossInflow: number; transactionCount: number; lastInflowAt: Date | null }
+			>();
+
+			for (const ev of orgEvents) {
+				eventInflowMap.set(ev.id, {
+					totalInflow: 0,
+					grossInflow: 0,
+					transactionCount: 0,
+					lastInflowAt: null,
+				});
+			}
+
+			for (const t of completedTxns.filter((t) => t.type === "credit")) {
+				let evId = t.payment?.ticketOrders?.[0]?.eventId || t.payment?.votes?.[0]?.eventId;
+				if (!evId && t.payment?.metadata) {
+					const m = t.payment.metadata as any;
+					evId = m?.eventId || m?.event_id;
+				}
+				if (!evId && t.notes) {
+					for (const ev of orgEvents) {
+						if (t.notes.includes(ev.id) || t.notes.includes(ev.title)) {
+							evId = ev.id;
+							break;
+						}
+					}
+				}
+				if (!evId && t.description) {
+					for (const ev of orgEvents) {
+						if (t.description.includes(ev.title)) {
+							evId = ev.id;
+							break;
+						}
+					}
+				}
+				if (evId && eventInflowMap.has(evId)) {
+					const stat = eventInflowMap.get(evId)!;
+					const amt = Number(t.amount || 0);
+					const fee = Number(t.feeAmount || 0);
+					const txDate = t.completedAt || t.createdAt || new Date();
+					stat.totalInflow = Math.round((stat.totalInflow + amt) * 100) / 100;
+					stat.grossInflow = Math.round((stat.grossInflow + amt + fee) * 100) / 100;
+					stat.transactionCount += 1;
+					if (!stat.lastInflowAt || txDate > stat.lastInflowAt) {
+						stat.lastInflowAt = txDate;
+					}
+				}
+			}
+
+			const eventInflows = orgEvents.map((ev) => {
+				const stat = eventInflowMap.get(ev.id) || { totalInflow: 0, grossInflow: 0, transactionCount: 0, lastInflowAt: null };
+				const lifecycle = getEventLifecycleStatus(ev);
+				return {
+					id: ev.id,
+					title: ev.title,
+					slug: ev.slug,
+					status: ev.status,
+					lifecycleStatus: lifecycle,
+					isOngoing: lifecycle === "ongoing",
+					startDate: ev.startDate ? ev.startDate.toISOString() : null,
+					endDate: ev.endDate ? ev.endDate.toISOString() : null,
+					totalInflow: stat.totalInflow,
+					grossInflow: stat.grossInflow,
+					transactionCount: stat.transactionCount,
+					lastInflowAt: stat.lastInflowAt ? stat.lastInflowAt.toISOString() : null,
+				};
+			});
+
+			eventInflows.sort((a, b) => {
+				if (a.isOngoing && !b.isOngoing) return -1;
+				if (!a.isOngoing && b.isOngoing) return 1;
+				return b.totalInflow - a.totalInflow;
+			});
 
 			// T+1 Settlement breakdown: Non-public holidays and weekdays
 			let clearedEarnings = 0;
@@ -347,6 +445,7 @@ export async function getOrgWallet({
 				freeWithdrawalsPerWeek: withdrawalRules.freePerWeek,
 				recentWeeklyPayoutsCount: recentPayoutsCount,
 				isNextWithdrawalFree,
+				eventInflows,
 			});
 		}
 	} catch (reconcileErr) {
@@ -382,13 +481,14 @@ export async function getOrgWallet({
 		freeWithdrawalsPerWeek: withdrawalRules.freePerWeek,
 		recentWeeklyPayoutsCount: 0,
 		isNextWithdrawalFree: true,
+		eventInflows: [],
 	});
 }
 
 export async function getOrgTransactions({
 	data,
 }: {
-	data: { organizationId: string; page?: number; limit?: number };
+	data: { organizationId: string; page?: number; limit?: number; eventId?: string };
 }): Promise<{ items: any[]; total: number }> {
 	await requireOrgRole(data.organizationId, ["owner", "admin", "member"]);
 
@@ -399,13 +499,60 @@ export async function getOrgTransactions({
 
 	if (!wallet) return { items: [], total: 0 };
 
+	const orgEvents = await prisma.event.findMany({
+		where: { organizationId: data.organizationId },
+		select: { id: true, title: true, slug: true, status: true, startDate: true, endDate: true },
+	});
+	const orgEventsMap = new Map(orgEvents.map((e) => [e.id, e]));
+
 	const page = data.page || 1;
-	const limit = data.limit || 20;
+	const limit = data.limit || 50;
 	const skip = (page - 1) * limit;
 
 	const [items, total] = await Promise.all([
 		prisma.transaction.findMany({
 			where: { walletId: wallet.id },
+			include: {
+				payment: {
+					select: {
+						id: true,
+						purpose: true,
+						metadata: true,
+						ticketOrders: {
+							select: {
+								eventId: true,
+								event: {
+									select: {
+										id: true,
+										title: true,
+										slug: true,
+										status: true,
+										startDate: true,
+										endDate: true,
+									},
+								},
+							},
+							take: 1,
+						},
+						votes: {
+							select: {
+								eventId: true,
+								event: {
+									select: {
+										id: true,
+										title: true,
+										slug: true,
+										status: true,
+										startDate: true,
+										endDate: true,
+									},
+								},
+							},
+							take: 1,
+						},
+					},
+				},
+			},
 			orderBy: { createdAt: "desc" },
 			skip,
 			take: limit,
@@ -415,7 +562,61 @@ export async function getOrgTransactions({
 		}),
 	]);
 
-	return { items: serializeJsonSafe(items), total };
+	const enrichedItems = items.map((t) => {
+		let event = t.payment?.ticketOrders?.[0]?.event || t.payment?.votes?.[0]?.event || null;
+		if (!event && t.payment?.metadata) {
+			const meta = t.payment.metadata as any;
+			const metaEventId = meta?.eventId || meta?.event_id;
+			if (metaEventId && orgEventsMap.has(metaEventId)) {
+				event = orgEventsMap.get(metaEventId)!;
+			}
+		}
+		if (!event && t.notes) {
+			for (const ev of orgEvents) {
+				if (t.notes.includes(ev.id) || t.notes.includes(ev.title)) {
+					event = ev;
+					break;
+				}
+			}
+		}
+		if (!event && t.description) {
+			for (const ev of orgEvents) {
+				if (t.description.includes(ev.title)) {
+					event = ev;
+					break;
+				}
+			}
+		}
+
+		let isOngoing = false;
+		let lifecycleStatus = "upcoming";
+		if (event) {
+			lifecycleStatus = getEventLifecycleStatus(event);
+			isOngoing = lifecycleStatus === "ongoing";
+		}
+
+		return {
+			...t,
+			eventId: event?.id ?? null,
+			event: event
+				? {
+						id: event.id,
+						title: event.title,
+						slug: event.slug,
+						status: event.status,
+						lifecycleStatus,
+						isOngoing,
+				  }
+				: null,
+		};
+	});
+
+	const finalItems =
+		data.eventId && data.eventId !== "all"
+			? enrichedItems.filter((t) => t.eventId === data.eventId)
+			: enrichedItems;
+
+	return { items: serializeJsonSafe(finalItems), total };
 }
 
 export async function requestWalletWithdrawal({
@@ -429,6 +630,7 @@ export async function requestWalletWithdrawal({
 		accountNumber: string;
 		accountName: string;
 		description?: string;
+		eventId?: string;
 	};
 }): Promise<any> {
 	const session = await requireSession();
@@ -579,6 +781,21 @@ export async function requestWalletWithdrawal({
 
 		const now = new Date();
 
+		let event: { id: string; title: string; slug: string } | null = null;
+		if (data.eventId && data.eventId !== "all") {
+			event = await tx.event.findFirst({
+				where: { id: data.eventId, organizationId: data.organizationId },
+				select: { id: true, title: true, slug: true },
+			});
+		}
+
+		const eventPrefix = event ? `${event.title} • ` : "";
+		const defaultPayoutDesc = event
+			? `${event.title} - Wallet withdrawal${isFree ? " (Free weekly payout)" : ` (${wallet.currency} ${feeAmount.toFixed(2)} transfer fee)`}`
+			: isFree
+				? "Wallet withdrawal (Free weekly payout)"
+				: `Wallet withdrawal (${wallet.currency} ${feeAmount.toFixed(2)} transfer fee)`;
+
 		// 3. Create payout request awaiting admin approval
 		const payout = await tx.payout.create({
 			data: {
@@ -595,11 +812,11 @@ export async function requestWalletWithdrawal({
 				status: "pending",
 				requiresApproval: true,
 				provider: "paystack",
-				description:
-					data.description?.trim() ||
-					(isFree
-						? "Wallet withdrawal (Free weekly payout)"
-						: `Wallet withdrawal (${wallet.currency} ${feeAmount.toFixed(2)} transfer fee)`),
+				description: data.description?.trim()
+					? (event ? `${eventPrefix}${data.description.trim()}` : data.description.trim())
+					: defaultPayoutDesc,
+				notes: event ? `Event: ${event.title} (${event.id})` : undefined,
+				providerResponse: event ? { eventId: event.id, eventTitle: event.title, eventSlug: event.slug } : undefined,
 			},
 		});
 
@@ -613,6 +830,12 @@ export async function requestWalletWithdrawal({
 		});
 
 		// 3. Log audit transaction as pending
+		const defaultTxnDesc = event
+			? `${event.title} • Withdrawal to ${data.accountNumber} (${isFree ? "Free weekly payout" : `Net: ${wallet.currency} ${netDisbursed.toFixed(2)}, Fee: ${wallet.currency} ${feeAmount.toFixed(2)}`})`
+			: isFree
+				? `Withdrawal to ${data.accountNumber} (Free weekly payout, pending approval)`
+				: `Withdrawal to ${data.accountNumber} (Net: ${wallet.currency} ${netDisbursed.toFixed(2)}, Fee: ${wallet.currency} ${feeAmount.toFixed(2)}, pending approval)`;
+
 		await tx.transaction.create({
 			data: {
 				reference: ref,
@@ -623,11 +846,10 @@ export async function requestWalletWithdrawal({
 				amount: withdrawalAmount,
 				feeAmount: feeAmount,
 				currency: wallet.currency,
-				description:
-					data.description?.trim() ||
-					(isFree
-						? `Withdrawal to ${data.accountNumber} (Free weekly payout, pending approval)`
-						: `Withdrawal to ${data.accountNumber} (Net: ${wallet.currency} ${netDisbursed.toFixed(2)}, Fee: ${wallet.currency} ${feeAmount.toFixed(2)}, pending approval)`),
+				description: data.description?.trim()
+					? (event ? `${eventPrefix}${data.description.trim()}` : data.description.trim())
+					: defaultTxnDesc,
+				notes: event ? `Event: ${event.title} (${event.id})` : undefined,
 				balanceBefore: Number(wallet.balance),
 				balanceAfter: Number(wallet.balance),
 			},
@@ -642,7 +864,7 @@ export async function requestWalletWithdrawal({
 					action: "wallet_withdrawal_requested",
 					entityType: "payout",
 					entityId: payout.id,
-					description: `Withdrawal of ${wallet.currency} ${withdrawalAmount.toFixed(2)} requested to ${data.bankName ? data.bankName + " " : ""}${data.accountNumber} (${data.accountName})${feeAmount > 0 ? ` [Fee: ${wallet.currency} ${feeAmount.toFixed(2)}, Net: ${wallet.currency} ${netDisbursed.toFixed(2)}]` : " [Free weekly payout]"} — awaiting admin approval`,
+					description: `Withdrawal of ${wallet.currency} ${withdrawalAmount.toFixed(2)} requested${event ? ` for event "${event.title}"` : ""} to ${data.bankName ? data.bankName + " " : ""}${data.accountNumber} (${data.accountName})${feeAmount > 0 ? ` [Fee: ${wallet.currency} ${feeAmount.toFixed(2)}, Net: ${wallet.currency} ${netDisbursed.toFixed(2)}]` : " [Free weekly payout]"} — awaiting admin approval`,
 					metadata: {
 						reference: ref,
 						amount: withdrawalAmount,
@@ -650,6 +872,8 @@ export async function requestWalletWithdrawal({
 						netDisbursed,
 						currency: wallet.currency,
 						isFree,
+						eventId: event?.id,
+						eventTitle: event?.title,
 					},
 				},
 			});
@@ -845,6 +1069,11 @@ export async function getOrgPayouts({
 
 	if (!wallet) return { items: [], total: 0 };
 
+	const orgEvents = await prisma.event.findMany({
+		where: { organizationId: data.organizationId },
+		select: { id: true, title: true, slug: true },
+	});
+
 	const page = data.page || 1;
 	const limit = data.limit || 20;
 	const skip = (page - 1) * limit;
@@ -861,7 +1090,38 @@ export async function getOrgPayouts({
 		}),
 	]);
 
-	return { items: serializeJsonSafe(items), total };
+	const enrichedItems = items.map((p) => {
+		let event: { id: string; title: string; slug?: string } | null = null;
+		const resp = p.providerResponse as any;
+		if (resp?.eventId) {
+			const found = orgEvents.find((e) => e.id === resp.eventId);
+			event = found
+				? { id: found.id, title: found.title, slug: found.slug }
+				: { id: resp.eventId, title: resp.eventTitle || "Event" };
+		} else if (p.notes) {
+			for (const ev of orgEvents) {
+				if (p.notes.includes(ev.id) || p.notes.includes(ev.title)) {
+					event = { id: ev.id, title: ev.title, slug: ev.slug };
+					break;
+				}
+			}
+		} else if (p.description) {
+			for (const ev of orgEvents) {
+				if (p.description.includes(ev.title)) {
+					event = { id: ev.id, title: ev.title, slug: ev.slug };
+					break;
+				}
+			}
+		}
+
+		return {
+			...p,
+			eventId: event?.id ?? null,
+			event,
+		};
+	});
+
+	return { items: serializeJsonSafe(enrichedItems), total };
 }
 
 export async function getOrgActivityLogs({
