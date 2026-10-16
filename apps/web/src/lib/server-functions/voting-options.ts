@@ -8,7 +8,7 @@ import {
 	sendNomineeChangeRequestEmail,
 	sendNomineeUpdateNotificationEmail,
 } from "@/lib/email/nomination";
-import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
+import { extractCategoryPrefix, extractEventPrefixCandidates } from "@/lib/utils/nominee-code";
 import { logEventActivity } from "@/lib/audit/audit-logger";
 import { sendNomineeConfirmationWhatsAppNotification, sendWhatsAppTextMessage, normalizePhoneNumber } from "@/lib/services/whatsapp";
 import { sendSmsMessage } from "@/lib/services/sms";
@@ -27,56 +27,151 @@ function generateConfirmationCode(): string {
 }
 
 /**
- * Generate a unique nominee code for an event based on category initials + 2-digit sequence
- * e.g., "Best Male Artist" -> "BMA01", "BMA02"
+/**
+ * Generate a 4-character nominee code: exactly 2 alphabets and 2 numbers (e.g. "GM01").
+ * Uses an algorithm that ensures uniqueness across different events:
+ * 1. Derives unique 2-letter uppercase prefixes for the event based on event title/slug.
+ * 2. Checks against all other events so no two events share the same 2-letter prefix.
+ * 3. Assigns the next sequential 2-digit number (01-99) within that event's prefix.
  */
 export async function generateNomineeCode(
 	eventId: string,
 	categoryIdOrName?: string | null,
 	fallbackText?: string | null,
 ): Promise<string> {
-	let resolvedCategoryName: string | null = null;
-
 	try {
-		if (categoryIdOrName) {
-			// Check if categoryIdOrName is a category ID in database
-			const category = await prisma.votingCategory.findUnique({
-				where: { id: categoryIdOrName },
-				select: { name: true },
-			});
-			resolvedCategoryName = category?.name ?? categoryIdOrName;
-		} else if (fallbackText) {
-			resolvedCategoryName = fallbackText;
-		}
+		const event = await prisma.event.findUnique({
+			where: { id: eventId },
+			select: {
+				id: true,
+				title: true,
+				slug: true,
+				votingOptions: {
+					select: { nomineeCode: true },
+				},
+			},
+		});
 
-		const prefix = extractCategoryPrefix(resolvedCategoryName);
-
-		const options = await prisma.votingOption.findMany({
+		// 1. Gather all 2-letter prefixes currently in use by OTHER events
+		const otherOptions = await prisma.votingOption.findMany({
 			where: {
-				eventId,
-				nomineeCode: { startsWith: prefix },
+				eventId: { not: eventId },
+				nomineeCode: { not: null },
 			},
 			select: { nomineeCode: true },
 		});
 
-		let maxNumber = 0;
-		const regex = new RegExp(`^${prefix}(\\d+)$`);
-		for (const opt of options) {
+		const takenByOtherEvents = new Set<string>();
+		for (const opt of otherOptions) {
 			if (opt.nomineeCode) {
-				const match = regex.exec(opt.nomineeCode);
-				if (match && match[1]) {
-					const num = Number.parseInt(match[1], 10);
-					if (num > maxNumber) maxNumber = num;
+				const m = /^([A-Za-z]{2})\d{2}$/.exec(opt.nomineeCode.trim());
+				if (m && m[1]) {
+					takenByOtherEvents.add(m[1].toUpperCase());
 				}
 			}
 		}
 
-		const nextNumber = maxNumber + 1;
-		return `${prefix}${nextNumber.toString().padStart(2, "0")}`;
+		// 2. Check existing nominee codes in THIS event
+		const thisEventCodes = (event?.votingOptions || [])
+			.map((o) => (o.nomineeCode || "").trim().toUpperCase())
+			.filter(Boolean);
+
+		// Find 2-letter prefixes already active in this event
+		const thisEventActivePrefixes: string[] = [];
+		for (const code of thisEventCodes) {
+			const m = /^([A-Z]{2})\d{2}$/.exec(code);
+			if (m && m[1] && !thisEventActivePrefixes.includes(m[1])) {
+				thisEventActivePrefixes.push(m[1]);
+			}
+		}
+
+		// 3. Try to use an existing prefix already established for this event (if room 01-99 exists)
+		for (const prefix of thisEventActivePrefixes) {
+			if (takenByOtherEvents.has(prefix)) continue;
+
+			const usedNumbers = new Set<number>();
+			for (const code of thisEventCodes) {
+				if (code.startsWith(prefix)) {
+					const num = Number.parseInt(code.slice(2), 10);
+					if (!Number.isNaN(num)) usedNumbers.add(num);
+				}
+			}
+
+			for (let i = 1; i <= 99; i++) {
+				if (!usedNumbers.has(i)) {
+					return `${prefix}${i.toString().padStart(2, "0")}`;
+				}
+			}
+		}
+
+		// 4. Generate candidate 2-letter prefixes for this event from title / slug
+		const candidates = extractEventPrefixCandidates(event?.title, event?.slug);
+
+		// Also try category initials if provided
+		let categoryName: string | null = null;
+		if (categoryIdOrName) {
+			const cat = await prisma.votingCategory.findUnique({
+				where: { id: categoryIdOrName },
+				select: { name: true },
+			});
+			categoryName = cat?.name || categoryIdOrName;
+		} else if (fallbackText) {
+			categoryName = fallbackText;
+		}
+		if (categoryName) {
+			const catPrefix = extractCategoryPrefix(categoryName);
+			if (catPrefix && /^[A-Z]{2}$/.test(catPrefix)) {
+				candidates.push(catPrefix);
+			}
+		}
+
+		// Additional letter pairs from event title
+		if (event?.title) {
+			const cleanLetters = event.title.toUpperCase().replace(/[^A-Z]/g, "");
+			for (let i = 0; i < cleanLetters.length - 1; i++) {
+				candidates.push(cleanLetters[i]! + cleanLetters[i + 1]!);
+			}
+		}
+
+		// Full alphabet grid fallback: AA .. ZZ
+		const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		for (let i = 0; i < alphabet.length; i++) {
+			for (let j = 0; j < alphabet.length; j++) {
+				candidates.push(alphabet[i]! + alphabet[j]!);
+			}
+		}
+
+		// 5. Select the first candidate prefix not used by other events
+		let chosenPrefix = "EV";
+		for (const cand of candidates) {
+			if (/^[A-Z]{2}$/.test(cand) && !takenByOtherEvents.has(cand)) {
+				chosenPrefix = cand;
+				break;
+			}
+		}
+
+		// Determine the first free number 01-99 for this prefix
+		const usedNumbers = new Set<number>();
+		for (const code of thisEventCodes) {
+			if (code.startsWith(chosenPrefix)) {
+				const num = Number.parseInt(code.slice(2), 10);
+				if (!Number.isNaN(num)) usedNumbers.add(num);
+			}
+		}
+
+		for (let i = 1; i <= 99; i++) {
+			if (!usedNumbers.has(i)) {
+				return `${chosenPrefix}${i.toString().padStart(2, "0")}`;
+			}
+		}
+
+		return `${chosenPrefix}01`;
 	} catch (error) {
 		console.error("Error generating nominee code:", error);
-		const prefix = extractCategoryPrefix(resolvedCategoryName || categoryIdOrName || fallbackText);
-		return `${prefix}01`;
+		const randomLetter1 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+		const randomLetter2 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+		const randomDigits = Math.floor(Math.random() * 90 + 10);
+		return `${randomLetter1}${randomLetter2}${randomDigits}`;
 	}
 }
 
@@ -92,16 +187,19 @@ export async function createVotingOption({ data }: { data: any }): Promise<any> 
 	let nomineeCode = data.nomineeCode?.trim();
 
 	if (nomineeCode) {
+		nomineeCode = nomineeCode.toUpperCase();
 		const existing = await prisma.votingOption.findFirst({
 			where: {
-				eventId,
-				nomineeCode,
+				nomineeCode: { equals: nomineeCode, mode: "insensitive" },
 			},
-			select: { id: true },
+			select: { id: true, eventId: true, event: { select: { title: true } } },
 		});
 		if (existing) {
+			const isSame = existing.eventId === eventId;
 			throw new Error(
-				`Nominee code "${nomineeCode}" is already taken for this event. Please choose a different code or leave it blank to auto-generate.`
+				isSame
+					? `Nominee code "${nomineeCode}" is already taken for this event. Please choose a different code or leave it blank to auto-generate.`
+					: `Nominee code "${nomineeCode}" is already in use by another event ("${existing.event?.title || "another event"}"). Please choose a unique 4-character code (2 letters + 2 numbers) or leave it blank to auto-generate.`
 			);
 		}
 	} else {
@@ -256,15 +354,17 @@ export async function updateVotingOption({ data }: { data: any }): Promise<any> 
 		if (newCode) {
 			const existing = await prisma.votingOption.findFirst({
 				where: {
-					eventId: option.eventId,
-					nomineeCode: newCode,
+					nomineeCode: { equals: newCode, mode: "insensitive" },
 					id: { not: targetId },
 				},
-				select: { id: true },
+				select: { id: true, eventId: true, event: { select: { title: true } } },
 			});
 			if (existing) {
+				const isSame = existing.eventId === option.eventId;
 				throw new Error(
-					`Nominee code "${newCode}" is already assigned to another nominee in this event.`
+					isSame
+						? `Nominee code "${newCode}" is already assigned to another nominee in this event.`
+						: `Nominee code "${newCode}" is already in use by another event ("${existing.event?.title || "another event"}"). Please choose a unique 4-character code (2 letters + 2 numbers).`
 				);
 			}
 		}

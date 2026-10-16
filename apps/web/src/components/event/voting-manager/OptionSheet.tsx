@@ -398,7 +398,8 @@ export function OptionSheet({
 								id="nominee-code"
 								value={nomineeCode}
 								onChange={(e) => setNomineeCode(e.target.value.toUpperCase())}
-								placeholder="e.g., JD01"
+								placeholder="e.g., GM01"
+								maxLength={4}
 								disabled={Boolean(editingOption)}
 								readOnly={Boolean(editingOption)}
 								className={
@@ -414,7 +415,7 @@ export function OptionSheet({
 								</p>
 							) : (
 								<p className="text-xs text-muted-foreground">
-									Used for USSD and quick vote identification. Auto-generated if left blank.
+									4-character code (2 letters + 2 numbers, e.g. GM01) used for USSD and quick voting. Auto-generated if left blank.
 								</p>
 							)}
 						</div>

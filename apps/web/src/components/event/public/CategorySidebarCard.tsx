@@ -121,10 +121,10 @@ export function CategorySidebarCard({
 					</h1>
 				</div>
 			</div>
-
+<PanAfricanDivider className="shrink-0" />
 			{/* Info & Scrollable Body */}
 			<div className="p-5 sm:p-6 flex flex-col flex-1 min-h-0 space-y-4 overflow-hidden">
-				<PanAfricanDivider className="shrink-0" />
+				
 
 				{/* Scrollable Body: About Category, Socials, Sponsors */}
 				<div className="flex-1 min-h-0 overflow-y-auto pr-1.5 space-y-5 custom-scrollbar">

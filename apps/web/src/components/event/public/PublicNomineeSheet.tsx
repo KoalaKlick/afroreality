@@ -284,7 +284,7 @@ export function NomineeGrid({
 			{nominees.length > 2 && (
 				<div className="mb-5">
 					<SearchInput
-					className="sm:w-full md:w-full"
+						className="sm:w-full md:w-full"
 						value={searchQuery}
 						onChange={setSearchQuery}
 						placeholder="Search nominees by name or code..."
@@ -311,153 +311,153 @@ export function NomineeGrid({
 			{filteredNominees.length > 0 ? (
 				<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
 					{filteredNominees.map((nominee, index) => {
-					const effectiveCode = getEffectiveNomineeCode(nominee, index);
-					const isTarget = Boolean(
-						highlightedCode &&
+						const effectiveCode = getEffectiveNomineeCode(nominee, index);
+						const isTarget = Boolean(
+							highlightedCode &&
 							(highlightedCode === effectiveCode.toUpperCase() ||
 								highlightedCode === nominee.id.toUpperCase() ||
 								highlightedCode === nominee.nomineeCode?.toUpperCase())
-					);
-					const isJustVoted = recentlyVoted?.optionId === nominee.id;
-					const addedVotesForNominee = isJustVoted ? recentlyVoted.addedVotes : 0;
-					const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
-					const votePercentage =
-						totalCategoryVotes > 0
-							? (nomineeVotes / totalCategoryVotes) * 100
-							: 0;
+						);
+						const isJustVoted = recentlyVoted?.optionId === nominee.id;
+						const addedVotesForNominee = isJustVoted ? recentlyVoted.addedVotes : 0;
+						const nomineeVotes = Number(nominee.votesCount ?? nominee.votes ?? 0);
+						const votePercentage =
+							totalCategoryVotes > 0
+								? (nomineeVotes / totalCategoryVotes) * 100
+								: 0;
 
-					return (
-						<div
-							key={`${nominee.id}-${index}`}
-							id={effectiveCode}
-							className="@container h-full scroll-mt-28 relative"
-						>
-							{/* Anchor targets so both #CODE and #nominee-CODE and #id work */}
+						return (
 							<div
-								id={`nominee-${effectiveCode}`}
-								className="absolute -top-28 pointer-events-none"
-							/>
-							<div
-								id={nominee.id}
-								className="absolute -top-28 pointer-events-none"
-							/>
-
-							<div
-								onClick={() => handleOpenSheet(nominee)}
-								className={cn(
-									"group relative flex flex-col @md:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-500 hover:shadow-md cursor-pointer border shadow-xs",
-									isJustVoted
-										? "border-primary ring-2 ring-primary/50 shadow-lg shadow-primary/20 scale-[1.01]"
-										: isTarget
-											? "border-secondary ring-offset-2 ring-offset-background shadow-lg shadow-secondary/20"
-											: "border-border/80"
-								)}
+								key={`${nominee.id}-${index}`}
+								id={effectiveCode}
+								className="@container h-full scroll-mt-28 relative"
 							>
-								{/* Nominee Avatar / Poster (Left in row, Top in col) */}
-								<div className="relative aspect-5/7 w-full @md:w-48 max-h-72 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
-									{nominee.imageUrl ? (
-										<img
-											src={getEventImageUrl(nominee.imageUrl) || ""}
-											alt={nominee.optionText}
-											className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-102"
-										/>
-									) : (
-										<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-4 text-center">
-											<NoNomineeIllustration className="w-full h-full p-4 object-contain opacity-75" />
-										</div>
+								{/* Anchor targets so both #CODE and #nominee-CODE and #id work */}
+								<div
+									id={`nominee-${effectiveCode}`}
+									className="absolute -top-28 pointer-events-none"
+								/>
+								<div
+									id={nominee.id}
+									className="absolute -top-28 pointer-events-none"
+								/>
+
+								<div
+									onClick={() => handleOpenSheet(nominee)}
+									className={cn(
+										"group relative flex flex-col @md:flex-row justify-between h-full gap-3 rounded-2xl bg-white dark:bg-card p-2.5 @sm:p-3 transition-all duration-500 hover:shadow-md cursor-pointer border shadow-xs",
+										isJustVoted
+											? "border-primary ring-2 ring-primary/50 shadow-lg shadow-primary/20 scale-[1.01]"
+											: isTarget
+												? "border-secondary ring-offset-2 ring-offset-background shadow-lg shadow-secondary/20"
+												: "border-border/80"
 									)}
-
-									<div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-200" />
-
-									{/* Top-Left Code Badge */}
-									<div
-										className={cn(
-											"absolute top-2.5 left-2.5 bg-background/95 backdrop-blur-md rounded-md py-1 px-2.5 flex flex-col items-center justify-center min-w-[48px] border shadow-none z-10 transition-colors",
-											"border-border/80 text-foreground"
-										)}
-									>
-										<span className="text-[9px] font-bold uppercase text-muted-foreground tracking-wider">
-											CODE
-										</span>
-										<span className="text-sm font-bold font-mono text-primary leading-none mt-0.5">
-											{effectiveCode}
-										</span>
-									</div>
-
-									{/* Real-Time Live Standings Badge on Image with Animated Increment */}
-									{showTotalVotesPublicly && (
-										<div className="absolute bottom-2.5 left-2.5 z-10">
-											<AnimatedVoteBadge
-												currentVotes={nomineeVotes}
-												totalVotes={totalCategoryVotes}
-												displayType={resultDisplayType}
-												isRecentlyVoted={isJustVoted}
-												addedVotes={addedVotesForNominee}
+								>
+									{/* Nominee Avatar / Poster (Left in row, Top in col) */}
+									<div className="relative aspect-5/7 w-full @md:w-48 max-h-72 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
+										{nominee.imageUrl ? (
+											<img
+												src={getEventImageUrl(nominee.imageUrl) || ""}
+												alt={nominee.optionText}
+												className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-102"
 											/>
-										</div>
-									)}
-								</div>
+										) : (
+											<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-4 text-center">
+												<NoNomineeIllustration className="w-full h-full p-4 object-contain opacity-75" />
+											</div>
+										)}
 
-								{/* Nominee Meta & Actions (Right in row, Bottom in col) */}
-								<div className="flex-1 flex flex-col justify-between min-w-0 gap-2.5">
-									{/* Nominee Meta */}
-									<div className="flex flex-col gap-1 px-0.5">
-										<div className="flex items-center gap-2">
-											<h4 className="font-bold text-base @sm:text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-												{nominee.optionText}
-											</h4>
+										<div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-200" />
+
+										{/* Top-Left Code Badge */}
+										<div
+											className={cn(
+												"absolute top-2.5 left-2.5 bg-background/95 backdrop-blur-md rounded-md py-1 px-2.5 flex flex-col items-center justify-center min-w-[48px] border shadow-none z-10 transition-colors",
+												"border-border/80 text-foreground"
+											)}
+										>
+											<span className="text-[9px] font-bold uppercase text-muted-foreground tracking-wider">
+												CODE
+											</span>
+											<span className="text-sm font-bold font-mono text-primary leading-none mt-0.5">
+												{effectiveCode}
+											</span>
 										</div>
-										{(nominee.description || nominee.bio) && (
-											<p className="text-xs text-muted-foreground line-clamp-2 @sm:line-clamp-3 leading-relaxed">
-												{stripHtml(nominee.description || nominee.bio)}
-											</p>
+
+										{/* Real-Time Live Standings Badge on Image with Animated Increment */}
+										{showTotalVotesPublicly && (
+											<div className="absolute bottom-2.5 left-2.5 z-10">
+												<AnimatedVoteBadge
+													currentVotes={nomineeVotes}
+													totalVotes={totalCategoryVotes}
+													displayType={resultDisplayType}
+													isRecentlyVoted={isJustVoted}
+													addedVotes={addedVotesForNominee}
+												/>
+											</div>
 										)}
 									</div>
 
-									{/* Actions */}
-									<div className="pt-2 mt-auto border-t border-border/50 flex items-center justify-between gap-2">
-										<Button
-											variant="ghost"
-											size="icon"
-											className="size-8 rounded-full shrink-0"
-											onClick={(e) => handleShare(e, nominee, index)}
-											title="Share Nominee"
-										>
-											<Share2 className="size-3.5 text-muted-foreground" />
-										</Button>
-
-										<Button
-											size="sm"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleOpenVoteModal(nominee);
-											}}
-											className={cn(
-												"text-xs font-bold gap-1.5 h-8 flex-1 transition-all",
-												isTarget &&
-													"shadow-md shadow-primary/30 ring-1 ring-primary-foreground/30 font-extrabold"
+									{/* Nominee Meta & Actions (Right in row, Bottom in col) */}
+									<div className="flex-1 flex flex-col justify-between min-w-0 gap-2.5">
+										{/* Nominee Meta */}
+										<div className="flex flex-col gap-1 px-0.5">
+											<div className="flex items-center gap-2">
+												<h4 className="font-bold text-base @sm:text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+													{nominee.optionText}
+												</h4>
+											</div>
+											{(nominee.description || nominee.bio) && (
+												<p className="text-xs text-muted-foreground line-clamp-2 @sm:line-clamp-3 leading-relaxed">
+													{stripHtml(nominee.description || nominee.bio)}
+												</p>
 											)}
-											disabled={isEnded || isUpcoming}
-										>
-											<Vote className="size-3.5" />
-											<span className="truncate">
-												{isEnded
-													? "Voting Closed"
-													: isUpcoming
-														? `Opens ${formatStart(startDate)}`
-														: votingMode === "internal"
-															? "Cast Ballot"
-															: isFree
-																? "Vote Free"
-																: `Vote (GHS ${votePrice.toFixed(2)})`}
-											</span>
-										</Button>
+										</div>
+
+										{/* Actions */}
+										<div className="pt-2 mt-auto border-t border-border/50 flex items-center justify-between gap-2">
+											<Button
+												variant="ghost"
+												size="icon"
+												className="size-8 rounded-full shrink-0"
+												onClick={(e) => handleShare(e, nominee, index)}
+												title="Share Nominee"
+											>
+												<Share2 className="size-3.5 text-muted-foreground" />
+											</Button>
+
+											<Button
+												size="sm"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleOpenVoteModal(nominee);
+												}}
+												className={cn(
+													"text-xs font-bold gap-1.5 h-8 flex-1 transition-all",
+													isTarget &&
+													"shadow-md shadow-primary/30 ring-1 ring-primary-foreground/30 font-extrabold"
+												)}
+												disabled={isEnded || isUpcoming}
+											>
+												<Vote className="size-3.5" />
+												<span className="truncate">
+													{isEnded
+														? "Voting Closed"
+														: isUpcoming
+															? `Opens ${formatStart(startDate)}`
+															: votingMode === "internal"
+																? "Cast Ballot"
+																: isFree
+																	? "Vote Free"
+																	: `Vote (GHS ${votePrice.toFixed(2)})`}
+												</span>
+											</Button>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-					);
-				})}
+						);
+					})}
 				</div>
 			) : (
 				<div className="py-12 flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-border/80 bg-card/50 my-4">
@@ -494,9 +494,9 @@ export function NomineeGrid({
 						const selectedCode = getEffectiveNomineeCode(selectedNominee);
 						const isSelectedTarget = Boolean(
 							highlightedCode &&
-								(highlightedCode === selectedCode.toUpperCase() ||
-									highlightedCode === selectedNominee.id.toUpperCase() ||
-									highlightedCode === selectedNominee.nomineeCode?.toUpperCase())
+							(highlightedCode === selectedCode.toUpperCase() ||
+								highlightedCode === selectedNominee.id.toUpperCase() ||
+								highlightedCode === selectedNominee.nomineeCode?.toUpperCase())
 						);
 
 						return (
@@ -520,82 +520,79 @@ export function NomineeGrid({
 
 								<div className="flex-1 overflow-y-auto p-6 space-y-6">
 
-								<div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-muted border border-border/60 shadow-sm flex items-center justify-center shrink-0">
-									{selectedNominee.imageUrl ? (
-										<img
-											src={getEventImageUrl(selectedNominee.imageUrl) || ""}
-											alt={selectedNominee.optionText}
-											className="size-full object-cover"
-										/>
-									) : (
-										<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-6 text-center">
-											<NoNomineeIllustration className="w-full h-full p-6 object-contain opacity-75" />
-										</div>
-									)}
-
-									{/* Real-Time Live Standings Badge on Sheet Image */}
-									{showTotalVotesPublicly && (
-										<div className="absolute bottom-3 left-3 z-10">
-											<AnimatedVoteBadge
-												currentVotes={selectedVotes}
-												totalVotes={totalCategoryVotes}
-												displayType={resultDisplayType}
-												isRecentlyVoted={recentlyVoted?.optionId === selectedNominee.id}
-												addedVotes={recentlyVoted?.optionId === selectedNominee.id ? recentlyVoted.addedVotes : 0}
+									<div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-muted border border-border/60 shadow-sm flex items-center justify-center shrink-0">
+										{selectedNominee.imageUrl ? (
+											<img
+												src={getEventImageUrl(selectedNominee.imageUrl) || ""}
+												alt={selectedNominee.optionText}
+												className="size-full object-cover"
 											/>
+										) : (
+											<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-6 text-center">
+												<NoNomineeIllustration className="w-full h-full p-6 object-contain opacity-75" />
+											</div>
+										)}
+
+										{/* Real-Time Live Standings Badge on Sheet Image */}
+										{showTotalVotesPublicly && (
+											<div className="absolute bottom-3 left-3 z-10">
+												<AnimatedVoteBadge
+													currentVotes={selectedVotes}
+													totalVotes={totalCategoryVotes}
+													displayType={resultDisplayType}
+													isRecentlyVoted={recentlyVoted?.optionId === selectedNominee.id}
+													addedVotes={recentlyVoted?.optionId === selectedNominee.id ? recentlyVoted.addedVotes : 0}
+												/>
+											</div>
+										)}
+									</div>
+
+									{/* Why Vote For Me / Description */}
+									{(selectedNominee.description || selectedNominee.bio) && (
+										<div className="space-y-2 rounded-xl p-4 bg-muted/40 border border-border/60">
+											<h5 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+												<span>Why Vote For Me</span>
+											</h5>
+
+											<RichTextDisplay
+												content={selectedNominee.description || selectedNominee.bio || ""}
+												className="text-xs text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
+											/>
+
 										</div>
 									)}
-								</div>
-
-								{/* Why Vote For Me / Description */}
-								<div className="space-y-2 rounded-xl p-4 bg-muted/40 border border-border/60">
-									<h5 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-										<span>Why Vote For Me</span>
-									</h5>
-									{(selectedNominee.description || selectedNominee.bio) ? (
-										<RichTextDisplay
-											content={selectedNominee.description || selectedNominee.bio || ""}
-											className="text-xs text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none"
-										/>
-									) : (
-										<p className="text-xs text-muted-foreground italic">
-											No statement provided by nominee.
-										</p>
-									)}
-								</div>
-
-								<div className="flex items-center gap-3 pt-4 border-t border-border/80 mt-auto shrink-0">
-									<Button
-										className="flex-1 font-bold gap-2 h-11"
-										disabled={isEnded || isUpcoming}
-										onClick={() => {
-											setSheetOpen(false);
-											setVoteModalOpen(true);
-										}}
-									>
-										<Vote className="size-4" />
-										<span>
-											{isEnded
-												? "Voting Closed"
-												: isUpcoming
-													? `Voting Opens ${formatStart(startDate)}`
-													: votingMode === "internal"
-														? "Cast Ballot"
-														: isFree
-															? "Vote Free"
-															: `Vote for ${selectedNominee.optionText} (GHS ${votePrice.toFixed(2)})`}
-										</span>
-									</Button>
-									<Button
-										variant="outline"
-										size="icon"
-										className="size-11 shrink-0"
-										onClick={(e) => handleShare(e, selectedNominee)}
-										title="Share Nominee"
-									>
-										<Share2 className="size-4" />
-									</Button>
-								</div>
+									<div className="flex items-center gap-3 pt-4 border-t border-border/80 mt-auto shrink-0">
+										<Button
+											className="flex-1 font-bold gap-2 h-11"
+											disabled={isEnded || isUpcoming}
+											onClick={() => {
+												setSheetOpen(false);
+												setVoteModalOpen(true);
+											}}
+										>
+											<Vote className="size-4" />
+											<span>
+												{isEnded
+													? "Voting Closed"
+													: isUpcoming
+														? `Voting Opens ${formatStart(startDate)}`
+														: votingMode === "internal"
+															? "Cast Ballot"
+															: isFree
+																? "Vote Free"
+																: `Vote for ${selectedNominee.optionText} (GHS ${votePrice.toFixed(2)})`}
+											</span>
+										</Button>
+										<Button
+											variant="outline"
+											size="icon"
+											className="size-11 shrink-0"
+											onClick={(e) => handleShare(e, selectedNominee)}
+											title="Share Nominee"
+										>
+											<Share2 className="size-4" />
+										</Button>
+									</div>
 								</div>
 							</div>
 						);
