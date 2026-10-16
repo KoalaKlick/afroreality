@@ -56,19 +56,6 @@ export function EventLocationDisplayMap({
 				loading="lazy"
 				referrerPolicy="no-referrer-when-downgrade"
 			/>
-
-			{/* Directions Floating Action Pill */}
-			<a
-				href={directionsUrl}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="absolute bottom-2.5 right-2.5 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background/90 hover:bg-background text-foreground text-[11px] font-semibold shadow-md border border-border/80 backdrop-blur-sm transition-all hover:scale-105"
-				title="Open in Google Maps for directions"
-			>
-				<Navigation className="size-3 text-primary shrink-0" />
-				<span>Directions</span>
-				<ExternalLink className="size-2.5 text-muted-foreground shrink-0 opacity-70" />
-			</a>
 		</div>
 	);
 }

@@ -7,6 +7,7 @@ import { requireEventRole, requireOrgRole } from "./auth-helpers";
 import { requireSession } from "@/lib/session";
 import { logEventActivity } from "@/lib/audit/audit-logger";
 import { paystack } from "../paystack";
+import { generateAvailableUssdCode } from "./ussd";
 
 /**
  * Event types that collect money (tickets / votes). Standard events are free
@@ -138,6 +139,11 @@ export async function createNewEvent({ data }: { data: any }) {
 			}))
 		: [];
 
+	let ussdCode = data.ussdCode || null;
+	if (data.hasUssd && !ussdCode) {
+		ussdCode = await generateAvailableUssdCode();
+	}
+
 	const event = await prisma.event.create({
 		data: {
 			organizationId,
@@ -164,7 +170,7 @@ export async function createNewEvent({ data }: { data: any }) {
 			virtualLink: data.virtualLink || null,
 			maxAttendees: data.maxAttendees ? Number(data.maxAttendees) : null,
 			hasUssd: data.hasUssd ?? false,
-			ussdCode: data.ussdCode || null,
+			ussdCode: (data.hasUssd ?? false) ? ussdCode : null,
 			sponsors: validSponsors.length > 0 ? { create: validSponsors } : undefined,
 			socialLinks:
 				validSocialLinks.length > 0 ? { create: validSocialLinks } : undefined,

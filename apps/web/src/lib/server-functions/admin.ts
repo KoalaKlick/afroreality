@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@repo/db";
 import { requirePlatformAdmin } from "@/lib/admin/admin-auth";
 import { WITHDRAWAL_CONFIG } from "@repo/pricing";
+import { generateAvailableUssdCode } from "@/lib/server-functions/ussd";
 
 /**
  * Super Admin action to lock or unlock an organization wallet.
@@ -359,10 +360,7 @@ export async function adminToggleEventUssd(data: {
 
 		let assignedCode = event.ussdCode;
 		if (data.hasUssd && !assignedCode) {
-			const count = await prisma.event.count({
-				where: { ussdCode: { not: null } },
-			});
-			assignedCode = String(100 + count);
+			assignedCode = await generateAvailableUssdCode();
 		}
 
 		await prisma.event.update({

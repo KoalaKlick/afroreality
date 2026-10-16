@@ -204,16 +204,28 @@ function getCurrentEventsWhere(now: Date = new Date()) {
 
 async function fetchEventByCode(code: string) {
 	if (!code) return null;
+	const trimmed = code.trim();
 	const isUUID =
 		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-			code,
+			trimmed,
 		);
-	const orConditions: any[] = [
-		{ ussdCode: code, hasUssd: true },
-		{ ussdCode: code },
-	];
+
+	const codeVariants = new Set<string>([trimmed]);
+	const num = Number.parseInt(trimmed, 10);
+	if (!Number.isNaN(num)) {
+		codeVariants.add(num.toString());
+		if (num < 100) {
+			codeVariants.add(num.toString().padStart(2, "0"));
+		}
+	}
+
+	const orConditions: any[] = [];
+	for (const variant of codeVariants) {
+		orConditions.push({ ussdCode: variant, hasUssd: true });
+		orConditions.push({ ussdCode: variant });
+	}
 	if (isUUID) {
-		orConditions.push({ id: code });
+		orConditions.push({ id: trimmed });
 	}
 
 	return prisma.event.findFirst({

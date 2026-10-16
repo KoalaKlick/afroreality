@@ -127,10 +127,15 @@ export function buildPaginatedMenu(
 
 // Database Helpers via direct PostgreSQL connection
 export async function fetchEventByCode(sql: any, code: string) {
+	const trimmed = (code || "").trim();
+	const num = Number.parseInt(trimmed, 10);
+	const padded = !Number.isNaN(num) && num < 100 ? num.toString().padStart(2, "0") : trimmed;
+	const unpadded = !Number.isNaN(num) ? num.toString() : trimmed;
+
 	const events = await sql`
 		SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date
 		FROM events 
-		WHERE ussd_code = ${code} AND has_ussd = true
+		WHERE (ussd_code = ${trimmed} OR ussd_code = ${padded} OR ussd_code = ${unpadded}) AND has_ussd = true
 		LIMIT 1
 	`;
 	return events[0] || null;
