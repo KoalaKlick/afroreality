@@ -262,46 +262,11 @@ export function OrgWalletClient({
 	const transferFee = Number((wallet as any)?.transferFee ?? 1.0);
 	const isNextWithdrawalFree = Boolean((wallet as any)?.isNextWithdrawalFree ?? true);
 
-	// Calculate net available allocation for a given event
-	const getEventNetAllocation = useCallback(
-		(eventId: string) => {
-			if (eventId === "all") return availableBalance;
-			const ev = eventInflows.find((e: any) => e.id === eventId);
-			if (!ev) return availableBalance;
-			const eventInflow = Number(ev.totalInflow || 0);
-
-			// Calculate debits (completed, pending, processing) belonging to this event
-			const eventDebits = outflows
-				.filter(
-					(t) =>
-						(t.eventId === eventId ||
-							t.event?.id === eventId ||
-							(ev.title && (t.description?.includes(ev.title) || t.notes?.includes(ev.title)))) &&
-						(t.status === "completed" || t.status === "pending" || t.status === "processing"),
-				)
-				.reduce((sum, t) => sum + Number(t.amount || 0), 0);
-
-			const net = Math.max(0, Math.round((eventInflow - eventDebits) * 100) / 100);
-			return Math.min(net, availableBalance);
-		},
-		[availableBalance, eventInflows, outflows],
-	);
-
-	const selectedEventAllocation = useMemo(() => {
-		if (withdrawalEventId === "all") return availableBalance;
-		return getEventNetAllocation(withdrawalEventId);
-	}, [withdrawalEventId, availableBalance, getEventNetAllocation]);
-
-	const effectiveMaxAmount =
-		withdrawalEventId !== "all"
-			? Math.min(selectedEventAllocation, availableBalance)
-			: availableBalance;
-
 	const parsedAmount = Number.parseFloat(withdrawalAmount);
 	const isValidWithdrawalAmount =
 		!Number.isNaN(parsedAmount) &&
 		parsedAmount >= minWithdrawalAmount &&
-		parsedAmount <= effectiveMaxAmount;
+		parsedAmount <= availableBalance;
 
 	const calculatedFee = isNextWithdrawalFree ? 0 : transferFee;
 	const netPayoutAmount = Math.max(0, Math.round((parsedAmount - calculatedFee) * 100) / 100);
@@ -309,13 +274,12 @@ export function OrgWalletClient({
 	function handleWithdrawalEventChange(eventId: string) {
 		setWithdrawalEventId(eventId);
 		if (eventId === "all") {
-			setWithdrawalAmount("");
 			setWithdrawalMemo("");
 		} else {
 			const ev = eventInflows.find((e: any) => e.id === eventId);
-			const alloc = getEventNetAllocation(eventId);
-			setWithdrawalAmount(alloc > 0 ? alloc.toFixed(2) : "");
-			setWithdrawalMemo(ev?.title ? `${ev.title} Payout` : "");
+			if (ev?.title) {
+				setWithdrawalMemo(`${ev.title} Payout`);
+			}
 		}
 	}
 
@@ -329,15 +293,14 @@ export function OrgWalletClient({
 			setIsPayoutDrawerOpen(true);
 			return;
 		}
+		// Preset optional event reference tag if currently filtered on the ledger
 		const initialEventId = selectedEventId !== "all" ? selectedEventId : "all";
 		setWithdrawalEventId(initialEventId);
+		setWithdrawalAmount(availableBalance > 0 ? availableBalance.toFixed(2) : "");
 		if (initialEventId !== "all") {
 			const ev = eventInflows.find((e: any) => e.id === initialEventId);
-			const alloc = getEventNetAllocation(initialEventId);
-			setWithdrawalAmount(alloc > 0 ? alloc.toFixed(2) : "");
 			setWithdrawalMemo(ev?.title ? `${ev.title} Payout` : "");
 		} else {
-			setWithdrawalAmount("");
 			setWithdrawalMemo("");
 		}
 		setIsWithdrawOpen(true);
@@ -347,12 +310,6 @@ export function OrgWalletClient({
 		if (Number.isNaN(parsedAmount) || parsedAmount < minWithdrawalAmount) {
 			toast.error(
 				`Minimum withdrawal amount is ${currency} ${minWithdrawalAmount.toFixed(2)}.`,
-			);
-			return;
-		}
-		if (withdrawalEventId !== "all" && parsedAmount > selectedEventAllocation) {
-			toast.error(
-				`Amount exceeds ${selectedWithdrawalEvent?.title || "event"} allocation (${currency} ${selectedEventAllocation.toFixed(2)})`,
 			);
 			return;
 		}
@@ -818,7 +775,7 @@ export function OrgWalletClient({
 
 			{/* Withdrawal Modal Dialog */}
 			<Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-				<DialogContent className="sm:max-w-2xl">
+				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<ArrowDownToLine className="size-5 text-primary" />
@@ -830,19 +787,39 @@ export function OrgWalletClient({
 					</DialogHeader>
 
 					<div className="space-y-4 py-2">
-						{/* Available Balance & Settlement Status Banner */}
-						<div className="bg-primary-50/70 dark:bg-primary-950/30 dark:border-primary-900/50 rounded-lg p-3 space-y-1.5">
+						{/* Clean Unified Summary Card */}
+						<div className="rounded-xl border border-border/70 bg-muted/30 p-3.5 space-y-2.5">
 							<div className="flex items-center justify-between">
-								<div className="text-xs text-muted-foreground">Available to Withdraw (Cleared):</div>
-								<div className="font-mono font-bold text-sm text-foreground">
+								<span className="text-xs text-muted-foreground font-medium">Available to Withdraw:</span>
+								<span className="font-mono font-bold text-base text-foreground">
 									{currency} {availableBalance.toFixed(2)}
-								</div>
+								</span>
 							</div>
+							{hasPayoutAccount && (
+								<div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
+									<div className="text-muted-foreground flex items-center gap-2 space-x-2">
+										<ProviderLogo
+											bankCode={organization.paystackBankCode}
+											className="size-5 shrink-0"
+											imageClassName="h-3.5 w-auto"
+										/>
+										<p>Payout Account:</p>
+									</div>
+									<div className="flex items-center gap-1.5 text-right">
+										<span className="font-medium text-foreground truncate max-w-[180px]">
+											{organization.paystackAccountName}
+										</span>
+										<span className="font-mono text-muted-foreground text-[11px]">
+											({organization.paystackAccountNumber})
+										</span>
+									</div>
+								</div>
+							)}
 							{(wallet as any)?.pendingSettlement > 0 && (
-								<div className="flex items-center justify-between text-[11px] text-amber-600 dark:text-amber-400 border-t border-primary-100/50 dark:border-primary-900/30 pt-1.5">
+								<div className="flex items-center justify-between border-t border-border/50 pt-2 text-[11px] text-amber-600 dark:text-amber-400">
 									<span className="flex items-center gap-1">
-										<Clock className="size-3" />
-										Pending T+1 Clearance:
+										<Clock className="size-3 shrink-0" />
+										Pending T+1 Settlement:
 									</span>
 									<span className="font-mono font-semibold">
 										{currency} {Number((wallet as any).pendingSettlement).toFixed(2)}
@@ -850,111 +827,6 @@ export function OrgWalletClient({
 								</div>
 							)}
 						</div>
-
-						{/* Destination Account Summary */}
-						{hasPayoutAccount && (
-							<div className="rounded-lg border border-border bg-card p-3 flex items-center gap-3 text-xs">
-								<ProviderLogo
-									bankCode={organization.paystackBankCode}
-									className="size-8 shrink-0"
-								/>
-								<div className="space-y-0.5 min-w-0 flex-1">
-									<div className="font-semibold text-muted-foreground">
-										Disbursing To:
-									</div>
-									<div className="font-medium text-foreground truncate">
-										{organization.paystackAccountName}
-									</div>
-									<div className="font-mono text-muted-foreground text-[11px]">
-										{organization.paystackAccountNumber} ({organization.paystackBankCode})
-									</div>
-								</div>
-							</div>
-						)}
-
-						{/* Event Allocation Reference */}
-						{eventInflows.length > 0 && (
-							<div className="space-y-1.5">
-								<div className="flex items-center justify-between">
-									<Label htmlFor="withdraw-event" className="text-xs font-semibold">
-										Event Allocation (Optional)
-									</Label>
-									{withdrawalEventId !== "all" && (
-										<button
-											type="button"
-											className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer"
-											onClick={() => handleWithdrawalEventChange("all")}
-										>
-											Clear
-										</button>
-									)}
-								</div>
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<Button
-											id="withdraw-event"
-											variant="outline"
-											size="sm"
-											className="h-9 w-full justify-between text-xs bg-background font-normal"
-										>
-											<div className="flex items-center gap-2 truncate">
-												<Calendar className="size-3.5 text-muted-foreground shrink-0" />
-												<span className="truncate">
-													{withdrawalEventId === "all"
-														? "General (All Events)"
-														: eventInflows.find((e: any) => e.id === withdrawalEventId)?.title || "Select Event"}
-												</span>
-											</div>
-											<ChevronDown className="size-3.5 opacity-50 shrink-0" />
-										</Button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-72 overflow-y-auto">
-										<DropdownMenuRadioGroup value={withdrawalEventId} onValueChange={handleWithdrawalEventChange}>
-											<DropdownMenuRadioItem value="all" className="py-2 cursor-pointer">
-												<span className="font-medium">General (All Events)</span>
-											</DropdownMenuRadioItem>
-											<DropdownMenuSeparator />
-											{eventInflows.map((ev: any) => (
-												<DropdownMenuRadioItem
-													key={ev.id}
-													value={ev.id}
-													className="flex items-center justify-between py-2 cursor-pointer"
-												>
-													<span className="truncate font-medium">{ev.title}</span>
-													<div className="flex items-center gap-1.5 shrink-0 ml-2">
-														{ev.isOngoing && (
-															<span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded border border-emerald-500/20">
-																Ongoing
-															</span>
-														)}
-														{Number(ev.totalInflow || 0) > 0 && (
-															<span className="text-[10px] text-muted-foreground font-mono">
-																({currency} {Number(ev.totalInflow || 0).toFixed(2)})
-															</span>
-														)}
-													</div>
-												</DropdownMenuRadioItem>
-											))}
-										</DropdownMenuRadioGroup>
-									</DropdownMenuContent>
-								</DropdownMenu>
-								{selectedWithdrawalEvent && (
-									<div className="flex items-center justify-between text-[11px] text-muted-foreground">
-										<span>
-											Available allocation:{" "}
-											<span className="font-semibold text-foreground">
-												{currency} {selectedEventAllocation.toFixed(2)}
-											</span>
-										</span>
-										{selectedWithdrawalEvent.isOngoing && (
-											<span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-												Ongoing Event
-											</span>
-										)}
-									</div>
-								)}
-							</div>
-						)}
 
 						{/* Amount Input */}
 						<div className="space-y-1.5">
@@ -969,86 +841,53 @@ export function OrgWalletClient({
 									className="h-6 px-2 text-[11px] text-primary hover:text-primary font-medium"
 									onClick={() =>
 										setWithdrawalAmount(
-											effectiveMaxAmount > 0 ? effectiveMaxAmount.toFixed(2) : "0",
+											availableBalance > 0 ? availableBalance.toFixed(2) : "0",
 										)
 									}
 								>
-									{withdrawalEventId !== "all" ? "Withdraw Event Max" : "Withdraw Max"}
+									Withdraw Max
 								</Button>
 							</div>
 							<Input
 								id="withdraw-amount"
 								type="number"
 								min={minWithdrawalAmount}
-								max={effectiveMaxAmount}
+								max={availableBalance}
 								step="0.01"
 								value={withdrawalAmount}
 								onChange={(e) => setWithdrawalAmount(e.target.value)}
 								placeholder={`Min: ${minWithdrawalAmount.toFixed(2)}`}
-								className="font-mono"
+								className="font-mono text-base h-10"
 								autoFocus
 							/>
-							<div className="flex items-center justify-between text-[11px]">
-								<span className="text-muted-foreground">
-									Minimum:{" "}
-									<span className="font-semibold text-foreground">
-										{currency} {minWithdrawalAmount.toFixed(2)}
-									</span>
-									{withdrawalEventId !== "all" && (
-										<>
-											{" "}• Event Cap:{" "}
-											<span className="font-semibold text-foreground">
-												{currency} {selectedEventAllocation.toFixed(2)}
-											</span>
-										</>
-									)}
+							<div className="flex items-center justify-between text-[11px] text-muted-foreground">
+								<span>
+									Minimum: <strong className="text-foreground font-medium">{currency} {minWithdrawalAmount.toFixed(2)}</strong>
 								</span>
 								{parsedAmount > 0 && parsedAmount < minWithdrawalAmount && (
-									<span className="text-destructive font-medium">
-										Below minimum ({currency} {minWithdrawalAmount.toFixed(2)})
-									</span>
+									<span className="text-destructive font-medium">Below minimum</span>
+								)}
+								{parsedAmount > availableBalance && (
+									<span className="text-destructive font-medium">Exceeds available balance</span>
 								)}
 							</div>
-							{withdrawalEventId !== "all" && parsedAmount > selectedEventAllocation && (
-								<p className="text-[11px] text-destructive font-medium">
-									Amount exceeds event allocation ({currency} {selectedEventAllocation.toFixed(2)})
-								</p>
-							)}
-							{parsedAmount > availableBalance && (
-								<p className="text-[11px] text-destructive font-medium">
-									Amount exceeds available balance ({currency} {availableBalance.toFixed(2)})
-								</p>
-							)}
 						</div>
 
-						{/* Live Fee Breakdown (Option B: 1 Free/week, then GHS 1.00) */}
+						{/* Live Fee Breakdown Pill */}
 						{parsedAmount >= minWithdrawalAmount && parsedAmount <= availableBalance && (
-							<div className="rounded-lg border border-border/70 bg-muted/30 p-2.5 space-y-1.5 text-xs">
-								<div className="flex items-center justify-between text-muted-foreground">
-									<span>Gross Requested Amount:</span>
-									<span className="font-mono font-medium text-foreground">
-										{currency} {parsedAmount.toFixed(2)}
-									</span>
+							<div className="rounded-lg border border-border/70 bg-muted/20 px-3 py-2 flex items-center justify-between text-xs">
+								<div className="flex items-center gap-1.5 text-muted-foreground">
+									<span>Fee:</span>
+									{isNextWithdrawalFree ? (
+										<Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-bold">
+											FREE (Weekly)
+										</Badge>
+									) : (
+										<span className="font-mono font-medium text-foreground">{currency} {transferFee.toFixed(2)}</span>
+									)}
 								</div>
-								<div className="flex items-center justify-between">
-									<span className="flex items-center gap-1.5 text-muted-foreground">
-										Transfer Fee:
-										{isNextWithdrawalFree ? (
-											<Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-bold">
-												FREE (Weekly)
-											</Badge>
-										) : (
-											<Badge variant="outline" className="text-[9px] h-4 px-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-medium">
-												Paid by Organizer
-											</Badge>
-										)}
-									</span>
-									<span className={`font-mono font-medium ${isNextWithdrawalFree ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
-										{isNextWithdrawalFree ? `${currency} 0.00` : `- ${currency} ${transferFee.toFixed(2)}`}
-									</span>
-								</div>
-								<div className="border-t border-border/50 pt-1.5 flex items-center justify-between font-semibold">
-									<span>Net Disbursed to Account:</span>
+								<div className="flex items-center gap-1.5">
+									<span className="text-muted-foreground">Net Payout:</span>
 									<span className="font-mono text-primary font-bold text-sm">
 										{currency} {netPayoutAmount.toFixed(2)}
 									</span>
@@ -1056,28 +895,86 @@ export function OrgWalletClient({
 							</div>
 						)}
 
-						{/* Memo Input */}
-						<div className="space-y-1.5">
-							<Label htmlFor="withdraw-memo" className="text-xs font-semibold">
-								Memo / Reference (Optional)
-							</Label>
-							<Input
-								id="withdraw-memo"
-								value={withdrawalMemo}
-								onChange={(e) => setWithdrawalMemo(e.target.value)}
-								placeholder="e.g. Event ticket sales payout"
-							/>
+						{/* Reference Section (Side-by-side) */}
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+							{/* Event Tag */}
+							{eventInflows.length > 0 && (
+								<div className="space-y-1.5">
+									<div className="flex items-center justify-between">
+										<Label htmlFor="withdraw-event" className="text-xs font-semibold">
+											Event Tag (Optional)
+										</Label>
+										{withdrawalEventId !== "all" && (
+											<button
+												type="button"
+												className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer"
+												onClick={() => handleWithdrawalEventChange("all")}
+											>
+												Clear
+											</button>
+										)}
+									</div>
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button
+												id="withdraw-event"
+												variant="outline"
+												size="sm"
+												className="h-9 w-full justify-between text-xs bg-background font-normal"
+											>
+												<span className="truncate">
+													{withdrawalEventId === "all"
+														? "General (All Events)"
+														: eventInflows.find((e: any) => e.id === withdrawalEventId)?.title || "Select Event"}
+												</span>
+												<ChevronDown className="size-3.5 opacity-50 shrink-0 ml-1.5" />
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto">
+											<DropdownMenuRadioGroup value={withdrawalEventId} onValueChange={handleWithdrawalEventChange}>
+												<DropdownMenuRadioItem value="all" className="py-2 text-xs cursor-pointer">
+													<span className="font-medium">General (All Events)</span>
+												</DropdownMenuRadioItem>
+												<DropdownMenuSeparator />
+												{eventInflows.map((ev: any) => (
+													<DropdownMenuRadioItem
+														key={ev.id}
+														value={ev.id}
+														className="py-2 text-xs cursor-pointer flex items-center justify-between"
+													>
+														<span className="truncate font-medium">{ev.title}</span>
+														{ev.isOngoing && (
+															<span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded border border-emerald-500/20 ml-2 shrink-0">
+																Ongoing
+															</span>
+														)}
+													</DropdownMenuRadioItem>
+												))}
+											</DropdownMenuRadioGroup>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</div>
+							)}
+
+							{/* Memo Input */}
+							<div className="space-y-1.5">
+								<Label htmlFor="withdraw-memo" className="text-xs font-semibold">
+									Memo / Reference (Optional)
+								</Label>
+								<Input
+									id="withdraw-memo"
+									value={withdrawalMemo}
+									onChange={(e) => setWithdrawalMemo(e.target.value)}
+									placeholder="e.g. Ticket sales payout"
+									className="h-9 text-xs"
+								/>
+							</div>
 						</div>
 
-						{/* T+1 Settlement Policy Note */}
-						<div className="text-[11px] text-muted-foreground bg-muted/40 rounded-lg p-2.5 space-y-1 ">
-							<div className="font-medium text-foreground flex items-center gap-1.5">
-								Paystack Settlement & Clearance (T+1)
-							</div>
-							<p className="leading-normal">
-								Withdrawals are disbursed directly via Paystack to your payout account. Payments clear into your withdrawable balance on T+1 business days (excluding weekends & Ghana public holidays).
-							</p>
-						</div>
+						{/* Compact T+1 Settlement Policy Note */}
+						<p className="text-[11px] text-muted-foreground text-center pt-0.5">
+							Disbursed directly to your account via Paystack on T+1 business days.
+						</p>
 					</div>
 
 					<DialogFooter>
