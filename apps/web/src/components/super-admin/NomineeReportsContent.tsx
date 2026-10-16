@@ -1,19 +1,16 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useMemo } from "react";
 import {
 	Send,
 	Clock,
-	Calendar,
 	CheckCircle2,
 	AlertCircle,
 	Radio,
-	Sparkles,
 	MessageSquare,
 	RefreshCw,
 	Save,
 	Users,
-	Flame,
 	Smartphone,
 	ExternalLink,
 	ShieldCheck,
@@ -24,12 +21,23 @@ import {
 	DollarSign,
 	TrendingUp,
 	Activity,
+	Layers,
+	Search,
+	Settings2,
+	CheckSquare,
+	Square,
+	Phone,
+	KeyRound,
+	Sparkles,
+	SlidersHorizontal,
+	ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -50,10 +58,19 @@ import {
 import {
 	NomineeReportSettings,
 	ReportInterval,
+	ActiveEventSummary,
 	updateNomineeReportSettings,
 	dispatchNomineeReportsNow,
 } from "@/lib/server-functions/nominee-reports";
-import { WhatsAppUsageSummary } from "@/lib/server-functions/whatsapp-usage";
+import { WhatsAppUsageSummary, registerNomineeConfirmationTemplate } from "@/lib/server-functions/whatsapp-usage";
+import { SmsUsageSummary } from "@/lib/services/sms";
+import {
+	EventMessagingConfigData,
+	ConfirmChannel,
+	ReportChannel,
+	saveEventMessagingConfig,
+} from "@/lib/server-functions/event-messaging-config";
+import { updatePhoneLoginOtpChannel } from "@/lib/server-functions/auth";
 
 interface NomineeReportsContentProps {
 	initialSettings: NomineeReportSettings;
@@ -63,18 +80,47 @@ interface NomineeReportsContentProps {
 		totalVotesCast: number;
 	};
 	usageData?: WhatsAppUsageSummary;
+	smsUsageData?: SmsUsageSummary;
+	activeEvents?: ActiveEventSummary[];
+	allConfigs?: Array<EventMessagingConfigData & { eventTitle: string; orgName: string; orgSlug: string }>;
+	initialOtpChannel?: "sms" | "whatsapp";
 }
 
 export function NomineeReportsContent({
 	initialSettings,
 	summaryData,
 	usageData,
+	smsUsageData,
+	activeEvents = [],
+	allConfigs = [],
+	initialOtpChannel = "sms",
 }: NomineeReportsContentProps) {
+	const [activeTab, setActiveTab] = useState("overview");
 	const [settings, setSettings] = useState<NomineeReportSettings>(initialSettings);
+	const [configsList, setConfigsList] = useState(allConfigs);
+	const [otpChannel, setOtpChannel] = useState<"sms" | "whatsapp">(initialOtpChannel);
 	const [isSaving, startSavingTransition] = useTransition();
+	const [isSavingOtpChannel, startSavingOtpTransition] = useTransition();
 	const [isDispatching, startDispatchTransition] = useTransition();
 	const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 	const [copiedField, setCopiedField] = useState<string | null>(null);
+
+	// Search filters for clean Facebook-style tables
+	const [eventSearchQuery, setEventSearchQuery] = useState("");
+	const [smsSearchQuery, setSmsSearchQuery] = useState("");
+
+	// Broadcast modal state
+	const [targetScope, setTargetScope] = useState<"all" | "selected">("selected");
+	const [selectedEventIds, setSelectedEventIds] = useState<string[]>(() =>
+		activeEvents.length > 0 && activeEvents[0]?.id ? [activeEvents[0].id] : []
+	);
+	const [broadcastChannel, setBroadcastChannel] = useState<"event_default" | "whatsapp" | "sms" | "both">("event_default");
+
+	// Event config quick-edit modal
+	const [editingEventConfig, setEditingEventConfig] = useState<(EventMessagingConfigData & { eventTitle: string }) | null>(null);
+	const [isSavingEventConfig, startSavingEventConfigTransition] = useTransition();
+	const [isRegisteringTemplate, startRegisterTransition] = useTransition();
+	const [templateRegResult, setTemplateRegResult] = useState<{ status?: string; error?: string } | null>(null);
 
 	const handleCopy = (text: string, fieldName: string) => {
 		navigator.clipboard.writeText(text);
@@ -83,32 +129,50 @@ export function NomineeReportsContent({
 		setTimeout(() => setCopiedField(null), 2000);
 	};
 
-	const handleSave = () => {
+	const handleSaveSchedule = () => {
 		startSavingTransition(async () => {
 			const res = await updateNomineeReportSettings(settings);
 			if (res.success && res.settings) {
 				setSettings(res.settings);
-				toast.success("Nominee report schedule updated successfully!");
+				toast.success("Schedule settings saved successfully");
 			} else {
 				toast.error(res.error || "Failed to update configuration");
 			}
 		});
 	};
 
+	const handleUpdateOtpChannel = (newChannel: "sms" | "whatsapp") => {
+		setOtpChannel(newChannel);
+		startSavingOtpTransition(async () => {
+			const res = await updatePhoneLoginOtpChannel(newChannel);
+			if (res.success) {
+				toast.success(`Phone login OTP will now be sent via ${newChannel === "whatsapp" ? "WhatsApp" : "SMS"}`);
+			} else {
+				toast.error("Failed to update OTP channel setting");
+			}
+		});
+	};
+
 	const handleManualDispatch = () => {
+		if (targetScope === "selected" && selectedEventIds.length === 0) {
+			toast.error("Please select at least one event to broadcast reports to.");
+			return;
+		}
+
 		setConfirmDialogOpen(false);
 		startDispatchTransition(async () => {
-			toast.info("Broadcasting voting progress reports to nominees...");
+			toast.info("Broadcasting voting progress reports to candidates...");
 			const res = await dispatchNomineeReportsNow({
 				force: true,
 				triggeredBy: "super_admin_manual",
+				selectedEventIds: targetScope === "selected" ? selectedEventIds : undefined,
+				channelOverride: broadcastChannel,
 			});
 
 			if (res.success) {
 				toast.success(
 					`Broadcast completed! ${res.successCount} sent successfully${res.failureCount > 0 ? `, ${res.failureCount} failed` : ""}.`
 				);
-				// Update local settings state with fresh stats
 				setSettings((prev) => ({
 					...prev,
 					lastRunAt: new Date().toISOString(),
@@ -118,6 +182,7 @@ export function NomineeReportsContent({
 						failureCount: res.failureCount,
 						timestamp: new Date().toISOString(),
 						triggeredBy: "Manual Broadcast",
+						eventIds: targetScope === "selected" ? selectedEventIds : undefined,
 					},
 				}));
 			} else {
@@ -126,11 +191,66 @@ export function NomineeReportsContent({
 		});
 	};
 
+	const handleSaveSingleEventConfig = () => {
+		if (!editingEventConfig) return;
+		startSavingEventConfigTransition(async () => {
+			const res = await saveEventMessagingConfig(editingEventConfig);
+			if (res.success && res.config) {
+				setConfigsList((prev) =>
+					prev.map((c) =>
+						c.eventId === editingEventConfig.eventId ? { ...c, ...res.config! } : c
+					)
+				);
+				toast.success(`Messaging rules saved for "${editingEventConfig.eventTitle}"`);
+				setEditingEventConfig(null);
+			} else {
+				toast.error(res.error || "Failed to save event messaging settings");
+			}
+		});
+	};
+
+	const toggleEventSelection = (eventId: string) => {
+		setSelectedEventIds((prev) =>
+			prev.includes(eventId) ? prev.filter((id) => id !== eventId) : [...prev, eventId]
+		);
+	};
+
+	// Filtered configs list
+	const filteredConfigs = useMemo(() => {
+		if (!eventSearchQuery.trim()) return configsList;
+		const q = eventSearchQuery.toLowerCase();
+		return configsList.filter(
+			(c) =>
+				c.eventTitle?.toLowerCase().includes(q) ||
+				c.orgName?.toLowerCase().includes(q)
+		);
+	}, [configsList, eventSearchQuery]);
+
+	// Filtered SMS logs
+	const filteredSmsLogs = useMemo(() => {
+		const logs = smsUsageData?.recentLogs || [];
+		if (!smsSearchQuery.trim()) return logs;
+		const q = smsSearchQuery.toLowerCase();
+		return logs.filter(
+			(l) =>
+				l.recipientPhone?.toLowerCase().includes(q) ||
+				l.message?.toLowerCase().includes(q) ||
+				l.purpose?.toLowerCase().includes(q) ||
+				l.status?.toLowerCase().includes(q)
+		);
+	}, [smsUsageData?.recentLogs, smsSearchQuery]);
+
+	const calculatedRecipients = targetScope === "all"
+		? summaryData.eligibleNomineesCount
+		: activeEvents
+				.filter((e) => selectedEventIds.includes(e.id))
+				.reduce((acc, curr) => acc + curr.nomineeCount, 0);
+
 	const formatHour = (hour: number) => {
 		const h = hour % 24;
 		const ampm = h >= 12 ? "PM" : "AM";
 		const formatted = h % 12 === 0 ? 12 : h % 12;
-		return `${formatted}:00 ${ampm} UTC (${String(h).padStart(2, "0")}:00)`;
+		return `${formatted}:00 ${ampm} UTC`;
 	};
 
 	const webhookInfo = usageData?.webhookConfig || {
@@ -142,731 +262,551 @@ export function NomineeReportsContent({
 	};
 
 	return (
-		<div className="space-y-6">
-			{/* Page Header */}
-			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/80 pb-5">
-				<div>
-					<div className="flex items-center gap-2.5">
-						<h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-							<MessageSquare className="h-6 w-6 text-emerald-500" />
-							WhatsApp Communication & Reports
-						</h1>
-						<Badge
-							variant="outline"
-							className={`text-xs font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-								settings.enabled
-									? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-									: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-							}`}
-						>
-							{settings.enabled ? "Active Schedule" : "Automations Paused"}
-						</Badge>
+		<div className="space-y-6 max-w-7xl mx-auto">
+			{/* ── Facebook-Style Clean Header ────────────────────────────────────── */}
+			<div className="bg-card border border-border/70 rounded-2xl p-6 shadow-xs">
+				<div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+					<div className="space-y-1.5">
+						<div className="flex items-center gap-3">
+							<div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+								<MessageSquare className="h-5 w-5" />
+							</div>
+							<div>
+								<div className="flex items-center gap-2.5">
+									<h1 className="text-xl font-bold tracking-tight text-foreground">
+										Messaging & Communications Hub
+									</h1>
+									<span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+										<span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+										All Gateways Connected
+									</span>
+								</div>
+								<p className="text-xs text-muted-foreground mt-0.5">
+									Manage automated nominee reports, ticket confirmations, and phone verification across WhatsApp & Arkesel SMS.
+								</p>
+							</div>
+						</div>
 					</div>
-					<p className="text-sm text-muted-foreground mt-1 max-w-3xl">
-						Manage automated candidate reports, configure Meta webhook delivery callbacks,
-						and track WhatsApp message consumption, deliverability rates, and costs.
-					</p>
+
+					{/* Primary Quick Actions */}
+					<div className="flex items-center gap-2.5 shrink-0">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setConfirmDialogOpen(true)}
+							disabled={isDispatching || summaryData.eligibleNomineesCount === 0}
+							className="rounded-xl border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 text-xs font-semibold gap-2 h-9 px-4"
+						>
+							<Send className={`h-3.5 w-3.5 ${isDispatching ? "animate-pulse" : ""}`} />
+							{isDispatching ? "Broadcasting..." : "Send Reports Now"}
+						</Button>
+
+						<Button
+							onClick={handleSaveSchedule}
+							disabled={isSaving}
+							size="sm"
+							className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold gap-2 h-9 px-4 shadow-xs"
+						>
+							<Save className="h-3.5 w-3.5" />
+							{isSaving ? "Saving..." : "Save Schedule"}
+						</Button>
+					</div>
 				</div>
 
-				<div className="flex items-center gap-3">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => setConfirmDialogOpen(true)}
-						disabled={isDispatching || summaryData.eligibleNomineesCount === 0}
-						className="gap-2 border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-					>
-						<Send className={`h-4 w-4 ${isDispatching ? "animate-pulse" : ""}`} />
-						{isDispatching ? "Broadcasting..." : "Send Reports Now"}
-					</Button>
-					<Button
-						onClick={handleSave}
-						disabled={isSaving}
-						size="sm"
-						className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-					>
-						<Save className="h-4 w-4" />
-						{isSaving ? "Saving..." : "Save Schedule"}
-					</Button>
+				{/* ── Clean Channel Status Strip (Facebook Meta Business Suite style) ── */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-5 border-t border-border/50">
+					{/* Arkesel SMS status */}
+					<div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/30 border border-border/50">
+						<div className="flex items-center gap-3">
+							<div className="h-9 w-9 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+								<Smartphone className="h-4 w-4" />
+							</div>
+							<div>
+								<div className="flex items-center gap-1.5">
+									<p className="text-xs font-semibold text-foreground">Arkesel SMS Gateway</p>
+									<span className="text-[10px] bg-emerald-500/15 text-emerald-600 font-medium px-1.5 py-0.2 rounded">Active</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground">
+									Sender ID: <span className="font-semibold text-foreground">Fextiva</span> &bull; {(smsUsageData?.totalSent ?? 0).toLocaleString()} sent
+								</p>
+							</div>
+						</div>
+						<div className="text-right">
+							<p className="text-xs font-bold text-foreground">
+								${(smsUsageData?.estimatedSpendUsd ?? 0).toFixed(2)}
+							</p>
+							<p className="text-[10px] text-muted-foreground">Est. Spend</p>
+						</div>
+					</div>
+
+					{/* Meta WhatsApp status */}
+					<div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/30 border border-border/50">
+						<div className="flex items-center gap-3">
+							<div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+								<MessageSquare className="h-4 w-4" />
+							</div>
+							<div>
+								<div className="flex items-center gap-1.5">
+									<p className="text-xs font-semibold text-foreground">Meta WhatsApp Cloud</p>
+									<span className="text-[10px] bg-emerald-500/15 text-emerald-600 font-medium px-1.5 py-0.2 rounded">Tier 1</span>
+								</div>
+								<p className="text-[11px] text-muted-foreground truncate max-w-[140px]">
+									+233 50 989 7757 &bull; {usageData?.deliveryRate ?? 100}% del.
+								</p>
+							</div>
+						</div>
+						<div className="text-right">
+							<p className="text-xs font-bold text-foreground">
+								{(usageData?.totalSent ?? 0).toLocaleString()}
+							</p>
+							<p className="text-[10px] text-muted-foreground">Messages</p>
+						</div>
+					</div>
+
+					{/* Phone Login OTP Channel Quick Control */}
+					<div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/30 border border-border/50">
+						<div className="flex items-center gap-3">
+							<div className="h-9 w-9 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+								<KeyRound className="h-4 w-4" />
+							</div>
+							<div>
+								<p className="text-xs font-semibold text-foreground">Login OTP Channel</p>
+								<p className="text-[11px] text-muted-foreground">
+									Delivers phone sign-in codes
+								</p>
+							</div>
+						</div>
+						<div className="flex items-center gap-1 bg-background border border-border rounded-lg p-0.5">
+							<button
+								type="button"
+								onClick={() => handleUpdateOtpChannel("sms")}
+								disabled={isSavingOtpChannel}
+								className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-all ${
+									otpChannel === "sms"
+										? "bg-amber-500 text-white shadow-xs"
+										: "text-muted-foreground hover:text-foreground"
+								}`}
+							>
+								SMS
+							</button>
+							<button
+								type="button"
+								onClick={() => handleUpdateOtpChannel("whatsapp")}
+								disabled={isSavingOtpChannel}
+								className={`px-2 py-1 text-[11px] font-semibold rounded-md transition-all ${
+									otpChannel === "whatsapp"
+										? "bg-emerald-600 text-white shadow-xs"
+										: "text-muted-foreground hover:text-foreground"
+								}`}
+							>
+								WhatsApp
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 
-			{/* Main Navigation Tabs */}
-			<Tabs defaultValue="schedule" className="space-y-6">
-				<TabsList className="bg-muted/60 p-1 border border-border/80">
-					<TabsTrigger value="schedule" className="gap-2 text-xs sm:text-sm">
-						<Clock className="h-4 w-4" />
-						Nominee Report Schedule
-					</TabsTrigger>
-					<TabsTrigger value="usage" className="gap-2 text-xs sm:text-sm">
-						<Activity className="h-4 w-4 text-emerald-500" />
-						WhatsApp Usage & Webhook Status
-					</TabsTrigger>
-				</TabsList>
+			{/* ── Modern Navigation Tabs ────────────────────────────────────────── */}
+			<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+				<div className="bg-card border border-border/70 rounded-xl p-1.5 shadow-xs">
+					<TabsList className="bg-transparent h-auto p-0 flex flex-wrap gap-1.5 w-full justify-start">
+						<TabsTrigger
+							value="overview"
+							className="rounded-lg px-4 py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 transition-all"
+						>
+							<Clock className="h-3.5 w-3.5" />
+							Schedule & Broadcast
+						</TabsTrigger>
 
-				{/* TAB 1: SCHEDULE & AUTOMATION */}
-				<TabsContent value="schedule" className="space-y-6 m-0">
-					{/* Metrics Overview Grid */}
+						<TabsTrigger
+							value="events"
+							className="rounded-lg px-4 py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 transition-all"
+						>
+							<Layers className="h-3.5 w-3.5" />
+							Event Channels
+							<span className="ml-1 text-[10px] px-1.5 py-0.2 bg-muted rounded-full">
+								{configsList.length}
+							</span>
+						</TabsTrigger>
+
+						<TabsTrigger
+							value="sms"
+							className="rounded-lg px-4 py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 transition-all"
+						>
+							<Smartphone className="h-3.5 w-3.5" />
+							SMS Deliverability & Logs
+						</TabsTrigger>
+
+						<TabsTrigger
+							value="whatsapp"
+							className="rounded-lg px-4 py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2 transition-all"
+						>
+							<Activity className="h-3.5 w-3.5" />
+							WhatsApp Cloud & Webhooks
+						</TabsTrigger>
+					</TabsList>
+				</div>
+
+				{/* ══════════════════════════════════════════════════════════════════════
+				    TAB 1: OVERVIEW & SCHEDULE
+				══════════════════════════════════════════════════════════════════════ */}
+				<TabsContent value="overview" className="space-y-6 m-0">
+					{/* 4 Clean Metric Cards */}
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-									<Radio className={`h-5 w-5 ${settings.enabled ? "animate-pulse text-emerald-500" : ""}`} />
-								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Scheduler State
-									</p>
-									<p className="text-lg font-bold text-foreground">
-										{settings.enabled ? "Scheduled & Active" : "Paused"}
-									</p>
-									<p className="text-[11px] text-muted-foreground truncate">
-										{settings.enabled ? `Runs ${settings.interval.replace(/_/g, " ")}` : "Turn on to resume"}
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-									<Users className="h-5 w-5" />
-								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Eligible Nominees
-									</p>
-									<p className="text-lg font-bold text-foreground">
-										{summaryData.eligibleNomineesCount.toLocaleString()}
-									</p>
-									<p className="text-[11px] text-muted-foreground truncate">
-										Across {summaryData.activeEventsCount} active events
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-									<Clock className="h-5 w-5" />
-								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Configured Interval
-									</p>
-									<p className="text-lg font-bold text-foreground capitalize">
-										{settings.interval === "every_6_hours"
-											? "Every 6 Hours"
-											: settings.interval === "every_12_hours"
-												? "Every 12 Hours"
-												: settings.interval}
-									</p>
-									<p className="text-[11px] text-muted-foreground truncate">
-										{formatHour(settings.preferredHourUtc)}
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-									<RefreshCw className="h-5 w-5" />
-								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Last Broadcast
-									</p>
-									<p className="text-lg font-bold text-foreground truncate">
-										{settings.lastRunAt
-											? new Date(settings.lastRunAt).toLocaleDateString(undefined, {
-													month: "short",
-													day: "numeric",
-													hour: "2-digit",
-													minute: "2-digit",
-												})
-											: "Never"}
-									</p>
-									<p className="text-[11px] text-muted-foreground truncate">
-										{settings.lastRunStats
-											? `${settings.lastRunStats.successCount}/${settings.lastRunStats.totalNominees} delivered`
-											: "Awaiting first run"}
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
-
-					{/* Main Settings & WhatsApp Mockup Grid */}
-					<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-						{/* Settings Controls (7 cols) */}
-						<div className="lg:col-span-7 space-y-6">
-							<Card className="border border-border/80 shadow-sm">
-								<CardHeader className="pb-4 border-b border-border/50">
-									<CardTitle className="text-lg font-semibold flex items-center gap-2">
-										<Clock className="h-5 w-5 text-primary" />
-										Schedule & Trigger Configuration
-									</CardTitle>
-									<CardDescription>
-										Define how frequently and when live ranking updates should be sent to candidates.
-									</CardDescription>
-								</CardHeader>
-								<CardContent className="space-y-6 pt-5">
-									{/* Master Enable Switch */}
-									<div className="flex items-center justify-between p-4 rounded-xl border border-border/70 bg-muted/20">
-										<div className="space-y-0.5 pr-4">
-											<Label htmlFor="enabled-switch" className="text-sm font-semibold text-foreground cursor-pointer">
-												Enable Automated Reports
-											</Label>
-											<p className="text-xs text-muted-foreground">
-												When active, background workers or cron jobs will dispatch ranking updates according to the configured interval.
-											</p>
-										</div>
-										<Switch
-											id="enabled-switch"
-											checked={settings.enabled}
-											onCheckedChange={(checked) =>
-												setSettings((prev) => ({ ...prev, enabled: checked }))
-											}
-										/>
-									</div>
-
-									{/* Interval Frequency */}
-									<div className="space-y-2">
-										<Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-											Broadcast Frequency / Interval
-										</Label>
-										<Select
-											value={settings.interval}
-											onValueChange={(val: ReportInterval) =>
-												setSettings((prev) => ({ ...prev, interval: val }))
-											}
-										>
-											<SelectTrigger className="w-full bg-background">
-												<SelectValue placeholder="Select interval" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="every_6_hours">
-													Every 6 Hours (High-stakes / Finals)
-												</SelectItem>
-												<SelectItem value="every_12_hours">
-													Every 12 Hours (Twice Daily)
-												</SelectItem>
-												<SelectItem value="daily">
-													Daily (Standard 24-Hour Summary)
-												</SelectItem>
-												<SelectItem value="weekly">
-													Weekly (Long-running Competitions)
-												</SelectItem>
-											</SelectContent>
-										</Select>
-										<p className="text-[11px] text-muted-foreground">
-											Recommended: <strong>Daily</strong> for standard campaigns, or <strong>Every 6 Hours</strong> during finale voting periods.
-										</p>
-									</div>
-
-									{/* Preferred Time (for Daily & Weekly) */}
-									<div className="space-y-2">
-										<Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-											Preferred Delivery Window (UTC)
-										</Label>
-										<Select
-											value={String(settings.preferredHourUtc)}
-											onValueChange={(val) =>
-												setSettings((prev) => ({ ...prev, preferredHourUtc: parseInt(val, 10) }))
-											}
-										>
-											<SelectTrigger className="w-full bg-background">
-												<SelectValue placeholder="Select target hour" />
-											</SelectTrigger>
-											<SelectContent className="max-h-60">
-												{Array.from({ length: 24 }).map((_, i) => (
-													<SelectItem key={i} value={String(i)}>
-														{formatHour(i)}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-										<p className="text-[11px] text-muted-foreground">
-											Ghana Time (GMT) is UTC+0. 09:00 UTC corresponds to 9:00 AM in Accra.
-										</p>
-									</div>
-
-									{/* Audience Filtering */}
-									<div className="flex items-center justify-between p-4 rounded-xl border border-border/70 bg-muted/20">
-										<div className="space-y-0.5 pr-4">
-											<Label htmlFor="votes-filter" className="text-sm font-semibold text-foreground cursor-pointer">
-												Only Notify Active Nominees with &gt; 0 Votes
-											</Label>
-											<p className="text-xs text-muted-foreground">
-												Skip sending WhatsApp messages to candidates who haven't received any votes yet to preserve API limits.
-											</p>
-										</div>
-										<Switch
-											id="votes-filter"
-											checked={settings.onlyWithVotes}
-											onCheckedChange={(checked) =>
-												setSettings((prev) => ({ ...prev, onlyWithVotes: checked }))
-											}
-										/>
-									</div>
-
-									{/* Cron Integration Guide */}
-									<div className="rounded-xl border border-border/70 bg-slate-950/40 p-4 font-mono text-xs text-slate-300">
-										<div className="flex items-center justify-between mb-2">
-											<span className="text-[11px] font-semibold text-muted-foreground uppercase">
-												Scheduled Cron Webhook URL
-											</span>
-											<Badge variant="outline" className="text-[10px] bg-slate-800 text-slate-300 border-slate-700">
-												GET / POST
-											</Badge>
-										</div>
-										<div className="bg-slate-900/90 rounded-md p-2.5 break-all select-all text-emerald-400 text-[12px] border border-slate-800">
-											https://fextiva.com/api/cron/nominee-reports
-										</div>
-										<p className="text-[11px] text-slate-400 mt-2 font-sans">
-											Triggers automated evaluation. If the interval threshold has passed and scheduler is enabled, all active nominees receive updates.
-										</p>
-									</div>
-								</CardContent>
-							</Card>
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Scheduler Status
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{settings.enabled ? "Active" : "Paused"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{settings.enabled ? `Runs ${settings.interval.replace(/_/g, " ")}` : "Turn on to automate"}
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+								<Radio className={`h-5 w-5 ${settings.enabled ? "animate-pulse" : ""}`} />
+							</div>
 						</div>
 
-						{/* Meta WhatsApp Live Preview (5 cols) */}
-						<div className="lg:col-span-5 space-y-6">
-							<Card className="border border-border/80 shadow-sm overflow-hidden">
-								<CardHeader className="pb-3 border-b border-border/50 bg-muted/20">
-									<div className="flex items-center justify-between">
-										<CardTitle className="text-base font-semibold flex items-center gap-2">
-											<Smartphone className="h-4 w-4 text-emerald-500" />
-											WhatsApp Template Preview
-										</CardTitle>
-										<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] uppercase font-bold">
-											UTILITY
-										</Badge>
-									</div>
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Eligible Candidates
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{summaryData.eligibleNomineesCount.toLocaleString()}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Across {summaryData.activeEventsCount} active events
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+								<Users className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Delivery Time
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{formatHour(settings.preferredHourUtc)}
+								</p>
+								<p className="text-[11px] text-muted-foreground capitalize">
+									Cadence: {settings.interval.replace(/_/g, " ")}
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+								<Clock className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Total Votes Tracked
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{summaryData.totalVotesCast.toLocaleString()}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									Live voting transactions
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+								<BarChart3 className="h-5 w-5" />
+							</div>
+						</div>
+					</div>
+
+					{/* Global Schedule Card */}
+					<Card className="border border-border/70 rounded-2xl shadow-xs">
+						<CardHeader className="p-6 pb-4 border-b border-border/50">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+								<div className="space-y-0.5">
+									<CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+										<Clock className="h-4 w-4 text-primary" />
+										Automated Nominee Report Schedule
+									</CardTitle>
 									<CardDescription className="text-xs">
-										Template: <code className="font-mono text-primary">fextiva_nominee_progress_en</code>
+										Configure global defaults for periodic voting standings sent to candidates' phones.
 									</CardDescription>
-								</CardHeader>
+								</div>
 
-								<CardContent className="p-4 bg-slate-100 dark:bg-slate-950/70">
-									{/* WhatsApp Chat Simulation */}
-									<div className="max-w-[340px] mx-auto bg-card rounded-2xl shadow-md border border-border/80 overflow-hidden">
-										{/* WhatsApp Chat Header */}
-										<div className="bg-[#075e54] dark:bg-[#054640] text-white px-3.5 py-2.5 flex items-center gap-2.5">
-											<div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs">
-												F
-											</div>
-											<div className="min-w-0 flex-1">
-												<p className="text-xs font-semibold leading-none truncate flex items-center gap-1">
-													Fextiva
-													<ShieldCheck className="h-3 w-3 text-emerald-400 fill-emerald-400 inline" />
-												</p>
-												<p className="text-[10px] text-white/70 leading-none mt-0.5">
-													Official Business Account
-												</p>
-											</div>
-										</div>
+								<div className="flex items-center gap-2.5 bg-muted/40 px-3 py-1.5 rounded-xl border border-border/60">
+									<Label htmlFor="master-toggle" className="text-xs font-semibold cursor-pointer">
+										{settings.enabled ? "Automation Enabled" : "Automation Paused"}
+									</Label>
+									<Switch
+										id="master-toggle"
+										checked={settings.enabled}
+										onCheckedChange={(checked) =>
+											setSettings((prev) => ({ ...prev, enabled: checked }))
+										}
+									/>
+								</div>
+							</div>
+						</CardHeader>
 
-										{/* Message Bubble */}
-										<div className="p-3 bg-[#efeae2] dark:bg-[#0b141a] space-y-2">
-											<div className="bg-white dark:bg-[#1f2c34] rounded-lg overflow-hidden text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50 text-xs leading-relaxed">
-												{/* Header Banner Image (Matching Ticket Confirmation Template Structure) */}
-												<div className="relative h-28 w-full bg-linear-to-r from-emerald-700 via-teal-800 to-slate-900 flex flex-col justify-end p-2.5 text-white">
-													<div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
-													<div className="relative z-10">
-														<Badge className="bg-emerald-500/90 text-white text-[9px] px-1.5 py-0 h-4 border-none font-medium mb-1 inline-flex">
-															OFFICIAL UPDATE
-														</Badge>
-														<p className="font-bold text-xs leading-tight drop-shadow-sm truncate">
-															Miss Mumford Awards 2026
-														</p>
-														<p className="text-[10px] text-white/80 drop-shadow-sm">
-															Fextiva Verification Portal
-														</p>
-													</div>
-												</div>
-
-												{/* Formatted Content */}
-												<div className="p-3 space-y-2.5">
-													<p className="font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-1.5 flex items-center gap-1.5 text-[11px]">
-														<ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-														Account Confirmation Update
-													</p>
-
-													<p className="text-slate-700 dark:text-slate-200">
-														Hello <strong>Sarah</strong>, here is your account confirmation update for{" "}
-														<strong>Miss Mumford</strong> (Category: <strong>Most Influential</strong>).
-													</p>
-
-													{/* Structured Metrics Box */}
-													<div className="bg-slate-50 dark:bg-slate-900/80 rounded-md p-2.5 space-y-1.5 font-mono text-[11px] border border-slate-200/60 dark:border-slate-800">
-														<div className="flex items-center justify-between">
-															<span className="text-muted-foreground font-sans">
-																• Recorded Vote Transactions:
-															</span>
-															<strong className="text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
-																150
-															</strong>
-														</div>
-														<div className="flex items-center justify-between">
-															<span className="text-muted-foreground font-sans">
-																• Account Placement Index:
-															</span>
-															<strong className="text-primary font-bold text-xs">#2</strong>
-														</div>
-													</div>
-
-													<p className="text-[11px] text-muted-foreground pt-0.5">
-														You can verify your activity on the Fextiva portal.
-													</p>
-
-													<p className="text-[9px] text-muted-foreground text-right">
-														09:00 AM <span className="text-blue-500 font-bold">✓✓</span>
-													</p>
-												</div>
-											</div>
-
-											{/* Interactive URL Button */}
-											<div className="bg-white dark:bg-[#1f2c34] rounded-lg py-2.5 text-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 shadow-xs border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center gap-1.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
-												<ExternalLink className="h-3.5 w-3.5" />
-												View Progress
-											</div>
+						<CardContent className="p-6 space-y-6">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								{/* Group A: Cadence & Timing */}
+								<div className="p-4 rounded-xl border border-border/70 bg-muted/20 space-y-4">
+									<div className="flex items-center gap-2 border-b border-border/40 pb-2">
+										<Clock className="h-4 w-4 text-purple-500" />
+										<div>
+											<p className="font-bold text-foreground text-xs">Cadence & Timing</p>
+											<p className="text-[10px] text-muted-foreground">Controls broadcast frequency and scheduled delivery hour</p>
 										</div>
 									</div>
 
-									{/* Metadata summary */}
-									<div className="mt-4 pt-3 border-t border-border/60 text-xs text-muted-foreground space-y-1.5">
-										<div className="flex justify-between">
-											<span>Template Category:</span>
-											<span className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-												<ShieldCheck className="h-3.5 w-3.5 inline" />
-												Utility (Free Tier / ~0.007 USD)
-											</span>
-										</div>
-										<div className="flex justify-between">
-											<span>Interactive Button:</span>
-											<span className="font-mono font-medium text-foreground">Dynamic URL (View Progress)</span>
-										</div>
-										<div className="flex justify-between">
-											<span>Anti-Marketing Classification:</span>
-											<span className="text-foreground">Pure Transactional & Account Status</span>
-										</div>
-									</div>
-
-									{/* Meta WABA Configuration Helper */}
-									<div className="mt-4 p-3 rounded-lg bg-muted/40 border border-border/60 text-xs space-y-2">
-										<div className="flex items-center justify-between">
-											<span className="font-semibold text-foreground text-[11px] uppercase tracking-wider">
-												Meta Business Manager Template
-											</span>
-											<Button
-												variant="ghost"
-												size="sm"
-												className="h-7 text-xs gap-1 px-2"
-												onClick={() =>
-													handleCopy(
-														`Hello {{1}}, here is your account confirmation update for {{2}} (Category: {{3}}).\n\n• Recorded Vote Transactions: {{4}}\n• Account Placement Index: #{{5}}\n\nYou can verify your activity on the Fextiva portal.`,
-														"Meta Template Body"
-													)
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+										{/* Frequency */}
+										<div className="space-y-1.5">
+											<Label className="text-xs font-semibold">Frequency</Label>
+											<Select
+												value={settings.interval}
+												onValueChange={(val: ReportInterval) =>
+													setSettings((prev) => ({ ...prev, interval: val }))
 												}
 											>
-												{copiedField === "Meta Template Body" ? (
-													<Check className="h-3.5 w-3.5 text-emerald-500" />
-												) : (
-													<Copy className="h-3.5 w-3.5" />
+												<SelectTrigger className="rounded-xl text-xs bg-background">
+													<SelectValue placeholder="Frequency" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="every_6_hours">Every 6 Hours</SelectItem>
+													<SelectItem value="every_12_hours">Every 12 Hours</SelectItem>
+													<SelectItem value="daily">Daily</SelectItem>
+													<SelectItem value="weekly">Weekly</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+
+										{/* Time */}
+										<div className="space-y-1.5">
+											<Label className="text-xs font-semibold">Scheduled Hour</Label>
+											<Select
+												value={String(settings.preferredHourUtc)}
+												onValueChange={(val) =>
+													setSettings((prev) => ({ ...prev, preferredHourUtc: Number(val) }))
+												}
+											>
+												<SelectTrigger className="rounded-xl text-xs bg-background">
+													<SelectValue placeholder="Select hour" />
+												</SelectTrigger>
+												<SelectContent>
+													{[6, 8, 9, 10, 12, 14, 16, 18, 20].map((hour) => (
+														<SelectItem key={hour} value={String(hour)}>
+															{hour}:00 UTC ({hour === 12 ? "12 PM" : hour > 12 ? `${hour - 12} PM` : `${hour} AM`})
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+									</div>
+								</div>
+
+								{/* Group B: Delivery & Audience */}
+								<div className="p-4 rounded-xl border border-border/70 bg-muted/20 space-y-4">
+									<div className="flex items-center gap-2 border-b border-border/40 pb-2">
+										<MessageSquare className="h-4 w-4 text-emerald-500" />
+										<div>
+											<p className="font-bold text-foreground text-xs">Delivery & Audience Filter</p>
+											<p className="text-[10px] text-muted-foreground">Select candidate gateway and vote threshold</p>
+										</div>
+									</div>
+
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+										{/* Default Channel */}
+										<div className="space-y-1.5">
+											<Label className="text-xs font-semibold">Default Report Channel</Label>
+											<Select
+												value={settings.defaultChannel || "whatsapp"}
+												onValueChange={(val: any) =>
+													setSettings((prev) => ({ ...prev, defaultChannel: val }))
+												}
+											>
+												<SelectTrigger className="rounded-xl text-xs bg-background">
+													<SelectValue placeholder="Channel" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="both">WhatsApp with SMS Fallback (Recommended)</SelectItem>
+													<SelectItem value="whatsapp">WhatsApp Only (Meta Cloud)</SelectItem>
+													<SelectItem value="sms">SMS Only (Arkesel)</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+
+										{/* Recipient Filter */}
+										<div className="space-y-1.5">
+											<Label className="text-xs font-semibold">Audience Filter</Label>
+											<div className="pt-2 flex items-center gap-2">
+												<Switch
+													id="onlyWithVotesToggle"
+													checked={settings.onlyWithVotes}
+													onCheckedChange={(checked) =>
+														setSettings((prev) => ({ ...prev, onlyWithVotes: checked }))
+													}
+												/>
+												<Label htmlFor="onlyWithVotesToggle" className="text-xs cursor-pointer text-muted-foreground">
+													Only nominees with &gt; 0 votes
+												</Label>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Last Run Stats Banner */}
+							{settings.lastRunStats && (
+								<div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+									<div className="flex items-center gap-3">
+										<div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+											<CheckCircle2 className="h-5 w-5" />
+										</div>
+										<div>
+											<p className="text-xs font-semibold text-foreground">
+												Last Broadcast: {new Date(settings.lastRunStats.timestamp).toLocaleString()} ({settings.lastRunStats.triggeredBy || "Automated"})
+											</p>
+											<p className="text-[11px] text-muted-foreground">
+												<span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+													{settings.lastRunStats.successCount} sent
+												</span>
+												{settings.lastRunStats.failureCount > 0 && (
+													<span className="text-destructive font-semibold ml-1.5">
+														({settings.lastRunStats.failureCount} failed)
+													</span>
 												)}
-												Copy Body Text
-											</Button>
-										</div>
-										<pre className="p-2.5 rounded bg-slate-900 text-slate-200 text-[11px] font-mono leading-relaxed whitespace-pre-wrap select-all">
-{`Hello {{1}}, here is your account confirmation update for {{2}} (Category: {{3}}).
-
-• Recorded Vote Transactions: {{4}}
-• Account Placement Index: #{{5}}
-
-You can verify your activity on the Fextiva portal.`}
-										</pre>
-										<div className="text-[10px] text-muted-foreground space-y-1">
-											<p>
-												<strong>Header:</strong> Media (Image) or None | <strong>Button:</strong> Visit Website (Dynamic URL)
-											</p>
-											<p>
-												<strong>Dynamic Website URL:</strong> <code className="font-mono text-primary font-semibold">https://fextiva.com/&#123;&#123;1&#125;&#125;</code> (or shortlink <code className="font-mono text-primary">https://fextiva.com/c/&#123;&#123;1&#125;&#125;</code>)
-											</p>
-											<p>
-												<strong>Button Text:</strong> <code className="font-mono font-medium">View Progress</code> (or <code className="font-mono font-medium">View Category</code>)
-											</p>
-											<p className="text-[10px] text-emerald-600 dark:text-emerald-400">
-												Directs nominees straight to their public portal category page: <code className="font-mono text-[10px]">https://fextiva.com/[org]/event/[event]/category/[id]</code>
+												{" "}&bull; Total eligible: {settings.lastRunStats.totalNominees}
 											</p>
 										</div>
 									</div>
-								</CardContent>
-							</Card>
-						</div>
-					</div>
-				</TabsContent>
 
-				{/* TAB 2: WHATSAPP USAGE, CONSUMPTION & WEBHOOK STATUS */}
-				<TabsContent value="usage" className="space-y-6 m-0">
-					{/* Usage Analytics Cards */}
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-									<Send className="h-5 w-5" />
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setConfirmDialogOpen(true)}
+										className="rounded-xl shrink-0 text-xs gap-1.5 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+									>
+										<Send className="h-3 w-3" />
+										Trigger Immediate Broadcast
+									</Button>
 								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Messages Sent
-									</p>
-									<p className="text-xl font-bold text-foreground">
-										{(usageData?.totalSent || 0).toLocaleString()}
-									</p>
-									<p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
-										{usageData?.totalDelivered || 0} Delivered ({usageData?.deliveryRate || 100}%)
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-									<CheckCircle2 className="h-5 w-5" />
-								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Read Receipts
-									</p>
-									<p className="text-xl font-bold text-foreground">
-										{(usageData?.totalRead || 0).toLocaleString()}
-									</p>
-									<p className="text-[11px] text-muted-foreground truncate">
-										Confirmed read by users
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-									<DollarSign className="h-5 w-5" />
-								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Estimated Spend
-									</p>
-									<p className="text-xl font-bold text-foreground">
-										${(usageData?.estimatedSpendUsd || 0).toFixed(3)}
-									</p>
-									<p className="text-[11px] text-muted-foreground truncate">
-										~GH₵{((usageData?.estimatedSpendUsd || 0) * 15.5).toFixed(2)} (Billable)
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						<Card className="border border-border/70 shadow-xs bg-card/60 backdrop-blur-xs">
-							<CardContent className="p-4 flex items-center gap-3.5">
-								<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-									<AlertCircle className="h-5 w-5" />
-								</div>
-								<div className="min-w-0">
-									<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-										Failed Deliveries
-									</p>
-									<p className="text-xl font-bold text-foreground">
-										{(usageData?.totalFailed || 0).toLocaleString()}
-									</p>
-									<p className="text-[11px] text-muted-foreground truncate">
-										Invalid phone numbers / blocks
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-					</div>
-
-					{/* Webhook Configuration Details Card */}
-					<Card className="border border-border/80 shadow-sm">
-						<CardHeader className="pb-4 border-b border-border/50">
-							<div className="flex items-center justify-between">
-								<div>
-									<CardTitle className="text-lg font-semibold flex items-center gap-2">
-										<Webhook className="h-5 w-5 text-emerald-500" />
-										Meta WhatsApp Webhook Configuration
-									</CardTitle>
-									<CardDescription>
-										Copy these details into your Meta Developer App to receive real-time delivery callbacks,
-										read receipts, and billable conversation tracking.
-									</CardDescription>
-								</div>
-								<Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs">
-									LIVE LISTENER
-								</Badge>
-							</div>
-						</CardHeader>
-						<CardContent className="space-y-6 pt-5">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								{/* Callback URL Box */}
-								<div className="space-y-1.5 p-3.5 rounded-xl border border-border/70 bg-muted/20">
-									<div className="flex items-center justify-between">
-										<Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-											Callback URL
-										</Label>
-										<Button
-											variant="ghost"
-											size="xs"
-											className="h-7 text-xs gap-1 text-primary"
-											onClick={() => handleCopy(webhookInfo.callbackUrl, "Callback URL")}
-										>
-											{copiedField === "Callback URL" ? (
-												<Check className="h-3.5 w-3.5 text-emerald-500" />
-											) : (
-												<Copy className="h-3.5 w-3.5" />
-											)}
-											Copy
-										</Button>
-									</div>
-									<div className="font-mono text-xs text-foreground bg-background p-2 rounded border border-border/80 break-all select-all">
-										{webhookInfo.callbackUrl}
-									</div>
-								</div>
-
-								{/* Verify Token Box */}
-								<div className="space-y-1.5 p-3.5 rounded-xl border border-border/70 bg-muted/20">
-									<div className="flex items-center justify-between">
-										<Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-											Verify Token
-										</Label>
-										<Button
-											variant="ghost"
-											size="xs"
-											className="h-7 text-xs gap-1 text-primary"
-											onClick={() => handleCopy(webhookInfo.verifyToken, "Verify Token")}
-										>
-											{copiedField === "Verify Token" ? (
-												<Check className="h-3.5 w-3.5 text-emerald-500" />
-											) : (
-												<Copy className="h-3.5 w-3.5" />
-											)}
-											Copy
-										</Button>
-									</div>
-									<div className="font-mono text-xs text-foreground bg-background p-2 rounded border border-border/80 break-all select-all">
-										{webhookInfo.verifyToken}
-									</div>
-								</div>
-							</div>
-
-							{/* Setup Instructions Walkthrough */}
-							<div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs space-y-2.5">
-								<p className="font-bold text-foreground flex items-center gap-1.5">
-									<ShieldCheck className="h-4 w-4 text-emerald-500" />
-									How to bind in Meta Developer Console:
-								</p>
-								<ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
-									<li>
-										Go to <a href="https://developers.facebook.com/apps/1616818269741842/whatsapp-business/wa-dev-console/" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">Meta Developer Dashboard &gt; Fextiva Heya</a>.
-									</li>
-									<li>
-										In the left menu under <strong>WhatsApp</strong>, click <strong>Configuration</strong>.
-									</li>
-									<li>
-										Under <strong>Webhook</strong>, click <strong>Edit</strong>, paste the <strong>Callback URL</strong> and <strong>Verify Token</strong> above, and click <strong>Verify and Save</strong>.
-									</li>
-									<li>
-										Under <strong>Webhook fields</strong>, click <strong>Manage</strong> and click <strong>Subscribe</strong> next to <code className="bg-muted px-1 rounded text-foreground font-semibold">messages</code>.
-									</li>
-								</ol>
-							</div>
+							)}
 						</CardContent>
 					</Card>
+				</TabsContent>
 
-					{/* Recent Message Transmission Logs */}
-					<Card className="border border-border/80 shadow-sm">
-						<CardHeader className="pb-3 border-b border-border/50">
-							<div className="flex items-center justify-between">
+				{/* ══════════════════════════════════════════════════════════════════════
+				    TAB 2: EVENT CHANNEL ROUTING
+				══════════════════════════════════════════════════════════════════════ */}
+				<TabsContent value="events" className="space-y-6 m-0">
+					<Card className="border border-border/70 rounded-2xl shadow-xs overflow-hidden">
+						<CardHeader className="p-6 pb-4 border-b border-border/50">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 								<div>
-									<CardTitle className="text-base font-semibold flex items-center gap-2">
-										<BarChart3 className="h-4 w-4 text-primary" />
-										Recent WhatsApp Transmission Logs
+									<CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+										<Layers className="h-4 w-4 text-indigo-500" />
+										Event Notification Channels
 									</CardTitle>
-									<CardDescription className="text-xs">
-										Live delivery statuses and cost attribution captured from Meta callbacks.
+									<CardDescription className="text-xs mt-0.5">
+										Customize delivery channels for ticket purchases, voting receipts, and nominee reports per individual event.
 									</CardDescription>
 								</div>
-								<Badge variant="outline" className="text-xs">
-									Last {usageData?.recentLogs?.length || 0} Events
-								</Badge>
+
+								{/* Search Bar */}
+								<div className="relative w-full sm:w-64">
+									<Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+									<Input
+										placeholder="Search event or org..."
+										value={eventSearchQuery}
+										onChange={(e) => setEventSearchQuery(e.target.value)}
+										className="pl-8 text-xs rounded-xl h-9"
+									/>
+								</div>
 							</div>
 						</CardHeader>
+
 						<CardContent className="p-0">
-							{!usageData?.recentLogs || usageData.recentLogs.length === 0 ? (
-								<div className="p-8 text-center text-xs text-muted-foreground">
-									No WhatsApp message transmissions recorded yet. Messages sent via tickets, votes, or nominee reports will automatically stream here.
+							{filteredConfigs.length === 0 ? (
+								<div className="text-center py-12 text-muted-foreground text-xs">
+									{eventSearchQuery ? "No events match your search." : "No published or ongoing events found."}
 								</div>
 							) : (
 								<div className="overflow-x-auto">
-									<table className="w-full text-xs text-left">
-										<thead className="bg-muted/40 text-muted-foreground border-b border-border/60">
+									<table className="w-full text-left text-xs">
+										<thead className="bg-muted/40 border-b border-border/50 text-muted-foreground">
 											<tr>
-												<th className="py-2.5 px-4 font-semibold">Time</th>
-												<th className="py-2.5 px-4 font-semibold">Recipient</th>
-												<th className="py-2.5 px-4 font-semibold">Type / Template</th>
-												<th className="py-2.5 px-4 font-semibold">Category</th>
-												<th className="py-2.5 px-4 font-semibold">Status</th>
-												<th className="py-2.5 px-4 font-semibold">Cost</th>
+												<th className="py-3 px-5 font-semibold">Event</th>
+												<th className="py-3 px-4 font-semibold">Organization</th>
+												<th className="py-3 px-4 font-semibold">Tickets</th>
+												<th className="py-3 px-4 font-semibold">Vote Receipts</th>
+												<th className="py-3 px-4 font-semibold">Nominee Reports</th>
+												<th className="py-3 px-5 font-semibold text-right">Settings</th>
 											</tr>
 										</thead>
 										<tbody className="divide-y divide-border/40">
-											{usageData.recentLogs.map((log) => (
-												<tr key={log.id} className="hover:bg-muted/20 transition-colors">
-													<td className="py-2.5 px-4 text-muted-foreground whitespace-nowrap">
-														{new Date(log.createdAt).toLocaleDateString(undefined, {
-															month: "short",
-															day: "numeric",
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
+											{filteredConfigs.map((cfg) => (
+												<tr key={cfg.eventId} className="hover:bg-muted/20 transition-colors">
+													<td className="py-3.5 px-5 font-medium text-foreground">
+														{cfg.eventTitle}
 													</td>
-													<td className="py-2.5 px-4 font-mono font-medium text-foreground">
-														{log.recipientPhone}
+													<td className="py-3.5 px-4 text-muted-foreground">
+														{cfg.orgName}
 													</td>
-													<td className="py-2.5 px-4 font-mono text-[11px] text-muted-foreground">
-														{log.templateName || "text"}
+													<td className="py-3.5 px-4">
+														<span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ${
+															cfg.ticketConfirmChannel === "whatsapp_sms"
+																? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+																: cfg.ticketConfirmChannel === "whatsapp"
+																	? "bg-green-500/10 text-green-600 border border-green-500/20"
+																	: cfg.ticketConfirmChannel === "sms"
+																		? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+																		: "bg-muted text-muted-foreground"
+														}`}>
+															{cfg.ticketConfirmChannel.replace("_", " + ")}
+														</span>
 													</td>
-													<td className="py-2.5 px-4">
-														<Badge variant="outline" className="text-[10px] uppercase">
-															{log.category || "UTILITY"}
-														</Badge>
+													<td className="py-3.5 px-4">
+														<span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ${
+															cfg.voteReceiptChannel === "whatsapp_sms"
+																? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+																: cfg.voteReceiptChannel === "whatsapp"
+																	? "bg-green-500/10 text-green-600 border border-green-500/20"
+																	: cfg.voteReceiptChannel === "sms"
+																		? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+																		: "bg-muted text-muted-foreground"
+														}`}>
+															{cfg.voteReceiptChannel.replace("_", " + ")}
+														</span>
 													</td>
-													<td className="py-2.5 px-4">
-														<Badge
-															className={`text-[10px] uppercase font-bold ${
-																log.status === "delivered"
-																	? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-																	: log.status === "read"
-																		? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
-																		: log.status === "sent"
-																			? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-																			: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30"
-															}`}
+													<td className="py-3.5 px-4">
+														<div className="flex items-center gap-1.5">
+															<span
+																className={`h-2 w-2 rounded-full ${
+																	cfg.reportEnabled ? "bg-emerald-500" : "bg-muted-foreground/30"
+																}`}
+															/>
+															<span className="font-medium text-foreground">
+																{cfg.reportEnabled
+																	? `${cfg.reportChannel.replace("_", " + ")}`
+																	: "Disabled"}
+															</span>
+														</div>
+													</td>
+													<td className="py-3.5 px-5 text-right">
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() => setEditingEventConfig(cfg)}
+															className="rounded-lg h-7 px-3 text-xs gap-1.5 border-border hover:bg-muted"
 														>
-															{log.status}
-														</Badge>
-														{log.errorMessage && (
-															<p className="text-[10px] text-red-500 mt-0.5 truncate max-w-xs">
-																{log.errorMessage}
-															</p>
-														)}
-													</td>
-													<td className="py-2.5 px-4 text-muted-foreground font-mono">
-														${log.estimatedCost.toFixed(3)}
+															<Settings2 className="h-3 w-3" />
+															Edit
+														</Button>
 													</td>
 												</tr>
 											))}
@@ -877,37 +817,481 @@ You can verify your activity on the Fextiva portal.`}
 						</CardContent>
 					</Card>
 				</TabsContent>
+
+				{/* ══════════════════════════════════════════════════════════════════════
+				    TAB 3: SMS DELIVERABILITY & LOGS (ARKESEL)
+				══════════════════════════════════════════════════════════════════════ */}
+				<TabsContent value="sms" className="space-y-6 m-0">
+					{/* SMS KPI Overview */}
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Total SMS Sent
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{(smsUsageData?.totalSent ?? 0).toLocaleString()}
+								</p>
+								<p className="text-[11px] text-muted-foreground">Provider: Arkesel Ghana</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+								<Smartphone className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Deliverability Rate
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{smsUsageData?.totalSent && smsUsageData.totalSent > 0
+										? `${Math.round(((smsUsageData.totalSent - (smsUsageData.totalFailed || 0)) / smsUsageData.totalSent) * 100)}%`
+										: "100%"}
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{smsUsageData?.totalFailed ?? 0} delivery failures
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+								<CheckCircle2 className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Estimated Spend
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									${(smsUsageData?.estimatedSpendUsd ?? 0).toFixed(3)} USD
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									~GH₵{((smsUsageData?.estimatedSpendUsd ?? 0) * 15.5).toFixed(2)} GHS
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+								<DollarSign className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Sender ID
+								</p>
+								<p className="text-xl font-bold text-foreground">Fextiva</p>
+								<p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+									Active & Verified
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+								<ShieldCheck className="h-5 w-5" />
+							</div>
+						</div>
+					</div>
+
+					{/* Searchable SMS Outbound Logs Table */}
+					<Card className="border border-border/70 rounded-2xl shadow-xs overflow-hidden">
+						<CardHeader className="p-6 pb-4 border-b border-border/50">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+								<div>
+									<CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+										<Smartphone className="h-4 w-4 text-amber-500" />
+										Recent Arkesel SMS Outbound Logs
+									</CardTitle>
+									<CardDescription className="text-xs mt-0.5">
+										Single-segment SMS notifications sent for ticket confirmations, voting receipts, nominee reports, and OTPs.
+									</CardDescription>
+								</div>
+
+								<div className="relative w-full sm:w-64">
+									<Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+									<Input
+										placeholder="Search phone or text..."
+										value={smsSearchQuery}
+										onChange={(e) => setSmsSearchQuery(e.target.value)}
+										className="pl-8 text-xs rounded-xl h-9"
+									/>
+								</div>
+							</div>
+						</CardHeader>
+
+						<CardContent className="p-0">
+							{filteredSmsLogs.length === 0 ? (
+								<div className="text-center py-12 text-muted-foreground text-xs">
+									{smsSearchQuery ? "No logs match your search filter." : "No SMS messages sent yet."}
+								</div>
+							) : (
+								<div className="overflow-x-auto">
+									<table className="w-full text-left text-xs">
+										<thead className="bg-muted/40 border-b border-border/50 text-muted-foreground">
+											<tr>
+												<th className="py-3 px-5 font-semibold">Recipient</th>
+												<th className="py-3 px-4 font-semibold">Purpose</th>
+												<th className="py-3 px-4 font-semibold">Message Preview</th>
+												<th className="py-3 px-4 font-semibold">Status</th>
+												<th className="py-3 px-5 font-semibold text-right">Time</th>
+											</tr>
+										</thead>
+										<tbody className="divide-y divide-border/40">
+											{filteredSmsLogs.map((log) => (
+												<tr key={log.id} className="hover:bg-muted/20">
+													<td className="py-3.5 px-5 font-mono text-xs text-foreground font-medium">
+														{log.recipientPhone}
+													</td>
+													<td className="py-3.5 px-4">
+														<span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground capitalize">
+															{log.purpose?.replace(/_/g, " ") || "General"}
+														</span>
+													</td>
+													<td className="py-3.5 px-4 max-w-sm truncate text-muted-foreground font-mono text-[11px]">
+														{log.message || "—"}
+													</td>
+													<td className="py-3.5 px-4">
+														<span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+															log.status === "sent" || log.status === "delivered"
+																? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+																: "bg-destructive/10 text-destructive border border-destructive/20"
+														}`}>
+															{log.status}
+														</span>
+													</td>
+													<td className="py-3.5 px-5 text-right text-muted-foreground text-[11px]">
+														{new Date(log.createdAt).toLocaleString()}
+													</td>
+												</tr>
+											))}
+										</tbody>
+									</table>
+								</div>
+							)}
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				{/* ══════════════════════════════════════════════════════════════════════
+				    TAB 4: WHATSAPP CLOUD & WEBHOOKS
+				══════════════════════════════════════════════════════════════════════ */}
+				<TabsContent value="whatsapp" className="space-y-6 m-0">
+					{/* WhatsApp KPI Overview */}
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Total WA Sent
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{(usageData?.totalSent ?? 0).toLocaleString()}
+								</p>
+								<p className="text-[11px] text-muted-foreground">Meta Cloud API logs</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+								<MessageSquare className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Delivery Rate
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									{usageData?.deliveryRate ?? 100}%
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{usageData?.totalDelivered ?? 0} confirmed delivered
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+								<TrendingUp className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Estimated Spend
+								</p>
+								<p className="text-xl font-bold text-foreground">
+									${(usageData?.estimatedSpendUsd ?? 0).toFixed(3)} USD
+								</p>
+								<p className="text-[11px] text-muted-foreground">
+									{usageData?.billableCount ?? 0} billable conversations
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+								<DollarSign className="h-5 w-5" />
+							</div>
+						</div>
+
+						<div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Account Tier
+								</p>
+								<p className="text-xl font-bold text-foreground">Tier 1 (1k/day)</p>
+								<p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+									Verified & Active
+								</p>
+							</div>
+							<div className="h-11 w-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+								<ShieldCheck className="h-5 w-5" />
+							</div>
+						</div>
+					</div>
+
+					{/* Template Management Card */}
+					<Card className="border border-border/70 rounded-2xl shadow-xs">
+						<CardHeader className="p-6 pb-4 border-b border-border/50">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+								<div className="space-y-0.5">
+									<CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+										<Sparkles className="h-4 w-4 text-indigo-500" />
+										Message Template Registration
+									</CardTitle>
+									<CardDescription className="text-xs">
+										Submit templates to Meta as <span className="font-semibold text-emerald-600">UTILITY</span> — the cheapest tier (~$0.007) with no marketing opt-in required.
+									</CardDescription>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent className="p-6">
+							<div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 rounded-xl border border-border/60 bg-muted/20">
+								<div className="space-y-1">
+									<p className="text-xs font-semibold text-foreground">fextiva_nominee_confirmation_en</p>
+									<p className="text-[11px] text-muted-foreground">
+										Header: Event flier image · Body: Name, Event, Category, Voting Code · Buttons: View Event + Contact Organizer (wa.me)
+									</p>
+									{templateRegResult && (
+										<p className={`text-[11px] font-semibold mt-1 ${
+											templateRegResult?.error ? "text-destructive" :
+											templateRegResult?.status === "APPROVED" ? "text-emerald-600" : "text-amber-600"
+										}`}>
+											{templateRegResult.error ? `❌ ${templateRegResult.error}` : `✅ Status: ${templateRegResult.status || "PENDING"}`}
+										</p>
+									)}
+								</div>
+								<Button
+									size="sm"
+									disabled={isRegisteringTemplate}
+									className="rounded-xl text-xs font-semibold gap-2 shrink-0"
+									onClick={() => startRegisterTransition(async () => {
+										const res = await registerNomineeConfirmationTemplate();
+										setTemplateRegResult({ status: res.status, error: res.error });
+										if (res.success) toast.success(`Template submitted — status: ${res.status || "PENDING"}`);
+										else toast.error(res.error || "Template registration failed");
+									})}
+								>
+									{isRegisteringTemplate
+										? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Submitting...</>
+										: <><Send className="h-3.5 w-3.5" /> Register Template</>
+									}
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Meta Webhook Integration Card */}
+					<Card className="border border-border/70 rounded-2xl shadow-xs">
+						<CardHeader className="p-6 pb-4 border-b border-border/50">
+							<div className="space-y-0.5">
+								<CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+									<Webhook className="h-4 w-4 text-emerald-500" />
+									Meta Cloud API Webhook Integration
+								</CardTitle>
+								<CardDescription className="text-xs">
+									Configure these values in Meta Developers &gt; WhatsApp &gt; Configuration to receive live delivery status callbacks.
+								</CardDescription>
+							</div>
+						</CardHeader>
+						<CardContent className="p-6 space-y-4">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="p-4 bg-muted/30 rounded-xl border border-border/60 space-y-1.5">
+									<div className="flex items-center justify-between">
+										<span className="text-xs font-semibold text-muted-foreground">Callback URL</span>
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => handleCopy(webhookInfo.callbackUrl, "Callback URL")}
+											className="h-6 px-2 text-xs gap-1 rounded-lg"
+										>
+											{copiedField === "Callback URL" ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+											Copy
+										</Button>
+									</div>
+									<p className="text-xs font-mono break-all text-foreground select-all font-medium">
+										{webhookInfo.callbackUrl}
+									</p>
+								</div>
+
+								<div className="p-4 bg-muted/30 rounded-xl border border-border/60 space-y-1.5">
+									<div className="flex items-center justify-between">
+										<span className="text-xs font-semibold text-muted-foreground">Verify Token</span>
+										<Button
+											variant="ghost"
+											size="sm"
+											onClick={() => handleCopy(webhookInfo.verifyToken, "Verify Token")}
+											className="h-6 px-2 text-xs gap-1 rounded-lg"
+										>
+											{copiedField === "Verify Token" ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+											Copy
+										</Button>
+									</div>
+									<p className="text-xs font-mono break-all text-foreground select-all font-medium">
+										{webhookInfo.verifyToken}
+									</p>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</TabsContent>
 			</Tabs>
 
-			{/* Manual Broadcast Confirmation Dialog */}
+			{/* ── BROADCAST CONFIRMATION MODAL ──────────────────────────────────── */}
 			<Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-				<DialogContent className="sm:max-w-md">
+				<DialogContent className="sm:max-w-xl rounded-2xl">
 					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2 text-foreground">
+						<DialogTitle className="flex items-center gap-2 text-foreground font-bold">
 							<Send className="h-5 w-5 text-emerald-500" />
-							Trigger Immediate Nominee Broadcast?
+							Trigger Immediate Nominee Reports Broadcast
 						</DialogTitle>
-						<DialogDescription>
-							This will send an immediate live WhatsApp ranking update to all{" "}
-							<strong>{summaryData.eligibleNomineesCount}</strong> candidates with valid phone numbers across{" "}
-							<strong>{summaryData.activeEventsCount}</strong> active voting events.
+						<DialogDescription className="text-xs">
+							Send current standing and vote tallies directly to candidate phones via WhatsApp or SMS.
 						</DialogDescription>
 					</DialogHeader>
 
-					<div className="p-3 bg-muted/40 rounded-xl text-xs space-y-1.5 border border-border/70">
-						<div className="flex justify-between">
-							<span className="text-muted-foreground">Audience:</span>
-							<span className="font-semibold text-foreground">
-								{settings.onlyWithVotes ? "Nominees with > 0 votes" : "All approved candidates"}
-							</span>
+					<div className="space-y-4 py-2">
+						{/* Target Scope */}
+						<div className="space-y-1.5">
+							<Label className="text-xs font-semibold">Target Audience</Label>
+							<div className="grid grid-cols-2 gap-3">
+								<button
+									type="button"
+									onClick={() => setTargetScope("selected")}
+									className={`p-3 rounded-xl border text-left text-xs transition-all ${
+										targetScope === "selected"
+											? "border-emerald-500 bg-emerald-500/10 text-foreground"
+											: "border-border/70 hover:bg-muted/40 text-muted-foreground"
+									}`}
+								>
+									<p className="font-semibold text-foreground">Selected Events ({selectedEventIds.length})</p>
+									<p className="text-[11px] mt-0.5">Target specific events only</p>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => setTargetScope("all")}
+									className={`p-3 rounded-xl border text-left text-xs transition-all ${
+										targetScope === "all"
+											? "border-emerald-500 bg-emerald-500/10 text-foreground"
+											: "border-border/70 hover:bg-muted/40 text-muted-foreground"
+									}`}
+								>
+									<p className="font-semibold text-foreground">All Active Events ({activeEvents.length})</p>
+									<p className="text-[11px] mt-0.5">Broadcast across entire platform</p>
+								</button>
+							</div>
 						</div>
-						<div className="flex justify-between">
-							<span className="text-muted-foreground">Estimated Recipients:</span>
-							<span className="font-semibold text-foreground">{summaryData.eligibleNomineesCount}</span>
+
+						{/* Delivery Channel */}
+						<div className="space-y-1.5">
+							<Label className="text-xs font-semibold">Delivery Channel</Label>
+							<Select
+								value={broadcastChannel}
+								onValueChange={(val: any) => setBroadcastChannel(val)}
+							>
+								<SelectTrigger className="bg-background text-xs rounded-xl">
+									<SelectValue placeholder="Select delivery channel" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="event_default">⚙️ Use Each Event's Configured Channel (Recommended)</SelectItem>
+									<SelectItem value="whatsapp">📱 WhatsApp Only (Meta Cloud API)</SelectItem>
+									<SelectItem value="sms">💬 SMS Only (Arkesel Ghana)</SelectItem>
+									<SelectItem value="both">⚡ WhatsApp with SMS Fallback</SelectItem>
+								</SelectContent>
+							</Select>
 						</div>
-						<div className="flex justify-between">
-							<span className="text-muted-foreground">Delivery Channel:</span>
-							<span className="font-semibold text-emerald-600 dark:text-emerald-400">WhatsApp Cloud API</span>
+
+						{/* Event Selector List when 'selected' is picked */}
+						{targetScope === "selected" && (
+							<div className="space-y-2">
+								<div className="flex items-center justify-between">
+									<Label className="text-xs font-semibold">Choose Events to Report:</Label>
+									<div className="flex items-center gap-2 text-[11px]">
+										<button
+											type="button"
+											onClick={() => setSelectedEventIds(activeEvents.map((e) => e.id))}
+											className="text-primary hover:underline font-medium"
+										>
+											Select All
+										</button>
+										<span>&bull;</span>
+										<button
+											type="button"
+											onClick={() => setSelectedEventIds([])}
+											className="text-muted-foreground hover:underline"
+										>
+											Clear
+										</button>
+									</div>
+								</div>
+
+								<div className="max-h-52 overflow-y-auto space-y-1.5 p-2 rounded-xl border border-border/70 bg-muted/20">
+									{activeEvents.length === 0 ? (
+										<p className="text-xs text-muted-foreground text-center py-4">
+											No active voting events found.
+										</p>
+									) : (
+										activeEvents.map((ev) => {
+											const isChecked = selectedEventIds.includes(ev.id);
+											return (
+												<div
+													key={ev.id}
+													onClick={() => toggleEventSelection(ev.id)}
+													className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs border transition-colors ${
+														isChecked
+															? "bg-emerald-500/10 border-emerald-500/30 text-foreground"
+															: "bg-background border-border/60 hover:bg-muted/40 text-muted-foreground"
+													}`}
+												>
+													<div className="flex items-center gap-2.5 min-w-0">
+														{isChecked ? (
+															<CheckSquare className="h-4 w-4 text-emerald-600 shrink-0" />
+														) : (
+															<Square className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+														)}
+														<div className="min-w-0">
+															<p className="font-medium text-foreground truncate">{ev.title}</p>
+															<p className="text-[10px] text-muted-foreground">{ev.organizationName}</p>
+														</div>
+													</div>
+
+													<Badge variant="outline" className="text-[10px] shrink-0">
+														{ev.nomineeCount} candidates
+													</Badge>
+												</div>
+											);
+										})
+									)}
+								</div>
+							</div>
+						)}
+
+						{/* Broadcast Summary Box */}
+						<div className="p-3.5 bg-muted/40 rounded-xl text-xs space-y-1.5 border border-border/70">
+							<div className="flex justify-between">
+								<span className="text-muted-foreground">Target Events:</span>
+								<span className="font-semibold text-foreground">
+									{targetScope === "all" ? `${activeEvents.length} (All Active)` : `${selectedEventIds.length} Selected`}
+								</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="text-muted-foreground">Estimated Recipients:</span>
+								<span className="font-semibold text-emerald-600 dark:text-emerald-400">
+									~{calculatedRecipients} Candidates
+								</span>
+							</div>
 						</div>
 					</div>
 
@@ -916,20 +1300,154 @@ You can verify your activity on the Fextiva portal.`}
 							variant="ghost"
 							onClick={() => setConfirmDialogOpen(false)}
 							disabled={isDispatching}
+							className="rounded-xl text-xs"
 						>
 							Cancel
 						</Button>
 						<Button
 							onClick={handleManualDispatch}
-							disabled={isDispatching}
-							className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+							disabled={isDispatching || calculatedRecipients === 0}
+							className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold gap-2"
 						>
-							{isDispatching ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-							Yes, Dispatch Broadcast
+							{isDispatching ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+							Dispatch Broadcast
 						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* ── INDIVIDUAL EVENT CONFIGURATION MODAL ─────────────────────────── */}
+			{editingEventConfig && (
+				<Dialog open={!!editingEventConfig} onOpenChange={(open) => !open && setEditingEventConfig(null)}>
+					<DialogContent className="sm:max-w-md rounded-2xl">
+						<DialogHeader>
+							<DialogTitle className="flex items-center gap-2 text-foreground font-bold">
+								<Settings2 className="h-5 w-5 text-primary" />
+								Configure: {editingEventConfig.eventTitle}
+							</DialogTitle>
+							<DialogDescription className="text-xs">
+								Override purchase confirmation and report channels for this event.
+							</DialogDescription>
+						</DialogHeader>
+
+						<div className="space-y-4 py-2 text-xs">
+							{/* Group 1: Voter & Customer Notifications */}
+							<div className="p-3.5 rounded-xl border border-border/70 bg-muted/20 space-y-3">
+								<div className="flex items-center gap-2 border-b border-border/40 pb-2">
+									<span className="text-sm">🎟️</span>
+									<div>
+										<p className="font-bold text-foreground text-xs">Voter & Customer Notifications</p>
+										<p className="text-[10px] text-muted-foreground">Channels used for delivering purchases to public users</p>
+									</div>
+								</div>
+
+								<div className="space-y-1.5">
+									<Label className="text-xs font-semibold">Ticket Purchase Delivery</Label>
+									<Select
+										value={editingEventConfig.ticketConfirmChannel}
+										onValueChange={(val: ConfirmChannel) =>
+											setEditingEventConfig((prev) => prev ? { ...prev, ticketConfirmChannel: val } : prev)
+										}
+									>
+										<SelectTrigger className="bg-background rounded-xl">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="whatsapp">WhatsApp Only</SelectItem>
+											<SelectItem value="whatsapp_sms">WhatsApp with SMS Fallback (Recommended)</SelectItem>
+											<SelectItem value="sms">SMS Only</SelectItem>
+											<SelectItem value="none">Disabled</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								<div className="space-y-1.5">
+									<Label className="text-xs font-semibold">Vote Payment Receipt</Label>
+									<Select
+										value={editingEventConfig.voteReceiptChannel}
+										onValueChange={(val: ConfirmChannel) =>
+											setEditingEventConfig((prev) => prev ? { ...prev, voteReceiptChannel: val } : prev)
+										}
+									>
+										<SelectTrigger className="bg-background rounded-xl">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="whatsapp">WhatsApp Only</SelectItem>
+											<SelectItem value="whatsapp_sms">WhatsApp with SMS Fallback (Recommended)</SelectItem>
+											<SelectItem value="sms">SMS Only</SelectItem>
+											<SelectItem value="none">Disabled</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+
+							{/* Group 2: Nominee & Candidate Communications */}
+							<div className="p-3.5 rounded-xl border border-border/70 bg-muted/20 space-y-3.5">
+								<div className="flex items-center gap-2 border-b border-border/40 pb-2">
+									<span className="text-sm">👥</span>
+									<div>
+										<p className="font-bold text-foreground text-xs">Nominee & Candidate Communications</p>
+										<p className="text-[10px] text-muted-foreground">Channels for nominee alerts, profile updates & voting standings</p>
+									</div>
+								</div>
+
+								<div className="space-y-1.5">
+									<Label className="text-xs font-semibold">Candidate Notice & Updates Channel</Label>
+									<p className="text-[10px] text-muted-foreground">Delivers nominee profile changes, voting codes, and reports</p>
+									<Select
+										value={editingEventConfig.reportChannel}
+										onValueChange={(val: ReportChannel) =>
+											setEditingEventConfig((prev) => prev ? { ...prev, reportChannel: val } : prev)
+										}
+									>
+										<SelectTrigger className="bg-background rounded-xl">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="whatsapp_sms">WhatsApp with SMS Fallback (Recommended)</SelectItem>
+											<SelectItem value="whatsapp">WhatsApp Only</SelectItem>
+											<SelectItem value="sms">SMS Only</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								<div className="flex items-center justify-between pt-2 border-t border-border/40">
+									<div>
+										<Label className="text-xs font-semibold">Automated Progress Reports</Label>
+										<p className="text-[10px] text-muted-foreground">Broadcast periodic vote tallies to candidate phones</p>
+									</div>
+									<Switch
+										checked={editingEventConfig.reportEnabled}
+										onCheckedChange={(checked) =>
+											setEditingEventConfig((prev) => prev ? { ...prev, reportEnabled: checked } : prev)
+										}
+									/>
+								</div>
+							</div>
+						</div>
+
+						<DialogFooter className="gap-2 sm:gap-0">
+							<Button
+								variant="ghost"
+								onClick={() => setEditingEventConfig(null)}
+								disabled={isSavingEventConfig}
+								className="rounded-xl text-xs"
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={handleSaveSingleEventConfig}
+								disabled={isSavingEventConfig}
+								className="gap-2 rounded-xl text-xs font-semibold"
+							>
+								{isSavingEventConfig && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+								Save Settings
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+			)}
 		</div>
 	);
 }

@@ -258,6 +258,42 @@ exports.Prisma.UsersScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EventMessagingConfigScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  ticketConfirmChannel: 'ticketConfirmChannel',
+  voteReceiptChannel: 'voteReceiptChannel',
+  nominationChannel: 'nominationChannel',
+  reportEnabled: 'reportEnabled',
+  reportChannel: 'reportChannel',
+  reportInterval: 'reportInterval',
+  reportPreferredHourUtc: 'reportPreferredHourUtc',
+  reportPreferredDay: 'reportPreferredDay',
+  reportOnlyWithVotes: 'reportOnlyWithVotes',
+  reportShowRank: 'reportShowRank',
+  reportLastRunAt: 'reportLastRunAt',
+  reportLastRunStats: 'reportLastRunStats',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SmsMessageLogScalarFieldEnum = {
+  id: 'id',
+  recipientPhone: 'recipientPhone',
+  message: 'message',
+  sender: 'sender',
+  provider: 'provider',
+  purpose: 'purpose',
+  eventId: 'eventId',
+  status: 'status',
+  isBillable: 'isBillable',
+  estimatedCost: 'estimatedCost',
+  errorMessage: 'errorMessage',
+  rawPayload: 'rawPayload',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -644,7 +680,14 @@ exports.Prisma.VotingOptionScalarFieldEnum = {
   nomineeCode: 'nomineeCode',
   status: 'status',
   finalImage: 'finalImage',
-  deletionCode: 'deletionCode'
+  deletionCode: 'deletionCode',
+  confirmationEmailSentAt: 'confirmationEmailSentAt',
+  confirmationEmailStatus: 'confirmationEmailStatus',
+  confirmationEmailError: 'confirmationEmailError',
+  confirmationWhatsAppSentAt: 'confirmationWhatsAppSentAt',
+  confirmationWhatsAppStatus: 'confirmationWhatsAppStatus',
+  confirmationWhatsAppMessageId: 'confirmationWhatsAppMessageId',
+  confirmationWhatsAppError: 'confirmationWhatsAppError'
 };
 
 exports.Prisma.NomineeChangeRequestScalarFieldEnum = {
@@ -681,6 +724,8 @@ exports.Prisma.WhatsAppMessageLogScalarFieldEnum = {
   recipientPhone: 'recipientPhone',
   templateName: 'templateName',
   category: 'category',
+  purpose: 'purpose',
+  eventId: 'eventId',
   status: 'status',
   pricingCategory: 'pricingCategory',
   isBillable: 'isBillable',
@@ -902,6 +947,8 @@ exports.Prisma.ModelName = {
   accounts: 'accounts',
   sessions: 'sessions',
   users: 'users',
+  EventMessagingConfig: 'EventMessagingConfig',
+  SmsMessageLog: 'SmsMessageLog',
   Organization: 'Organization',
   TeamMember: 'TeamMember',
   OrganizationInvitation: 'OrganizationInvitation',

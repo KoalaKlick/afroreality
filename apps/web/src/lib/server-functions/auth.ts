@@ -11,6 +11,9 @@ import {
   initiateSuperAdmin2FASetup,
 } from "@/lib/server-functions/admin-2fa";
 import { create2FAChallengeToken } from "@/lib/auth/totp";
+import { normalizePhoneNumber } from "@/lib/utils/phone";
+import { sendSmsMessage } from "@/lib/services/sms";
+import { sendWhatsAppTextMessage } from "@/lib/services/whatsapp";
 
 // ============================================================
 // Auth service (email + password)
@@ -24,7 +27,29 @@ import { create2FAChallengeToken } from "@/lib/auth/totp";
 
 const EMAIL_VERIFY_PREFIX = "email-verification";
 const PASSWORD_RESET_PREFIX = "password-reset";
+const PHONE_LOGIN_PREFIX = "phone-login";
 const OTP_TTL_MINUTES = 15;
+const PHONE_OTP_TTL_MINUTES = 5;
+
+/**
+ * Detects whether the given identifier looks like a phone number.
+ * Matches: 0XXXXXXXXX, +233XXXXXXXXX, 233XXXXXXXXX, or any string that is
+ * primarily digits (7+ digits after stripping non-numeric chars).
+ */
+function isPhoneIdentifier(identifier: string): boolean {
+  const digits = identifier.replace(/[^0-9]/g, "");
+  if (digits.length >= 9 && digits.length <= 15) {
+    // Starts with 0, +, or country code — it's a phone number
+    if (
+      identifier.startsWith("+") ||
+      identifier.startsWith("0") ||
+      /^\d{9,15}$/.test(digits)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -146,19 +171,31 @@ export async function loginAction({
       };
     }
 
+    // Build lookup conditions: email, username, and phone (if identifier looks like a phone)
+    const lookupConditions: any[] = [
+      { email: cleanId },
+      { username: cleanId },
+    ];
+    if (isPhoneIdentifier(identifier)) {
+      const normalizedPhone = normalizePhoneNumber(identifier);
+      lookupConditions.push({ phone: normalizedPhone });
+      // Also try the raw cleaned identifier in case it's stored differently
+      if (normalizedPhone !== cleanId) {
+        lookupConditions.push({ phone: cleanId });
+      }
+    }
+
     const user = await prisma.profile.findFirst({
-      where: {
-        OR: [{ email: cleanId }, { username: cleanId }],
-      },
+      where: { OR: lookupConditions },
     });
 
     if (!user || !user.passwordHash) {
-      return { success: false, error: "Invalid email/username or password" };
+      return { success: false, error: "Invalid credentials. Check your email, phone number, username, or password." };
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      return { success: false, error: "Invalid email/username or password" };
+      return { success: false, error: "Invalid credentials. Check your email, phone number, username, or password." };
     }
 
     // Check if user is Super Admin / Platform Admin
@@ -594,4 +631,219 @@ export async function googleOAuthAction({
 
 export async function logoutAction(): Promise<void> {
   await clearSessionCookie();
+}
+
+// ============================================================
+// Phone OTP Login (passwordless)
+// ============================================================
+
+const PHONE_LOGIN_CHANNEL_KEY = "phone_login_otp_channel";
+
+/**
+ * Get global platform setting for phone login OTP channel.
+ * Configurable by super admin in the Messaging & Reports Hub.
+ * Returns "sms" | "whatsapp" — defaults to "sms".
+ */
+export async function getPhoneLoginOtpChannel(): Promise<"sms" | "whatsapp"> {
+  try {
+    const setting = await prisma.platformSetting.findUnique({
+      where: { key: PHONE_LOGIN_CHANNEL_KEY },
+    });
+    if (setting?.value === "whatsapp") return "whatsapp";
+  } catch {}
+  return "sms";
+}
+
+/**
+ * Step 1: Send a login OTP to the user's phone number.
+ * The user provides their phone number, we look them up, generate an OTP,
+ * and send it via SMS or WhatsApp based on platform config.
+ */
+export async function sendPhoneLoginOtp({
+  phone,
+}: {
+  phone: string;
+}): Promise<{
+  success: boolean;
+  maskedPhone?: string;
+  channel?: "sms" | "whatsapp";
+  error?: string;
+}> {
+  try {
+    const normalizedPhone = normalizePhoneNumber(phone.trim());
+
+    if (normalizedPhone.length < 9) {
+      return { success: false, error: "Please enter a valid phone number." };
+    }
+
+    // Look up user by phone
+    const user = await prisma.profile.findFirst({
+      where: {
+        OR: [
+          { phone: normalizedPhone },
+          { phone: phone.trim() },
+        ],
+      },
+    });
+
+    if (!user) {
+      // Don't reveal whether the phone exists — generic message
+      return {
+        success: false,
+        error: "No account found with this phone number. Please register first or log in with your email.",
+      };
+    }
+
+    // Generate OTP
+    const otp = generateOtp();
+    const identifier = `${PHONE_LOGIN_PREFIX}:${normalizedPhone}`;
+
+    // Clear any existing OTP
+    await prisma.verification.deleteMany({ where: { identifier } }).catch(() => {});
+
+    // Store the OTP (shorter TTL for phone login)
+    await prisma.verification.create({
+      data: {
+        id: `ver_phone_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+        identifier,
+        value: otp,
+        expiresAt: new Date(Date.now() + PHONE_OTP_TTL_MINUTES * 60 * 1000),
+      },
+    });
+
+    // Send via configured channel
+    const channel = await getPhoneLoginOtpChannel();
+    const otpMessage = `Your Fextiva login code is: ${otp}\n\nThis code expires in ${PHONE_OTP_TTL_MINUTES} minutes. Do not share it with anyone.`;
+
+    let sendSuccess = false;
+
+    if (channel === "whatsapp") {
+      try {
+        const waRes = await sendWhatsAppTextMessage({
+          to: normalizedPhone,
+          text: otpMessage,
+        });
+        sendSuccess = waRes.success;
+      } catch (err) {
+        console.error("[PhoneLogin] WhatsApp OTP send failed, falling back to SMS:", err);
+      }
+    }
+
+    // Fallback to SMS if WhatsApp fails or if channel is SMS
+    if (!sendSuccess) {
+      const smsRes = await sendSmsMessage({
+        to: normalizedPhone,
+        message: `Your Fextiva login code: ${otp}. Expires in ${PHONE_OTP_TTL_MINUTES} mins.`,
+        purpose: "phone_login_otp",
+      });
+      sendSuccess = smsRes.success;
+    }
+
+    if (!sendSuccess) {
+      return {
+        success: false,
+        error: "Failed to send verification code. Please try again or log in with your email and password.",
+      };
+    }
+
+    // Mask phone for UI display
+    const lastFour = normalizedPhone.slice(-4);
+    const countryCode = normalizedPhone.slice(0, 3);
+    const maskedPhone = `+${countryCode} •••••• ${lastFour}`;
+
+    return {
+      success: true,
+      maskedPhone,
+      channel: sendSuccess ? (channel === "whatsapp" ? "whatsapp" : "sms") : "sms",
+    };
+  } catch (error: any) {
+    console.error("sendPhoneLoginOtp error:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+/**
+ * Step 2: Verify the phone login OTP and create a session.
+ */
+export async function verifyPhoneLoginOtp({
+  phone,
+  otp,
+  redirectTo,
+}: {
+  phone: string;
+  otp: string;
+  redirectTo?: string;
+}): Promise<any> {
+  try {
+    const normalizedPhone = normalizePhoneNumber(phone.trim());
+    const identifier = `${PHONE_LOGIN_PREFIX}:${normalizedPhone}`;
+
+    // Validate OTP
+    const isValid = await consumeOtp(identifier, otp.trim());
+    if (!isValid) {
+      return { success: false, error: "Invalid or expired code. Please request a new one." };
+    }
+
+    // Look up user by phone
+    const user = await prisma.profile.findFirst({
+      where: {
+        OR: [
+          { phone: normalizedPhone },
+          { phone: phone.trim() },
+        ],
+      },
+    });
+
+    if (!user) {
+      return { success: false, error: "Account not found." };
+    }
+
+    // Check if user is Super Admin — phone login is not allowed for super admins
+    const isSuper = await isPlatformAdmin(user.email);
+    if (isSuper) {
+      return {
+        success: false,
+        error: "Super admin accounts must use email + password + 2FA to log in.",
+      };
+    }
+
+    // Create session
+    const onboardingCompleted = Boolean(user.onboardingCompleted);
+    const token = await signSession({
+      userId: user.id,
+      email: user.email,
+      emailVerified: Boolean(user.emailVerified),
+      fullName: user.fullName || "",
+      username: user.username || "",
+      onboardingCompleted,
+    });
+
+    await setSessionCookie(token);
+
+    return {
+      success: true,
+      user: toSafeUserDto(user),
+      emailVerified: Boolean(user.emailVerified),
+      onboardingCompleted,
+    };
+  } catch (error: any) {
+    console.error("verifyPhoneLoginOtp error:", error);
+    return { success: false, error: error.message || "Failed to verify code" };
+  }
+}
+
+/**
+ * Update the phone login OTP channel setting (super admin only).
+ */
+export async function updatePhoneLoginOtpChannel(channel: "sms" | "whatsapp"): Promise<{ success: boolean }> {
+  try {
+    await prisma.platformSetting.upsert({
+      where: { key: PHONE_LOGIN_CHANNEL_KEY },
+      update: { value: channel },
+      create: { key: PHONE_LOGIN_CHANNEL_KEY, value: channel },
+    });
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
 }

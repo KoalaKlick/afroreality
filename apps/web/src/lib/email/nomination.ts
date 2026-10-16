@@ -105,6 +105,7 @@ export interface SendNominationConfirmationEmailInput {
 	categoryName: string;
 	eventName: string;
 	status?: string | null;
+	nomineeCode?: string | null;
 	confirmationCode?: string | null;
 	deletionCode?: string | null;
 	organizationName?: string;
@@ -125,6 +126,7 @@ export async function sendNominationConfirmationEmail(
 			categoryName,
 			eventName,
 			status,
+			nomineeCode,
 			confirmationCode,
 			deletionCode,
 			organizationName = "Fextiva",
@@ -135,8 +137,9 @@ export async function sendNominationConfirmationEmail(
 
 		const btnColor = orgColors?.primary || ACCENT_PRIMARY;
 
+		// v2: confirmationCode / deletionCode deferred
 		const codeToUse = confirmationCode || deletionCode;
-		const isLive = status ? status === "approved" : Boolean(codeToUse);
+		const isLive = status ? status === "approved" : Boolean(nomineeCode || codeToUse);
 		const previewText = isLive
 			? `Nomination confirmed — ${nomineeName}, ${eventName}`
 			: `Nomination received — ${nomineeName}, ${eventName}`;
@@ -179,6 +182,16 @@ export async function sendNominationConfirmationEmail(
             <p style="margin:0;font-size:15px;font-weight:700;color:${isLive ? "#059669" : "#d97706"};">${isLive ? "Live" : "Pending Review"}</p>
           </td>
         </tr>
+        ${nomineeCode ? `
+        <tr>
+          <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
+            <p style="margin:0 0 2px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${TEXT_MUTED};">Nominee Voting Code</p>
+            <p style="margin:0;font-size:18px;font-weight:800;font-family:monospace;color:${TEXT_PRIMARY};letter-spacing:2px;">#${escapeHtml(nomineeCode)}</p>
+            <p style="margin:4px 0 0;font-size:12px;color:${TEXT_MUTED};">Share this code with your supporters to vote directly on web and USSD.</p>
+          </td>
+        </tr>
+        ` : ""}
+        <!-- v2: Confirmation / Withdrawal Code commented out
         ${codeToUse ? `
         <tr>
           <td colspan="2" style="padding:10px 0;border-top:1px solid ${DIVIDER};">
@@ -188,6 +201,7 @@ export async function sendNominationConfirmationEmail(
           </td>
         </tr>
         ` : ""}
+        -->
       </table>
 
       ${eventUrl ? `

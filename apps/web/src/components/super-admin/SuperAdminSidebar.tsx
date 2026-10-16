@@ -58,7 +58,7 @@ const navItems = [
 		icon: CalendarCheck,
 	},
 	{
-		title: "Nominee Reports",
+		title: "Messaging & Reports",
 		href: "/super/reports",
 		icon: MessageSquare,
 	},

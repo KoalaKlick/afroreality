@@ -4,6 +4,9 @@ model WhatsAppMessageLog {
   recipientPhone  String    @map("recipient_phone")
   templateName    String?   @map("template_name")
   category        String?   @default("UTILITY")
+  purpose         String?
+  // "ticket_confirmation" | "vote_receipt" | "nomination" | "nominee_report" | "otp"
+  eventId         String?   @map("event_id") @db.Uuid
   status          String    @default("sent")
   pricingCategory String?   @map("pricing_category")
   isBillable      Boolean   @default(true) @map("is_billable")
@@ -13,8 +16,10 @@ model WhatsAppMessageLog {
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  @@index([status], map: "idx_whatsapp_logs_status")
+  @@index([status],         map: "idx_whatsapp_logs_status")
   @@index([recipientPhone], map: "idx_whatsapp_logs_recipient")
-  @@index([createdAt], map: "idx_whatsapp_logs_created_at")
+  @@index([eventId],        map: "idx_whatsapp_logs_event")
+  @@index([purpose],        map: "idx_whatsapp_logs_purpose")
+  @@index([createdAt],      map: "idx_whatsapp_logs_created_at")
   @@map("whatsapp_message_logs")
 }

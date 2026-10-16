@@ -630,6 +630,174 @@ export async function sendNomineeReportWhatsAppNotification({
 }
 
 /**
+ * Sends a WhatsApp nomination confirmation to a nominee.
+ *
+ * Template name: fextiva_nominee_confirmation_en
+ * Expected template body variables (in order):
+ *   {{1}} nomineeName
+ *   {{2}} eventName
+ *   {{3}} categoryName
+ *   {{4}} nomineeCode  (e.g. "BMA01")   – optional, falls back to empty string
+ *
+ * Optional header: image (event flier/banner)
+ * Optional button (index 0): URL button — "View Event" → https://fextiva.com/{{1}}  (eventPath)
+ * Optional button (index 1): URL button — "Contact Organizer" → https://wa.me/{{1}} (orgPhone digits)
+ *
+ * Fallback chain (mirrors nominee report pattern):
+ *   1. Template + header image + body + buttons
+ *   2. Template + body + buttons (no header, in case template was registered text-only)
+ *   3. Plain text message with all info + wa.me link for organizer CTA
+ */
+export async function sendNomineeConfirmationWhatsAppNotification({
+	phone,
+	nomineeName,
+	eventName,
+	categoryName,
+	nomineeCode,
+	eventPath,
+	bannerImageUrl,
+	organizationName,
+	organizationPhone,
+}: {
+	phone: string;
+	nomineeName: string;
+	eventName: string;
+	categoryName: string;
+	nomineeCode?: string | null;
+	eventPath?: string | null;         // e.g. "mumford-org/event/awards-2026"
+	bannerImageUrl?: string | null;    // event flier / banner key or URL
+	organizationName?: string | null;
+	organizationPhone?: string | null; // public WhatsApp number of organizer
+}): Promise<SendWhatsAppResponse> {
+	const baseUrl = getFrontendBaseUrl();
+	const defaultLogoBanner =
+		baseUrl.startsWith("http") && !baseUrl.includes("localhost")
+			? `${baseUrl}/android-chrome-512x512.png`
+			: "https://fextiva.com/android-chrome-512x512.png";
+
+	// Resolve R2/CDN image through our proxy so Meta can fetch it
+	const resolvedBanner = bannerImageUrl ? getImageUrl(bannerImageUrl) : undefined;
+	const safeHeaderImage = toProxiedImageUrl(resolvedBanner) ?? toProxiedImageUrl(defaultLogoBanner);
+
+	// Build body params
+	const bodyParams = [
+		{ type: "text" as const, text: nomineeName },
+		{ type: "text" as const, text: eventName },
+		{ type: "text" as const, text: categoryName },
+		{ type: "text" as const, text: nomineeCode ? `#${nomineeCode}` : "" },
+	];
+
+	// Button 0: "View Event" URL button (dynamic path suffix for https://fextiva.com/{{1}})
+	const eventButtonParam = (eventPath || "").replace(/^\/+/, "").trim();
+
+	// Button 1: "Contact Organizer" URL button (dynamic phone digits for https://wa.me/{{1}})
+	// Strip all non-digits from org phone to get a clean wa.me number
+	const orgPhoneDigits = organizationPhone
+		? organizationPhone.replace(/[^0-9]/g, "")
+		: null;
+
+	// Construct component sets
+	function buildComponents(withHeader: boolean): WhatsAppTemplateComponent[] {
+		const parts: WhatsAppTemplateComponent[] = [];
+
+		if (withHeader && safeHeaderImage) {
+			parts.push({
+				type: "header",
+				parameters: [{ type: "image", image: { link: safeHeaderImage } }],
+			});
+		}
+
+		parts.push({ type: "body", parameters: bodyParams });
+
+		// URL button index 0: View Event on portal
+		if (eventButtonParam) {
+			parts.push({
+				type: "button",
+				sub_type: "url",
+				index: 0,
+				parameters: [{ type: "text", text: eventButtonParam }],
+			});
+		}
+
+		// URL button index 1: Contact Organizer via wa.me
+		if (orgPhoneDigits) {
+			parts.push({
+				type: "button",
+				sub_type: "url",
+				index: eventButtonParam ? 1 : 0,
+				parameters: [{ type: "text", text: orgPhoneDigits }],
+			});
+		}
+
+		return parts;
+	}
+
+	// Candidate template names to try (register primary first, others as backup)
+	const candidateTemplates = [
+		"fextiva_nominee_confirmation_en",
+		"fextiva_nominee_nominated_en",
+		"fextiva_nominee_welcome_en",
+	];
+
+	let templateRes: SendWhatsAppResponse = { success: false, error: "Not initiated" };
+
+	for (const tName of candidateTemplates) {
+		// 1. Try with header image
+		templateRes = await sendWhatsAppTemplateMessage({
+			to: phone,
+			templateName: tName,
+			languageCode: "en",
+			components: buildComponents(true),
+		});
+		if (templateRes.success) break;
+
+		// 2. Retry without header (text-only template variant)
+		templateRes = await sendWhatsAppTemplateMessage({
+			to: phone,
+			templateName: tName,
+			languageCode: "en",
+			components: buildComponents(false),
+		});
+		if (templateRes.success) break;
+	}
+
+	// 3. Plain-text fallback (always works within 24h session, friendly outside too)
+	if (!templateRes.success) {
+		const codeSection = nomineeCode
+			? `\n\n🗳️ *Your Voting Code:* *#${nomineeCode}*\n_Share this code with your supporters so they can vote for you directly on the platform or via USSD._`
+			: "";
+
+		const orgContact = orgPhoneDigits
+			? `\n\n💬 *Contact Organizer:* https://wa.me/${orgPhoneDigits}`
+			: "";
+
+		const eventLink = eventPath
+			? `\n\n🔗 *View Event:* https://fextiva.com/${eventPath.replace(/^\/+/, "")}`
+			: "";
+
+		const fallbackText = [
+			`🎉 *Nomination Confirmed!*`,
+			``,
+			`Hi ${nomineeName},`,
+			``,
+			`You've been nominated for *${eventName}* as *${categoryName}*. We're following up to confirm your nomination and keep you updated on the next steps.`,
+			``,
+			`📸 Kindly send us a picture to be used for your nomination flyer.`,
+			codeSection,
+			orgContact,
+			eventLink,
+			``,
+			`Thank you for participating! 💚`,
+			`— *${organizationName || "Fextiva"}*`,
+		].join("\n");
+
+		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
+	}
+
+	return templateRes;
+}
+
+/**
  * Process inbound Meta WhatsApp Cloud API status webhook callback.
  * Updates message delivery/read status, captures billable conversation metrics,
  * and maintains aggregate platform usage numbers.
@@ -685,6 +853,21 @@ export async function processWhatsAppWebhook(body: any): Promise<{
 						},
 					});
 					statusesUpdated++;
+
+					// Real-time nominee confirmation delivery feedback
+					if (messageId) {
+						try {
+							await prisma.votingOption.updateMany({
+								where: { confirmationWhatsAppMessageId: messageId },
+								data: {
+									confirmationWhatsAppStatus: statusStr,
+									...(errorMsg ? { confirmationWhatsAppError: errorMsg } : {}),
+								},
+							});
+						} catch (nomineeErr) {
+							console.error("[WhatsApp Webhook] Failed to update nominee confirmation status:", nomineeErr);
+						}
+					}
 				} catch (err) {
 					console.error("[WhatsApp Webhook] Failed to upsert log for:", messageId, err);
 				}

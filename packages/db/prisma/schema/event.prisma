@@ -45,6 +45,7 @@ model Event {
   votingCategories     VotingCategory[]
   votingOptions        VotingOption[]
   nomineeChangeRequests NomineeChangeRequest[]
+  messagingConfig       EventMessagingConfig?
 
   @@unique([organizationId, slug])
   @@index([organizationId], map: "idx_events_organization")

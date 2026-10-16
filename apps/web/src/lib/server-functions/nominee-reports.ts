@@ -3,6 +3,7 @@
 import { prisma } from "@repo/db";
 import { requirePlatformAdmin } from "@/lib/admin/admin-auth";
 import { sendNomineeReportWhatsAppNotification } from "@/lib/services/whatsapp";
+import { sendNomineeReportSms } from "@/lib/services/sms";
 import { revalidatePath } from "next/cache";
 
 export type ReportInterval = "every_6_hours" | "every_12_hours" | "daily" | "weekly";
@@ -13,6 +14,7 @@ export interface NomineeReportStats {
 	failureCount: number;
 	timestamp: string;
 	triggeredBy?: string;
+	eventIds?: string[];
 }
 
 export interface NomineeReportSettings {
@@ -21,8 +23,23 @@ export interface NomineeReportSettings {
 	preferredHourUtc: number; // 0 - 23
 	preferredDayOfWeek: number; // 0 = Sun, 1 = Mon ... 6 = Sat
 	onlyWithVotes: boolean;
+	defaultChannel: "whatsapp" | "sms" | "both";
 	lastRunAt: string | null;
 	lastRunStats: NomineeReportStats | null;
+}
+
+export interface ActiveEventSummary {
+	id: string;
+	title: string;
+	slug: string;
+	organizationName: string;
+	nomineeCount: number;
+	messagingConfig?: {
+		reportEnabled: boolean;
+		reportChannel: string;
+		ticketConfirmChannel: string;
+		voteReceiptChannel: string;
+	} | null;
 }
 
 const SETTING_KEY = "nominee_whatsapp_reports";
@@ -33,6 +50,7 @@ const DEFAULT_NOMINEE_REPORT_SETTINGS: NomineeReportSettings = {
 	preferredHourUtc: 9, // 9:00 AM UTC
 	preferredDayOfWeek: 1, // Monday
 	onlyWithVotes: false,
+	defaultChannel: "whatsapp",
 	lastRunAt: null,
 	lastRunStats: null,
 };
@@ -57,6 +75,7 @@ export async function getNomineeReportSettings(): Promise<NomineeReportSettings>
 			preferredHourUtc: typeof val.preferredHourUtc === "number" ? val.preferredHourUtc : DEFAULT_NOMINEE_REPORT_SETTINGS.preferredHourUtc,
 			preferredDayOfWeek: typeof val.preferredDayOfWeek === "number" ? val.preferredDayOfWeek : DEFAULT_NOMINEE_REPORT_SETTINGS.preferredDayOfWeek,
 			onlyWithVotes: typeof val.onlyWithVotes === "boolean" ? val.onlyWithVotes : DEFAULT_NOMINEE_REPORT_SETTINGS.onlyWithVotes,
+			defaultChannel: val.defaultChannel || DEFAULT_NOMINEE_REPORT_SETTINGS.defaultChannel,
 			lastRunAt: val.lastRunAt || null,
 			lastRunStats: val.lastRunStats || null,
 		};
@@ -79,7 +98,6 @@ export async function updateNomineeReportSettings(
 		const updated: NomineeReportSettings = {
 			...current,
 			...partial,
-			// Preserve run stats unless explicitly passed
 			lastRunAt: partial.lastRunAt !== undefined ? partial.lastRunAt : current.lastRunAt,
 			lastRunStats: partial.lastRunStats !== undefined ? partial.lastRunStats : current.lastRunStats,
 		};
@@ -89,7 +107,7 @@ export async function updateNomineeReportSettings(
 			create: {
 				key: SETTING_KEY,
 				value: updated as any,
-				description: "Automated WhatsApp voting progress reports scheduled for active nominees",
+				description: "Automated WhatsApp & SMS voting progress reports scheduled for active nominees",
 				updatedBy: admin.email || admin.fullName || "Super Admin",
 			},
 			update: {
@@ -107,15 +125,75 @@ export async function updateNomineeReportSettings(
 }
 
 /**
- * Broadcast live nominee reports to all active nominees
- * Can be called manually by a Super Admin or automatically by cron
+ * Get active voting events for report target selection in Super Admin
+ */
+export async function getActiveVotingEventsForReports(): Promise<ActiveEventSummary[]> {
+	try {
+		const events = await prisma.event.findMany({
+			where: {
+				status: { in: ["published", "ongoing"] },
+				OR: [
+					{ type: { in: ["voting", "hybrid"] } },
+					{ votingCategories: { some: {} } },
+				],
+			},
+			select: {
+				id: true,
+				title: true,
+				slug: true,
+				organization: { select: { name: true } },
+				messagingConfig: {
+					select: {
+						reportEnabled: true,
+						reportChannel: true,
+						ticketConfirmChannel: true,
+						voteReceiptChannel: true,
+					},
+				},
+				_count: {
+					select: {
+						votingOptions: {
+							where: {
+								status: "approved",
+								phone: { not: null },
+							},
+						},
+					},
+				},
+			},
+			orderBy: { createdAt: "desc" },
+		});
+
+		return events.map((ev) => ({
+			id: ev.id,
+			title: ev.title,
+			slug: ev.slug,
+			organizationName: ev.organization?.name || "Organization",
+			nomineeCount: ev._count.votingOptions,
+			messagingConfig: ev.messagingConfig,
+		}));
+	} catch (error) {
+		console.error("[NomineeReports] Failed to get active events:", error);
+		return [];
+	}
+}
+
+/**
+ * Broadcast live nominee reports to active nominees.
+ * - Supports targeting specific selectedEventIds (or all active events if empty/undefined).
+ * - Respects per-event EventMessagingConfig channel and preference (with fallback to platform setting).
+ * - Can be called manually by Super Admin or automatically by cron.
  */
 export async function dispatchNomineeReportsNow({
 	force = false,
 	triggeredBy = "manual",
+	selectedEventIds,
+	channelOverride,
 }: {
 	force?: boolean;
 	triggeredBy?: string;
+	selectedEventIds?: string[];
+	channelOverride?: "whatsapp" | "sms" | "both" | "event_default";
 } = {}): Promise<{
 	success: boolean;
 	totalNominees: number;
@@ -128,22 +206,17 @@ export async function dispatchNomineeReportsNow({
 	try {
 		const settings = await getNomineeReportSettings();
 
-		if (!force && !settings.enabled) {
-			return {
-				success: false,
-				skipped: true,
-				reason: "Automated nominee reports are currently disabled in platform settings.",
-				totalNominees: 0,
-				successCount: 0,
-				failureCount: 0,
-			};
+		const whereClause: any = {
+			status: { in: ["published", "ongoing"] },
+		};
+
+		if (selectedEventIds && selectedEventIds.length > 0) {
+			whereClause.id = { in: selectedEventIds };
 		}
 
-		// Query all published or ongoing events that support voting
+		// Query active events with their messagingConfig
 		const activeEvents = await prisma.event.findMany({
-			where: {
-				status: { in: ["published", "ongoing"] },
-			},
+			where: whereClause,
 			select: {
 				id: true,
 				title: true,
@@ -155,6 +228,7 @@ export async function dispatchNomineeReportsNow({
 						slug: true,
 					},
 				},
+				messagingConfig: true,
 				votingCategories: {
 					select: {
 						id: true,
@@ -190,11 +264,10 @@ export async function dispatchNomineeReportsNow({
 			},
 		});
 
-		let totalEligible = 0;
 		let successCount = 0;
 		let failureCount = 0;
 
-		const dispatchTasks: Array<{
+		interface NomineeTask {
 			phone: string;
 			nomineeName: string;
 			eventTitle: string;
@@ -202,33 +275,48 @@ export async function dispatchNomineeReportsNow({
 			votesCount: number;
 			rank: number | string;
 			showRank: boolean;
-			leaderboardUrl: string;
 			categoryUrl: string;
 			categoryPath: string;
 			eventSlug: string;
 			categoryId?: string;
 			orgSlug: string;
 			bannerImageUrl?: string;
-		}> = [];
+			channel: string;
+			eventId: string;
+		}
+
+		const dispatchTasks: NomineeTask[] = [];
 
 		for (const ev of activeEvents) {
+			const config = ev.messagingConfig;
+
+			// If not forced and event has config with report disabled, skip this event
+			if (!force) {
+				if (config && !config.reportEnabled) continue;
+				if (!config && !settings.enabled) continue;
+			}
+
+			const channel =
+				channelOverride && channelOverride !== "event_default"
+					? channelOverride
+					: config?.reportChannel || settings.defaultChannel || "whatsapp";
+			if (channel === "none") continue;
+
+			const onlyWithVotes = config?.reportOnlyWithVotes ?? settings.onlyWithVotes;
+			const overrideShowRank = config?.reportShowRank ?? true;
 			const orgSlug = ev.organization?.slug || "org";
 			const bannerImageUrl = ev.bannerImage || ev.flierImage || undefined;
 
 			// 1. Process categorized options
 			for (const cat of ev.votingCategories) {
-				const showRank = cat.showTotalVotesPublicly ?? true;
-				// Category public URL: https://fextiva.com/${orgSlug}/event/${ev.slug}/category/${cat.id}
+				const showRank = overrideShowRank && (cat.showTotalVotesPublicly ?? true);
 				const categoryPath = `${orgSlug}/event/${ev.slug}/category/${cat.id}`;
 				const categoryUrl = `https://fextiva.com/${categoryPath}`;
 
-				// Rank options in descending order of votesCount
-				const sortedOptions = [...cat.votingOptions].sort(
-					(a, b) => b.votesCount - a.votesCount
-				);
+				const sortedOptions = [...cat.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
 				sortedOptions.forEach((opt, idx) => {
-					if (settings.onlyWithVotes && opt.votesCount <= 0) return;
+					if (onlyWithVotes && opt.votesCount <= 0) return;
 					if (!opt.phone || opt.phone.trim().length < 6) return;
 
 					dispatchTasks.push({
@@ -239,28 +327,27 @@ export async function dispatchNomineeReportsNow({
 						votesCount: opt.votesCount,
 						rank: showRank ? idx + 1 : "Confidential",
 						showRank,
-						leaderboardUrl: categoryUrl,
 						categoryUrl,
 						categoryPath,
 						eventSlug: ev.slug,
 						categoryId: cat.id,
 						orgSlug,
 						bannerImageUrl,
+						channel,
+						eventId: ev.id,
 					});
 				});
 			}
 
-			// 2. Process uncategorized options (if any)
+			// 2. Process uncategorized options
 			if (ev.votingOptions.length > 0) {
 				const eventPath = `${orgSlug}/event/${ev.slug}`;
 				const eventUrl = `https://fextiva.com/${eventPath}`;
 
-				const sortedUncategorized = [...ev.votingOptions].sort(
-					(a, b) => b.votesCount - a.votesCount
-				);
+				const sortedUncategorized = [...ev.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
 				sortedUncategorized.forEach((opt, idx) => {
-					if (settings.onlyWithVotes && opt.votesCount <= 0) return;
+					if (onlyWithVotes && opt.votesCount <= 0) return;
 					if (!opt.phone || opt.phone.trim().length < 6) return;
 
 					dispatchTasks.push({
@@ -271,82 +358,87 @@ export async function dispatchNomineeReportsNow({
 						votesCount: opt.votesCount,
 						rank: idx + 1,
 						showRank: true,
-						leaderboardUrl: eventUrl,
 						categoryUrl: eventUrl,
 						categoryPath: eventPath,
 						eventSlug: ev.slug,
 						orgSlug,
 						bannerImageUrl,
+						channel,
+						eventId: ev.id,
 					});
 				});
 			}
 		}
 
-		totalEligible = dispatchTasks.length;
+		const totalEligible = dispatchTasks.length;
 
 		if (totalEligible === 0) {
-			const stats: NomineeReportStats = {
-				totalNominees: 0,
-				successCount: 0,
-				failureCount: 0,
-				timestamp: new Date().toISOString(),
-				triggeredBy,
-			};
-
-			await prisma.platformSetting.upsert({
-				where: { key: SETTING_KEY },
-				create: {
-					key: SETTING_KEY,
-					value: { ...settings, lastRunAt: stats.timestamp, lastRunStats: stats } as any,
-					description: "Automated WhatsApp voting progress reports scheduled for active nominees",
-				},
-				update: {
-					value: { ...settings, lastRunAt: stats.timestamp, lastRunStats: stats } as any,
-				},
-			});
-
 			return {
 				success: true,
 				totalNominees: 0,
 				successCount: 0,
 				failureCount: 0,
-				reason: "No eligible nominees with phone numbers found across active events.",
+				reason: "No eligible nominees with phone numbers found for the selected events.",
 			};
 		}
 
-		// Dispatch with safe staggering (100ms delay between messages)
+		// Dispatch with safe staggering
 		for (const task of dispatchTasks) {
-			try {
-				const res = await sendNomineeReportWhatsAppNotification({
-					phone: task.phone,
-					nomineeName: task.nomineeName,
-					eventTitle: task.eventTitle,
-					categoryName: task.categoryName,
-					votesCount: task.votesCount,
-					rank: task.rank,
-					showRank: task.showRank,
-					leaderboardUrl: task.categoryUrl,
-					categoryUrl: task.categoryUrl,
-					categoryPath: task.categoryPath,
-					eventSlug: task.eventSlug,
-					categoryId: task.categoryId,
-					orgSlug: task.orgSlug,
-					bannerImageUrl: task.bannerImageUrl,
-				});
+			let sent = false;
 
-				if (res.success) {
-					successCount++;
-				} else {
-					console.warn(`[NomineeReports] Failed to notify ${task.nomineeName} (${task.phone}):`, res.error);
-					failureCount++;
+			// If channel requires WhatsApp
+			if (task.channel === "whatsapp" || task.channel === "both" || task.channel === "whatsapp_sms") {
+				try {
+					const res = await sendNomineeReportWhatsAppNotification({
+						phone: task.phone,
+						nomineeName: task.nomineeName,
+						eventTitle: task.eventTitle,
+						categoryName: task.categoryName,
+						votesCount: task.votesCount,
+						rank: task.rank,
+						showRank: task.showRank,
+						leaderboardUrl: task.categoryUrl,
+						categoryUrl: task.categoryUrl,
+						categoryPath: task.categoryPath,
+						eventSlug: task.eventSlug,
+						categoryId: task.categoryId,
+						orgSlug: task.orgSlug,
+						bannerImageUrl: task.bannerImageUrl,
+					});
+					sent = res.success;
+				} catch (err) {
+					console.error(`[NomineeReports] WA exception for ${task.nomineeName}:`, err);
 				}
-			} catch (err) {
-				console.error(`[NomineeReports] Exception sending to ${task.nomineeName}:`, err);
+			}
+
+			// If channel requires SMS, or fallback when WA failed
+			if (task.channel === "sms" || ((task.channel === "both" || task.channel === "whatsapp_sms") && !sent)) {
+				try {
+					const smsRes = await sendNomineeReportSms({
+						phone: task.phone,
+						nomineeName: task.nomineeName,
+						eventTitle: task.eventTitle,
+						categoryName: task.categoryName,
+						votesCount: task.votesCount,
+						rank: task.rank,
+						showRank: task.showRank,
+						categoryUrl: task.categoryUrl,
+						eventId: task.eventId,
+					});
+					sent = smsRes.success;
+				} catch (err) {
+					console.error(`[NomineeReports] SMS exception for ${task.nomineeName}:`, err);
+				}
+			}
+
+			if (sent) {
+				successCount++;
+			} else {
 				failureCount++;
 			}
 
 			// Stagger delay
-			await new Promise((resolve) => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 80));
 		}
 
 		const stats: NomineeReportStats = {
@@ -355,20 +447,39 @@ export async function dispatchNomineeReportsNow({
 			failureCount,
 			timestamp: new Date().toISOString(),
 			triggeredBy,
+			eventIds: selectedEventIds,
 		};
 
-		// Save run status
+		// Update global settings stats
 		await prisma.platformSetting.upsert({
 			where: { key: SETTING_KEY },
 			create: {
 				key: SETTING_KEY,
 				value: { ...settings, lastRunAt: stats.timestamp, lastRunStats: stats } as any,
-				description: "Automated WhatsApp voting progress reports scheduled for active nominees",
+				description: "Automated WhatsApp & SMS voting progress reports scheduled for active nominees",
 			},
 			update: {
 				value: { ...settings, lastRunAt: stats.timestamp, lastRunStats: stats } as any,
 			},
 		});
+
+		// Update per-event messaging config lastRunAt & stats for targeted events
+		const touchedEventIds = Array.from(new Set(dispatchTasks.map((t) => t.eventId)));
+		for (const evId of touchedEventIds) {
+			const evTasks = dispatchTasks.filter((t) => t.eventId === evId);
+			const evSuccess = evTasks.filter((_, idx) => idx < successCount).length;
+			await prisma.eventMessagingConfig.updateMany({
+				where: { eventId: evId },
+				data: {
+					reportLastRunAt: new Date(),
+					reportLastRunStats: {
+						totalNominees: evTasks.length,
+						successCount: evSuccess,
+						timestamp: stats.timestamp,
+					},
+				},
+			}).catch(() => {});
+		}
 
 		revalidatePath("/super/reports");
 
@@ -388,4 +499,24 @@ export async function dispatchNomineeReportsNow({
 			error: error.message || "Failed to dispatch nominee reports",
 		};
 	}
+}
+
+/**
+ * Trigger nominee reports for a single event specifically
+ */
+export async function dispatchEventNomineeReportsNow(
+	eventId: string,
+	force = true
+): Promise<{
+	success: boolean;
+	totalNominees: number;
+	successCount: number;
+	failureCount: number;
+	error?: string;
+}> {
+	return dispatchNomineeReportsNow({
+		force,
+		triggeredBy: `event:${eventId}`,
+		selectedEventIds: [eventId],
+	});
 }

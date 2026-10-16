@@ -7,6 +7,7 @@ export interface VotingOption {
 	bio?: string | null;
 	description?: string | null;
 	email?: string | null;
+	phone?: string | null;
 	status?: string | null;
 	isPublicNomination?: boolean;
 	nominatedByName?: string | null;
@@ -14,6 +15,13 @@ export interface VotingOption {
 	votesCount?: number | bigint;
 	orderIdx?: number;
 	customValues?: Record<string, any> | null;
+	confirmationEmailSentAt?: string | Date | null;
+	confirmationEmailStatus?: "sent" | "failed" | null;
+	confirmationEmailError?: string | null;
+	confirmationWhatsAppSentAt?: string | Date | null;
+	confirmationWhatsAppStatus?: "sent" | "delivered" | "read" | "failed" | null;
+	confirmationWhatsAppMessageId?: string | null;
+	confirmationWhatsAppError?: string | null;
 }
 
 export interface CustomField {

@@ -45,6 +45,7 @@ import {
 	approveNomination,
 	rejectNomination,
 	resendNominationEmail,
+	sendNomineeWhatsAppConfirmation,
 } from "@/lib/server-functions/voting-options";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
@@ -124,6 +125,7 @@ export function CategoryList({
 
 	const [isNominationSheetOpen, setIsNominationSheetOpen] = useState(false);
 	const [resendingOptionId, setResendingOptionId] = useState<string | null>(null);
+	const [sendingWhatsAppOptionId, setSendingWhatsAppOptionId] = useState<string | null>(null);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -250,6 +252,43 @@ export function CategoryList({
 			toast.error(getErrorMessage(err) || "Failed to resend confirmation email");
 		} finally {
 			setResendingOptionId(null);
+		}
+	}
+
+	async function handleSendWhatsApp(option: any) {
+		if (!option.phone) {
+			toast.error("Nominee has no phone number recorded.");
+			return;
+		}
+
+		setSendingWhatsAppOptionId(option.id);
+		toast.loading("Sending nomination confirmation via WhatsApp...", { id: "send-wa-confirm" });
+
+		try {
+			const res = await sendNomineeWhatsAppConfirmation({ data: { optionId: option.id } });
+			toast.dismiss("send-wa-confirm");
+
+			if (res.success) {
+				toast.success(res.message || "WhatsApp nomination confirmation sent!");
+			} else {
+				if (res.waUrl) {
+					toast.info(res.error || "Click to open direct chat in WhatsApp", {
+						action: {
+							label: "Open WhatsApp",
+							onClick: () => window.open(res.waUrl, "_blank"),
+						},
+						duration: 8000,
+					});
+					window.open(res.waUrl, "_blank");
+				} else {
+					toast.error(res.error || "Failed to send WhatsApp message.");
+				}
+			}
+		} catch (err: any) {
+			toast.dismiss("send-wa-confirm");
+			toast.error(getErrorMessage(err) || "Failed to send WhatsApp message");
+		} finally {
+			setSendingWhatsAppOptionId(null);
 		}
 	}
 
@@ -576,9 +615,11 @@ export function CategoryList({
 														canEdit={canEdit}
 														isPending={isDeleting}
 														isResending={resendingOptionId === opt.id}
+														isSendingWhatsApp={sendingWhatsAppOptionId === opt.id}
 														requiresDeletionCode={false}
 														onEdit={() => handleEditOption(cat, opt)}
 														onResendCode={() => handleResendCode(opt)}
+														onSendWhatsApp={() => handleSendWhatsApp(opt)}
 														onDelete={() => {
 															const votesCount = Number(opt.votesCount || 0);
 															if (votesCount > 0) {

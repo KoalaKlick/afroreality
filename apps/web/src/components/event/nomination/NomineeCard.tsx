@@ -20,6 +20,7 @@ import {
   XCircle,
   Globe,
   Mail,
+  MessageSquare,
   Hash,
   Loader2,
 } from "lucide-react";
@@ -38,10 +39,12 @@ interface NomineeCardProps {
   readonly canEdit: boolean;
   readonly isPending?: boolean;
   readonly isResending?: boolean;
+  readonly isSendingWhatsApp?: boolean;
   readonly requiresDeletionCode?: boolean;
   readonly onEdit: () => void;
   readonly onDelete: (code?: string) => void;
   readonly onResendCode?: () => void;
+  readonly onSendWhatsApp?: () => void;
   readonly onApprove?: () => void;
   readonly onReject?: () => void;
 }
@@ -52,10 +55,12 @@ export function NomineeCard({
   canEdit,
   isPending = false,
   isResending = false,
+  isSendingWhatsApp = false,
   requiresDeletionCode = false,
   onEdit,
   onDelete,
   onResendCode,
+  onSendWhatsApp,
   onApprove,
   onReject,
 }: NomineeCardProps) {
@@ -79,7 +84,7 @@ export function NomineeCard({
           <img
             src={displayImageUrl}
             alt={option.optionText}
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="size-full flex flex-col items-center justify-center bg-muted/60 text-muted-foreground gap-1.5 p-3 text-center">
@@ -157,12 +162,28 @@ export function NomineeCard({
                     className="size-8 bg-background/90 hover:bg-background text-foreground"
                     onClick={onResendCode}
                     disabled={isResending}
-                    title="Resend Confirmation Code"
+                    title="Resend Nomination Details"
                   >
                     {isResending ? (
                       <Loader2 className="size-3.5 animate-spin" />
                     ) : (
                       <Mail className="size-3.5" />
+                    )}
+                  </Button>
+                )}
+                {onSendWhatsApp && (option as any).phone && (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="size-8 bg-background/90 hover:bg-background text-emerald-600 dark:text-emerald-400"
+                    onClick={onSendWhatsApp}
+                    disabled={isSendingWhatsApp}
+                    title="Send WhatsApp Nomination Confirmation"
+                  >
+                    {isSendingWhatsApp ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <MessageSquare className="size-3.5" />
                     )}
                   </Button>
                 )}

@@ -1,0 +1,68 @@
+// Messaging configuration per event — controls which channels are used for confirmations and reports
+model EventMessagingConfig {
+  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId String @unique @map("event_id") @db.Uuid
+
+  // ── Purchase Confirmations ─────────────────────────────────────────────────
+  // "whatsapp"     — WhatsApp only
+  // "sms"          — SMS (Arkesel) only
+  // "whatsapp_sms" — WhatsApp first; if it fails, fallback to SMS (cost-optimized)
+  // "none"         — No messaging (e.g. free/USSD events)
+  ticketConfirmChannel  String @default("whatsapp") @map("ticket_confirm_channel")
+  voteReceiptChannel    String @default("whatsapp") @map("vote_receipt_channel")
+
+  // Nomination confirmation channel:
+  // "email" | "whatsapp" | "sms" | "email_whatsapp" | "none"
+  nominationChannel     String @default("email") @map("nomination_channel")
+
+  // ── Nominee Progress Reports ───────────────────────────────────────────────
+  reportEnabled          Boolean  @default(false) @map("report_enabled")
+  reportChannel          String   @default("whatsapp") @map("report_channel")
+  // "whatsapp" | "sms" | "whatsapp_sms"
+
+  reportInterval         String   @default("daily") @map("report_interval")
+  // "every_6_hours" | "every_12_hours" | "daily" | "weekly"
+
+  reportPreferredHourUtc Int      @default(9)  @map("report_preferred_hour_utc")
+  reportPreferredDay     Int      @default(1)  @map("report_preferred_day")
+  reportOnlyWithVotes    Boolean  @default(false) @map("report_only_with_votes")
+  reportShowRank         Boolean  @default(true)  @map("report_show_rank")
+
+  reportLastRunAt        DateTime? @map("report_last_run_at") @db.Timestamptz(6)
+  reportLastRunStats     Json?     @map("report_last_run_stats")
+
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_messaging_configs")
+}
+
+// SMS delivery log — parallel to WhatsAppMessageLog, per send
+model SmsMessageLog {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipientPhone String   @map("recipient_phone")
+  message        String?
+  sender         String   @default("Fextiva")
+  provider       String   @default("arkesel")
+  // purpose tags for cost attribution & filtering
+  purpose        String?
+  // "ticket_confirmation" | "vote_receipt" | "nomination" | "nominee_report" | "otp"
+  eventId        String?  @map("event_id") @db.Uuid
+  status         String   @default("sent")
+  isBillable     Boolean  @default(true) @map("is_billable")
+  estimatedCost  Decimal? @default(0.015) @map("estimated_cost") @db.Decimal(10, 4)
+  // ~GH₵0.08 per SMS at Arkesel; stored in USD equivalent
+  errorMessage   String?  @map("error_message")
+  rawPayload     Json?    @map("raw_payload")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status],         map: "idx_sms_logs_status")
+  @@index([recipientPhone], map: "idx_sms_logs_recipient")
+  @@index([eventId],        map: "idx_sms_logs_event")
+  @@index([purpose],        map: "idx_sms_logs_purpose")
+  @@index([createdAt],      map: "idx_sms_logs_created_at")
+  @@map("sms_message_logs")
+}

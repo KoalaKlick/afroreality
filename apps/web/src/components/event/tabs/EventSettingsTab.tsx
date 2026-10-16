@@ -47,6 +47,7 @@ import { SocialLinkDialog } from "./SocialLinkDialog";
 import { SponsorDialog } from "./SponsorDialog";
 import { UssdSettings } from "@/components/event/settings/UssdSettings";
 import { GalleryImageManager } from "@/components/event/settings/GalleryImageManager";
+import { EventMessagingConfigSection } from "./EventMessagingConfigSection";
 import type { EventGalleryLink, EventSocialLink, EventSponsor } from "./types";
 
 interface EventSettingsTabProps {
@@ -1243,6 +1244,12 @@ export function EventSettingsTab({
 						)}
 					</div>
 				</Card>
+
+				{/* Messaging & Channel Routing Settings */}
+				<EventMessagingConfigSection
+					eventId={event.id}
+					canEdit={canEdit}
+				/>
 
 				{/* Danger Zone */}
 				{canEdit && (

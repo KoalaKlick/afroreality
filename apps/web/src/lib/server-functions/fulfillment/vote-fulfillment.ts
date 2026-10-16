@@ -1,5 +1,7 @@
 import { prisma } from "@repo/db";
 import { sendVoteReceiptWhatsAppNotification } from "@/lib/services/whatsapp";
+import { sendVoteReceiptSms } from "@/lib/services/sms";
+import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
 
 export async function fulfillVotePurchase({
 	payment,
@@ -19,7 +21,7 @@ export async function fulfillVotePurchase({
 
 	if (!optionId || !eventId) return;
 
-	await prisma.vote.create({
+	const vote = await prisma.vote.create({
 		data: { eventId, optionId, categoryId: categoryId || null, paymentId: payment.id, voteCount, voterPhone, voterEmail },
 	});
 
@@ -31,19 +33,63 @@ export async function fulfillVotePurchase({
 	if (!voterPhone) return;
 
 	try {
-		const option = await prisma.votingOption.findUnique({
-			where: { id: optionId },
-			include: { category: true },
-		});
-		await sendVoteReceiptWhatsAppNotification({
-			phone: voterPhone,
-			voterName: metadata.voterName || undefined,
-			nomineeName: option?.optionText || "Nominee",
-			categoryName: option?.category?.name || undefined,
-			votesCount: voteCount,
-			reference,
-		});
-	} catch (waErr) {
-		console.error("[WhatsApp] Vote receipt failed:", waErr);
+		const [option, messagingConfig] = await Promise.all([
+			prisma.votingOption.findUnique({
+				where: { id: optionId },
+				include: { category: true },
+			}),
+			getEventMessagingConfig(eventId),
+		]);
+
+		const channel = messagingConfig?.voteReceiptChannel || "whatsapp";
+		if (channel === "none") return;
+
+		let waSuccess = false;
+
+		if (channel === "whatsapp" || channel === "whatsapp_sms") {
+			try {
+				const waRes = await sendVoteReceiptWhatsAppNotification({
+					phone: voterPhone,
+					voterName: metadata.voterName || undefined,
+					nomineeName: option?.optionText || "Nominee",
+					categoryName: option?.category?.name || undefined,
+					votesCount: voteCount,
+					reference,
+				});
+				waSuccess = waRes.success;
+				if (waSuccess) {
+					await prisma.vote.update({
+						where: { id: vote.id },
+						data: { whatsappSent: true },
+					}).catch(() => {});
+				}
+			} catch (waErr) {
+				console.error("[WhatsApp] Vote receipt failed:", waErr);
+			}
+		}
+
+		if (channel === "sms" || (channel === "whatsapp_sms" && !waSuccess)) {
+			try {
+				const smsRes = await sendVoteReceiptSms({
+					phone: voterPhone,
+					voterName: metadata.voterName || undefined,
+					nomineeName: option?.optionText || "Nominee",
+					votesCount: voteCount,
+					reference,
+					eventId,
+				});
+				if (smsRes.success) {
+					await prisma.vote.update({
+						where: { id: vote.id },
+						data: { smsSent: true },
+					}).catch(() => {});
+				}
+			} catch (smsErr) {
+				console.error("[SMS] Vote receipt failed:", smsErr);
+			}
+		}
+	} catch (err) {
+		console.error("[VoteFulfillment] Notification routing error:", err);
 	}
 }
+

@@ -64,6 +64,16 @@ export type sessions = $Result.DefaultSelection<Prisma.$sessionsPayload>
  */
 export type users = $Result.DefaultSelection<Prisma.$usersPayload>
 /**
+ * Model EventMessagingConfig
+ * 
+ */
+export type EventMessagingConfig = $Result.DefaultSelection<Prisma.$EventMessagingConfigPayload>
+/**
+ * Model SmsMessageLog
+ * 
+ */
+export type SmsMessageLog = $Result.DefaultSelection<Prisma.$SmsMessageLogPayload>
+/**
  * Model Organization
  * 
  */
@@ -777,6 +787,26 @@ export class PrismaClient<
     * ```
     */
   get users(): Prisma.usersDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.eventMessagingConfig`: Exposes CRUD operations for the **EventMessagingConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EventMessagingConfigs
+    * const eventMessagingConfigs = await prisma.eventMessagingConfig.findMany()
+    * ```
+    */
+  get eventMessagingConfig(): Prisma.EventMessagingConfigDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.smsMessageLog`: Exposes CRUD operations for the **SmsMessageLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SmsMessageLogs
+    * const smsMessageLogs = await prisma.smsMessageLog.findMany()
+    * ```
+    */
+  get smsMessageLog(): Prisma.SmsMessageLogDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.organization`: Exposes CRUD operations for the **Organization** model.
@@ -1494,6 +1524,8 @@ export namespace Prisma {
     accounts: 'accounts',
     sessions: 'sessions',
     users: 'users',
+    EventMessagingConfig: 'EventMessagingConfig',
+    SmsMessageLog: 'SmsMessageLog',
     Organization: 'Organization',
     TeamMember: 'TeamMember',
     OrganizationInvitation: 'OrganizationInvitation',
@@ -1535,7 +1567,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "activityLog" | "event" | "eventSponsor" | "eventGalleryLink" | "eventSocialLink" | "eventMember" | "eventRegistrationField" | "accounts" | "sessions" | "users" | "organization" | "teamMember" | "organizationInvitation" | "membershipRequest" | "organizationSocialLink" | "wallet" | "transaction" | "payment" | "payout" | "feeConfiguration" | "platformSetting" | "promoter" | "referral" | "commission" | "ticketType" | "ticketOrder" | "ticket" | "profile" | "ussdSession" | "ussdState" | "verification" | "votingCategory" | "votingOption" | "nomineeChangeRequest" | "vote" | "whatsAppMessageLog"
+      modelProps: "activityLog" | "event" | "eventSponsor" | "eventGalleryLink" | "eventSocialLink" | "eventMember" | "eventRegistrationField" | "accounts" | "sessions" | "users" | "eventMessagingConfig" | "smsMessageLog" | "organization" | "teamMember" | "organizationInvitation" | "membershipRequest" | "organizationSocialLink" | "wallet" | "transaction" | "payment" | "payout" | "feeConfiguration" | "platformSetting" | "promoter" | "referral" | "commission" | "ticketType" | "ticketOrder" | "ticket" | "profile" | "ussdSession" | "ussdState" | "verification" | "votingCategory" | "votingOption" | "nomineeChangeRequest" | "vote" | "whatsAppMessageLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2276,6 +2308,154 @@ export namespace Prisma {
           count: {
             args: Prisma.usersCountArgs<ExtArgs>
             result: $Utils.Optional<UsersCountAggregateOutputType> | number
+          }
+        }
+      }
+      EventMessagingConfig: {
+        payload: Prisma.$EventMessagingConfigPayload<ExtArgs>
+        fields: Prisma.EventMessagingConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EventMessagingConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EventMessagingConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.EventMessagingConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EventMessagingConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>
+          }
+          findMany: {
+            args: Prisma.EventMessagingConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>[]
+          }
+          create: {
+            args: Prisma.EventMessagingConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>
+          }
+          createMany: {
+            args: Prisma.EventMessagingConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EventMessagingConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.EventMessagingConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>
+          }
+          update: {
+            args: Prisma.EventMessagingConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.EventMessagingConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EventMessagingConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EventMessagingConfigUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>[]
+          }
+          upsert: {
+            args: Prisma.EventMessagingConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EventMessagingConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.EventMessagingConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEventMessagingConfig>
+          }
+          groupBy: {
+            args: Prisma.EventMessagingConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EventMessagingConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EventMessagingConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<EventMessagingConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      SmsMessageLog: {
+        payload: Prisma.$SmsMessageLogPayload<ExtArgs>
+        fields: Prisma.SmsMessageLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SmsMessageLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SmsMessageLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>
+          }
+          findFirst: {
+            args: Prisma.SmsMessageLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SmsMessageLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>
+          }
+          findMany: {
+            args: Prisma.SmsMessageLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>[]
+          }
+          create: {
+            args: Prisma.SmsMessageLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>
+          }
+          createMany: {
+            args: Prisma.SmsMessageLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SmsMessageLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>[]
+          }
+          delete: {
+            args: Prisma.SmsMessageLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>
+          }
+          update: {
+            args: Prisma.SmsMessageLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.SmsMessageLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SmsMessageLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SmsMessageLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.SmsMessageLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SmsMessageLogPayload>
+          }
+          aggregate: {
+            args: Prisma.SmsMessageLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSmsMessageLog>
+          }
+          groupBy: {
+            args: Prisma.SmsMessageLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SmsMessageLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SmsMessageLogCountArgs<ExtArgs>
+            result: $Utils.Optional<SmsMessageLogCountAggregateOutputType> | number
           }
         }
       }
@@ -4336,6 +4516,8 @@ export namespace Prisma {
     accounts?: accountsOmit
     sessions?: sessionsOmit
     users?: usersOmit
+    eventMessagingConfig?: EventMessagingConfigOmit
+    smsMessageLog?: SmsMessageLogOmit
     organization?: OrganizationOmit
     teamMember?: TeamMemberOmit
     organizationInvitation?: OrganizationInvitationOmit
@@ -6806,6 +6988,7 @@ export namespace Prisma {
     votingCategories?: boolean | Event$votingCategoriesArgs<ExtArgs>
     votingOptions?: boolean | Event$votingOptionsArgs<ExtArgs>
     nomineeChangeRequests?: boolean | Event$nomineeChangeRequestsArgs<ExtArgs>
+    messagingConfig?: boolean | Event$messagingConfigArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["event"]>
 
@@ -6934,6 +7117,7 @@ export namespace Prisma {
     votingCategories?: boolean | Event$votingCategoriesArgs<ExtArgs>
     votingOptions?: boolean | Event$votingOptionsArgs<ExtArgs>
     nomineeChangeRequests?: boolean | Event$nomineeChangeRequestsArgs<ExtArgs>
+    messagingConfig?: boolean | Event$messagingConfigArgs<ExtArgs>
     _count?: boolean | EventCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type EventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6962,6 +7146,7 @@ export namespace Prisma {
       votingCategories: Prisma.$VotingCategoryPayload<ExtArgs>[]
       votingOptions: Prisma.$VotingOptionPayload<ExtArgs>[]
       nomineeChangeRequests: Prisma.$NomineeChangeRequestPayload<ExtArgs>[]
+      messagingConfig: Prisma.$EventMessagingConfigPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7404,6 +7589,7 @@ export namespace Prisma {
     votingCategories<T extends Event$votingCategoriesArgs<ExtArgs> = {}>(args?: Subset<T, Event$votingCategoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotingCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     votingOptions<T extends Event$votingOptionsArgs<ExtArgs> = {}>(args?: Subset<T, Event$votingOptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VotingOptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     nomineeChangeRequests<T extends Event$nomineeChangeRequestsArgs<ExtArgs> = {}>(args?: Subset<T, Event$nomineeChangeRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NomineeChangeRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    messagingConfig<T extends Event$messagingConfigArgs<ExtArgs> = {}>(args?: Subset<T, Event$messagingConfigArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8170,6 +8356,25 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: NomineeChangeRequestScalarFieldEnum | NomineeChangeRequestScalarFieldEnum[]
+  }
+
+  /**
+   * Event.messagingConfig
+   */
+  export type Event$messagingConfigArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    where?: EventMessagingConfigWhereInput
   }
 
   /**
@@ -17113,6 +17318,2393 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: usersInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EventMessagingConfig
+   */
+
+  export type AggregateEventMessagingConfig = {
+    _count: EventMessagingConfigCountAggregateOutputType | null
+    _avg: EventMessagingConfigAvgAggregateOutputType | null
+    _sum: EventMessagingConfigSumAggregateOutputType | null
+    _min: EventMessagingConfigMinAggregateOutputType | null
+    _max: EventMessagingConfigMaxAggregateOutputType | null
+  }
+
+  export type EventMessagingConfigAvgAggregateOutputType = {
+    reportPreferredHourUtc: number | null
+    reportPreferredDay: number | null
+  }
+
+  export type EventMessagingConfigSumAggregateOutputType = {
+    reportPreferredHourUtc: number | null
+    reportPreferredDay: number | null
+  }
+
+  export type EventMessagingConfigMinAggregateOutputType = {
+    id: string | null
+    eventId: string | null
+    ticketConfirmChannel: string | null
+    voteReceiptChannel: string | null
+    nominationChannel: string | null
+    reportEnabled: boolean | null
+    reportChannel: string | null
+    reportInterval: string | null
+    reportPreferredHourUtc: number | null
+    reportPreferredDay: number | null
+    reportOnlyWithVotes: boolean | null
+    reportShowRank: boolean | null
+    reportLastRunAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EventMessagingConfigMaxAggregateOutputType = {
+    id: string | null
+    eventId: string | null
+    ticketConfirmChannel: string | null
+    voteReceiptChannel: string | null
+    nominationChannel: string | null
+    reportEnabled: boolean | null
+    reportChannel: string | null
+    reportInterval: string | null
+    reportPreferredHourUtc: number | null
+    reportPreferredDay: number | null
+    reportOnlyWithVotes: boolean | null
+    reportShowRank: boolean | null
+    reportLastRunAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EventMessagingConfigCountAggregateOutputType = {
+    id: number
+    eventId: number
+    ticketConfirmChannel: number
+    voteReceiptChannel: number
+    nominationChannel: number
+    reportEnabled: number
+    reportChannel: number
+    reportInterval: number
+    reportPreferredHourUtc: number
+    reportPreferredDay: number
+    reportOnlyWithVotes: number
+    reportShowRank: number
+    reportLastRunAt: number
+    reportLastRunStats: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EventMessagingConfigAvgAggregateInputType = {
+    reportPreferredHourUtc?: true
+    reportPreferredDay?: true
+  }
+
+  export type EventMessagingConfigSumAggregateInputType = {
+    reportPreferredHourUtc?: true
+    reportPreferredDay?: true
+  }
+
+  export type EventMessagingConfigMinAggregateInputType = {
+    id?: true
+    eventId?: true
+    ticketConfirmChannel?: true
+    voteReceiptChannel?: true
+    nominationChannel?: true
+    reportEnabled?: true
+    reportChannel?: true
+    reportInterval?: true
+    reportPreferredHourUtc?: true
+    reportPreferredDay?: true
+    reportOnlyWithVotes?: true
+    reportShowRank?: true
+    reportLastRunAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EventMessagingConfigMaxAggregateInputType = {
+    id?: true
+    eventId?: true
+    ticketConfirmChannel?: true
+    voteReceiptChannel?: true
+    nominationChannel?: true
+    reportEnabled?: true
+    reportChannel?: true
+    reportInterval?: true
+    reportPreferredHourUtc?: true
+    reportPreferredDay?: true
+    reportOnlyWithVotes?: true
+    reportShowRank?: true
+    reportLastRunAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EventMessagingConfigCountAggregateInputType = {
+    id?: true
+    eventId?: true
+    ticketConfirmChannel?: true
+    voteReceiptChannel?: true
+    nominationChannel?: true
+    reportEnabled?: true
+    reportChannel?: true
+    reportInterval?: true
+    reportPreferredHourUtc?: true
+    reportPreferredDay?: true
+    reportOnlyWithVotes?: true
+    reportShowRank?: true
+    reportLastRunAt?: true
+    reportLastRunStats?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EventMessagingConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EventMessagingConfig to aggregate.
+     */
+    where?: EventMessagingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventMessagingConfigs to fetch.
+     */
+    orderBy?: EventMessagingConfigOrderByWithRelationInput | EventMessagingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EventMessagingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventMessagingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventMessagingConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EventMessagingConfigs
+    **/
+    _count?: true | EventMessagingConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EventMessagingConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EventMessagingConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EventMessagingConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EventMessagingConfigMaxAggregateInputType
+  }
+
+  export type GetEventMessagingConfigAggregateType<T extends EventMessagingConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateEventMessagingConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEventMessagingConfig[P]>
+      : GetScalarType<T[P], AggregateEventMessagingConfig[P]>
+  }
+
+
+
+
+  export type EventMessagingConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EventMessagingConfigWhereInput
+    orderBy?: EventMessagingConfigOrderByWithAggregationInput | EventMessagingConfigOrderByWithAggregationInput[]
+    by: EventMessagingConfigScalarFieldEnum[] | EventMessagingConfigScalarFieldEnum
+    having?: EventMessagingConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EventMessagingConfigCountAggregateInputType | true
+    _avg?: EventMessagingConfigAvgAggregateInputType
+    _sum?: EventMessagingConfigSumAggregateInputType
+    _min?: EventMessagingConfigMinAggregateInputType
+    _max?: EventMessagingConfigMaxAggregateInputType
+  }
+
+  export type EventMessagingConfigGroupByOutputType = {
+    id: string
+    eventId: string
+    ticketConfirmChannel: string
+    voteReceiptChannel: string
+    nominationChannel: string
+    reportEnabled: boolean
+    reportChannel: string
+    reportInterval: string
+    reportPreferredHourUtc: number
+    reportPreferredDay: number
+    reportOnlyWithVotes: boolean
+    reportShowRank: boolean
+    reportLastRunAt: Date | null
+    reportLastRunStats: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: EventMessagingConfigCountAggregateOutputType | null
+    _avg: EventMessagingConfigAvgAggregateOutputType | null
+    _sum: EventMessagingConfigSumAggregateOutputType | null
+    _min: EventMessagingConfigMinAggregateOutputType | null
+    _max: EventMessagingConfigMaxAggregateOutputType | null
+  }
+
+  type GetEventMessagingConfigGroupByPayload<T extends EventMessagingConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EventMessagingConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EventMessagingConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EventMessagingConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], EventMessagingConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EventMessagingConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    eventId?: boolean
+    ticketConfirmChannel?: boolean
+    voteReceiptChannel?: boolean
+    nominationChannel?: boolean
+    reportEnabled?: boolean
+    reportChannel?: boolean
+    reportInterval?: boolean
+    reportPreferredHourUtc?: boolean
+    reportPreferredDay?: boolean
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: boolean
+    reportLastRunStats?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventMessagingConfig"]>
+
+  export type EventMessagingConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    eventId?: boolean
+    ticketConfirmChannel?: boolean
+    voteReceiptChannel?: boolean
+    nominationChannel?: boolean
+    reportEnabled?: boolean
+    reportChannel?: boolean
+    reportInterval?: boolean
+    reportPreferredHourUtc?: boolean
+    reportPreferredDay?: boolean
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: boolean
+    reportLastRunStats?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventMessagingConfig"]>
+
+  export type EventMessagingConfigSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    eventId?: boolean
+    ticketConfirmChannel?: boolean
+    voteReceiptChannel?: boolean
+    nominationChannel?: boolean
+    reportEnabled?: boolean
+    reportChannel?: boolean
+    reportInterval?: boolean
+    reportPreferredHourUtc?: boolean
+    reportPreferredDay?: boolean
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: boolean
+    reportLastRunStats?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eventMessagingConfig"]>
+
+  export type EventMessagingConfigSelectScalar = {
+    id?: boolean
+    eventId?: boolean
+    ticketConfirmChannel?: boolean
+    voteReceiptChannel?: boolean
+    nominationChannel?: boolean
+    reportEnabled?: boolean
+    reportChannel?: boolean
+    reportInterval?: boolean
+    reportPreferredHourUtc?: boolean
+    reportPreferredDay?: boolean
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: boolean
+    reportLastRunStats?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EventMessagingConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "ticketConfirmChannel" | "voteReceiptChannel" | "nominationChannel" | "reportEnabled" | "reportChannel" | "reportInterval" | "reportPreferredHourUtc" | "reportPreferredDay" | "reportOnlyWithVotes" | "reportShowRank" | "reportLastRunAt" | "reportLastRunStats" | "createdAt" | "updatedAt", ExtArgs["result"]["eventMessagingConfig"]>
+  export type EventMessagingConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }
+  export type EventMessagingConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }
+  export type EventMessagingConfigIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    event?: boolean | EventDefaultArgs<ExtArgs>
+  }
+
+  export type $EventMessagingConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EventMessagingConfig"
+    objects: {
+      event: Prisma.$EventPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      eventId: string
+      ticketConfirmChannel: string
+      voteReceiptChannel: string
+      nominationChannel: string
+      reportEnabled: boolean
+      reportChannel: string
+      reportInterval: string
+      reportPreferredHourUtc: number
+      reportPreferredDay: number
+      reportOnlyWithVotes: boolean
+      reportShowRank: boolean
+      reportLastRunAt: Date | null
+      reportLastRunStats: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["eventMessagingConfig"]>
+    composites: {}
+  }
+
+  type EventMessagingConfigGetPayload<S extends boolean | null | undefined | EventMessagingConfigDefaultArgs> = $Result.GetResult<Prisma.$EventMessagingConfigPayload, S>
+
+  type EventMessagingConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EventMessagingConfigFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EventMessagingConfigCountAggregateInputType | true
+    }
+
+  export interface EventMessagingConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EventMessagingConfig'], meta: { name: 'EventMessagingConfig' } }
+    /**
+     * Find zero or one EventMessagingConfig that matches the filter.
+     * @param {EventMessagingConfigFindUniqueArgs} args - Arguments to find a EventMessagingConfig
+     * @example
+     * // Get one EventMessagingConfig
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EventMessagingConfigFindUniqueArgs>(args: SelectSubset<T, EventMessagingConfigFindUniqueArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one EventMessagingConfig that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EventMessagingConfigFindUniqueOrThrowArgs} args - Arguments to find a EventMessagingConfig
+     * @example
+     * // Get one EventMessagingConfig
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EventMessagingConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, EventMessagingConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EventMessagingConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventMessagingConfigFindFirstArgs} args - Arguments to find a EventMessagingConfig
+     * @example
+     * // Get one EventMessagingConfig
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EventMessagingConfigFindFirstArgs>(args?: SelectSubset<T, EventMessagingConfigFindFirstArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first EventMessagingConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventMessagingConfigFindFirstOrThrowArgs} args - Arguments to find a EventMessagingConfig
+     * @example
+     * // Get one EventMessagingConfig
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EventMessagingConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, EventMessagingConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more EventMessagingConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventMessagingConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EventMessagingConfigs
+     * const eventMessagingConfigs = await prisma.eventMessagingConfig.findMany()
+     * 
+     * // Get first 10 EventMessagingConfigs
+     * const eventMessagingConfigs = await prisma.eventMessagingConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eventMessagingConfigWithIdOnly = await prisma.eventMessagingConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EventMessagingConfigFindManyArgs>(args?: SelectSubset<T, EventMessagingConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a EventMessagingConfig.
+     * @param {EventMessagingConfigCreateArgs} args - Arguments to create a EventMessagingConfig.
+     * @example
+     * // Create one EventMessagingConfig
+     * const EventMessagingConfig = await prisma.eventMessagingConfig.create({
+     *   data: {
+     *     // ... data to create a EventMessagingConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends EventMessagingConfigCreateArgs>(args: SelectSubset<T, EventMessagingConfigCreateArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many EventMessagingConfigs.
+     * @param {EventMessagingConfigCreateManyArgs} args - Arguments to create many EventMessagingConfigs.
+     * @example
+     * // Create many EventMessagingConfigs
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EventMessagingConfigCreateManyArgs>(args?: SelectSubset<T, EventMessagingConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EventMessagingConfigs and returns the data saved in the database.
+     * @param {EventMessagingConfigCreateManyAndReturnArgs} args - Arguments to create many EventMessagingConfigs.
+     * @example
+     * // Create many EventMessagingConfigs
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EventMessagingConfigs and only return the `id`
+     * const eventMessagingConfigWithIdOnly = await prisma.eventMessagingConfig.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EventMessagingConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, EventMessagingConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a EventMessagingConfig.
+     * @param {EventMessagingConfigDeleteArgs} args - Arguments to delete one EventMessagingConfig.
+     * @example
+     * // Delete one EventMessagingConfig
+     * const EventMessagingConfig = await prisma.eventMessagingConfig.delete({
+     *   where: {
+     *     // ... filter to delete one EventMessagingConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EventMessagingConfigDeleteArgs>(args: SelectSubset<T, EventMessagingConfigDeleteArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one EventMessagingConfig.
+     * @param {EventMessagingConfigUpdateArgs} args - Arguments to update one EventMessagingConfig.
+     * @example
+     * // Update one EventMessagingConfig
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EventMessagingConfigUpdateArgs>(args: SelectSubset<T, EventMessagingConfigUpdateArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more EventMessagingConfigs.
+     * @param {EventMessagingConfigDeleteManyArgs} args - Arguments to filter EventMessagingConfigs to delete.
+     * @example
+     * // Delete a few EventMessagingConfigs
+     * const { count } = await prisma.eventMessagingConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EventMessagingConfigDeleteManyArgs>(args?: SelectSubset<T, EventMessagingConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EventMessagingConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventMessagingConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EventMessagingConfigs
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EventMessagingConfigUpdateManyArgs>(args: SelectSubset<T, EventMessagingConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EventMessagingConfigs and returns the data updated in the database.
+     * @param {EventMessagingConfigUpdateManyAndReturnArgs} args - Arguments to update many EventMessagingConfigs.
+     * @example
+     * // Update many EventMessagingConfigs
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more EventMessagingConfigs and only return the `id`
+     * const eventMessagingConfigWithIdOnly = await prisma.eventMessagingConfig.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EventMessagingConfigUpdateManyAndReturnArgs>(args: SelectSubset<T, EventMessagingConfigUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one EventMessagingConfig.
+     * @param {EventMessagingConfigUpsertArgs} args - Arguments to update or create a EventMessagingConfig.
+     * @example
+     * // Update or create a EventMessagingConfig
+     * const eventMessagingConfig = await prisma.eventMessagingConfig.upsert({
+     *   create: {
+     *     // ... data to create a EventMessagingConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EventMessagingConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EventMessagingConfigUpsertArgs>(args: SelectSubset<T, EventMessagingConfigUpsertArgs<ExtArgs>>): Prisma__EventMessagingConfigClient<$Result.GetResult<Prisma.$EventMessagingConfigPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of EventMessagingConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventMessagingConfigCountArgs} args - Arguments to filter EventMessagingConfigs to count.
+     * @example
+     * // Count the number of EventMessagingConfigs
+     * const count = await prisma.eventMessagingConfig.count({
+     *   where: {
+     *     // ... the filter for the EventMessagingConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends EventMessagingConfigCountArgs>(
+      args?: Subset<T, EventMessagingConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EventMessagingConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EventMessagingConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventMessagingConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EventMessagingConfigAggregateArgs>(args: Subset<T, EventMessagingConfigAggregateArgs>): Prisma.PrismaPromise<GetEventMessagingConfigAggregateType<T>>
+
+    /**
+     * Group by EventMessagingConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EventMessagingConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EventMessagingConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EventMessagingConfigGroupByArgs['orderBy'] }
+        : { orderBy?: EventMessagingConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EventMessagingConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEventMessagingConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EventMessagingConfig model
+   */
+  readonly fields: EventMessagingConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EventMessagingConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EventMessagingConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    event<T extends EventDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EventDefaultArgs<ExtArgs>>): Prisma__EventClient<$Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EventMessagingConfig model
+   */
+  interface EventMessagingConfigFieldRefs {
+    readonly id: FieldRef<"EventMessagingConfig", 'String'>
+    readonly eventId: FieldRef<"EventMessagingConfig", 'String'>
+    readonly ticketConfirmChannel: FieldRef<"EventMessagingConfig", 'String'>
+    readonly voteReceiptChannel: FieldRef<"EventMessagingConfig", 'String'>
+    readonly nominationChannel: FieldRef<"EventMessagingConfig", 'String'>
+    readonly reportEnabled: FieldRef<"EventMessagingConfig", 'Boolean'>
+    readonly reportChannel: FieldRef<"EventMessagingConfig", 'String'>
+    readonly reportInterval: FieldRef<"EventMessagingConfig", 'String'>
+    readonly reportPreferredHourUtc: FieldRef<"EventMessagingConfig", 'Int'>
+    readonly reportPreferredDay: FieldRef<"EventMessagingConfig", 'Int'>
+    readonly reportOnlyWithVotes: FieldRef<"EventMessagingConfig", 'Boolean'>
+    readonly reportShowRank: FieldRef<"EventMessagingConfig", 'Boolean'>
+    readonly reportLastRunAt: FieldRef<"EventMessagingConfig", 'DateTime'>
+    readonly reportLastRunStats: FieldRef<"EventMessagingConfig", 'Json'>
+    readonly createdAt: FieldRef<"EventMessagingConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"EventMessagingConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EventMessagingConfig findUnique
+   */
+  export type EventMessagingConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which EventMessagingConfig to fetch.
+     */
+    where: EventMessagingConfigWhereUniqueInput
+  }
+
+  /**
+   * EventMessagingConfig findUniqueOrThrow
+   */
+  export type EventMessagingConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which EventMessagingConfig to fetch.
+     */
+    where: EventMessagingConfigWhereUniqueInput
+  }
+
+  /**
+   * EventMessagingConfig findFirst
+   */
+  export type EventMessagingConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which EventMessagingConfig to fetch.
+     */
+    where?: EventMessagingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventMessagingConfigs to fetch.
+     */
+    orderBy?: EventMessagingConfigOrderByWithRelationInput | EventMessagingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EventMessagingConfigs.
+     */
+    cursor?: EventMessagingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventMessagingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventMessagingConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EventMessagingConfigs.
+     */
+    distinct?: EventMessagingConfigScalarFieldEnum | EventMessagingConfigScalarFieldEnum[]
+  }
+
+  /**
+   * EventMessagingConfig findFirstOrThrow
+   */
+  export type EventMessagingConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which EventMessagingConfig to fetch.
+     */
+    where?: EventMessagingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventMessagingConfigs to fetch.
+     */
+    orderBy?: EventMessagingConfigOrderByWithRelationInput | EventMessagingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EventMessagingConfigs.
+     */
+    cursor?: EventMessagingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventMessagingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventMessagingConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EventMessagingConfigs.
+     */
+    distinct?: EventMessagingConfigScalarFieldEnum | EventMessagingConfigScalarFieldEnum[]
+  }
+
+  /**
+   * EventMessagingConfig findMany
+   */
+  export type EventMessagingConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * Filter, which EventMessagingConfigs to fetch.
+     */
+    where?: EventMessagingConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EventMessagingConfigs to fetch.
+     */
+    orderBy?: EventMessagingConfigOrderByWithRelationInput | EventMessagingConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EventMessagingConfigs.
+     */
+    cursor?: EventMessagingConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EventMessagingConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EventMessagingConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EventMessagingConfigs.
+     */
+    distinct?: EventMessagingConfigScalarFieldEnum | EventMessagingConfigScalarFieldEnum[]
+  }
+
+  /**
+   * EventMessagingConfig create
+   */
+  export type EventMessagingConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EventMessagingConfig.
+     */
+    data: XOR<EventMessagingConfigCreateInput, EventMessagingConfigUncheckedCreateInput>
+  }
+
+  /**
+   * EventMessagingConfig createMany
+   */
+  export type EventMessagingConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EventMessagingConfigs.
+     */
+    data: EventMessagingConfigCreateManyInput | EventMessagingConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EventMessagingConfig createManyAndReturn
+   */
+  export type EventMessagingConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * The data used to create many EventMessagingConfigs.
+     */
+    data: EventMessagingConfigCreateManyInput | EventMessagingConfigCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EventMessagingConfig update
+   */
+  export type EventMessagingConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EventMessagingConfig.
+     */
+    data: XOR<EventMessagingConfigUpdateInput, EventMessagingConfigUncheckedUpdateInput>
+    /**
+     * Choose, which EventMessagingConfig to update.
+     */
+    where: EventMessagingConfigWhereUniqueInput
+  }
+
+  /**
+   * EventMessagingConfig updateMany
+   */
+  export type EventMessagingConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EventMessagingConfigs.
+     */
+    data: XOR<EventMessagingConfigUpdateManyMutationInput, EventMessagingConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which EventMessagingConfigs to update
+     */
+    where?: EventMessagingConfigWhereInput
+    /**
+     * Limit how many EventMessagingConfigs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * EventMessagingConfig updateManyAndReturn
+   */
+  export type EventMessagingConfigUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * The data used to update EventMessagingConfigs.
+     */
+    data: XOR<EventMessagingConfigUpdateManyMutationInput, EventMessagingConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which EventMessagingConfigs to update
+     */
+    where?: EventMessagingConfigWhereInput
+    /**
+     * Limit how many EventMessagingConfigs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EventMessagingConfig upsert
+   */
+  export type EventMessagingConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EventMessagingConfig to update in case it exists.
+     */
+    where: EventMessagingConfigWhereUniqueInput
+    /**
+     * In case the EventMessagingConfig found by the `where` argument doesn't exist, create a new EventMessagingConfig with this data.
+     */
+    create: XOR<EventMessagingConfigCreateInput, EventMessagingConfigUncheckedCreateInput>
+    /**
+     * In case the EventMessagingConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EventMessagingConfigUpdateInput, EventMessagingConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * EventMessagingConfig delete
+   */
+  export type EventMessagingConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+    /**
+     * Filter which EventMessagingConfig to delete.
+     */
+    where: EventMessagingConfigWhereUniqueInput
+  }
+
+  /**
+   * EventMessagingConfig deleteMany
+   */
+  export type EventMessagingConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EventMessagingConfigs to delete
+     */
+    where?: EventMessagingConfigWhereInput
+    /**
+     * Limit how many EventMessagingConfigs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * EventMessagingConfig without action
+   */
+  export type EventMessagingConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EventMessagingConfig
+     */
+    select?: EventMessagingConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the EventMessagingConfig
+     */
+    omit?: EventMessagingConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EventMessagingConfigInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SmsMessageLog
+   */
+
+  export type AggregateSmsMessageLog = {
+    _count: SmsMessageLogCountAggregateOutputType | null
+    _avg: SmsMessageLogAvgAggregateOutputType | null
+    _sum: SmsMessageLogSumAggregateOutputType | null
+    _min: SmsMessageLogMinAggregateOutputType | null
+    _max: SmsMessageLogMaxAggregateOutputType | null
+  }
+
+  export type SmsMessageLogAvgAggregateOutputType = {
+    estimatedCost: Decimal | null
+  }
+
+  export type SmsMessageLogSumAggregateOutputType = {
+    estimatedCost: Decimal | null
+  }
+
+  export type SmsMessageLogMinAggregateOutputType = {
+    id: string | null
+    recipientPhone: string | null
+    message: string | null
+    sender: string | null
+    provider: string | null
+    purpose: string | null
+    eventId: string | null
+    status: string | null
+    isBillable: boolean | null
+    estimatedCost: Decimal | null
+    errorMessage: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SmsMessageLogMaxAggregateOutputType = {
+    id: string | null
+    recipientPhone: string | null
+    message: string | null
+    sender: string | null
+    provider: string | null
+    purpose: string | null
+    eventId: string | null
+    status: string | null
+    isBillable: boolean | null
+    estimatedCost: Decimal | null
+    errorMessage: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SmsMessageLogCountAggregateOutputType = {
+    id: number
+    recipientPhone: number
+    message: number
+    sender: number
+    provider: number
+    purpose: number
+    eventId: number
+    status: number
+    isBillable: number
+    estimatedCost: number
+    errorMessage: number
+    rawPayload: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SmsMessageLogAvgAggregateInputType = {
+    estimatedCost?: true
+  }
+
+  export type SmsMessageLogSumAggregateInputType = {
+    estimatedCost?: true
+  }
+
+  export type SmsMessageLogMinAggregateInputType = {
+    id?: true
+    recipientPhone?: true
+    message?: true
+    sender?: true
+    provider?: true
+    purpose?: true
+    eventId?: true
+    status?: true
+    isBillable?: true
+    estimatedCost?: true
+    errorMessage?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SmsMessageLogMaxAggregateInputType = {
+    id?: true
+    recipientPhone?: true
+    message?: true
+    sender?: true
+    provider?: true
+    purpose?: true
+    eventId?: true
+    status?: true
+    isBillable?: true
+    estimatedCost?: true
+    errorMessage?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SmsMessageLogCountAggregateInputType = {
+    id?: true
+    recipientPhone?: true
+    message?: true
+    sender?: true
+    provider?: true
+    purpose?: true
+    eventId?: true
+    status?: true
+    isBillable?: true
+    estimatedCost?: true
+    errorMessage?: true
+    rawPayload?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SmsMessageLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SmsMessageLog to aggregate.
+     */
+    where?: SmsMessageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessageLogs to fetch.
+     */
+    orderBy?: SmsMessageLogOrderByWithRelationInput | SmsMessageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SmsMessageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SmsMessageLogs
+    **/
+    _count?: true | SmsMessageLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SmsMessageLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SmsMessageLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SmsMessageLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SmsMessageLogMaxAggregateInputType
+  }
+
+  export type GetSmsMessageLogAggregateType<T extends SmsMessageLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateSmsMessageLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSmsMessageLog[P]>
+      : GetScalarType<T[P], AggregateSmsMessageLog[P]>
+  }
+
+
+
+
+  export type SmsMessageLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SmsMessageLogWhereInput
+    orderBy?: SmsMessageLogOrderByWithAggregationInput | SmsMessageLogOrderByWithAggregationInput[]
+    by: SmsMessageLogScalarFieldEnum[] | SmsMessageLogScalarFieldEnum
+    having?: SmsMessageLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SmsMessageLogCountAggregateInputType | true
+    _avg?: SmsMessageLogAvgAggregateInputType
+    _sum?: SmsMessageLogSumAggregateInputType
+    _min?: SmsMessageLogMinAggregateInputType
+    _max?: SmsMessageLogMaxAggregateInputType
+  }
+
+  export type SmsMessageLogGroupByOutputType = {
+    id: string
+    recipientPhone: string
+    message: string | null
+    sender: string
+    provider: string
+    purpose: string | null
+    eventId: string | null
+    status: string
+    isBillable: boolean
+    estimatedCost: Decimal | null
+    errorMessage: string | null
+    rawPayload: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: SmsMessageLogCountAggregateOutputType | null
+    _avg: SmsMessageLogAvgAggregateOutputType | null
+    _sum: SmsMessageLogSumAggregateOutputType | null
+    _min: SmsMessageLogMinAggregateOutputType | null
+    _max: SmsMessageLogMaxAggregateOutputType | null
+  }
+
+  type GetSmsMessageLogGroupByPayload<T extends SmsMessageLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SmsMessageLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SmsMessageLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SmsMessageLogGroupByOutputType[P]>
+            : GetScalarType<T[P], SmsMessageLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SmsMessageLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    recipientPhone?: boolean
+    message?: boolean
+    sender?: boolean
+    provider?: boolean
+    purpose?: boolean
+    eventId?: boolean
+    status?: boolean
+    isBillable?: boolean
+    estimatedCost?: boolean
+    errorMessage?: boolean
+    rawPayload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["smsMessageLog"]>
+
+  export type SmsMessageLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    recipientPhone?: boolean
+    message?: boolean
+    sender?: boolean
+    provider?: boolean
+    purpose?: boolean
+    eventId?: boolean
+    status?: boolean
+    isBillable?: boolean
+    estimatedCost?: boolean
+    errorMessage?: boolean
+    rawPayload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["smsMessageLog"]>
+
+  export type SmsMessageLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    recipientPhone?: boolean
+    message?: boolean
+    sender?: boolean
+    provider?: boolean
+    purpose?: boolean
+    eventId?: boolean
+    status?: boolean
+    isBillable?: boolean
+    estimatedCost?: boolean
+    errorMessage?: boolean
+    rawPayload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["smsMessageLog"]>
+
+  export type SmsMessageLogSelectScalar = {
+    id?: boolean
+    recipientPhone?: boolean
+    message?: boolean
+    sender?: boolean
+    provider?: boolean
+    purpose?: boolean
+    eventId?: boolean
+    status?: boolean
+    isBillable?: boolean
+    estimatedCost?: boolean
+    errorMessage?: boolean
+    rawPayload?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SmsMessageLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "recipientPhone" | "message" | "sender" | "provider" | "purpose" | "eventId" | "status" | "isBillable" | "estimatedCost" | "errorMessage" | "rawPayload" | "createdAt" | "updatedAt", ExtArgs["result"]["smsMessageLog"]>
+
+  export type $SmsMessageLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SmsMessageLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      recipientPhone: string
+      message: string | null
+      sender: string
+      provider: string
+      purpose: string | null
+      eventId: string | null
+      status: string
+      isBillable: boolean
+      estimatedCost: Prisma.Decimal | null
+      errorMessage: string | null
+      rawPayload: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["smsMessageLog"]>
+    composites: {}
+  }
+
+  type SmsMessageLogGetPayload<S extends boolean | null | undefined | SmsMessageLogDefaultArgs> = $Result.GetResult<Prisma.$SmsMessageLogPayload, S>
+
+  type SmsMessageLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SmsMessageLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SmsMessageLogCountAggregateInputType | true
+    }
+
+  export interface SmsMessageLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SmsMessageLog'], meta: { name: 'SmsMessageLog' } }
+    /**
+     * Find zero or one SmsMessageLog that matches the filter.
+     * @param {SmsMessageLogFindUniqueArgs} args - Arguments to find a SmsMessageLog
+     * @example
+     * // Get one SmsMessageLog
+     * const smsMessageLog = await prisma.smsMessageLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SmsMessageLogFindUniqueArgs>(args: SelectSubset<T, SmsMessageLogFindUniqueArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SmsMessageLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SmsMessageLogFindUniqueOrThrowArgs} args - Arguments to find a SmsMessageLog
+     * @example
+     * // Get one SmsMessageLog
+     * const smsMessageLog = await prisma.smsMessageLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SmsMessageLogFindUniqueOrThrowArgs>(args: SelectSubset<T, SmsMessageLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SmsMessageLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageLogFindFirstArgs} args - Arguments to find a SmsMessageLog
+     * @example
+     * // Get one SmsMessageLog
+     * const smsMessageLog = await prisma.smsMessageLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SmsMessageLogFindFirstArgs>(args?: SelectSubset<T, SmsMessageLogFindFirstArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SmsMessageLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageLogFindFirstOrThrowArgs} args - Arguments to find a SmsMessageLog
+     * @example
+     * // Get one SmsMessageLog
+     * const smsMessageLog = await prisma.smsMessageLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SmsMessageLogFindFirstOrThrowArgs>(args?: SelectSubset<T, SmsMessageLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SmsMessageLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SmsMessageLogs
+     * const smsMessageLogs = await prisma.smsMessageLog.findMany()
+     * 
+     * // Get first 10 SmsMessageLogs
+     * const smsMessageLogs = await prisma.smsMessageLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const smsMessageLogWithIdOnly = await prisma.smsMessageLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SmsMessageLogFindManyArgs>(args?: SelectSubset<T, SmsMessageLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SmsMessageLog.
+     * @param {SmsMessageLogCreateArgs} args - Arguments to create a SmsMessageLog.
+     * @example
+     * // Create one SmsMessageLog
+     * const SmsMessageLog = await prisma.smsMessageLog.create({
+     *   data: {
+     *     // ... data to create a SmsMessageLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends SmsMessageLogCreateArgs>(args: SelectSubset<T, SmsMessageLogCreateArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SmsMessageLogs.
+     * @param {SmsMessageLogCreateManyArgs} args - Arguments to create many SmsMessageLogs.
+     * @example
+     * // Create many SmsMessageLogs
+     * const smsMessageLog = await prisma.smsMessageLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SmsMessageLogCreateManyArgs>(args?: SelectSubset<T, SmsMessageLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SmsMessageLogs and returns the data saved in the database.
+     * @param {SmsMessageLogCreateManyAndReturnArgs} args - Arguments to create many SmsMessageLogs.
+     * @example
+     * // Create many SmsMessageLogs
+     * const smsMessageLog = await prisma.smsMessageLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SmsMessageLogs and only return the `id`
+     * const smsMessageLogWithIdOnly = await prisma.smsMessageLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SmsMessageLogCreateManyAndReturnArgs>(args?: SelectSubset<T, SmsMessageLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SmsMessageLog.
+     * @param {SmsMessageLogDeleteArgs} args - Arguments to delete one SmsMessageLog.
+     * @example
+     * // Delete one SmsMessageLog
+     * const SmsMessageLog = await prisma.smsMessageLog.delete({
+     *   where: {
+     *     // ... filter to delete one SmsMessageLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SmsMessageLogDeleteArgs>(args: SelectSubset<T, SmsMessageLogDeleteArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SmsMessageLog.
+     * @param {SmsMessageLogUpdateArgs} args - Arguments to update one SmsMessageLog.
+     * @example
+     * // Update one SmsMessageLog
+     * const smsMessageLog = await prisma.smsMessageLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SmsMessageLogUpdateArgs>(args: SelectSubset<T, SmsMessageLogUpdateArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SmsMessageLogs.
+     * @param {SmsMessageLogDeleteManyArgs} args - Arguments to filter SmsMessageLogs to delete.
+     * @example
+     * // Delete a few SmsMessageLogs
+     * const { count } = await prisma.smsMessageLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SmsMessageLogDeleteManyArgs>(args?: SelectSubset<T, SmsMessageLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SmsMessageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SmsMessageLogs
+     * const smsMessageLog = await prisma.smsMessageLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SmsMessageLogUpdateManyArgs>(args: SelectSubset<T, SmsMessageLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SmsMessageLogs and returns the data updated in the database.
+     * @param {SmsMessageLogUpdateManyAndReturnArgs} args - Arguments to update many SmsMessageLogs.
+     * @example
+     * // Update many SmsMessageLogs
+     * const smsMessageLog = await prisma.smsMessageLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SmsMessageLogs and only return the `id`
+     * const smsMessageLogWithIdOnly = await prisma.smsMessageLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SmsMessageLogUpdateManyAndReturnArgs>(args: SelectSubset<T, SmsMessageLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SmsMessageLog.
+     * @param {SmsMessageLogUpsertArgs} args - Arguments to update or create a SmsMessageLog.
+     * @example
+     * // Update or create a SmsMessageLog
+     * const smsMessageLog = await prisma.smsMessageLog.upsert({
+     *   create: {
+     *     // ... data to create a SmsMessageLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SmsMessageLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SmsMessageLogUpsertArgs>(args: SelectSubset<T, SmsMessageLogUpsertArgs<ExtArgs>>): Prisma__SmsMessageLogClient<$Result.GetResult<Prisma.$SmsMessageLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SmsMessageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageLogCountArgs} args - Arguments to filter SmsMessageLogs to count.
+     * @example
+     * // Count the number of SmsMessageLogs
+     * const count = await prisma.smsMessageLog.count({
+     *   where: {
+     *     // ... the filter for the SmsMessageLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends SmsMessageLogCountArgs>(
+      args?: Subset<T, SmsMessageLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SmsMessageLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SmsMessageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SmsMessageLogAggregateArgs>(args: Subset<T, SmsMessageLogAggregateArgs>): Prisma.PrismaPromise<GetSmsMessageLogAggregateType<T>>
+
+    /**
+     * Group by SmsMessageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SmsMessageLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SmsMessageLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SmsMessageLogGroupByArgs['orderBy'] }
+        : { orderBy?: SmsMessageLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SmsMessageLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSmsMessageLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SmsMessageLog model
+   */
+  readonly fields: SmsMessageLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SmsMessageLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SmsMessageLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SmsMessageLog model
+   */
+  interface SmsMessageLogFieldRefs {
+    readonly id: FieldRef<"SmsMessageLog", 'String'>
+    readonly recipientPhone: FieldRef<"SmsMessageLog", 'String'>
+    readonly message: FieldRef<"SmsMessageLog", 'String'>
+    readonly sender: FieldRef<"SmsMessageLog", 'String'>
+    readonly provider: FieldRef<"SmsMessageLog", 'String'>
+    readonly purpose: FieldRef<"SmsMessageLog", 'String'>
+    readonly eventId: FieldRef<"SmsMessageLog", 'String'>
+    readonly status: FieldRef<"SmsMessageLog", 'String'>
+    readonly isBillable: FieldRef<"SmsMessageLog", 'Boolean'>
+    readonly estimatedCost: FieldRef<"SmsMessageLog", 'Decimal'>
+    readonly errorMessage: FieldRef<"SmsMessageLog", 'String'>
+    readonly rawPayload: FieldRef<"SmsMessageLog", 'Json'>
+    readonly createdAt: FieldRef<"SmsMessageLog", 'DateTime'>
+    readonly updatedAt: FieldRef<"SmsMessageLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SmsMessageLog findUnique
+   */
+  export type SmsMessageLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * Filter, which SmsMessageLog to fetch.
+     */
+    where: SmsMessageLogWhereUniqueInput
+  }
+
+  /**
+   * SmsMessageLog findUniqueOrThrow
+   */
+  export type SmsMessageLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * Filter, which SmsMessageLog to fetch.
+     */
+    where: SmsMessageLogWhereUniqueInput
+  }
+
+  /**
+   * SmsMessageLog findFirst
+   */
+  export type SmsMessageLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * Filter, which SmsMessageLog to fetch.
+     */
+    where?: SmsMessageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessageLogs to fetch.
+     */
+    orderBy?: SmsMessageLogOrderByWithRelationInput | SmsMessageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SmsMessageLogs.
+     */
+    cursor?: SmsMessageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SmsMessageLogs.
+     */
+    distinct?: SmsMessageLogScalarFieldEnum | SmsMessageLogScalarFieldEnum[]
+  }
+
+  /**
+   * SmsMessageLog findFirstOrThrow
+   */
+  export type SmsMessageLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * Filter, which SmsMessageLog to fetch.
+     */
+    where?: SmsMessageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessageLogs to fetch.
+     */
+    orderBy?: SmsMessageLogOrderByWithRelationInput | SmsMessageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SmsMessageLogs.
+     */
+    cursor?: SmsMessageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SmsMessageLogs.
+     */
+    distinct?: SmsMessageLogScalarFieldEnum | SmsMessageLogScalarFieldEnum[]
+  }
+
+  /**
+   * SmsMessageLog findMany
+   */
+  export type SmsMessageLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * Filter, which SmsMessageLogs to fetch.
+     */
+    where?: SmsMessageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SmsMessageLogs to fetch.
+     */
+    orderBy?: SmsMessageLogOrderByWithRelationInput | SmsMessageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SmsMessageLogs.
+     */
+    cursor?: SmsMessageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SmsMessageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SmsMessageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SmsMessageLogs.
+     */
+    distinct?: SmsMessageLogScalarFieldEnum | SmsMessageLogScalarFieldEnum[]
+  }
+
+  /**
+   * SmsMessageLog create
+   */
+  export type SmsMessageLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * The data needed to create a SmsMessageLog.
+     */
+    data: XOR<SmsMessageLogCreateInput, SmsMessageLogUncheckedCreateInput>
+  }
+
+  /**
+   * SmsMessageLog createMany
+   */
+  export type SmsMessageLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SmsMessageLogs.
+     */
+    data: SmsMessageLogCreateManyInput | SmsMessageLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SmsMessageLog createManyAndReturn
+   */
+  export type SmsMessageLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many SmsMessageLogs.
+     */
+    data: SmsMessageLogCreateManyInput | SmsMessageLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SmsMessageLog update
+   */
+  export type SmsMessageLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * The data needed to update a SmsMessageLog.
+     */
+    data: XOR<SmsMessageLogUpdateInput, SmsMessageLogUncheckedUpdateInput>
+    /**
+     * Choose, which SmsMessageLog to update.
+     */
+    where: SmsMessageLogWhereUniqueInput
+  }
+
+  /**
+   * SmsMessageLog updateMany
+   */
+  export type SmsMessageLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SmsMessageLogs.
+     */
+    data: XOR<SmsMessageLogUpdateManyMutationInput, SmsMessageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which SmsMessageLogs to update
+     */
+    where?: SmsMessageLogWhereInput
+    /**
+     * Limit how many SmsMessageLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SmsMessageLog updateManyAndReturn
+   */
+  export type SmsMessageLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * The data used to update SmsMessageLogs.
+     */
+    data: XOR<SmsMessageLogUpdateManyMutationInput, SmsMessageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which SmsMessageLogs to update
+     */
+    where?: SmsMessageLogWhereInput
+    /**
+     * Limit how many SmsMessageLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SmsMessageLog upsert
+   */
+  export type SmsMessageLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * The filter to search for the SmsMessageLog to update in case it exists.
+     */
+    where: SmsMessageLogWhereUniqueInput
+    /**
+     * In case the SmsMessageLog found by the `where` argument doesn't exist, create a new SmsMessageLog with this data.
+     */
+    create: XOR<SmsMessageLogCreateInput, SmsMessageLogUncheckedCreateInput>
+    /**
+     * In case the SmsMessageLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SmsMessageLogUpdateInput, SmsMessageLogUncheckedUpdateInput>
+  }
+
+  /**
+   * SmsMessageLog delete
+   */
+  export type SmsMessageLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
+    /**
+     * Filter which SmsMessageLog to delete.
+     */
+    where: SmsMessageLogWhereUniqueInput
+  }
+
+  /**
+   * SmsMessageLog deleteMany
+   */
+  export type SmsMessageLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SmsMessageLogs to delete
+     */
+    where?: SmsMessageLogWhereInput
+    /**
+     * Limit how many SmsMessageLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SmsMessageLog without action
+   */
+  export type SmsMessageLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SmsMessageLog
+     */
+    select?: SmsMessageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SmsMessageLog
+     */
+    omit?: SmsMessageLogOmit<ExtArgs> | null
   }
 
 
@@ -44653,6 +47245,13 @@ export namespace Prisma {
     status: $Enums.ApprovalStatus | null
     finalImage: string | null
     deletionCode: string | null
+    confirmationEmailSentAt: Date | null
+    confirmationEmailStatus: string | null
+    confirmationEmailError: string | null
+    confirmationWhatsAppSentAt: Date | null
+    confirmationWhatsAppStatus: string | null
+    confirmationWhatsAppMessageId: string | null
+    confirmationWhatsAppError: string | null
   }
 
   export type VotingOptionMaxAggregateOutputType = {
@@ -44676,6 +47275,13 @@ export namespace Prisma {
     status: $Enums.ApprovalStatus | null
     finalImage: string | null
     deletionCode: string | null
+    confirmationEmailSentAt: Date | null
+    confirmationEmailStatus: string | null
+    confirmationEmailError: string | null
+    confirmationWhatsAppSentAt: Date | null
+    confirmationWhatsAppStatus: string | null
+    confirmationWhatsAppMessageId: string | null
+    confirmationWhatsAppError: string | null
   }
 
   export type VotingOptionCountAggregateOutputType = {
@@ -44699,6 +47305,13 @@ export namespace Prisma {
     status: number
     finalImage: number
     deletionCode: number
+    confirmationEmailSentAt: number
+    confirmationEmailStatus: number
+    confirmationEmailError: number
+    confirmationWhatsAppSentAt: number
+    confirmationWhatsAppStatus: number
+    confirmationWhatsAppMessageId: number
+    confirmationWhatsAppError: number
     _all: number
   }
 
@@ -44734,6 +47347,13 @@ export namespace Prisma {
     status?: true
     finalImage?: true
     deletionCode?: true
+    confirmationEmailSentAt?: true
+    confirmationEmailStatus?: true
+    confirmationEmailError?: true
+    confirmationWhatsAppSentAt?: true
+    confirmationWhatsAppStatus?: true
+    confirmationWhatsAppMessageId?: true
+    confirmationWhatsAppError?: true
   }
 
   export type VotingOptionMaxAggregateInputType = {
@@ -44757,6 +47377,13 @@ export namespace Prisma {
     status?: true
     finalImage?: true
     deletionCode?: true
+    confirmationEmailSentAt?: true
+    confirmationEmailStatus?: true
+    confirmationEmailError?: true
+    confirmationWhatsAppSentAt?: true
+    confirmationWhatsAppStatus?: true
+    confirmationWhatsAppMessageId?: true
+    confirmationWhatsAppError?: true
   }
 
   export type VotingOptionCountAggregateInputType = {
@@ -44780,6 +47407,13 @@ export namespace Prisma {
     status?: true
     finalImage?: true
     deletionCode?: true
+    confirmationEmailSentAt?: true
+    confirmationEmailStatus?: true
+    confirmationEmailError?: true
+    confirmationWhatsAppSentAt?: true
+    confirmationWhatsAppStatus?: true
+    confirmationWhatsAppMessageId?: true
+    confirmationWhatsAppError?: true
     _all?: true
   }
 
@@ -44890,6 +47524,13 @@ export namespace Prisma {
     status: $Enums.ApprovalStatus
     finalImage: string | null
     deletionCode: string | null
+    confirmationEmailSentAt: Date | null
+    confirmationEmailStatus: string | null
+    confirmationEmailError: string | null
+    confirmationWhatsAppSentAt: Date | null
+    confirmationWhatsAppStatus: string | null
+    confirmationWhatsAppMessageId: string | null
+    confirmationWhatsAppError: string | null
     _count: VotingOptionCountAggregateOutputType | null
     _avg: VotingOptionAvgAggregateOutputType | null
     _sum: VotingOptionSumAggregateOutputType | null
@@ -44932,6 +47573,13 @@ export namespace Prisma {
     status?: boolean
     finalImage?: boolean
     deletionCode?: boolean
+    confirmationEmailSentAt?: boolean
+    confirmationEmailStatus?: boolean
+    confirmationEmailError?: boolean
+    confirmationWhatsAppSentAt?: boolean
+    confirmationWhatsAppStatus?: boolean
+    confirmationWhatsAppMessageId?: boolean
+    confirmationWhatsAppError?: boolean
     votes?: boolean | VotingOption$votesArgs<ExtArgs>
     changeRequests?: boolean | VotingOption$changeRequestsArgs<ExtArgs>
     category?: boolean | VotingOption$categoryArgs<ExtArgs>
@@ -44961,6 +47609,13 @@ export namespace Prisma {
     status?: boolean
     finalImage?: boolean
     deletionCode?: boolean
+    confirmationEmailSentAt?: boolean
+    confirmationEmailStatus?: boolean
+    confirmationEmailError?: boolean
+    confirmationWhatsAppSentAt?: boolean
+    confirmationWhatsAppStatus?: boolean
+    confirmationWhatsAppMessageId?: boolean
+    confirmationWhatsAppError?: boolean
     category?: boolean | VotingOption$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
     nominatedBy?: boolean | VotingOption$nominatedByArgs<ExtArgs>
@@ -44987,6 +47642,13 @@ export namespace Prisma {
     status?: boolean
     finalImage?: boolean
     deletionCode?: boolean
+    confirmationEmailSentAt?: boolean
+    confirmationEmailStatus?: boolean
+    confirmationEmailError?: boolean
+    confirmationWhatsAppSentAt?: boolean
+    confirmationWhatsAppStatus?: boolean
+    confirmationWhatsAppMessageId?: boolean
+    confirmationWhatsAppError?: boolean
     category?: boolean | VotingOption$categoryArgs<ExtArgs>
     event?: boolean | EventDefaultArgs<ExtArgs>
     nominatedBy?: boolean | VotingOption$nominatedByArgs<ExtArgs>
@@ -45013,9 +47675,16 @@ export namespace Prisma {
     status?: boolean
     finalImage?: boolean
     deletionCode?: boolean
+    confirmationEmailSentAt?: boolean
+    confirmationEmailStatus?: boolean
+    confirmationEmailError?: boolean
+    confirmationWhatsAppSentAt?: boolean
+    confirmationWhatsAppStatus?: boolean
+    confirmationWhatsAppMessageId?: boolean
+    confirmationWhatsAppError?: boolean
   }
 
-  export type VotingOptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "categoryId" | "optionText" | "description" | "imageUrl" | "orderIdx" | "votesCount" | "createdAt" | "updatedAt" | "email" | "phone" | "isPublicNomination" | "nominatedByEmail" | "nominatedById" | "nominatedByName" | "nomineeCode" | "status" | "finalImage" | "deletionCode", ExtArgs["result"]["votingOption"]>
+  export type VotingOptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "eventId" | "categoryId" | "optionText" | "description" | "imageUrl" | "orderIdx" | "votesCount" | "createdAt" | "updatedAt" | "email" | "phone" | "isPublicNomination" | "nominatedByEmail" | "nominatedById" | "nominatedByName" | "nomineeCode" | "status" | "finalImage" | "deletionCode" | "confirmationEmailSentAt" | "confirmationEmailStatus" | "confirmationEmailError" | "confirmationWhatsAppSentAt" | "confirmationWhatsAppStatus" | "confirmationWhatsAppMessageId" | "confirmationWhatsAppError", ExtArgs["result"]["votingOption"]>
   export type VotingOptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     votes?: boolean | VotingOption$votesArgs<ExtArgs>
     changeRequests?: boolean | VotingOption$changeRequestsArgs<ExtArgs>
@@ -45065,6 +47734,13 @@ export namespace Prisma {
       status: $Enums.ApprovalStatus
       finalImage: string | null
       deletionCode: string | null
+      confirmationEmailSentAt: Date | null
+      confirmationEmailStatus: string | null
+      confirmationEmailError: string | null
+      confirmationWhatsAppSentAt: Date | null
+      confirmationWhatsAppStatus: string | null
+      confirmationWhatsAppMessageId: string | null
+      confirmationWhatsAppError: string | null
     }, ExtArgs["result"]["votingOption"]>
     composites: {}
   }
@@ -45513,6 +48189,13 @@ export namespace Prisma {
     readonly status: FieldRef<"VotingOption", 'ApprovalStatus'>
     readonly finalImage: FieldRef<"VotingOption", 'String'>
     readonly deletionCode: FieldRef<"VotingOption", 'String'>
+    readonly confirmationEmailSentAt: FieldRef<"VotingOption", 'DateTime'>
+    readonly confirmationEmailStatus: FieldRef<"VotingOption", 'String'>
+    readonly confirmationEmailError: FieldRef<"VotingOption", 'String'>
+    readonly confirmationWhatsAppSentAt: FieldRef<"VotingOption", 'DateTime'>
+    readonly confirmationWhatsAppStatus: FieldRef<"VotingOption", 'String'>
+    readonly confirmationWhatsAppMessageId: FieldRef<"VotingOption", 'String'>
+    readonly confirmationWhatsAppError: FieldRef<"VotingOption", 'String'>
   }
     
 
@@ -48480,6 +51163,8 @@ export namespace Prisma {
     recipientPhone: string | null
     templateName: string | null
     category: string | null
+    purpose: string | null
+    eventId: string | null
     status: string | null
     pricingCategory: string | null
     isBillable: boolean | null
@@ -48495,6 +51180,8 @@ export namespace Prisma {
     recipientPhone: string | null
     templateName: string | null
     category: string | null
+    purpose: string | null
+    eventId: string | null
     status: string | null
     pricingCategory: string | null
     isBillable: boolean | null
@@ -48510,6 +51197,8 @@ export namespace Prisma {
     recipientPhone: number
     templateName: number
     category: number
+    purpose: number
+    eventId: number
     status: number
     pricingCategory: number
     isBillable: number
@@ -48536,6 +51225,8 @@ export namespace Prisma {
     recipientPhone?: true
     templateName?: true
     category?: true
+    purpose?: true
+    eventId?: true
     status?: true
     pricingCategory?: true
     isBillable?: true
@@ -48551,6 +51242,8 @@ export namespace Prisma {
     recipientPhone?: true
     templateName?: true
     category?: true
+    purpose?: true
+    eventId?: true
     status?: true
     pricingCategory?: true
     isBillable?: true
@@ -48566,6 +51259,8 @@ export namespace Prisma {
     recipientPhone?: true
     templateName?: true
     category?: true
+    purpose?: true
+    eventId?: true
     status?: true
     pricingCategory?: true
     isBillable?: true
@@ -48669,6 +51364,8 @@ export namespace Prisma {
     recipientPhone: string
     templateName: string | null
     category: string | null
+    purpose: string | null
+    eventId: string | null
     status: string
     pricingCategory: string | null
     isBillable: boolean
@@ -48704,6 +51401,8 @@ export namespace Prisma {
     recipientPhone?: boolean
     templateName?: boolean
     category?: boolean
+    purpose?: boolean
+    eventId?: boolean
     status?: boolean
     pricingCategory?: boolean
     isBillable?: boolean
@@ -48720,6 +51419,8 @@ export namespace Prisma {
     recipientPhone?: boolean
     templateName?: boolean
     category?: boolean
+    purpose?: boolean
+    eventId?: boolean
     status?: boolean
     pricingCategory?: boolean
     isBillable?: boolean
@@ -48736,6 +51437,8 @@ export namespace Prisma {
     recipientPhone?: boolean
     templateName?: boolean
     category?: boolean
+    purpose?: boolean
+    eventId?: boolean
     status?: boolean
     pricingCategory?: boolean
     isBillable?: boolean
@@ -48752,6 +51455,8 @@ export namespace Prisma {
     recipientPhone?: boolean
     templateName?: boolean
     category?: boolean
+    purpose?: boolean
+    eventId?: boolean
     status?: boolean
     pricingCategory?: boolean
     isBillable?: boolean
@@ -48762,7 +51467,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type WhatsAppMessageLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "messageId" | "recipientPhone" | "templateName" | "category" | "status" | "pricingCategory" | "isBillable" | "estimatedCost" | "errorMessage" | "rawPayload" | "createdAt" | "updatedAt", ExtArgs["result"]["whatsAppMessageLog"]>
+  export type WhatsAppMessageLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "messageId" | "recipientPhone" | "templateName" | "category" | "purpose" | "eventId" | "status" | "pricingCategory" | "isBillable" | "estimatedCost" | "errorMessage" | "rawPayload" | "createdAt" | "updatedAt", ExtArgs["result"]["whatsAppMessageLog"]>
 
   export type $WhatsAppMessageLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "WhatsAppMessageLog"
@@ -48773,6 +51478,8 @@ export namespace Prisma {
       recipientPhone: string
       templateName: string | null
       category: string | null
+      purpose: string | null
+      eventId: string | null
       status: string
       pricingCategory: string | null
       isBillable: boolean
@@ -49209,6 +51916,8 @@ export namespace Prisma {
     readonly recipientPhone: FieldRef<"WhatsAppMessageLog", 'String'>
     readonly templateName: FieldRef<"WhatsAppMessageLog", 'String'>
     readonly category: FieldRef<"WhatsAppMessageLog", 'String'>
+    readonly purpose: FieldRef<"WhatsAppMessageLog", 'String'>
+    readonly eventId: FieldRef<"WhatsAppMessageLog", 'String'>
     readonly status: FieldRef<"WhatsAppMessageLog", 'String'>
     readonly pricingCategory: FieldRef<"WhatsAppMessageLog", 'String'>
     readonly isBillable: FieldRef<"WhatsAppMessageLog", 'Boolean'>
@@ -49770,6 +52479,48 @@ export namespace Prisma {
   export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
 
 
+  export const EventMessagingConfigScalarFieldEnum: {
+    id: 'id',
+    eventId: 'eventId',
+    ticketConfirmChannel: 'ticketConfirmChannel',
+    voteReceiptChannel: 'voteReceiptChannel',
+    nominationChannel: 'nominationChannel',
+    reportEnabled: 'reportEnabled',
+    reportChannel: 'reportChannel',
+    reportInterval: 'reportInterval',
+    reportPreferredHourUtc: 'reportPreferredHourUtc',
+    reportPreferredDay: 'reportPreferredDay',
+    reportOnlyWithVotes: 'reportOnlyWithVotes',
+    reportShowRank: 'reportShowRank',
+    reportLastRunAt: 'reportLastRunAt',
+    reportLastRunStats: 'reportLastRunStats',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EventMessagingConfigScalarFieldEnum = (typeof EventMessagingConfigScalarFieldEnum)[keyof typeof EventMessagingConfigScalarFieldEnum]
+
+
+  export const SmsMessageLogScalarFieldEnum: {
+    id: 'id',
+    recipientPhone: 'recipientPhone',
+    message: 'message',
+    sender: 'sender',
+    provider: 'provider',
+    purpose: 'purpose',
+    eventId: 'eventId',
+    status: 'status',
+    isBillable: 'isBillable',
+    estimatedCost: 'estimatedCost',
+    errorMessage: 'errorMessage',
+    rawPayload: 'rawPayload',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SmsMessageLogScalarFieldEnum = (typeof SmsMessageLogScalarFieldEnum)[keyof typeof SmsMessageLogScalarFieldEnum]
+
+
   export const OrganizationScalarFieldEnum: {
     id: 'id',
     name: 'name',
@@ -50222,7 +52973,14 @@ export namespace Prisma {
     nomineeCode: 'nomineeCode',
     status: 'status',
     finalImage: 'finalImage',
-    deletionCode: 'deletionCode'
+    deletionCode: 'deletionCode',
+    confirmationEmailSentAt: 'confirmationEmailSentAt',
+    confirmationEmailStatus: 'confirmationEmailStatus',
+    confirmationEmailError: 'confirmationEmailError',
+    confirmationWhatsAppSentAt: 'confirmationWhatsAppSentAt',
+    confirmationWhatsAppStatus: 'confirmationWhatsAppStatus',
+    confirmationWhatsAppMessageId: 'confirmationWhatsAppMessageId',
+    confirmationWhatsAppError: 'confirmationWhatsAppError'
   };
 
   export type VotingOptionScalarFieldEnum = (typeof VotingOptionScalarFieldEnum)[keyof typeof VotingOptionScalarFieldEnum]
@@ -50268,6 +53026,8 @@ export namespace Prisma {
     recipientPhone: 'recipientPhone',
     templateName: 'templateName',
     category: 'category',
+    purpose: 'purpose',
+    eventId: 'eventId',
     status: 'status',
     pricingCategory: 'pricingCategory',
     isBillable: 'isBillable',
@@ -50454,6 +53214,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Decimal'
+   */
+  export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+  /**
+   * Reference to a field of type 'Decimal[]'
+   */
+  export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+  /**
    * Reference to a field of type 'OrganizationRole'
    */
   export type EnumOrganizationRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrganizationRole'>
@@ -50492,20 +53266,6 @@ export namespace Prisma {
    * Reference to a field of type 'ApprovalStatus[]'
    */
   export type ListEnumApprovalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApprovalStatus[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Decimal'
-   */
-  export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
-    
-
-
-  /**
-   * Reference to a field of type 'Decimal[]'
-   */
-  export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
     
 
 
@@ -50888,6 +53648,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryListRelationFilter
     votingOptions?: VotingOptionListRelationFilter
     nomineeChangeRequests?: NomineeChangeRequestListRelationFilter
+    messagingConfig?: XOR<EventMessagingConfigNullableScalarRelationFilter, EventMessagingConfigWhereInput> | null
   }
 
   export type EventOrderByWithRelationInput = {
@@ -50937,6 +53698,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryOrderByRelationAggregateInput
     votingOptions?: VotingOptionOrderByRelationAggregateInput
     nomineeChangeRequests?: NomineeChangeRequestOrderByRelationAggregateInput
+    messagingConfig?: EventMessagingConfigOrderByWithRelationInput
   }
 
   export type EventWhereUniqueInput = Prisma.AtLeast<{
@@ -50990,6 +53752,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryListRelationFilter
     votingOptions?: VotingOptionListRelationFilter
     nomineeChangeRequests?: NomineeChangeRequestListRelationFilter
+    messagingConfig?: XOR<EventMessagingConfigNullableScalarRelationFilter, EventMessagingConfigWhereInput> | null
   }, "id" | "ussdCode" | "organizationId_slug">
 
   export type EventOrderByWithAggregationInput = {
@@ -51643,6 +54406,217 @@ export namespace Prisma {
     image?: StringNullableWithAggregatesFilter<"users"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"users"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"users"> | Date | string
+  }
+
+  export type EventMessagingConfigWhereInput = {
+    AND?: EventMessagingConfigWhereInput | EventMessagingConfigWhereInput[]
+    OR?: EventMessagingConfigWhereInput[]
+    NOT?: EventMessagingConfigWhereInput | EventMessagingConfigWhereInput[]
+    id?: UuidFilter<"EventMessagingConfig"> | string
+    eventId?: UuidFilter<"EventMessagingConfig"> | string
+    ticketConfirmChannel?: StringFilter<"EventMessagingConfig"> | string
+    voteReceiptChannel?: StringFilter<"EventMessagingConfig"> | string
+    nominationChannel?: StringFilter<"EventMessagingConfig"> | string
+    reportEnabled?: BoolFilter<"EventMessagingConfig"> | boolean
+    reportChannel?: StringFilter<"EventMessagingConfig"> | string
+    reportInterval?: StringFilter<"EventMessagingConfig"> | string
+    reportPreferredHourUtc?: IntFilter<"EventMessagingConfig"> | number
+    reportPreferredDay?: IntFilter<"EventMessagingConfig"> | number
+    reportOnlyWithVotes?: BoolFilter<"EventMessagingConfig"> | boolean
+    reportShowRank?: BoolFilter<"EventMessagingConfig"> | boolean
+    reportLastRunAt?: DateTimeNullableFilter<"EventMessagingConfig"> | Date | string | null
+    reportLastRunStats?: JsonNullableFilter<"EventMessagingConfig">
+    createdAt?: DateTimeFilter<"EventMessagingConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"EventMessagingConfig"> | Date | string
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+  }
+
+  export type EventMessagingConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    eventId?: SortOrder
+    ticketConfirmChannel?: SortOrder
+    voteReceiptChannel?: SortOrder
+    nominationChannel?: SortOrder
+    reportEnabled?: SortOrder
+    reportChannel?: SortOrder
+    reportInterval?: SortOrder
+    reportPreferredHourUtc?: SortOrder
+    reportPreferredDay?: SortOrder
+    reportOnlyWithVotes?: SortOrder
+    reportShowRank?: SortOrder
+    reportLastRunAt?: SortOrderInput | SortOrder
+    reportLastRunStats?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    event?: EventOrderByWithRelationInput
+  }
+
+  export type EventMessagingConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    eventId?: string
+    AND?: EventMessagingConfigWhereInput | EventMessagingConfigWhereInput[]
+    OR?: EventMessagingConfigWhereInput[]
+    NOT?: EventMessagingConfigWhereInput | EventMessagingConfigWhereInput[]
+    ticketConfirmChannel?: StringFilter<"EventMessagingConfig"> | string
+    voteReceiptChannel?: StringFilter<"EventMessagingConfig"> | string
+    nominationChannel?: StringFilter<"EventMessagingConfig"> | string
+    reportEnabled?: BoolFilter<"EventMessagingConfig"> | boolean
+    reportChannel?: StringFilter<"EventMessagingConfig"> | string
+    reportInterval?: StringFilter<"EventMessagingConfig"> | string
+    reportPreferredHourUtc?: IntFilter<"EventMessagingConfig"> | number
+    reportPreferredDay?: IntFilter<"EventMessagingConfig"> | number
+    reportOnlyWithVotes?: BoolFilter<"EventMessagingConfig"> | boolean
+    reportShowRank?: BoolFilter<"EventMessagingConfig"> | boolean
+    reportLastRunAt?: DateTimeNullableFilter<"EventMessagingConfig"> | Date | string | null
+    reportLastRunStats?: JsonNullableFilter<"EventMessagingConfig">
+    createdAt?: DateTimeFilter<"EventMessagingConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"EventMessagingConfig"> | Date | string
+    event?: XOR<EventScalarRelationFilter, EventWhereInput>
+  }, "id" | "eventId">
+
+  export type EventMessagingConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    eventId?: SortOrder
+    ticketConfirmChannel?: SortOrder
+    voteReceiptChannel?: SortOrder
+    nominationChannel?: SortOrder
+    reportEnabled?: SortOrder
+    reportChannel?: SortOrder
+    reportInterval?: SortOrder
+    reportPreferredHourUtc?: SortOrder
+    reportPreferredDay?: SortOrder
+    reportOnlyWithVotes?: SortOrder
+    reportShowRank?: SortOrder
+    reportLastRunAt?: SortOrderInput | SortOrder
+    reportLastRunStats?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EventMessagingConfigCountOrderByAggregateInput
+    _avg?: EventMessagingConfigAvgOrderByAggregateInput
+    _max?: EventMessagingConfigMaxOrderByAggregateInput
+    _min?: EventMessagingConfigMinOrderByAggregateInput
+    _sum?: EventMessagingConfigSumOrderByAggregateInput
+  }
+
+  export type EventMessagingConfigScalarWhereWithAggregatesInput = {
+    AND?: EventMessagingConfigScalarWhereWithAggregatesInput | EventMessagingConfigScalarWhereWithAggregatesInput[]
+    OR?: EventMessagingConfigScalarWhereWithAggregatesInput[]
+    NOT?: EventMessagingConfigScalarWhereWithAggregatesInput | EventMessagingConfigScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"EventMessagingConfig"> | string
+    eventId?: UuidWithAggregatesFilter<"EventMessagingConfig"> | string
+    ticketConfirmChannel?: StringWithAggregatesFilter<"EventMessagingConfig"> | string
+    voteReceiptChannel?: StringWithAggregatesFilter<"EventMessagingConfig"> | string
+    nominationChannel?: StringWithAggregatesFilter<"EventMessagingConfig"> | string
+    reportEnabled?: BoolWithAggregatesFilter<"EventMessagingConfig"> | boolean
+    reportChannel?: StringWithAggregatesFilter<"EventMessagingConfig"> | string
+    reportInterval?: StringWithAggregatesFilter<"EventMessagingConfig"> | string
+    reportPreferredHourUtc?: IntWithAggregatesFilter<"EventMessagingConfig"> | number
+    reportPreferredDay?: IntWithAggregatesFilter<"EventMessagingConfig"> | number
+    reportOnlyWithVotes?: BoolWithAggregatesFilter<"EventMessagingConfig"> | boolean
+    reportShowRank?: BoolWithAggregatesFilter<"EventMessagingConfig"> | boolean
+    reportLastRunAt?: DateTimeNullableWithAggregatesFilter<"EventMessagingConfig"> | Date | string | null
+    reportLastRunStats?: JsonNullableWithAggregatesFilter<"EventMessagingConfig">
+    createdAt?: DateTimeWithAggregatesFilter<"EventMessagingConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EventMessagingConfig"> | Date | string
+  }
+
+  export type SmsMessageLogWhereInput = {
+    AND?: SmsMessageLogWhereInput | SmsMessageLogWhereInput[]
+    OR?: SmsMessageLogWhereInput[]
+    NOT?: SmsMessageLogWhereInput | SmsMessageLogWhereInput[]
+    id?: UuidFilter<"SmsMessageLog"> | string
+    recipientPhone?: StringFilter<"SmsMessageLog"> | string
+    message?: StringNullableFilter<"SmsMessageLog"> | string | null
+    sender?: StringFilter<"SmsMessageLog"> | string
+    provider?: StringFilter<"SmsMessageLog"> | string
+    purpose?: StringNullableFilter<"SmsMessageLog"> | string | null
+    eventId?: UuidNullableFilter<"SmsMessageLog"> | string | null
+    status?: StringFilter<"SmsMessageLog"> | string
+    isBillable?: BoolFilter<"SmsMessageLog"> | boolean
+    estimatedCost?: DecimalNullableFilter<"SmsMessageLog"> | Decimal | DecimalJsLike | number | string | null
+    errorMessage?: StringNullableFilter<"SmsMessageLog"> | string | null
+    rawPayload?: JsonNullableFilter<"SmsMessageLog">
+    createdAt?: DateTimeFilter<"SmsMessageLog"> | Date | string
+    updatedAt?: DateTimeFilter<"SmsMessageLog"> | Date | string
+  }
+
+  export type SmsMessageLogOrderByWithRelationInput = {
+    id?: SortOrder
+    recipientPhone?: SortOrder
+    message?: SortOrderInput | SortOrder
+    sender?: SortOrder
+    provider?: SortOrder
+    purpose?: SortOrderInput | SortOrder
+    eventId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    isBillable?: SortOrder
+    estimatedCost?: SortOrderInput | SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+    rawPayload?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SmsMessageLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SmsMessageLogWhereInput | SmsMessageLogWhereInput[]
+    OR?: SmsMessageLogWhereInput[]
+    NOT?: SmsMessageLogWhereInput | SmsMessageLogWhereInput[]
+    recipientPhone?: StringFilter<"SmsMessageLog"> | string
+    message?: StringNullableFilter<"SmsMessageLog"> | string | null
+    sender?: StringFilter<"SmsMessageLog"> | string
+    provider?: StringFilter<"SmsMessageLog"> | string
+    purpose?: StringNullableFilter<"SmsMessageLog"> | string | null
+    eventId?: UuidNullableFilter<"SmsMessageLog"> | string | null
+    status?: StringFilter<"SmsMessageLog"> | string
+    isBillable?: BoolFilter<"SmsMessageLog"> | boolean
+    estimatedCost?: DecimalNullableFilter<"SmsMessageLog"> | Decimal | DecimalJsLike | number | string | null
+    errorMessage?: StringNullableFilter<"SmsMessageLog"> | string | null
+    rawPayload?: JsonNullableFilter<"SmsMessageLog">
+    createdAt?: DateTimeFilter<"SmsMessageLog"> | Date | string
+    updatedAt?: DateTimeFilter<"SmsMessageLog"> | Date | string
+  }, "id">
+
+  export type SmsMessageLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    recipientPhone?: SortOrder
+    message?: SortOrderInput | SortOrder
+    sender?: SortOrder
+    provider?: SortOrder
+    purpose?: SortOrderInput | SortOrder
+    eventId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    isBillable?: SortOrder
+    estimatedCost?: SortOrderInput | SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+    rawPayload?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SmsMessageLogCountOrderByAggregateInput
+    _avg?: SmsMessageLogAvgOrderByAggregateInput
+    _max?: SmsMessageLogMaxOrderByAggregateInput
+    _min?: SmsMessageLogMinOrderByAggregateInput
+    _sum?: SmsMessageLogSumOrderByAggregateInput
+  }
+
+  export type SmsMessageLogScalarWhereWithAggregatesInput = {
+    AND?: SmsMessageLogScalarWhereWithAggregatesInput | SmsMessageLogScalarWhereWithAggregatesInput[]
+    OR?: SmsMessageLogScalarWhereWithAggregatesInput[]
+    NOT?: SmsMessageLogScalarWhereWithAggregatesInput | SmsMessageLogScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"SmsMessageLog"> | string
+    recipientPhone?: StringWithAggregatesFilter<"SmsMessageLog"> | string
+    message?: StringNullableWithAggregatesFilter<"SmsMessageLog"> | string | null
+    sender?: StringWithAggregatesFilter<"SmsMessageLog"> | string
+    provider?: StringWithAggregatesFilter<"SmsMessageLog"> | string
+    purpose?: StringNullableWithAggregatesFilter<"SmsMessageLog"> | string | null
+    eventId?: UuidNullableWithAggregatesFilter<"SmsMessageLog"> | string | null
+    status?: StringWithAggregatesFilter<"SmsMessageLog"> | string
+    isBillable?: BoolWithAggregatesFilter<"SmsMessageLog"> | boolean
+    estimatedCost?: DecimalNullableWithAggregatesFilter<"SmsMessageLog"> | Decimal | DecimalJsLike | number | string | null
+    errorMessage?: StringNullableWithAggregatesFilter<"SmsMessageLog"> | string | null
+    rawPayload?: JsonNullableWithAggregatesFilter<"SmsMessageLog">
+    createdAt?: DateTimeWithAggregatesFilter<"SmsMessageLog"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SmsMessageLog"> | Date | string
   }
 
   export type OrganizationWhereInput = {
@@ -53991,6 +56965,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFilter<"VotingOption"> | $Enums.ApprovalStatus
     finalImage?: StringNullableFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationEmailSentAt?: DateTimeNullableFilter<"VotingOption"> | Date | string | null
+    confirmationEmailStatus?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationEmailError?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppSentAt?: DateTimeNullableFilter<"VotingOption"> | Date | string | null
+    confirmationWhatsAppStatus?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppMessageId?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppError?: StringNullableFilter<"VotingOption"> | string | null
     votes?: VoteListRelationFilter
     changeRequests?: NomineeChangeRequestListRelationFilter
     category?: XOR<VotingCategoryNullableScalarRelationFilter, VotingCategoryWhereInput> | null
@@ -54019,6 +57000,13 @@ export namespace Prisma {
     status?: SortOrder
     finalImage?: SortOrderInput | SortOrder
     deletionCode?: SortOrderInput | SortOrder
+    confirmationEmailSentAt?: SortOrderInput | SortOrder
+    confirmationEmailStatus?: SortOrderInput | SortOrder
+    confirmationEmailError?: SortOrderInput | SortOrder
+    confirmationWhatsAppSentAt?: SortOrderInput | SortOrder
+    confirmationWhatsAppStatus?: SortOrderInput | SortOrder
+    confirmationWhatsAppMessageId?: SortOrderInput | SortOrder
+    confirmationWhatsAppError?: SortOrderInput | SortOrder
     votes?: VoteOrderByRelationAggregateInput
     changeRequests?: NomineeChangeRequestOrderByRelationAggregateInput
     category?: VotingCategoryOrderByWithRelationInput
@@ -54051,6 +57039,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFilter<"VotingOption"> | $Enums.ApprovalStatus
     finalImage?: StringNullableFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationEmailSentAt?: DateTimeNullableFilter<"VotingOption"> | Date | string | null
+    confirmationEmailStatus?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationEmailError?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppSentAt?: DateTimeNullableFilter<"VotingOption"> | Date | string | null
+    confirmationWhatsAppStatus?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppMessageId?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppError?: StringNullableFilter<"VotingOption"> | string | null
     votes?: VoteListRelationFilter
     changeRequests?: NomineeChangeRequestListRelationFilter
     category?: XOR<VotingCategoryNullableScalarRelationFilter, VotingCategoryWhereInput> | null
@@ -54079,6 +57074,13 @@ export namespace Prisma {
     status?: SortOrder
     finalImage?: SortOrderInput | SortOrder
     deletionCode?: SortOrderInput | SortOrder
+    confirmationEmailSentAt?: SortOrderInput | SortOrder
+    confirmationEmailStatus?: SortOrderInput | SortOrder
+    confirmationEmailError?: SortOrderInput | SortOrder
+    confirmationWhatsAppSentAt?: SortOrderInput | SortOrder
+    confirmationWhatsAppStatus?: SortOrderInput | SortOrder
+    confirmationWhatsAppMessageId?: SortOrderInput | SortOrder
+    confirmationWhatsAppError?: SortOrderInput | SortOrder
     _count?: VotingOptionCountOrderByAggregateInput
     _avg?: VotingOptionAvgOrderByAggregateInput
     _max?: VotingOptionMaxOrderByAggregateInput
@@ -54110,6 +57112,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusWithAggregatesFilter<"VotingOption"> | $Enums.ApprovalStatus
     finalImage?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
+    confirmationEmailSentAt?: DateTimeNullableWithAggregatesFilter<"VotingOption"> | Date | string | null
+    confirmationEmailStatus?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
+    confirmationEmailError?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
+    confirmationWhatsAppSentAt?: DateTimeNullableWithAggregatesFilter<"VotingOption"> | Date | string | null
+    confirmationWhatsAppStatus?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
+    confirmationWhatsAppMessageId?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
+    confirmationWhatsAppError?: StringNullableWithAggregatesFilter<"VotingOption"> | string | null
   }
 
   export type NomineeChangeRequestWhereInput = {
@@ -54311,6 +57320,8 @@ export namespace Prisma {
     recipientPhone?: StringFilter<"WhatsAppMessageLog"> | string
     templateName?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
     category?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
+    purpose?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
+    eventId?: UuidNullableFilter<"WhatsAppMessageLog"> | string | null
     status?: StringFilter<"WhatsAppMessageLog"> | string
     pricingCategory?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
     isBillable?: BoolFilter<"WhatsAppMessageLog"> | boolean
@@ -54327,6 +57338,8 @@ export namespace Prisma {
     recipientPhone?: SortOrder
     templateName?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
+    purpose?: SortOrderInput | SortOrder
+    eventId?: SortOrderInput | SortOrder
     status?: SortOrder
     pricingCategory?: SortOrderInput | SortOrder
     isBillable?: SortOrder
@@ -54346,6 +57359,8 @@ export namespace Prisma {
     recipientPhone?: StringFilter<"WhatsAppMessageLog"> | string
     templateName?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
     category?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
+    purpose?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
+    eventId?: UuidNullableFilter<"WhatsAppMessageLog"> | string | null
     status?: StringFilter<"WhatsAppMessageLog"> | string
     pricingCategory?: StringNullableFilter<"WhatsAppMessageLog"> | string | null
     isBillable?: BoolFilter<"WhatsAppMessageLog"> | boolean
@@ -54362,6 +57377,8 @@ export namespace Prisma {
     recipientPhone?: SortOrder
     templateName?: SortOrderInput | SortOrder
     category?: SortOrderInput | SortOrder
+    purpose?: SortOrderInput | SortOrder
+    eventId?: SortOrderInput | SortOrder
     status?: SortOrder
     pricingCategory?: SortOrderInput | SortOrder
     isBillable?: SortOrder
@@ -54386,6 +57403,8 @@ export namespace Prisma {
     recipientPhone?: StringWithAggregatesFilter<"WhatsAppMessageLog"> | string
     templateName?: StringNullableWithAggregatesFilter<"WhatsAppMessageLog"> | string | null
     category?: StringNullableWithAggregatesFilter<"WhatsAppMessageLog"> | string | null
+    purpose?: StringNullableWithAggregatesFilter<"WhatsAppMessageLog"> | string | null
+    eventId?: UuidNullableWithAggregatesFilter<"WhatsAppMessageLog"> | string | null
     status?: StringWithAggregatesFilter<"WhatsAppMessageLog"> | string
     pricingCategory?: StringNullableWithAggregatesFilter<"WhatsAppMessageLog"> | string | null
     isBillable?: BoolWithAggregatesFilter<"WhatsAppMessageLog"> | boolean
@@ -54537,6 +57556,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateInput = {
@@ -54584,6 +57604,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventUpdateInput = {
@@ -54631,6 +57652,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateInput = {
@@ -54678,6 +57700,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type EventCreateManyInput = {
@@ -55407,6 +58430,257 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     emailVerified?: BoolFieldUpdateOperationsInput | boolean
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventMessagingConfigCreateInput = {
+    id?: string
+    ticketConfirmChannel?: string
+    voteReceiptChannel?: string
+    nominationChannel?: string
+    reportEnabled?: boolean
+    reportChannel?: string
+    reportInterval?: string
+    reportPreferredHourUtc?: number
+    reportPreferredDay?: number
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    event: EventCreateNestedOneWithoutMessagingConfigInput
+  }
+
+  export type EventMessagingConfigUncheckedCreateInput = {
+    id?: string
+    eventId: string
+    ticketConfirmChannel?: string
+    voteReceiptChannel?: string
+    nominationChannel?: string
+    reportEnabled?: boolean
+    reportChannel?: string
+    reportInterval?: string
+    reportPreferredHourUtc?: number
+    reportPreferredDay?: number
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventMessagingConfigUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketConfirmChannel?: StringFieldUpdateOperationsInput | string
+    voteReceiptChannel?: StringFieldUpdateOperationsInput | string
+    nominationChannel?: StringFieldUpdateOperationsInput | string
+    reportEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reportChannel?: StringFieldUpdateOperationsInput | string
+    reportInterval?: StringFieldUpdateOperationsInput | string
+    reportPreferredHourUtc?: IntFieldUpdateOperationsInput | number
+    reportPreferredDay?: IntFieldUpdateOperationsInput | number
+    reportOnlyWithVotes?: BoolFieldUpdateOperationsInput | boolean
+    reportShowRank?: BoolFieldUpdateOperationsInput | boolean
+    reportLastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    event?: EventUpdateOneRequiredWithoutMessagingConfigNestedInput
+  }
+
+  export type EventMessagingConfigUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    ticketConfirmChannel?: StringFieldUpdateOperationsInput | string
+    voteReceiptChannel?: StringFieldUpdateOperationsInput | string
+    nominationChannel?: StringFieldUpdateOperationsInput | string
+    reportEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reportChannel?: StringFieldUpdateOperationsInput | string
+    reportInterval?: StringFieldUpdateOperationsInput | string
+    reportPreferredHourUtc?: IntFieldUpdateOperationsInput | number
+    reportPreferredDay?: IntFieldUpdateOperationsInput | number
+    reportOnlyWithVotes?: BoolFieldUpdateOperationsInput | boolean
+    reportShowRank?: BoolFieldUpdateOperationsInput | boolean
+    reportLastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventMessagingConfigCreateManyInput = {
+    id?: string
+    eventId: string
+    ticketConfirmChannel?: string
+    voteReceiptChannel?: string
+    nominationChannel?: string
+    reportEnabled?: boolean
+    reportChannel?: string
+    reportInterval?: string
+    reportPreferredHourUtc?: number
+    reportPreferredDay?: number
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventMessagingConfigUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketConfirmChannel?: StringFieldUpdateOperationsInput | string
+    voteReceiptChannel?: StringFieldUpdateOperationsInput | string
+    nominationChannel?: StringFieldUpdateOperationsInput | string
+    reportEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reportChannel?: StringFieldUpdateOperationsInput | string
+    reportInterval?: StringFieldUpdateOperationsInput | string
+    reportPreferredHourUtc?: IntFieldUpdateOperationsInput | number
+    reportPreferredDay?: IntFieldUpdateOperationsInput | number
+    reportOnlyWithVotes?: BoolFieldUpdateOperationsInput | boolean
+    reportShowRank?: BoolFieldUpdateOperationsInput | boolean
+    reportLastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventMessagingConfigUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventId?: StringFieldUpdateOperationsInput | string
+    ticketConfirmChannel?: StringFieldUpdateOperationsInput | string
+    voteReceiptChannel?: StringFieldUpdateOperationsInput | string
+    nominationChannel?: StringFieldUpdateOperationsInput | string
+    reportEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reportChannel?: StringFieldUpdateOperationsInput | string
+    reportInterval?: StringFieldUpdateOperationsInput | string
+    reportPreferredHourUtc?: IntFieldUpdateOperationsInput | number
+    reportPreferredDay?: IntFieldUpdateOperationsInput | number
+    reportOnlyWithVotes?: BoolFieldUpdateOperationsInput | boolean
+    reportShowRank?: BoolFieldUpdateOperationsInput | boolean
+    reportLastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SmsMessageLogCreateInput = {
+    id?: string
+    recipientPhone: string
+    message?: string | null
+    sender?: string
+    provider?: string
+    purpose?: string | null
+    eventId?: string | null
+    status?: string
+    isBillable?: boolean
+    estimatedCost?: Decimal | DecimalJsLike | number | string | null
+    errorMessage?: string | null
+    rawPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SmsMessageLogUncheckedCreateInput = {
+    id?: string
+    recipientPhone: string
+    message?: string | null
+    sender?: string
+    provider?: string
+    purpose?: string | null
+    eventId?: string | null
+    status?: string
+    isBillable?: boolean
+    estimatedCost?: Decimal | DecimalJsLike | number | string | null
+    errorMessage?: string | null
+    rawPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SmsMessageLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    recipientPhone?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    sender?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    isBillable?: BoolFieldUpdateOperationsInput | boolean
+    estimatedCost?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    rawPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SmsMessageLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    recipientPhone?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    sender?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    isBillable?: BoolFieldUpdateOperationsInput | boolean
+    estimatedCost?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    rawPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SmsMessageLogCreateManyInput = {
+    id?: string
+    recipientPhone: string
+    message?: string | null
+    sender?: string
+    provider?: string
+    purpose?: string | null
+    eventId?: string | null
+    status?: string
+    isBillable?: boolean
+    estimatedCost?: Decimal | DecimalJsLike | number | string | null
+    errorMessage?: string | null
+    rawPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SmsMessageLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    recipientPhone?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    sender?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    isBillable?: BoolFieldUpdateOperationsInput | boolean
+    estimatedCost?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    rawPayload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SmsMessageLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    recipientPhone?: StringFieldUpdateOperationsInput | string
+    message?: NullableStringFieldUpdateOperationsInput | string | null
+    sender?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    isBillable?: BoolFieldUpdateOperationsInput | boolean
+    estimatedCost?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    rawPayload?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -58104,6 +61378,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
@@ -58132,6 +61413,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
@@ -58154,6 +61442,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
@@ -58182,6 +61477,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
@@ -58207,6 +61509,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
   }
 
   export type VotingOptionUpdateManyMutationInput = {
@@ -58227,6 +61536,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VotingOptionUncheckedUpdateManyInput = {
@@ -58250,6 +61566,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type NomineeChangeRequestCreateInput = {
@@ -58446,6 +61769,8 @@ export namespace Prisma {
     recipientPhone: string
     templateName?: string | null
     category?: string | null
+    purpose?: string | null
+    eventId?: string | null
     status?: string
     pricingCategory?: string | null
     isBillable?: boolean
@@ -58462,6 +61787,8 @@ export namespace Prisma {
     recipientPhone: string
     templateName?: string | null
     category?: string | null
+    purpose?: string | null
+    eventId?: string | null
     status?: string
     pricingCategory?: string | null
     isBillable?: boolean
@@ -58478,6 +61805,8 @@ export namespace Prisma {
     recipientPhone?: StringFieldUpdateOperationsInput | string
     templateName?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     pricingCategory?: NullableStringFieldUpdateOperationsInput | string | null
     isBillable?: BoolFieldUpdateOperationsInput | boolean
@@ -58494,6 +61823,8 @@ export namespace Prisma {
     recipientPhone?: StringFieldUpdateOperationsInput | string
     templateName?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     pricingCategory?: NullableStringFieldUpdateOperationsInput | string | null
     isBillable?: BoolFieldUpdateOperationsInput | boolean
@@ -58510,6 +61841,8 @@ export namespace Prisma {
     recipientPhone: string
     templateName?: string | null
     category?: string | null
+    purpose?: string | null
+    eventId?: string | null
     status?: string
     pricingCategory?: string | null
     isBillable?: boolean
@@ -58526,6 +61859,8 @@ export namespace Prisma {
     recipientPhone?: StringFieldUpdateOperationsInput | string
     templateName?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     pricingCategory?: NullableStringFieldUpdateOperationsInput | string | null
     isBillable?: BoolFieldUpdateOperationsInput | boolean
@@ -58542,6 +61877,8 @@ export namespace Prisma {
     recipientPhone?: StringFieldUpdateOperationsInput | string
     templateName?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
+    purpose?: NullableStringFieldUpdateOperationsInput | string | null
+    eventId?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     pricingCategory?: NullableStringFieldUpdateOperationsInput | string | null
     isBillable?: BoolFieldUpdateOperationsInput | boolean
@@ -58936,6 +62273,11 @@ export namespace Prisma {
     every?: NomineeChangeRequestWhereInput
     some?: NomineeChangeRequestWhereInput
     none?: NomineeChangeRequestWhereInput
+  }
+
+  export type EventMessagingConfigNullableScalarRelationFilter = {
+    is?: EventMessagingConfigWhereInput | null
+    isNot?: EventMessagingConfigWhereInput | null
   }
 
   export type EventGalleryLinkOrderByRelationAggregateInput = {
@@ -59533,6 +62875,155 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type EventMessagingConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    eventId?: SortOrder
+    ticketConfirmChannel?: SortOrder
+    voteReceiptChannel?: SortOrder
+    nominationChannel?: SortOrder
+    reportEnabled?: SortOrder
+    reportChannel?: SortOrder
+    reportInterval?: SortOrder
+    reportPreferredHourUtc?: SortOrder
+    reportPreferredDay?: SortOrder
+    reportOnlyWithVotes?: SortOrder
+    reportShowRank?: SortOrder
+    reportLastRunAt?: SortOrder
+    reportLastRunStats?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EventMessagingConfigAvgOrderByAggregateInput = {
+    reportPreferredHourUtc?: SortOrder
+    reportPreferredDay?: SortOrder
+  }
+
+  export type EventMessagingConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    eventId?: SortOrder
+    ticketConfirmChannel?: SortOrder
+    voteReceiptChannel?: SortOrder
+    nominationChannel?: SortOrder
+    reportEnabled?: SortOrder
+    reportChannel?: SortOrder
+    reportInterval?: SortOrder
+    reportPreferredHourUtc?: SortOrder
+    reportPreferredDay?: SortOrder
+    reportOnlyWithVotes?: SortOrder
+    reportShowRank?: SortOrder
+    reportLastRunAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EventMessagingConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    eventId?: SortOrder
+    ticketConfirmChannel?: SortOrder
+    voteReceiptChannel?: SortOrder
+    nominationChannel?: SortOrder
+    reportEnabled?: SortOrder
+    reportChannel?: SortOrder
+    reportInterval?: SortOrder
+    reportPreferredHourUtc?: SortOrder
+    reportPreferredDay?: SortOrder
+    reportOnlyWithVotes?: SortOrder
+    reportShowRank?: SortOrder
+    reportLastRunAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EventMessagingConfigSumOrderByAggregateInput = {
+    reportPreferredHourUtc?: SortOrder
+    reportPreferredDay?: SortOrder
+  }
+
+  export type DecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
+  export type SmsMessageLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    recipientPhone?: SortOrder
+    message?: SortOrder
+    sender?: SortOrder
+    provider?: SortOrder
+    purpose?: SortOrder
+    eventId?: SortOrder
+    status?: SortOrder
+    isBillable?: SortOrder
+    estimatedCost?: SortOrder
+    errorMessage?: SortOrder
+    rawPayload?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SmsMessageLogAvgOrderByAggregateInput = {
+    estimatedCost?: SortOrder
+  }
+
+  export type SmsMessageLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    recipientPhone?: SortOrder
+    message?: SortOrder
+    sender?: SortOrder
+    provider?: SortOrder
+    purpose?: SortOrder
+    eventId?: SortOrder
+    status?: SortOrder
+    isBillable?: SortOrder
+    estimatedCost?: SortOrder
+    errorMessage?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SmsMessageLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    recipientPhone?: SortOrder
+    message?: SortOrder
+    sender?: SortOrder
+    provider?: SortOrder
+    purpose?: SortOrder
+    eventId?: SortOrder
+    status?: SortOrder
+    isBillable?: SortOrder
+    estimatedCost?: SortOrder
+    errorMessage?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SmsMessageLogSumOrderByAggregateInput = {
+    estimatedCost?: SortOrder
+  }
+
+  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>
+    _min?: NestedDecimalNullableFilter<$PrismaModel>
+    _max?: NestedDecimalNullableFilter<$PrismaModel>
+  }
+
   export type ActivityLogListRelationFilter = {
     every?: ActivityLogWhereInput
     some?: ActivityLogWhereInput
@@ -60032,17 +63523,6 @@ export namespace Prisma {
     not?: NestedEnumFinancialStatusFilter<$PrismaModel> | $Enums.FinancialStatus
   }
 
-  export type DecimalNullableFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-  }
-
   export type PaymentNullableScalarRelationFilter = {
     is?: PaymentWhereInput | null
     isNot?: PaymentWhereInput | null
@@ -60168,22 +63648,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumFinancialStatusFilter<$PrismaModel>
     _max?: NestedEnumFinancialStatusFilter<$PrismaModel>
-  }
-
-  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedDecimalNullableFilter<$PrismaModel>
-    _sum?: NestedDecimalNullableFilter<$PrismaModel>
-    _min?: NestedDecimalNullableFilter<$PrismaModel>
-    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type EnumPaymentPurposeFilter<$PrismaModel = never> = {
@@ -61449,6 +64913,13 @@ export namespace Prisma {
     status?: SortOrder
     finalImage?: SortOrder
     deletionCode?: SortOrder
+    confirmationEmailSentAt?: SortOrder
+    confirmationEmailStatus?: SortOrder
+    confirmationEmailError?: SortOrder
+    confirmationWhatsAppSentAt?: SortOrder
+    confirmationWhatsAppStatus?: SortOrder
+    confirmationWhatsAppMessageId?: SortOrder
+    confirmationWhatsAppError?: SortOrder
   }
 
   export type VotingOptionAvgOrderByAggregateInput = {
@@ -61477,6 +64948,13 @@ export namespace Prisma {
     status?: SortOrder
     finalImage?: SortOrder
     deletionCode?: SortOrder
+    confirmationEmailSentAt?: SortOrder
+    confirmationEmailStatus?: SortOrder
+    confirmationEmailError?: SortOrder
+    confirmationWhatsAppSentAt?: SortOrder
+    confirmationWhatsAppStatus?: SortOrder
+    confirmationWhatsAppMessageId?: SortOrder
+    confirmationWhatsAppError?: SortOrder
   }
 
   export type VotingOptionMinOrderByAggregateInput = {
@@ -61500,6 +64978,13 @@ export namespace Prisma {
     status?: SortOrder
     finalImage?: SortOrder
     deletionCode?: SortOrder
+    confirmationEmailSentAt?: SortOrder
+    confirmationEmailStatus?: SortOrder
+    confirmationEmailError?: SortOrder
+    confirmationWhatsAppSentAt?: SortOrder
+    confirmationWhatsAppStatus?: SortOrder
+    confirmationWhatsAppMessageId?: SortOrder
+    confirmationWhatsAppError?: SortOrder
   }
 
   export type VotingOptionSumOrderByAggregateInput = {
@@ -61647,6 +65132,8 @@ export namespace Prisma {
     recipientPhone?: SortOrder
     templateName?: SortOrder
     category?: SortOrder
+    purpose?: SortOrder
+    eventId?: SortOrder
     status?: SortOrder
     pricingCategory?: SortOrder
     isBillable?: SortOrder
@@ -61667,6 +65154,8 @@ export namespace Prisma {
     recipientPhone?: SortOrder
     templateName?: SortOrder
     category?: SortOrder
+    purpose?: SortOrder
+    eventId?: SortOrder
     status?: SortOrder
     pricingCategory?: SortOrder
     isBillable?: SortOrder
@@ -61682,6 +65171,8 @@ export namespace Prisma {
     recipientPhone?: SortOrder
     templateName?: SortOrder
     category?: SortOrder
+    purpose?: SortOrder
+    eventId?: SortOrder
     status?: SortOrder
     pricingCategory?: SortOrder
     isBillable?: SortOrder
@@ -61843,6 +65334,12 @@ export namespace Prisma {
     connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
   }
 
+  export type EventMessagingConfigCreateNestedOneWithoutEventInput = {
+    create?: XOR<EventMessagingConfigCreateWithoutEventInput, EventMessagingConfigUncheckedCreateWithoutEventInput>
+    connectOrCreate?: EventMessagingConfigCreateOrConnectWithoutEventInput
+    connect?: EventMessagingConfigWhereUniqueInput
+  }
+
   export type EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput = {
     create?: XOR<EventGalleryLinkCreateWithoutEventInput, EventGalleryLinkUncheckedCreateWithoutEventInput> | EventGalleryLinkCreateWithoutEventInput[] | EventGalleryLinkUncheckedCreateWithoutEventInput[]
     connectOrCreate?: EventGalleryLinkCreateOrConnectWithoutEventInput | EventGalleryLinkCreateOrConnectWithoutEventInput[]
@@ -61925,6 +65422,12 @@ export namespace Prisma {
     connectOrCreate?: NomineeChangeRequestCreateOrConnectWithoutEventInput | NomineeChangeRequestCreateOrConnectWithoutEventInput[]
     createMany?: NomineeChangeRequestCreateManyEventInputEnvelope
     connect?: NomineeChangeRequestWhereUniqueInput | NomineeChangeRequestWhereUniqueInput[]
+  }
+
+  export type EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput = {
+    create?: XOR<EventMessagingConfigCreateWithoutEventInput, EventMessagingConfigUncheckedCreateWithoutEventInput>
+    connectOrCreate?: EventMessagingConfigCreateOrConnectWithoutEventInput
+    connect?: EventMessagingConfigWhereUniqueInput
   }
 
   export type EnumEventTypeFieldUpdateOperationsInput = {
@@ -62155,6 +65658,16 @@ export namespace Prisma {
     deleteMany?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
   }
 
+  export type EventMessagingConfigUpdateOneWithoutEventNestedInput = {
+    create?: XOR<EventMessagingConfigCreateWithoutEventInput, EventMessagingConfigUncheckedCreateWithoutEventInput>
+    connectOrCreate?: EventMessagingConfigCreateOrConnectWithoutEventInput
+    upsert?: EventMessagingConfigUpsertWithoutEventInput
+    disconnect?: EventMessagingConfigWhereInput | boolean
+    delete?: EventMessagingConfigWhereInput | boolean
+    connect?: EventMessagingConfigWhereUniqueInput
+    update?: XOR<XOR<EventMessagingConfigUpdateToOneWithWhereWithoutEventInput, EventMessagingConfigUpdateWithoutEventInput>, EventMessagingConfigUncheckedUpdateWithoutEventInput>
+  }
+
   export type EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput = {
     create?: XOR<EventGalleryLinkCreateWithoutEventInput, EventGalleryLinkUncheckedCreateWithoutEventInput> | EventGalleryLinkCreateWithoutEventInput[] | EventGalleryLinkUncheckedCreateWithoutEventInput[]
     connectOrCreate?: EventGalleryLinkCreateOrConnectWithoutEventInput | EventGalleryLinkCreateOrConnectWithoutEventInput[]
@@ -62321,6 +65834,16 @@ export namespace Prisma {
     update?: NomineeChangeRequestUpdateWithWhereUniqueWithoutEventInput | NomineeChangeRequestUpdateWithWhereUniqueWithoutEventInput[]
     updateMany?: NomineeChangeRequestUpdateManyWithWhereWithoutEventInput | NomineeChangeRequestUpdateManyWithWhereWithoutEventInput[]
     deleteMany?: NomineeChangeRequestScalarWhereInput | NomineeChangeRequestScalarWhereInput[]
+  }
+
+  export type EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput = {
+    create?: XOR<EventMessagingConfigCreateWithoutEventInput, EventMessagingConfigUncheckedCreateWithoutEventInput>
+    connectOrCreate?: EventMessagingConfigCreateOrConnectWithoutEventInput
+    upsert?: EventMessagingConfigUpsertWithoutEventInput
+    disconnect?: EventMessagingConfigWhereInput | boolean
+    delete?: EventMessagingConfigWhereInput | boolean
+    connect?: EventMessagingConfigWhereUniqueInput
+    update?: XOR<XOR<EventMessagingConfigUpdateToOneWithWhereWithoutEventInput, EventMessagingConfigUpdateWithoutEventInput>, EventMessagingConfigUncheckedUpdateWithoutEventInput>
   }
 
   export type EventCreateNestedOneWithoutSponsorsInput = {
@@ -62566,6 +66089,28 @@ export namespace Prisma {
     update?: sessionsUpdateWithWhereUniqueWithoutUsersInput | sessionsUpdateWithWhereUniqueWithoutUsersInput[]
     updateMany?: sessionsUpdateManyWithWhereWithoutUsersInput | sessionsUpdateManyWithWhereWithoutUsersInput[]
     deleteMany?: sessionsScalarWhereInput | sessionsScalarWhereInput[]
+  }
+
+  export type EventCreateNestedOneWithoutMessagingConfigInput = {
+    create?: XOR<EventCreateWithoutMessagingConfigInput, EventUncheckedCreateWithoutMessagingConfigInput>
+    connectOrCreate?: EventCreateOrConnectWithoutMessagingConfigInput
+    connect?: EventWhereUniqueInput
+  }
+
+  export type EventUpdateOneRequiredWithoutMessagingConfigNestedInput = {
+    create?: XOR<EventCreateWithoutMessagingConfigInput, EventUncheckedCreateWithoutMessagingConfigInput>
+    connectOrCreate?: EventCreateOrConnectWithoutMessagingConfigInput
+    upsert?: EventUpsertWithoutMessagingConfigInput
+    connect?: EventWhereUniqueInput
+    update?: XOR<XOR<EventUpdateToOneWithWhereWithoutMessagingConfigInput, EventUpdateWithoutMessagingConfigInput>, EventUncheckedUpdateWithoutMessagingConfigInput>
+  }
+
+  export type NullableDecimalFieldUpdateOperationsInput = {
+    set?: Decimal | DecimalJsLike | number | string | null
+    increment?: Decimal | DecimalJsLike | number | string
+    decrement?: Decimal | DecimalJsLike | number | string
+    multiply?: Decimal | DecimalJsLike | number | string
+    divide?: Decimal | DecimalJsLike | number | string
   }
 
   export type ActivityLogCreateNestedManyWithoutOrganizationInput = {
@@ -63198,14 +66743,6 @@ export namespace Prisma {
 
   export type EnumFinancialStatusFieldUpdateOperationsInput = {
     set?: $Enums.FinancialStatus
-  }
-
-  export type NullableDecimalFieldUpdateOperationsInput = {
-    set?: Decimal | DecimalJsLike | number | string | null
-    increment?: Decimal | DecimalJsLike | number | string
-    decrement?: Decimal | DecimalJsLike | number | string
-    multiply?: Decimal | DecimalJsLike | number | string
-    divide?: Decimal | DecimalJsLike | number | string
   }
 
   export type PaymentUpdateOneWithoutTransactionsNestedInput = {
@@ -65229,6 +68766,33 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedDecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
+  export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>
+    _min?: NestedDecimalNullableFilter<$PrismaModel>
+    _max?: NestedDecimalNullableFilter<$PrismaModel>
+  }
+
   export type NestedEnumOrganizationRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.OrganizationRole | EnumOrganizationRoleFieldRefInput<$PrismaModel>
     in?: $Enums.OrganizationRole[] | ListEnumOrganizationRoleFieldRefInput<$PrismaModel>
@@ -65345,17 +68909,6 @@ export namespace Prisma {
     not?: NestedEnumFinancialStatusFilter<$PrismaModel> | $Enums.FinancialStatus
   }
 
-  export type NestedDecimalNullableFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-  }
-
   export type NestedEnumTransactionTypeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.TransactionType | EnumTransactionTypeFieldRefInput<$PrismaModel>
     in?: $Enums.TransactionType[] | ListEnumTransactionTypeFieldRefInput<$PrismaModel>
@@ -65384,22 +68937,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumFinancialStatusFilter<$PrismaModel>
     _max?: NestedEnumFinancialStatusFilter<$PrismaModel>
-  }
-
-  export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
-    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedDecimalNullableFilter<$PrismaModel>
-    _sum?: NestedDecimalNullableFilter<$PrismaModel>
-    _min?: NestedDecimalNullableFilter<$PrismaModel>
-    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumPaymentPurposeFilter<$PrismaModel = never> = {
@@ -66526,6 +70063,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
@@ -66552,6 +70096,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
@@ -66596,6 +70147,47 @@ export namespace Prisma {
   export type NomineeChangeRequestCreateManyEventInputEnvelope = {
     data: NomineeChangeRequestCreateManyEventInput | NomineeChangeRequestCreateManyEventInput[]
     skipDuplicates?: boolean
+  }
+
+  export type EventMessagingConfigCreateWithoutEventInput = {
+    id?: string
+    ticketConfirmChannel?: string
+    voteReceiptChannel?: string
+    nominationChannel?: string
+    reportEnabled?: boolean
+    reportChannel?: string
+    reportInterval?: string
+    reportPreferredHourUtc?: number
+    reportPreferredDay?: number
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventMessagingConfigUncheckedCreateWithoutEventInput = {
+    id?: string
+    ticketConfirmChannel?: string
+    voteReceiptChannel?: string
+    nominationChannel?: string
+    reportEnabled?: boolean
+    reportChannel?: string
+    reportInterval?: string
+    reportPreferredHourUtc?: number
+    reportPreferredDay?: number
+    reportOnlyWithVotes?: boolean
+    reportShowRank?: boolean
+    reportLastRunAt?: Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EventMessagingConfigCreateOrConnectWithoutEventInput = {
+    where: EventMessagingConfigWhereUniqueInput
+    create: XOR<EventMessagingConfigCreateWithoutEventInput, EventMessagingConfigUncheckedCreateWithoutEventInput>
   }
 
   export type EventGalleryLinkUpsertWithWhereUniqueWithoutEventInput = {
@@ -67131,6 +70723,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFilter<"VotingOption"> | $Enums.ApprovalStatus
     finalImage?: StringNullableFilter<"VotingOption"> | string | null
     deletionCode?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationEmailSentAt?: DateTimeNullableFilter<"VotingOption"> | Date | string | null
+    confirmationEmailStatus?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationEmailError?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppSentAt?: DateTimeNullableFilter<"VotingOption"> | Date | string | null
+    confirmationWhatsAppStatus?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppMessageId?: StringNullableFilter<"VotingOption"> | string | null
+    confirmationWhatsAppError?: StringNullableFilter<"VotingOption"> | string | null
   }
 
   export type NomineeChangeRequestUpsertWithWhereUniqueWithoutEventInput = {
@@ -67162,6 +70761,53 @@ export namespace Prisma {
     requestedBy?: StringNullableFilter<"NomineeChangeRequest"> | string | null
     createdAt?: DateTimeFilter<"NomineeChangeRequest"> | Date | string
     resolvedAt?: DateTimeNullableFilter<"NomineeChangeRequest"> | Date | string | null
+  }
+
+  export type EventMessagingConfigUpsertWithoutEventInput = {
+    update: XOR<EventMessagingConfigUpdateWithoutEventInput, EventMessagingConfigUncheckedUpdateWithoutEventInput>
+    create: XOR<EventMessagingConfigCreateWithoutEventInput, EventMessagingConfigUncheckedCreateWithoutEventInput>
+    where?: EventMessagingConfigWhereInput
+  }
+
+  export type EventMessagingConfigUpdateToOneWithWhereWithoutEventInput = {
+    where?: EventMessagingConfigWhereInput
+    data: XOR<EventMessagingConfigUpdateWithoutEventInput, EventMessagingConfigUncheckedUpdateWithoutEventInput>
+  }
+
+  export type EventMessagingConfigUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketConfirmChannel?: StringFieldUpdateOperationsInput | string
+    voteReceiptChannel?: StringFieldUpdateOperationsInput | string
+    nominationChannel?: StringFieldUpdateOperationsInput | string
+    reportEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reportChannel?: StringFieldUpdateOperationsInput | string
+    reportInterval?: StringFieldUpdateOperationsInput | string
+    reportPreferredHourUtc?: IntFieldUpdateOperationsInput | number
+    reportPreferredDay?: IntFieldUpdateOperationsInput | number
+    reportOnlyWithVotes?: BoolFieldUpdateOperationsInput | boolean
+    reportShowRank?: BoolFieldUpdateOperationsInput | boolean
+    reportLastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EventMessagingConfigUncheckedUpdateWithoutEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketConfirmChannel?: StringFieldUpdateOperationsInput | string
+    voteReceiptChannel?: StringFieldUpdateOperationsInput | string
+    nominationChannel?: StringFieldUpdateOperationsInput | string
+    reportEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reportChannel?: StringFieldUpdateOperationsInput | string
+    reportInterval?: StringFieldUpdateOperationsInput | string
+    reportPreferredHourUtc?: IntFieldUpdateOperationsInput | number
+    reportPreferredDay?: IntFieldUpdateOperationsInput | number
+    reportOnlyWithVotes?: BoolFieldUpdateOperationsInput | boolean
+    reportShowRank?: BoolFieldUpdateOperationsInput | boolean
+    reportLastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reportLastRunStats?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EventCreateWithoutSponsorsInput = {
@@ -67208,6 +70854,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutSponsorsInput = {
@@ -67254,6 +70901,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutSponsorsInput = {
@@ -67316,6 +70964,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutSponsorsInput = {
@@ -67362,6 +71011,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type EventCreateWithoutGalleryLinksInput = {
@@ -67408,6 +71058,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutGalleryLinksInput = {
@@ -67454,6 +71105,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutGalleryLinksInput = {
@@ -67516,6 +71168,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutGalleryLinksInput = {
@@ -67562,6 +71215,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type EventCreateWithoutSocialLinksInput = {
@@ -67608,6 +71262,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutSocialLinksInput = {
@@ -67654,6 +71309,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutSocialLinksInput = {
@@ -67716,6 +71372,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutSocialLinksInput = {
@@ -67762,6 +71419,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type EventCreateWithoutMembersInput = {
@@ -67808,6 +71466,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutMembersInput = {
@@ -67854,6 +71513,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutMembersInput = {
@@ -67956,6 +71616,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutMembersInput = {
@@ -68002,6 +71663,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type VoteUpsertWithWhereUniqueWithoutEventMemberInput = {
@@ -68064,6 +71726,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutRegistrationFieldsInput = {
@@ -68110,6 +71773,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutRegistrationFieldsInput = {
@@ -68172,6 +71836,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutRegistrationFieldsInput = {
@@ -68218,6 +71883,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type usersCreateWithoutAccountsInput = {
@@ -68475,6 +72141,210 @@ export namespace Prisma {
     userAgent?: StringNullableFilter<"sessions"> | string | null
   }
 
+  export type EventCreateWithoutMessagingConfigInput = {
+    id?: string
+    title: string
+    description?: string | null
+    slug: string
+    type: $Enums.EventType
+    status?: $Enums.EventStatus
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    timezone?: string
+    isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
+    flierImage?: string | null
+    bannerImage?: string | null
+    venueName?: string | null
+    venueAddress?: string | null
+    venueCity?: string | null
+    venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
+    isVirtual?: boolean
+    virtualLink?: string | null
+    maxAttendees?: number | null
+    registrationDeadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publishedAt?: Date | string | null
+    hasUssd?: boolean
+    ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
+    members?: EventMemberCreateNestedManyWithoutEventInput
+    registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
+    socialLinks?: EventSocialLinkCreateNestedManyWithoutEventInput
+    sponsors?: EventSponsorCreateNestedManyWithoutEventInput
+    creator?: ProfileCreateNestedOneWithoutCreatedEventsInput
+    organization: OrganizationCreateNestedOneWithoutEventsInput
+    ticketOrders?: TicketOrderCreateNestedManyWithoutEventInput
+    ticketTypes?: TicketTypeCreateNestedManyWithoutEventInput
+    tickets?: TicketCreateNestedManyWithoutEventInput
+    votes?: VoteCreateNestedManyWithoutEventInput
+    votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
+    votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+  }
+
+  export type EventUncheckedCreateWithoutMessagingConfigInput = {
+    id?: string
+    organizationId: string
+    creatorId?: string | null
+    title: string
+    description?: string | null
+    slug: string
+    type: $Enums.EventType
+    status?: $Enums.EventStatus
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    timezone?: string
+    isPublic?: boolean
+    category?: string | null
+    tags?: EventCreatetagsInput | string[]
+    flierImage?: string | null
+    bannerImage?: string | null
+    venueName?: string | null
+    venueAddress?: string | null
+    venueCity?: string | null
+    venueCountry?: string
+    latitude?: number | null
+    longitude?: number | null
+    isVirtual?: boolean
+    virtualLink?: string | null
+    maxAttendees?: number | null
+    registrationDeadline?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    publishedAt?: Date | string | null
+    hasUssd?: boolean
+    ussdCode?: string | null
+    galleryImages?: EventCreategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
+    members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
+    registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
+    socialLinks?: EventSocialLinkUncheckedCreateNestedManyWithoutEventInput
+    sponsors?: EventSponsorUncheckedCreateNestedManyWithoutEventInput
+    ticketOrders?: TicketOrderUncheckedCreateNestedManyWithoutEventInput
+    ticketTypes?: TicketTypeUncheckedCreateNestedManyWithoutEventInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutEventInput
+    votes?: VoteUncheckedCreateNestedManyWithoutEventInput
+    votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
+    votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+  }
+
+  export type EventCreateOrConnectWithoutMessagingConfigInput = {
+    where: EventWhereUniqueInput
+    create: XOR<EventCreateWithoutMessagingConfigInput, EventUncheckedCreateWithoutMessagingConfigInput>
+  }
+
+  export type EventUpsertWithoutMessagingConfigInput = {
+    update: XOR<EventUpdateWithoutMessagingConfigInput, EventUncheckedUpdateWithoutMessagingConfigInput>
+    create: XOR<EventCreateWithoutMessagingConfigInput, EventUncheckedCreateWithoutMessagingConfigInput>
+    where?: EventWhereInput
+  }
+
+  export type EventUpdateToOneWithWhereWithoutMessagingConfigInput = {
+    where?: EventWhereInput
+    data: XOR<EventUpdateWithoutMessagingConfigInput, EventUncheckedUpdateWithoutMessagingConfigInput>
+  }
+
+  export type EventUpdateWithoutMessagingConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: StringFieldUpdateOperationsInput | string
+    type?: EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+    status?: EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
+    flierImage?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    venueName?: NullableStringFieldUpdateOperationsInput | string | null
+    venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCity?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    isVirtual?: BoolFieldUpdateOperationsInput | boolean
+    virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
+    maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hasUssd?: BoolFieldUpdateOperationsInput | boolean
+    ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
+    members?: EventMemberUpdateManyWithoutEventNestedInput
+    registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
+    socialLinks?: EventSocialLinkUpdateManyWithoutEventNestedInput
+    sponsors?: EventSponsorUpdateManyWithoutEventNestedInput
+    creator?: ProfileUpdateOneWithoutCreatedEventsNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutEventsNestedInput
+    ticketOrders?: TicketOrderUpdateManyWithoutEventNestedInput
+    ticketTypes?: TicketTypeUpdateManyWithoutEventNestedInput
+    tickets?: TicketUpdateManyWithoutEventNestedInput
+    votes?: VoteUpdateManyWithoutEventNestedInput
+    votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
+    votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+  }
+
+  export type EventUncheckedUpdateWithoutMessagingConfigInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    creatorId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    slug?: StringFieldUpdateOperationsInput | string
+    type?: EnumEventTypeFieldUpdateOperationsInput | $Enums.EventType
+    status?: EnumEventStatusFieldUpdateOperationsInput | $Enums.EventStatus
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    category?: NullableStringFieldUpdateOperationsInput | string | null
+    tags?: EventUpdatetagsInput | string[]
+    flierImage?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerImage?: NullableStringFieldUpdateOperationsInput | string | null
+    venueName?: NullableStringFieldUpdateOperationsInput | string | null
+    venueAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCity?: NullableStringFieldUpdateOperationsInput | string | null
+    venueCountry?: StringFieldUpdateOperationsInput | string
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    isVirtual?: BoolFieldUpdateOperationsInput | boolean
+    virtualLink?: NullableStringFieldUpdateOperationsInput | string | null
+    maxAttendees?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDeadline?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    publishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hasUssd?: BoolFieldUpdateOperationsInput | boolean
+    ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
+    galleryImages?: EventUpdategalleryImagesInput | string[]
+    galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
+    members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
+    registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
+    socialLinks?: EventSocialLinkUncheckedUpdateManyWithoutEventNestedInput
+    sponsors?: EventSponsorUncheckedUpdateManyWithoutEventNestedInput
+    ticketOrders?: TicketOrderUncheckedUpdateManyWithoutEventNestedInput
+    ticketTypes?: TicketTypeUncheckedUpdateManyWithoutEventNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutEventNestedInput
+    votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
+    votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
+    votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+  }
+
   export type ActivityLogCreateWithoutOrganizationInput = {
     id?: string
     action: string
@@ -68555,6 +72425,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutOrganizationInput = {
@@ -68601,6 +72472,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutOrganizationInput = {
@@ -72847,6 +76719,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutTicketTypesInput = {
@@ -72893,6 +76766,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutTicketTypesInput = {
@@ -72999,6 +76873,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutTicketTypesInput = {
@@ -73045,6 +76920,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type TicketUpsertWithWhereUniqueWithoutTicketTypeInput = {
@@ -73107,6 +76983,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutTicketOrdersInput = {
@@ -73153,6 +77030,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutTicketOrdersInput = {
@@ -73381,6 +77259,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutTicketOrdersInput = {
@@ -73427,6 +77306,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type PaymentUpsertWithoutTicketOrdersInput = {
@@ -73623,6 +77503,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutTicketsInput = {
@@ -73669,6 +77550,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutTicketsInput = {
@@ -73819,6 +77701,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutTicketsInput = {
@@ -73865,6 +77748,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type TicketOrderUpsertWithoutTicketsInput = {
@@ -74047,6 +77931,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutCreatorInput = {
@@ -74093,6 +77978,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutCreatorInput = {
@@ -74643,6 +78529,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
@@ -74669,6 +78562,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
@@ -75175,6 +79075,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutVotingCategoriesInput = {
@@ -75221,6 +79122,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutVotingCategoriesInput = {
@@ -75246,6 +79148,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     event: EventCreateNestedOneWithoutVotingOptionsInput
@@ -75272,6 +79181,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
     changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
@@ -75357,6 +79273,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutVotingCategoriesInput = {
@@ -75403,6 +79320,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type VotingOptionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -75588,6 +79506,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutVotingOptionsInput = {
@@ -75634,6 +79553,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutVotingOptionsInput = {
@@ -75860,6 +79780,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutVotingOptionsInput = {
@@ -75906,6 +79827,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type ProfileUpsertWithoutNominatedOptionsInput = {
@@ -76007,6 +79929,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
     event: EventCreateNestedOneWithoutVotingOptionsInput
@@ -76034,6 +79963,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     votes?: VoteUncheckedCreateNestedManyWithoutOptionInput
   }
 
@@ -76086,6 +80022,7 @@ export namespace Prisma {
     votes?: VoteCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutNomineeChangeRequestsInput = {
@@ -76132,6 +80069,7 @@ export namespace Prisma {
     votes?: VoteUncheckedCreateNestedManyWithoutEventInput
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutNomineeChangeRequestsInput = {
@@ -76168,6 +80106,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
     event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
@@ -76195,6 +80140,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
   }
 
@@ -76253,6 +80205,7 @@ export namespace Prisma {
     votes?: VoteUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutNomineeChangeRequestsInput = {
@@ -76299,6 +80252,7 @@ export namespace Prisma {
     votes?: VoteUncheckedUpdateManyWithoutEventNestedInput
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type VotingCategoryCreateWithoutVotesInput = {
@@ -76396,6 +80350,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigCreateNestedOneWithoutEventInput
   }
 
   export type EventUncheckedCreateWithoutVotesInput = {
@@ -76442,6 +80397,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedCreateNestedManyWithoutEventInput
     votingOptions?: VotingOptionUncheckedCreateNestedManyWithoutEventInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutEventInput
+    messagingConfig?: EventMessagingConfigUncheckedCreateNestedOneWithoutEventInput
   }
 
   export type EventCreateOrConnectWithoutVotesInput = {
@@ -76498,6 +80454,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     changeRequests?: NomineeChangeRequestCreateNestedManyWithoutOptionInput
     category?: VotingCategoryCreateNestedOneWithoutVotingOptionsInput
     event: EventCreateNestedOneWithoutVotingOptionsInput
@@ -76525,6 +80488,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
     changeRequests?: NomineeChangeRequestUncheckedCreateNestedManyWithoutOptionInput
   }
 
@@ -76767,6 +80737,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutVotesInput = {
@@ -76813,6 +80784,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type EventMemberUpsertWithoutVotesInput = {
@@ -76881,6 +80853,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
     event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
@@ -76908,6 +80887,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
 
@@ -77202,6 +81188,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
   }
 
   export type NomineeChangeRequestCreateManyEventInput = {
@@ -77654,6 +81647,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
@@ -77680,6 +81680,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
@@ -77704,6 +81711,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type NomineeChangeRequestUpdateWithoutEventInput = {
@@ -78101,6 +82115,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutOrganizationInput = {
@@ -78147,6 +82162,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutOrganizationInput = {
@@ -79518,6 +83534,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
   }
 
   export type WalletCreateManyUserInput = {
@@ -79618,6 +83641,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateWithoutCreatorInput = {
@@ -79664,6 +83688,7 @@ export namespace Prisma {
     votingCategories?: VotingCategoryUncheckedUpdateManyWithoutEventNestedInput
     votingOptions?: VotingOptionUncheckedUpdateManyWithoutEventNestedInput
     nomineeChangeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutEventNestedInput
+    messagingConfig?: EventMessagingConfigUncheckedUpdateOneWithoutEventNestedInput
   }
 
   export type EventUncheckedUpdateManyWithoutCreatorInput = {
@@ -80218,6 +84243,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     category?: VotingCategoryUpdateOneWithoutVotingOptionsNestedInput
@@ -80244,6 +84276,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
@@ -80268,6 +84307,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type WalletUpdateWithoutUserInput = {
@@ -80354,6 +84400,13 @@ export namespace Prisma {
     status?: $Enums.ApprovalStatus
     finalImage?: string | null
     deletionCode?: string | null
+    confirmationEmailSentAt?: Date | string | null
+    confirmationEmailStatus?: string | null
+    confirmationEmailError?: string | null
+    confirmationWhatsAppSentAt?: Date | string | null
+    confirmationWhatsAppStatus?: string | null
+    confirmationWhatsAppMessageId?: string | null
+    confirmationWhatsAppError?: string | null
   }
 
   export type VoteUpdateWithoutCategoryInput = {
@@ -80419,6 +84472,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUpdateManyWithoutOptionNestedInput
     event?: EventUpdateOneRequiredWithoutVotingOptionsNestedInput
@@ -80445,6 +84505,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
     votes?: VoteUncheckedUpdateManyWithoutOptionNestedInput
     changeRequests?: NomineeChangeRequestUncheckedUpdateManyWithoutOptionNestedInput
   }
@@ -80469,6 +84536,13 @@ export namespace Prisma {
     status?: EnumApprovalStatusFieldUpdateOperationsInput | $Enums.ApprovalStatus
     finalImage?: NullableStringFieldUpdateOperationsInput | string | null
     deletionCode?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationEmailStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationEmailError?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppSentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    confirmationWhatsAppStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppMessageId?: NullableStringFieldUpdateOperationsInput | string | null
+    confirmationWhatsAppError?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type VoteCreateManyOptionInput = {

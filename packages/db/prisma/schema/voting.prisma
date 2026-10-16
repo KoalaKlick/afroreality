@@ -47,6 +47,17 @@ model VotingOption {
   status             ApprovalStatus         @default(approved)
   finalImage         String?                @map("final_image")
   deletionCode       String?                @map("deletion_code")
+
+  // Confirmation delivery tracking (sent once per nominee, track status and resend if failed)
+  confirmationEmailSentAt       DateTime?  @map("confirmation_email_sent_at") @db.Timestamptz(6)
+  confirmationEmailStatus       String?    @map("confirmation_email_status") // "sent" | "failed"
+  confirmationEmailError        String?    @map("confirmation_email_error")
+
+  confirmationWhatsAppSentAt    DateTime?  @map("confirmation_whatsapp_sent_at") @db.Timestamptz(6)
+  confirmationWhatsAppStatus    String?    @map("confirmation_whatsapp_status") // "sent" | "delivered" | "read" | "failed"
+  confirmationWhatsAppMessageId String?    @map("confirmation_whatsapp_message_id")
+  confirmationWhatsAppError     String?    @map("confirmation_whatsapp_error")
+
   votes              Vote[]
   changeRequests     NomineeChangeRequest[]
   category           VotingCategory?        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -57,6 +68,7 @@ model VotingOption {
   @@index([eventId], map: "idx_voting_options_event")
   @@index([categoryId], map: "idx_voting_options_category")
   @@index([status], map: "idx_voting_options_status")
+  @@index([confirmationWhatsAppMessageId], map: "idx_voting_options_wa_message_id")
   @@map("voting_options")
 }
 

@@ -1,10 +1,9 @@
 import { prisma } from "@repo/db";
 import { createTicketToken } from "@/lib/ticket-crypto";
 import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
-import {
-	sendTicketWhatsAppNotification,
-	normalizePhoneNumber,
-} from "@/lib/services/whatsapp";
+import { normalizePhoneNumber } from "@/lib/services/whatsapp";
+import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
+import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfillment/notifications";
 import { getFrontendBaseUrl } from "@/lib/utils";
 
 function buildOrgColors(org: any) {
@@ -164,10 +163,14 @@ export async function sendTicketNotifications({
 
 	if (!eventId || generatedTickets.length === 0) return;
 
-	const notifEvent = await fetchNotifEvent(eventId);
+	const [notifEvent, messagingConfig] = await Promise.all([
+		fetchNotifEvent(eventId),
+		getEventMessagingConfig(eventId),
+	]);
 	if (!notifEvent) return;
 
 	const orgColors = buildOrgColors(notifEvent.organization);
+	const ticketChannel = messagingConfig?.ticketConfirmChannel || "whatsapp";
 
 	const allAttendeeNames: string[] = [];
 	if (generatedTickets.length > 1) {
@@ -180,29 +183,22 @@ export async function sendTicketNotifications({
 		}
 	}
 
-	// WhatsApp — atomic claim on buyer
+	// Channel-aware buyer notification (WA / SMS / fallback)
 	if (buyerPhone) {
-		try {
-			const claimed = await prisma.ticket.updateMany({
-				where: { id: { in: generatedTickets.map((t) => t.id) }, whatsappSent: false },
-				data: { whatsappSent: true },
-			});
-			if (claimed.count > 0) {
-				const phone = normalizePhoneNumber(buyerPhone);
-				if (phone) {
-					await sendTicketWhatsAppNotification({
-						phone,
-						attendeeName: buyerName,
-						eventTitle: notifEvent.title,
-						ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
-						ticketToken: generatedTickets[0]?.token,
-						bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
-						attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
-					});
-				}
-			}
-		} catch (waErr) {
-			console.error("[WhatsApp] Buyer ticket notification failed:", waErr);
+		const phone = normalizePhoneNumber(buyerPhone);
+		if (phone) {
+			await dispatchTicketChannelNotification({
+				ticketIds: generatedTickets.map((t) => t.id),
+				phone,
+				attendeeName: buyerName,
+				eventTitle: notifEvent.title,
+				ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
+				ticketToken: generatedTickets[0]?.token,
+				bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
+				attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+				eventId,
+				channel: ticketChannel,
+			}).catch((err) => console.error("[Notify] Buyer ticket dispatch failed:", err));
 		}
 	}
 
@@ -246,6 +242,7 @@ export async function sendTicketNotifications({
 				attendeeEmail: true,
 				attendeePhone: true,
 				whatsappSent: true,
+				smsSent: true,
 				ticketType: { select: { name: true } },
 			},
 		});
@@ -276,18 +273,22 @@ export async function sendTicketNotifications({
 		}
 
 		const attendeePhone = ticketRecord?.attendeePhone;
-		if (attendeePhone && attendeePhone !== buyerPhone && !ticketRecord?.whatsappSent) {
+		const attendeeNotSent = !ticketRecord?.whatsappSent && !ticketRecord?.smsSent;
+		if (attendeePhone && attendeePhone !== buyerPhone && attendeeNotSent) {
 			const phone = normalizePhoneNumber(attendeePhone);
 			if (phone) {
-				sendTicketWhatsAppNotification({
+				dispatchTicketChannelNotification({
+					ticketIds: [tkt.id],
 					phone,
 					attendeeName: ticketRecord?.attendeeName || "Attendee",
 					eventTitle: notifEvent.title,
 					ticketCode: tkt.ticketCode,
 					ticketToken: tkt.token,
 					bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
-				}).catch((waErr) =>
-					console.error(`[WhatsApp] Attendee ticket failed for ${tkt.ticketCode}:`, waErr),
+					eventId,
+					channel: ticketChannel,
+				}).catch((err) =>
+					console.error(`[Notify] Attendee ticket dispatch failed for ${tkt.ticketCode}:`, err),
 				);
 			}
 		}
