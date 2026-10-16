@@ -8,6 +8,6 @@
   "vars": {
     "PROVIDER": "arkesel",
     "MAX_LISTED_EVENTS": "5",
-    "USSD_ROOT_CODE": "*928*920*"
+    "USSD_ROOT_CODE": "*928*920#"
   }
 }

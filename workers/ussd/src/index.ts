@@ -11,6 +11,7 @@ export interface Env {
 	DATABASE_URL: string;
 	PAYSTACK_SECRET_KEY?: string;
 	MAX_LISTED_EVENTS?: string;
+	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
 	USSD_ROOT_CODE?: string;
 }
 
@@ -1301,7 +1302,8 @@ export default {
 
 			// Arkesel USSD flow
 			if (isArkeselRoute || bodyData.sessionID || bodyData.msisdn) {
-				const currentInput = normalizeArkeselInput(rawText, isNewSession, env.USSD_ROOT_CODE);
+				const rootCode = env.NEXT_PUBLIC_USSD_ROOT_CODE || env.USSD_ROOT_CODE;
+				const currentInput = normalizeArkeselInput(rawText, isNewSession, rootCode);
 				let accumulatedPath = currentInput;
 
 				if (env.DATABASE_URL && sessionId) {

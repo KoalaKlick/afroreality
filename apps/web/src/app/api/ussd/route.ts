@@ -3,6 +3,7 @@ import { prisma } from "@repo/db";
 import { toPesewas } from "@repo/pricing";
 import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
+import { getUssdBaseCode } from "@/lib/utils/ussd";
 
 export const dynamic = "force-dynamic";
 
@@ -76,11 +77,7 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 
 	if (newSession) {
 		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
-		const envRoot = (
-			process.env.USSD_ROOT_CODE ||
-			process.env.NEXT_PUBLIC_USSD_ROOT_CODE ||
-			"*928*920*"
-		).replace(/[#*]+$/, "");
+		const envRoot = getUssdBaseCode();
 		const baseCodes = Array.from(
 			new Set([
 				envRoot,
