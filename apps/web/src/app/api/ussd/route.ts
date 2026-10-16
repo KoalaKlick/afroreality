@@ -71,11 +71,12 @@ function getProvider(phone: string): "mtn" | "vod" | "tgo" {
  * Mirrors: current-live-next-project/supabase/functions/ussd-arkesel/index.ts
  */
 function normalizeArkeselInput(userData: string, newSession: boolean): string {
-	// Arkesel sometimes sends Fullwidth Number Sign (＃) instead of standard #
-	const cleaned = userData.replace(/[#＃]+$/, "");
+	if (!userData) return "";
+	const trimmed = String(userData).trim();
 
 	if (newSession) {
-		const baseCodes = ["*384*77340", "*920*55", "*920", "*384", "*713", "*714"];
+		const cleaned = trimmed.replace(/[#＃]+$/, "");
+		const baseCodes = ["*928*920", "*920*55", "*920", "*384", "*713", "*714"];
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {
 				const extra = cleaned.substring(base.length);
@@ -87,8 +88,22 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 				return extra;
 			}
 		}
+		// If dial string like *384*...*code
+		if (cleaned.startsWith("*")) {
+			const parts = cleaned.split("*").filter(Boolean);
+			if (parts.length > 2) {
+				return parts.slice(2).join("*");
+			}
+		}
+		return cleaned;
 	}
-	return cleaned;
+
+	// On subsequent menu navigation turns: preserve "#" selection
+	if (trimmed === "#" || trimmed === "＃") {
+		return "#";
+	}
+
+	return trimmed;
 }
 
 // ─── Token Navigation ───────────────────────────────────────────────────────
@@ -193,6 +208,35 @@ async function fetchEventByCode(code: string) {
 			],
 		},
 		include: EVENT_INCLUDE,
+	});
+}
+
+async function fetchNomineeByCode(code: string) {
+	const rawCode = (code || "").trim();
+	const cleanCode = rawCode.replace(/^[#＃]+/, "").trim();
+	if (!cleanCode) return null;
+
+	const now = new Date();
+	return prisma.votingOption.findFirst({
+		where: {
+			OR: [
+				{ nomineeCode: { equals: cleanCode, mode: "insensitive" } },
+				{ nomineeCode: { equals: `#${cleanCode}`, mode: "insensitive" } },
+				{ nomineeCode: { equals: rawCode, mode: "insensitive" } },
+			],
+			status: "approved",
+			event: {
+				hasUssd: true,
+				status: { in: ["published", "ongoing"] as any },
+				OR: [{ endDate: null }, { endDate: { gte: now } }],
+			},
+		},
+		include: {
+			category: true,
+			event: {
+				include: EVENT_INCLUDE,
+			},
+		},
 	});
 }
 
@@ -393,6 +437,68 @@ async function processPayment(
 // ─── Flow Handlers ───────────────────────────────────────────────────────────
 // Mirrors: _shared/ussd-handler.ts handleVotingFlow / handleTicketFlow
 // Key: nominees come from event.votingOptions filtered by category_id
+
+async function handleNomineeDirectVotingFlow(
+	nominee: any,
+	tokens: string[],
+	phoneNumber: string,
+): Promise<string> {
+	const event = nominee.event;
+	const now = new Date();
+
+	if (event.startDate && new Date(event.startDate) > now) {
+		const startStr = new Date(event.startDate).toLocaleDateString("en-GH", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		});
+		return `END Voting has not started yet. Voting opens on ${startStr}.`;
+	}
+
+	if (
+		event.status === "ended" ||
+		event.status === "cancelled" ||
+		(event.endDate && new Date(event.endDate) < now)
+	) {
+		return "END Voting for this event has ended.";
+	}
+
+	const votePrice = Number(nominee.category?.votePrice) || 0.5;
+	const categoryTitle = nominee.category?.name ? `(${nominee.category.name})\n` : "";
+
+	const quantityStr = tokens.shift();
+	if (!quantityStr) {
+		return `CON ${nominee.optionText}\n${categoryTitle}Rate: GHS ${votePrice.toFixed(2)}/vote\nEnter number of votes:\n0. Back`;
+	}
+
+	const quantity = Number.parseInt(quantityStr, 10);
+	if (Number.isNaN(quantity) || quantity <= 0) {
+		return "END Invalid vote quantity. Try again.";
+	}
+
+	// Order Summary & Confirmation Screen
+	const confirmToken = tokens.shift();
+	if (!confirmToken) {
+		const baseAmount = votePrice * quantity;
+		const feeCalc = await computeDynamicChargeAmount(baseAmount, "vote", "GHS", event.organizationId);
+		return `CON Confirm Vote\nNominee: ${nominee.optionText}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
+	}
+
+	if (confirmToken !== "1") {
+		return "CON Invalid choice.\n1. Confirm & Pay\n0. Back";
+	}
+
+	const otpStr = tokens.shift();
+
+	return await processPayment(
+		event,
+		nominee.id,
+		quantity,
+		votePrice,
+		phoneNumber,
+		otpStr,
+	);
+}
 
 async function handleVotingFlow(
 	event: any,
@@ -708,9 +814,9 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 			events.forEach((ev, idx) => {
 				menu += `${idx + 1}. ${ev.title}\n`;
 			});
-			menu += `${ENTER_CODE_OPTION}. Enter code\n`;
+			menu += `#. Enter nominee code\n`;
 		} else {
-			menu += "Enter event code:\n";
+			menu += "Enter nominee code:\n";
 		}
 		return menu;
 	}
@@ -720,14 +826,31 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 	let tokens = [...inputArray];
 	let event: any = null;
 
-	if (tokens[0] === ENTER_CODE_OPTION) {
-		// User chose "0. Enter code" from the welcome screen
+	if (tokens[0] === "#" || tokens[0] === ENTER_CODE_OPTION) {
+		// User chose "#. Enter nominee code" from the welcome screen
 		tokens.shift();
 		if (tokens.length === 0) {
-			return "CON Enter event code:\n0. Back";
+			return "CON Enter nominee code:\n0. Back";
 		}
-		const eventCode = tokens.shift()!;
-		event = await fetchEventByCode(eventCode);
+		const nomineeCodeInput = tokens.shift()!;
+
+		// Try to find a nominee by code first
+		const nominee = await fetchNomineeByCode(nomineeCodeInput);
+		if (nominee) {
+			console.log("[USSD Core] Nominee found by code:", {
+				nomineeId: nominee.id,
+				nomineeName: nominee.optionText,
+				nomineeCode: nominee.nomineeCode,
+				eventTitle: nominee.event?.title,
+			});
+			return await handleNomineeDirectVotingFlow(nominee, tokens, phoneNumber);
+		}
+
+		// Fallback: try as event code
+		event = await fetchEventByCode(nomineeCodeInput);
+		if (!event) {
+			return "END Nominee not found. Check your code and try again.";
+		}
 	} else {
 		const firstInput = tokens[0] || "";
 		const selectedIdx = Number.parseInt(firstInput, 10);
@@ -746,6 +869,13 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 			event = listedEvents[selectedIdx - 1];
 			tokens.shift();
 		} else {
+			// Check if firstInput is a direct nominee code (e.g. *928*920*NOMINEE_CODE#)
+			const directNominee = await fetchNomineeByCode(firstInput);
+			if (directNominee) {
+				tokens.shift();
+				return await handleNomineeDirectVotingFlow(directNominee, tokens, phoneNumber);
+			}
+
 			// Fallback: treat firstInput as a ussdCode (deep-link like *384*77340*689#)
 			event = await fetchEventByCode(firstInput);
 			tokens.shift();
@@ -889,6 +1019,17 @@ export async function POST(req: NextRequest) {
 		return textResponse(coreResult);
 	} catch (error) {
 		console.error("[USSD Webhook Error]:", error);
+		const contentType = req.headers.get("content-type") || "";
+		const providerParam = req.nextUrl.searchParams.get("provider") || "";
+		if (providerParam === "arkesel" || contentType.includes("application/json")) {
+			return jsonResponse({
+				sessionID: "",
+				userID: "",
+				msisdn: "",
+				message: "Something went wrong. Please try again later.",
+				continueSession: false,
+			});
+		}
 		return textResponse("END Something went wrong. Please try again later.");
 	}
 }
@@ -936,6 +1077,16 @@ export async function GET(req: NextRequest) {
 		return textResponse(coreResult);
 	} catch (error) {
 		console.error("[USSD GET Error]:", error);
+		const providerParam = req.nextUrl.searchParams.get("provider") || "";
+		if (providerParam === "arkesel") {
+			return jsonResponse({
+				sessionID: "",
+				userID: "",
+				msisdn: "",
+				message: "Something went wrong. Please try again later.",
+				continueSession: false,
+			});
+		}
 		return textResponse("END Something went wrong. Please try again later.");
 	}
 }

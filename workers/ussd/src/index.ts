@@ -921,9 +921,9 @@ export async function handleUssdCore(
 			events.forEach((ev: any, idx: number) => {
 				menu += `${idx + 1}. ${ev.title}\n`;
 			});
-			menu += `${ENTER_CODE_OPTION}. Enter code\n`;
+			menu += `#. Enter nominee code\n`;
 		} else {
-			menu += "Enter event code:\n";
+			menu += "Enter nominee code:\n";
 		}
 		return textResponse(menu);
 	}
@@ -931,13 +931,96 @@ export async function handleUssdCore(
 	let tokens = [...inputArray];
 	let event: any = null;
 
-	if (tokens[0] === ENTER_CODE_OPTION) {
+	if (tokens[0] === "#" || tokens[0] === ENTER_CODE_OPTION) {
+		// User chose "#. Enter nominee code" from the welcome screen
 		tokens.shift();
 		if (tokens.length === 0) {
-			return textResponse("CON Enter event code:\n0. Back");
+			return textResponse("CON Enter nominee code:\n0. Back");
 		}
-		const eventCode = tokens.shift();
-		event = await fetchEventByCode(sql, eventCode!);
+		const nomineeCodeInput = tokens.shift()!;
+
+		// Try to find a nominee by code first
+		const rawCode = nomineeCodeInput.replace(/^[#\uFF03]+/, "").trim();
+		if (rawCode) {
+			const nominees = await sql`
+				SELECT vo.id, vo.option_text, vo.category_id, vo.nominee_code,
+					vc.name as category_name, vc.vote_price,
+					e.id as event_id, e.title as event_title, e.type as event_type,
+					e.organization_id, e.status as event_status,
+					e.start_date, e.end_date
+				FROM voting_options vo
+				JOIN events e ON vo.event_id = e.id
+				LEFT JOIN voting_categories vc ON vo.category_id = vc.id
+				WHERE UPPER(vo.nominee_code) = UPPER(${rawCode})
+					AND vo.status = 'approved'
+					AND e.has_ussd = true
+					AND e.status IN ('published', 'ongoing')
+					AND (e.end_date IS NULL OR e.end_date >= NOW())
+				LIMIT 1
+			`;
+
+			if (nominees && nominees.length > 0) {
+				const nom = nominees[0];
+				console.log("[USSD Core] Nominee found by code:", {
+					nomineeId: nom.id,
+					nomineeName: nom.option_text,
+					nomineeCode: nom.nominee_code,
+					eventTitle: nom.event_title,
+				});
+
+				// Direct nominee voting flow
+				const votePrice = Number(nom.vote_price) || 0.5;
+				const categoryTitle = nom.category_name ? `(${nom.category_name})\n` : "";
+				const nomEvent = {
+					id: nom.event_id,
+					title: nom.event_title,
+					type: nom.event_type,
+					organization_id: nom.organization_id,
+					status: nom.event_status,
+					start_date: nom.start_date,
+					end_date: nom.end_date,
+				};
+
+				const now2 = new Date();
+				if (nom.start_date && new Date(nom.start_date) > now2) {
+					const startStr = new Date(nom.start_date).toLocaleDateString("en-GH", { month: "short", day: "numeric", year: "numeric" });
+					return textResponse(`END Voting has not started yet. Voting opens on ${startStr}.`);
+				}
+				if (nom.event_status === "ended" || nom.event_status === "cancelled" || (nom.end_date && new Date(nom.end_date) < now2)) {
+					return textResponse("END Voting for this event has ended.");
+				}
+
+				const quantityStr = tokens.shift();
+				if (!quantityStr) {
+					return textResponse(`CON ${nom.option_text}\n${categoryTitle}Rate: GHS ${votePrice.toFixed(2)}/vote\nEnter number of votes:\n0. Back`);
+				}
+
+				const quantity = Number.parseInt(quantityStr, 10);
+				if (Number.isNaN(quantity) || quantity <= 0) {
+					return textResponse("END Invalid vote quantity. Try again.");
+				}
+
+				const confirmToken = tokens.shift();
+				if (!confirmToken) {
+					const baseAmount = votePrice * quantity;
+					const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, "vote", nom.organization_id);
+					return textResponse(`CON Confirm Vote\nNominee: ${nom.option_text}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`);
+				}
+
+				if (confirmToken !== "1") {
+					return textResponse("CON Invalid choice.\n1. Confirm & Pay\n0. Back");
+				}
+
+				const otpStr = tokens.shift();
+				return await processPayment(sql, nomEvent, nom.id, quantity, votePrice, phoneNumber, paystackSecret, otpStr);
+			}
+		}
+
+		// Fallback: try as event code
+		event = await fetchEventByCode(sql, nomineeCodeInput);
+		if (!event) {
+			return textResponse("END Nominee not found. Check your code and try again.");
+		}
 	} else {
 		const firstInput = tokens[0];
 		// 1. Check if firstInput directly matches an active event's ussd_code (direct dial e.g. *384*77340*104#)
@@ -1063,8 +1146,11 @@ async function toArkeselResponse(
 }
 
 function normalizeArkeselInput(userData: string, newSession: boolean): string {
-	const cleaned = userData.replace(/[#\uFF03]+$/, "");
+	if (!userData) return "";
+	const trimmed = String(userData).trim();
+
 	if (newSession) {
+		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
 		const baseCodes = ["*384*77340", "*920*55", "*920", "*384", "*713", "*714"];
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {
@@ -1081,8 +1167,15 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 			const parts = cleaned.split("*").filter(Boolean);
 			if (parts.length > 0) return parts[parts.length - 1] || "";
 		}
+		return cleaned;
 	}
-	return cleaned;
+
+	// On subsequent menu navigation turns: preserve "#" selection
+	if (trimmed === "#" || trimmed === "\uFF03") {
+		return "#";
+	}
+
+	return trimmed;
 }
 
 // Cloudflare Worker Fetch Entrypoint (Africa's Talking & Arkesel)
@@ -1098,20 +1191,20 @@ export default {
 			});
 		}
 
+		let isArkeselRoute = false;
+		let bodyData: any = {};
+		let rawText = "";
+		let phoneNumber = "";
+		let sessionId = "";
+		let userId = "";
+		let isNewSession = false;
+
 		try {
 			const url = new URL(request.url);
 			const contentType = request.headers.get("content-type") || "";
-			const isArkeselRoute =
+			isArkeselRoute =
 				url.pathname.includes("/arkesel") ||
 				url.searchParams.get("provider") === "arkesel";
-
-			// Parse payload
-			let bodyData: any = {};
-			let rawText = "";
-			let phoneNumber = "";
-			let sessionId = "";
-			let userId = "";
-			let isNewSession = false;
 
 			if (contentType.includes("application/json")) {
 				bodyData = (await request.json()) as any;
@@ -1203,6 +1296,15 @@ export default {
 			return await handleUssdCore(phoneNumber, rawText, env);
 		} catch (error: any) {
 			console.error("USSD Worker Error:", error);
+			if (isArkeselRoute || bodyData.sessionID || bodyData.msisdn) {
+				return jsonResponse({
+					sessionID: sessionId || "",
+					userID: userId || "",
+					msisdn: phoneNumber || "",
+					message: "Something went wrong. Try again later.",
+					continueSession: false,
+				});
+			}
 			return textResponse("END Something went wrong. Try again later.");
 		}
 	},

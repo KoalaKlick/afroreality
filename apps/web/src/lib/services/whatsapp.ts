@@ -698,7 +698,7 @@ export async function sendNomineeConfirmationWhatsAppNotification({
 		: null;
 
 	// Construct component sets
-	function buildComponents(withHeader: boolean): WhatsAppTemplateComponent[] {
+	function buildComponents(withHeader: boolean, withUrlButton: boolean = true): WhatsAppTemplateComponent[] {
 		const parts: WhatsAppTemplateComponent[] = [];
 
 		if (withHeader && safeHeaderImage) {
@@ -710,23 +710,14 @@ export async function sendNomineeConfirmationWhatsAppNotification({
 
 		parts.push({ type: "body", parameters: bodyParams });
 
-		// URL button index 0: View Event on portal
-		if (eventButtonParam) {
+		// Dynamic URL button (e.g. organizer WhatsApp redirect or event path)
+		const buttonParam = orgPhoneDigits || eventButtonParam;
+		if (withUrlButton && buttonParam) {
 			parts.push({
 				type: "button",
 				sub_type: "url",
 				index: 0,
-				parameters: [{ type: "text", text: eventButtonParam }],
-			});
-		}
-
-		// URL button index 1: Contact Organizer via wa.me
-		if (orgPhoneDigits) {
-			parts.push({
-				type: "button",
-				sub_type: "url",
-				index: eventButtonParam ? 1 : 0,
-				parameters: [{ type: "text", text: orgPhoneDigits }],
+				parameters: [{ type: "text", text: buttonParam }],
 			});
 		}
 
@@ -735,6 +726,10 @@ export async function sendNomineeConfirmationWhatsAppNotification({
 
 	// Candidate template names to try (register primary first, others as backup, with and without _en suffix)
 	const candidateTemplates = [
+		"fextiva_nominee_notice_en",
+		"fextiva_nominee_notice",
+		"fextiva_nominee_profile_en",
+		"fextiva_nominee_profile",
 		"fextiva_nominee_confirmation_en",
 		"fextiva_nominee_confirmation",
 		"fextiva_nominee_welcome_en",
@@ -750,21 +745,39 @@ export async function sendNomineeConfirmationWhatsAppNotification({
 
 	for (const tName of candidateTemplates) {
 		for (const lang of candidateLanguages) {
-			// 1. Try with header image
+			// 1. Try with header image + dynamic URL button
 			templateRes = await sendWhatsAppTemplateMessage({
 				to: phone,
 				templateName: tName,
 				languageCode: lang,
-				components: buildComponents(true),
+				components: buildComponents(true, true),
 			});
 			if (templateRes.success) break;
 
-			// 2. Retry without header (text-only template variant)
+			// 2. Try with header image + Quick Reply button (no button params)
 			templateRes = await sendWhatsAppTemplateMessage({
 				to: phone,
 				templateName: tName,
 				languageCode: lang,
-				components: buildComponents(false),
+				components: buildComponents(true, false),
+			});
+			if (templateRes.success) break;
+
+			// 3. Try without header + dynamic URL button
+			templateRes = await sendWhatsAppTemplateMessage({
+				to: phone,
+				templateName: tName,
+				languageCode: lang,
+				components: buildComponents(false, true),
+			});
+			if (templateRes.success) break;
+
+			// 4. Try without header + Quick Reply button (no button params)
+			templateRes = await sendWhatsAppTemplateMessage({
+				to: phone,
+				templateName: tName,
+				languageCode: lang,
+				components: buildComponents(false, false),
 			});
 			if (templateRes.success) break;
 		}
