@@ -9,6 +9,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Award } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SponsorsListProps {
 	readonly sponsors: Array<{
@@ -22,18 +23,39 @@ interface SponsorsListProps {
 	readonly labelPrefix?: string;
 	readonly className?: string;
 	readonly maxDisplay?: number;
+	readonly size?: "sm" | "md" | "lg";
 }
+
+const sizeConfig = {
+	sm: {
+		container: "h-11 aspect-square p-1.5 ",
+		icon: "size-4",
+		text: "text-[9px]",
+	},
+	md: {
+		container: "h-14 sm:h-16 aspect-square p-2",
+		icon: "size-5",
+		text: "text-[11px]",
+	},
+	lg: {
+		container: "h-16 sm:h-20 aspect-square p-2.5 sm:p-3",
+		icon: "size-6",
+		text: "text-xs",
+	},
+};
 
 export function SponsorsList({
 	sponsors,
 	labelPrefix = "",
 	className = "",
-	maxDisplay = 10,
+	maxDisplay = 20,
+	size = "md",
 }: SponsorsListProps) {
 	if (!sponsors || sponsors.length === 0) return null;
 
 	const displayedSponsors = sponsors.slice(0, maxDisplay);
-	const isMarquee = displayedSponsors.length > 4;
+	const isMarquee = displayedSponsors.length > 5;
+	const currentSize = sizeConfig[size] || sizeConfig.md;
 
 	const renderSponsorItem = (sponsor: any, key: string) => {
 		const imgKey = sponsor.logoUrl || sponsor.logo;
@@ -41,15 +63,26 @@ export function SponsorsList({
 		const sponsorName = sponsor.name || "Official Sponsor";
 
 		const TriggerContent = (
-			<div className="size-9 border border-border/80 bg-card p-0.5 flex items-center justify-center hover:border-primary/50 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer shrink-0">
+			<div
+				className={cn(
+					"border border-border/80 bg-card hover:bg-card/90 flex items-center justify-center hover:border-primary/50 transition-all shadow-xs hover:shadow-md hover:scale-[1.03] active:scale-[0.98] cursor-pointer shrink-0 overflow-hidden",
+					currentSize.container,
+				)}
+			>
 				{imgUrl ? (
 					<img
 						src={imgUrl}
 						alt={sponsorName}
-						className="w-full h-full object-contain"
+						className="w-full h-full object-contain filter contrast-105 hover:brightness-105 transition-all duration-200"
+						loading="lazy"
 					/>
 				) : (
-					<Award className="size-4 text-muted-foreground/60" />
+					<div className="flex flex-col items-center justify-center gap-1 w-full text-center px-1">
+						<Award className={cn("text-muted-foreground/60 shrink-0", currentSize.icon)} />
+						<span className={cn("font-bold uppercase tracking-tight text-muted-foreground truncate w-full", currentSize.text)}>
+							{sponsorName}
+						</span>
+					</div>
 				)}
 			</div>
 		);

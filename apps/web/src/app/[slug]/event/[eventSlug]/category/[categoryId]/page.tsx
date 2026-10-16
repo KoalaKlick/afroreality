@@ -315,31 +315,7 @@ export default async function PublicCategoryPage({
 										<Trophy className="size-4 text-primary" />
 										<span>Official Sponsors</span>
 									</h3>
-									<div className="flex flex-wrap gap-2.5">
-										{sponsors.slice(0, 15).map((sponsor: any) => {
-											const imgKey = sponsor.logoUrl || sponsor.logo;
-											const imgUrl = imgKey ? getEventImageUrl(imgKey) : null;
-											return (
-												<div
-													key={sponsor.id || sponsor.name}
-													className="size-10 p-1.5 border rounded-lg bg-card flex items-center justify-center grayscale hover:grayscale-0 transition-all cursor-help"
-													title={sponsor.name}
-												>
-													{imgUrl ? (
-														<img
-															src={imgUrl}
-															alt={sponsor.name}
-															className="object-contain max-h-full max-w-full"
-														/>
-													) : (
-														<span className="text-[6px] font-bold text-center leading-none truncate uppercase tracking-tighter">
-															{sponsor.name}
-														</span>
-													)}
-												</div>
-											);
-										})}
-									</div>
+									<SponsorsList sponsors={sponsors} size="lg" labelPrefix="" />
 								</div>
 							)}
 

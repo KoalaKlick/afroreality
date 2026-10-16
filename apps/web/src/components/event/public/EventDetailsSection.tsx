@@ -287,7 +287,7 @@ export function EventDetailsSection({
 											Partners &amp; supporters for this event
 										</p>
 									</div>
-									<SponsorsList sponsors={sponsors} labelPrefix="" />
+									<SponsorsList sponsors={sponsors} size="lg" labelPrefix="" />
 								</div>
 							)}
 						</div>
