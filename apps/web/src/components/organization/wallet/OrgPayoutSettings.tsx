@@ -36,6 +36,13 @@ import {
 } from "@/lib/utils/phone";
 import { PayoutAccountCard } from "./PayoutAccountCard";
 
+export interface PayoutAccountDetails {
+	bankCode: string | null;
+	accountNumber: string | null;
+	accountName: string | null;
+	subaccountCode?: string | null;
+}
+
 interface OrgPayoutSettingsProps {
 	readonly organization: {
 		id: string;
@@ -46,7 +53,7 @@ interface OrgPayoutSettingsProps {
 		paystackAccountName?: string | null;
 		subaccountCode?: string | null;
 	};
-	onSuccess?: () => void;
+	readonly onSuccess?: (details?: PayoutAccountDetails) => void;
 }
 
 interface NetworkOption {
@@ -229,12 +236,27 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 				},
 			});
 			if (result.success) {
-				setPayoutBankCode(bankCode);
-				setPayoutAccountNumber(accountNumber);
-				setPayoutAccountName(verifiedName ?? accountName);
+				const finalBankCode = result.bankCode || bankCode;
+				const finalAccountNumber = result.accountNumber || accountNumber;
+				const finalAccountName = result.accountName || (verifiedName ?? accountName);
+
+				setPayoutBankCode(finalBankCode);
+				setPayoutAccountNumber(finalAccountNumber);
+				setPayoutAccountName(finalAccountName);
+				setBankCode(finalBankCode);
+				setAccountNumber(finalAccountNumber);
+				setAccountName(finalAccountName);
+				setVerifiedName(finalAccountName);
 				setIsEditing(false);
 				toast.success("Payment account saved successfully!");
-				if (onSuccess) onSuccess();
+				if (onSuccess) {
+					onSuccess({
+						bankCode: finalBankCode,
+						accountNumber: finalAccountNumber,
+						accountName: finalAccountName,
+						subaccountCode: result.subaccountCode,
+					});
+				}
 			} else {
 				toast.error(result.error || "Failed to set up payment account.");
 			}
@@ -265,6 +287,14 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 				setVerifiedName(null);
 				setIsEditing(false);
 				toast.success(result.message || "Payout account removed successfully.");
+				if (onSuccess) {
+					onSuccess({
+						bankCode: null,
+						accountNumber: null,
+						accountName: null,
+						subaccountCode: null,
+					});
+				}
 			} else {
 				toast.error(result.message || "Failed to remove payout account.");
 			}

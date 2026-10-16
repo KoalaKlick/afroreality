@@ -195,12 +195,19 @@ export function EventDetailHeader({
 						? "Draft"
 						: "Published";
 
-	const organization = event?.organization;
+	const [orgState, setOrgState] = useState(event?.organization);
+
+	useEffect(() => {
+		setOrgState(event?.organization);
+	}, [event?.organization]);
+
+	const organization = orgState;
 	const flierDisplayUrl = flierImage ? getEventImageUrl(flierImage) : null;
 	// Payout is "activated" once the org has a Paystack subaccount configured.
-	// (A raw bank account number alone is not enough — the subaccount code is
-	// only set when the payout account is fully configured.)
-	const hasPayoutActivated = !!organization?.subaccountCode;
+	const hasPayoutActivated = !!(
+		organization?.subaccountCode ||
+		(organization?.paystackAccountNumber && organization?.paystackBankCode)
+	);
 
 	// Save single field
 	async function saveField(fieldName: string, value: any) {
@@ -741,7 +748,7 @@ export function EventDetailHeader({
 
 					<div className="flex-1 overflow-y-auto p-6">
 						<OrgPayoutSettings
-							key={organization?.id}
+							key={`${organization?.id}-${organization?.paystackAccountNumber || "none"}`}
 							organization={{
 								id: organization?.id ?? "",
 								name: organization?.name ?? "",
@@ -751,7 +758,16 @@ export function EventDetailHeader({
 								paystackAccountName: organization?.paystackAccountName ?? null,
 								subaccountCode: organization?.subaccountCode ?? null,
 							}}
-							onSuccess={() => {
+							onSuccess={(updated) => {
+								if (updated) {
+									setOrgState((prev: any) => ({
+										...prev,
+										paystackBankCode: updated.bankCode,
+										paystackAccountNumber: updated.accountNumber,
+										paystackAccountName: updated.accountName,
+										subaccountCode: updated.subaccountCode ?? prev?.subaccountCode,
+									}));
+								}
 								setIsPayoutDrawerOpen(false);
 								router.refresh();
 								if (onRefresh) onRefresh();

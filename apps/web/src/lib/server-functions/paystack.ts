@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@repo/db";
+import { revalidatePath } from "next/cache";
 import { requireSession } from "../session";
 import { notifyPayoutAccountChange } from "./whatsapp-otp";
 
@@ -170,6 +171,9 @@ export async function createPaystackSubaccount({
 }): Promise<{
 	success: boolean;
 	subaccountCode?: string;
+	bankCode?: string;
+	accountNumber?: string;
+	accountName?: string | null;
 	message?: string;
 	error?: string;
 }> {
@@ -211,13 +215,14 @@ export async function createPaystackSubaccount({
 
 		if (!PAYSTACK_SECRET) {
 			const fallbackCode = `ACCT_LOCAL_${Date.now()}`;
+			const finalName = data.accountName || "Configured Account";
 			await prisma.organization.update({
 				where: { id: data.organizationId },
 				data: {
 					subaccountCode: fallbackCode,
 					paystackBankCode: data.bankCode,
 					paystackAccountNumber: data.accountNumber,
-					paystackAccountName: data.accountName || "Configured Account",
+					paystackAccountName: finalName,
 				},
 			});
 
@@ -232,9 +237,16 @@ export async function createPaystackSubaccount({
 				}).catch(() => {});
 			}
 
+			revalidatePath("/organization/wallet");
+			revalidatePath("/my-events");
+			revalidatePath("/(app)", "layout");
+
 			return {
 				success: true,
 				subaccountCode: fallbackCode,
+				bankCode: data.bankCode,
+				accountNumber: data.accountNumber,
+				accountName: finalName,
 				message: "Payment account configured successfully.",
 			};
 		}
@@ -261,12 +273,13 @@ export async function createPaystackSubaccount({
 			const updateData = await updateRes.json();
 
 			if (updateData.status) {
+				const finalName = data.accountName || null;
 				await prisma.organization.update({
 					where: { id: data.organizationId },
 					data: {
 						paystackBankCode: data.bankCode,
 						paystackAccountNumber: data.accountNumber,
-						paystackAccountName: data.accountName || null,
+						paystackAccountName: finalName,
 					},
 				});
 
@@ -281,9 +294,16 @@ export async function createPaystackSubaccount({
 					}).catch(() => {});
 				}
 
+				revalidatePath("/organization/wallet");
+				revalidatePath("/my-events");
+				revalidatePath("/(app)", "layout");
+
 				return {
 					success: true,
 					subaccountCode: org.subaccountCode,
+					bankCode: data.bankCode,
+					accountNumber: data.accountNumber,
+					accountName: finalName,
 					message: "Payment account updated successfully.",
 				};
 			}
@@ -341,9 +361,16 @@ export async function createPaystackSubaccount({
 			}).catch(() => {});
 		}
 
+		revalidatePath("/organization/wallet");
+		revalidatePath("/my-events");
+		revalidatePath("/(app)", "layout");
+
 		return {
 			success: true,
 			subaccountCode,
+			bankCode: data.bankCode,
+			accountNumber: data.accountNumber,
+			accountName: finalAccountName,
 			message: "Payment account created successfully. Automated payouts are enabled.",
 		};
 	} catch (error) {
@@ -359,7 +386,15 @@ export async function removePayoutAccount({
 	data,
 }: {
 	data: { organizationId: string };
-}): Promise<{ success: boolean; message: string; error?: string }> {
+}): Promise<{
+	success: boolean;
+	bankCode?: null;
+	accountNumber?: null;
+	accountName?: null;
+	subaccountCode?: null;
+	message: string;
+	error?: string;
+}> {
 	try {
 		const session = await requireSession();
 
@@ -417,8 +452,16 @@ export async function removePayoutAccount({
 			}).catch(() => {});
 		}
 
+		revalidatePath("/organization/wallet");
+		revalidatePath("/my-events");
+		revalidatePath("/(app)", "layout");
+
 		return {
 			success: true,
+			bankCode: null,
+			accountNumber: null,
+			accountName: null,
+			subaccountCode: null,
 			message: "Payout account removed successfully.",
 		};
 	} catch (err: any) {

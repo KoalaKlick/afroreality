@@ -15,7 +15,7 @@ import {
 	KeyRound,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { ConfirmPasswordDialog } from "@/components/shared/ConfirmPasswordDialog";
@@ -72,7 +72,7 @@ interface OrgWalletClientProps {
 }
 
 export function OrgWalletClient({
-	organization,
+	organization: initialOrganization,
 	wallet,
 	transactions,
 	totalTransactions,
@@ -81,6 +81,12 @@ export function OrgWalletClient({
 	activityLogs = [],
 }: OrgWalletClientProps) {
 	const router = useRouter();
+	const [organization, setOrganization] = useState(initialOrganization);
+
+	useEffect(() => {
+		setOrganization(initialOrganization);
+	}, [initialOrganization]);
+
 	const { canWithdraw, canManagePayouts } = usePermissions((organization as any).userRole);
 
 	// Search filter state
@@ -562,8 +568,20 @@ export function OrgWalletClient({
 
 					<div className="flex-1 overflow-y-auto p-6">
 						<OrgPayoutSettings
-							key={organization.id}
+							key={`${organization.id}-${organization.paystackAccountNumber || "none"}`}
 							organization={organization}
+							onSuccess={(updated) => {
+								if (updated) {
+									setOrganization((prev) => ({
+										...prev,
+										paystackBankCode: updated.bankCode,
+										paystackAccountNumber: updated.accountNumber,
+										paystackAccountName: updated.accountName,
+										subaccountCode: updated.subaccountCode ?? prev.subaccountCode,
+									}));
+								}
+								router.refresh();
+							}}
 						/>
 					</div>
 				</SheetContent>
