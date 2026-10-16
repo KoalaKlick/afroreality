@@ -38,6 +38,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { formatAmount } from "@/lib/utils";
+import { getUssdDialCode } from "@/lib/utils/ussd";
 import type { AdminEventItem } from "@/lib/dal/admin";
 import { adminUpdateEventStatus, adminToggleEventUssd } from "@/lib/server-functions/admin";
 
@@ -303,7 +304,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 												USSD Gateway
 											</span>
 											<span className="text-[10px] text-muted-foreground font-mono truncate block">
-												{ev.hasUssd ? (ev.ussdCode ? `*384*77340*${ev.ussdCode}#` : "Active") : "Disabled"}
+												{ev.hasUssd ? (ev.ussdCode ? getUssdDialCode(ev.ussdCode) : "Active") : "Disabled"}
 											</span>
 										</div>
 									</div>
@@ -552,7 +553,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 										<div>
 											<span className="block text-[10px] uppercase font-bold">Assigned USSD String</span>
 											<span className="font-mono text-foreground font-semibold">
-												{selectedEvent.ussdCode ? `*384*77340*${selectedEvent.ussdCode}#` : "*384*77340#"}
+												{getUssdDialCode(selectedEvent.ussdCode)}
 											</span>
 										</div>
 									</div>

@@ -76,15 +76,25 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 
 	if (newSession) {
 		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
-		const baseCodes = [
-			"*384*77340",
-			"*928*920",
-			"*920*55",
-			"*920",
-			"*384",
-			"*713",
-			"*714",
-		].sort((a, b) => b.length - a.length);
+		const envRoot = (
+			process.env.USSD_ROOT_CODE ||
+			process.env.NEXT_PUBLIC_USSD_ROOT_CODE ||
+			"*928*920*"
+		).replace(/[#*]+$/, "");
+		const baseCodes = Array.from(
+			new Set([
+				envRoot,
+				"*928*920",
+				"*384*77340",
+				"*920*55",
+				"*920",
+				"*384",
+				"*713",
+				"*714",
+			])
+		)
+			.filter(Boolean)
+			.sort((a, b) => b.length - a.length);
 
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {

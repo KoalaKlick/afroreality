@@ -257,7 +257,7 @@ export function UssdSettings({
 									Offline Ticketing &amp; Voting
 								</p>
 								<p className="text-xs text-muted-foreground leading-relaxed">
-									USSD assigns a dedicated 3-digit extension code to your event (e.g. <span className="font-mono font-bold text-foreground">*384*77340*104#</span>). Users across Ghana can interact with your ticketing tiers and voting categories on any mobile device without mobile data.
+									USSD assigns a dedicated 3-digit extension code to your event (e.g. <span className="font-mono font-bold text-foreground">{getUssdDialCode("104")}</span>). Users across Ghana can interact with your ticketing tiers and voting categories on any mobile device without mobile data.
 								</p>
 							</div>
 						</div>

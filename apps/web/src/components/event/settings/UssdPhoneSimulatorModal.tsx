@@ -28,6 +28,7 @@ import {
 	CornerDownLeft,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getUssdDialCode } from "@/lib/utils/ussd";
 
 interface UssdPhoneSimulatorModalProps {
 	readonly open: boolean;
@@ -53,9 +54,7 @@ export function UssdPhoneSimulatorModal({
 	ussdCode,
 	eventId,
 }: UssdPhoneSimulatorModalProps) {
-	const defaultDialCode = ussdCode
-		? `*384*77340*${ussdCode}#`
-		: `*384*77340*${eventId.slice(0, 8)}#`;
+	const defaultDialCode = getUssdDialCode(ussdCode || eventId.slice(0, 8));
 
 	// Simulator State
 	const [dialInput, setDialInput] = useState(defaultDialCode);

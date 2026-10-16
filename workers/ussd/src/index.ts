@@ -11,6 +11,7 @@ export interface Env {
 	DATABASE_URL: string;
 	PAYSTACK_SECRET_KEY?: string;
 	MAX_LISTED_EVENTS?: string;
+	USSD_ROOT_CODE?: string;
 }
 
 export const MAX_LISTED_EVENTS = 7;
@@ -1174,21 +1175,27 @@ async function toArkeselResponse(
 	});
 }
 
-function normalizeArkeselInput(userData: string, newSession: boolean): string {
+function normalizeArkeselInput(userData: string, newSession: boolean, envRootCode?: string): string {
 	if (!userData) return "";
 	const trimmed = String(userData).trim();
 
 	if (newSession) {
 		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
-		const baseCodes = [
-			"*928*920",
-			"*384*77340",
-			"*920*55",
-			"*920",
-			"*384",
-			"*713",
-			"*714",
-		].sort((a, b) => b.length - a.length);
+		const configuredRoot = (envRootCode || "*928*920*").replace(/[#*]+$/, "");
+		const baseCodes = Array.from(
+			new Set([
+				configuredRoot,
+				"*928*920",
+				"*384*77340",
+				"*920*55",
+				"*920",
+				"*384",
+				"*713",
+				"*714",
+			])
+		)
+			.filter(Boolean)
+			.sort((a, b) => b.length - a.length);
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {
 				const extra = cleaned.substring(base.length);
@@ -1294,7 +1301,7 @@ export default {
 
 			// Arkesel USSD flow
 			if (isArkeselRoute || bodyData.sessionID || bodyData.msisdn) {
-				const currentInput = normalizeArkeselInput(rawText, isNewSession);
+				const currentInput = normalizeArkeselInput(rawText, isNewSession, env.USSD_ROOT_CODE);
 				let accumulatedPath = currentInput;
 
 				if (env.DATABASE_URL && sessionId) {

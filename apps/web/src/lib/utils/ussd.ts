@@ -2,10 +2,10 @@
  * USSD helper utilities for formatting dialing codes and QR tel: payloads.
  */
 
-export const DEFAULT_USSD_ROOT_CODE = "*384*77340*";
+export const DEFAULT_USSD_ROOT_CODE = "*928*920*";
 
 /**
- * Returns the configured USSD root extension code (e.g. "*384*77340*").
+ * Returns the configured USSD root extension code (e.g. "*928*920*").
  */
 export function getUssdRootCode(): string {
 	const raw =
@@ -16,7 +16,7 @@ export function getUssdRootCode(): string {
 }
 
 /**
- * Returns the root dialing code without subcode, e.g. "*384*77340#" or "*928#".
+ * Returns the root dialing code without subcode, e.g. "*928*920#".
  */
 export function getUssdRootDialCode(): string {
 	const raw =
@@ -30,7 +30,7 @@ export function getUssdRootDialCode(): string {
 
 /**
  * Returns the human-readable USSD dialing code for an event or root.
- * e.g. "*384*77340*104#" or root "*384*77340#"
+ * e.g. "*928*920*104#" or root "*928*920#"
  */
 export function getUssdDialCode(ussdCode?: string | null): string {
 	if (!ussdCode || ussdCode.toLowerCase() === "root") {
@@ -47,7 +47,7 @@ export function getUssdDialCode(ussdCode?: string | null): string {
 /**
  * Returns the tel: URI for mobile browsers and QR codes.
  * Note: '#' must be encoded as '%23' in tel URIs so dialers handle it properly.
- * e.g. "tel:*384*77340*104%23" or "tel:*384*77340%23"
+ * e.g. "tel:*928*920*104%23" or "tel:*928*920%23"
  */
 export function getUssdTelUri(ussdCode?: string | null): string {
 	const dialCode = getUssdDialCode(ussdCode);
