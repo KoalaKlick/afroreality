@@ -475,6 +475,7 @@ export async function processPayment(
 	phoneNumber: string,
 	paystackSecret: string,
 	otpStr?: string,
+	isSimulation: boolean = false,
 ): Promise<Response> {
 	if (Number.isNaN(quantity) || quantity <= 0) {
 		return textResponse("END Invalid number. Try again.");
@@ -486,6 +487,13 @@ export async function processPayment(
 	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId);
 	const totalAmountGHS = feeCalc.totalToCharge;
 	const amountPesewas = Math.round(totalAmountGHS * 100);
+
+	if (isSimulation) {
+		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+		return textResponse(
+			`END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${totalAmountGHS.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`,
+		);
+	}
 
 	if (otpStr) {
 		const pendingSessions = await sql`
@@ -638,6 +646,7 @@ export async function handleVotingFlow(
 	tokens: string[],
 	phoneNumber: string,
 	paystackSecret: string,
+	isSimulation: boolean = false,
 ): Promise<Response> {
 	const now = new Date();
 	const startDate = event.start_date || event.startDate;
@@ -747,6 +756,7 @@ export async function handleVotingFlow(
 		phoneNumber,
 		paystackSecret,
 		otpStr,
+		isSimulation,
 	);
 }
 
@@ -757,6 +767,7 @@ export async function handleTicketFlow(
 	tokens: string[],
 	phoneNumber: string,
 	paystackSecret: string,
+	isSimulation: boolean = false,
 ): Promise<Response> {
 	const now = new Date();
 	const endDate = event.end_date || event.endDate;
@@ -841,6 +852,7 @@ export async function handleTicketFlow(
 		phoneNumber,
 		paystackSecret,
 		otpStr,
+		isSimulation,
 	);
 }
 
@@ -849,6 +861,7 @@ export async function handleUssdCore(
 	phoneNumber: string,
 	text: string,
 	env: Env,
+	isSimulation: boolean = false,
 ): Promise<Response> {
 	const dbUrl = env.DATABASE_URL;
 	const paystackSecret = env.PAYSTACK_SECRET_KEY || "";
@@ -860,39 +873,41 @@ export async function handleUssdCore(
 
 	const sql = neon(dbUrl);
 
-	// OTP Resumption Interceptor (only when gateway requested OTP)
-	const pendingSessions = await sql`
-		SELECT s.reference, s.amount 
-		FROM ussd_sessions s
-		JOIN payments p ON p.reference = s.reference
-		WHERE s.phone_number = ${phoneNumber} 
-		  AND s.status = 'pending' 
-		  AND (p.metadata->>'awaitingOtp') = 'true'
-		  AND s.created_at >= NOW() - INTERVAL '5 minutes'
-		ORDER BY s.created_at DESC 
-		LIMIT 1
-	`;
+	// OTP Resumption Interceptor (only when gateway requested OTP and not in simulation)
+	if (!isSimulation) {
+		const pendingSessions = await sql`
+			SELECT s.reference, s.amount 
+			FROM ussd_sessions s
+			JOIN payments p ON p.reference = s.reference
+			WHERE s.phone_number = ${phoneNumber} 
+			  AND s.status = 'pending' 
+			  AND (p.metadata->>'awaitingOtp') = 'true'
+			  AND s.created_at >= NOW() - INTERVAL '5 minutes'
+			ORDER BY s.created_at DESC 
+			LIMIT 1
+		`;
 
-	if (pendingSessions.length > 0) {
-		const pending = pendingSessions[0];
-		const rawTokens = text.split("*").filter(Boolean);
+		if (pendingSessions.length > 0) {
+			const pending = pendingSessions[0];
+			const rawTokens = text.split("*").filter(Boolean);
 
-		if (rawTokens.length === 0) {
-			return textResponse(
-				`CON You have a pending payment of GHS ${pending.amount}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`,
-			);
-		}
-		const otpAnswer = rawTokens[rawTokens.length - 1];
-		if (otpAnswer === "0") {
-			await sql`UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${pending.reference}`;
-			text = "";
-		} else {
-			return await submitOtp(
-				sql,
-				pending.reference,
-				otpAnswer,
-				paystackSecret,
-			);
+			if (rawTokens.length === 0) {
+				return textResponse(
+					`CON You have a pending payment of GHS ${pending.amount}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`,
+				);
+			}
+			const otpAnswer = rawTokens[rawTokens.length - 1];
+			if (otpAnswer === "0") {
+				await sql`UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${pending.reference}`;
+				text = "";
+			} else {
+				return await submitOtp(
+					sql,
+					pending.reference,
+					otpAnswer,
+					paystackSecret,
+				);
+			}
 		}
 	}
 
@@ -1012,7 +1027,17 @@ export async function handleUssdCore(
 				}
 
 				const otpStr = tokens.shift();
-				return await processPayment(sql, nomEvent, nom.id, quantity, votePrice, phoneNumber, paystackSecret, otpStr);
+				return await processPayment(
+					sql,
+					nomEvent,
+					nom.id,
+					quantity,
+					votePrice,
+					phoneNumber,
+					paystackSecret,
+					otpStr,
+					isSimulation,
+				);
 			}
 		}
 
@@ -1082,6 +1107,7 @@ export async function handleUssdCore(
 			tokens,
 			phoneNumber,
 			paystackSecret,
+			isSimulation,
 		);
 	}
 	if (eventType === "ticketed") {
@@ -1092,6 +1118,7 @@ export async function handleUssdCore(
 			tokens,
 			phoneNumber,
 			paystackSecret,
+			isSimulation,
 		);
 	}
 	if (eventType === "standard" || eventType === "hybrid") {
@@ -1107,6 +1134,7 @@ export async function handleUssdCore(
 				tokens,
 				phoneNumber,
 				paystackSecret,
+				isSimulation,
 			);
 		}
 		if (modeStr === "2") {
@@ -1117,6 +1145,7 @@ export async function handleUssdCore(
 				tokens,
 				phoneNumber,
 				paystackSecret,
+				isSimulation,
 			);
 		}
 		return textResponse("END Invalid selection.");
@@ -1151,16 +1180,24 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 
 	if (newSession) {
 		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
-		const baseCodes = ["*384*77340", "*920*55", "*920", "*384", "*713", "*714"];
+		const baseCodes = [
+			"*928*920",
+			"*384*77340",
+			"*920*55",
+			"*920",
+			"*384",
+			"*713",
+			"*714",
+		].sort((a, b) => b.length - a.length);
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {
 				const extra = cleaned.substring(base.length);
 				return extra.startsWith("*") ? extra.substring(1) : extra;
 			}
 		}
-		// Generic regex for *XXX*YYY*event_code
-		const match = cleaned.match(/^\*\d+(?:\*\d+)*\*(\d+(?:\*.*)?)$/);
-		if (match) {
+		// Generic regex for *XXX*YYY*code or *XXX*code
+		const match = cleaned.match(/^\*\d+(?:\*\d+)*\*([^*#]+(?:\*.*)?)$/);
+		if (match && match[1]) {
 			return match[1];
 		}
 		if (cleaned.startsWith("*")) {
@@ -1279,10 +1316,18 @@ export default {
 					`;
 				}
 
+				const isSimulation =
+					Boolean(bodyData.isSimulation) ||
+					Boolean(bodyData.isSimulated) ||
+					sessionId.startsWith("SIM_") ||
+					userId === "sim_tester" ||
+					url.searchParams.get("simulation") === "true";
+
 				const atResponse = await handleUssdCore(
 					phoneNumber,
 					accumulatedPath,
 					env,
+					isSimulation,
 				);
 				return await toArkeselResponse(
 					atResponse,
@@ -1293,7 +1338,10 @@ export default {
 			}
 
 			// Africa's Talking USSD flow (Default)
-			return await handleUssdCore(phoneNumber, rawText, env);
+			const isAtSimulation =
+				sessionId.startsWith("SIM_") ||
+				url.searchParams.get("simulation") === "true";
+			return await handleUssdCore(phoneNumber, rawText, env, isAtSimulation);
 		} catch (error: any) {
 			console.error("USSD Worker Error:", error);
 			if (isArkeselRoute || bodyData.sessionID || bodyData.msisdn) {

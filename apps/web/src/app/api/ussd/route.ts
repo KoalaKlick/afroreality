@@ -75,31 +75,44 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 	const trimmed = String(userData).trim();
 
 	if (newSession) {
-		const cleaned = trimmed.replace(/[#＃]+$/, "");
-		const baseCodes = ["*928*920", "*920*55", "*920", "*384", "*713", "*714"];
+		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
+		const baseCodes = [
+			"*384*77340",
+			"*928*920",
+			"*920*55",
+			"*920",
+			"*384",
+			"*713",
+			"*714",
+		].sort((a, b) => b.length - a.length);
+
 		for (const base of baseCodes) {
 			if (cleaned.startsWith(base)) {
 				const extra = cleaned.substring(base.length);
-				// *384*77340*689# → extra = "*689" → return "689"
-				// *384*77340# → extra = "" → return ""
-				if (extra.startsWith("*")) {
-					return extra.substring(1);
-				}
-				return extra;
+				return extra.startsWith("*") ? extra.substring(1) : extra;
 			}
 		}
-		// If dial string like *384*...*code
+
+		// Generic regex for *XXX*YYY*code or *XXX*code
+		const match = cleaned.match(/^\*\d+(?:\*\d+)*\*([^*#]+(?:\*.*)?)$/);
+		if (match && match[1]) {
+			return match[1];
+		}
+
 		if (cleaned.startsWith("*")) {
 			const parts = cleaned.split("*").filter(Boolean);
 			if (parts.length > 2) {
 				return parts.slice(2).join("*");
+			}
+			if (parts.length > 0) {
+				return parts[parts.length - 1] || "";
 			}
 		}
 		return cleaned;
 	}
 
 	// On subsequent menu navigation turns: preserve "#" selection
-	if (trimmed === "#" || trimmed === "＃") {
+	if (trimmed === "#" || trimmed === "\uFF03") {
 		return "#";
 	}
 
@@ -199,13 +212,22 @@ function getCurrentEventsWhere(now: Date = new Date()) {
 }
 
 async function fetchEventByCode(code: string) {
+	if (!code) return null;
+	const isUUID =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+			code,
+		);
+	const orConditions: any[] = [
+		{ ussdCode: code, hasUssd: true },
+		{ ussdCode: code },
+	];
+	if (isUUID) {
+		orConditions.push({ id: code });
+	}
+
 	return prisma.event.findFirst({
 		where: {
-			OR: [
-				{ ussdCode: code, hasUssd: true },
-				{ ussdCode: code },
-				{ id: code },
-			],
+			OR: orConditions,
 		},
 		include: EVENT_INCLUDE,
 	});
@@ -288,6 +310,7 @@ async function processPayment(
 	price: number,
 	phoneNumber: string,
 	otpStr?: string,
+	isSimulation: boolean = false,
 ): Promise<string> {
 	if (Number.isNaN(quantity) || quantity <= 0) {
 		return "END Invalid number. Try again.";
@@ -298,6 +321,13 @@ async function processPayment(
 	const feeCalc = await computeDynamicChargeAmount(baseAmount, feeType, "GHS", event.organizationId);
 	const totalAmountGHS = feeCalc.totalToCharge;
 	const amountPesewas = toPesewas(totalAmountGHS);
+
+	// In simulator preview mode, do not call Paystack or create real financial records
+	if (isSimulation) {
+		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${totalAmountGHS.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`;
+	}
+
 	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
 	const provider = getProvider(phoneNumber);
 
@@ -442,6 +472,7 @@ async function handleNomineeDirectVotingFlow(
 	nominee: any,
 	tokens: string[],
 	phoneNumber: string,
+	isSimulation: boolean = false,
 ): Promise<string> {
 	const event = nominee.event;
 	const now = new Date();
@@ -497,6 +528,7 @@ async function handleNomineeDirectVotingFlow(
 		votePrice,
 		phoneNumber,
 		otpStr,
+		isSimulation,
 	);
 }
 
@@ -504,6 +536,7 @@ async function handleVotingFlow(
 	event: any,
 	tokens: string[],
 	phoneNumber: string,
+	isSimulation: boolean = false,
 ): Promise<string> {
 	const now = new Date();
 	if (event.startDate && new Date(event.startDate) > now) {
@@ -605,6 +638,7 @@ async function handleVotingFlow(
 		votePrice,
 		phoneNumber,
 		otpStr,
+		isSimulation,
 	);
 }
 
@@ -612,6 +646,7 @@ async function handleTicketFlow(
 	event: any,
 	tokens: string[],
 	phoneNumber: string,
+	isSimulation: boolean = false,
 ): Promise<string> {
 	const now = new Date();
 	if (
@@ -702,6 +737,7 @@ async function handleTicketFlow(
 		ticketPrice,
 		phoneNumber,
 		otpStr,
+		isSimulation,
 	);
 }
 
@@ -755,40 +791,46 @@ async function submitPaystackOtp(
 // Both AT and Arkesel entrypoints call this after parsing their payloads.
 // Mirrors: _shared/ussd-handler.ts handleUssdRequest
 
-async function handleUssdCore(phoneNumber: string, text: string): Promise<string> {
-	const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
-	const pendingSession = await prisma.ussdSession.findFirst({
-		where: {
-			phoneNumber: normalizePhone(phoneNumber),
-			status: "pending",
-			createdAt: { gte: fiveMinsAgo },
-		},
-		orderBy: { createdAt: "desc" },
-	});
-
-	if (pendingSession) {
-		const payment = await prisma.payment.findUnique({
-			where: { reference: pendingSession.reference },
-			select: { metadata: true },
+async function handleUssdCore(
+	phoneNumber: string,
+	text: string,
+	isSimulation: boolean = false,
+): Promise<string> {
+	if (!isSimulation) {
+		const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+		const pendingSession = await prisma.ussdSession.findFirst({
+			where: {
+				phoneNumber: normalizePhone(phoneNumber),
+				status: "pending",
+				createdAt: { gte: fiveMinsAgo },
+			},
+			orderBy: { createdAt: "desc" },
 		});
-		const isAwaitingOtp =
-			(payment?.metadata as any)?.awaitingOtp === true ||
-			(payment?.metadata as any)?.awaitingOtp === "true";
 
-		if (isAwaitingOtp) {
-			const rawTokens = text.split("*").filter(Boolean);
-			if (rawTokens.length === 0) {
-				return `CON You have a pending payment of GHS ${Number(pendingSession.amount).toFixed(2)}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`;
-			}
-			const otpAnswer = rawTokens[rawTokens.length - 1];
-			if (otpAnswer === "0") {
-				await prisma.ussdSession.update({
-					where: { id: pendingSession.id },
-					data: { status: "cancelled" },
-				});
-				text = "";
-			} else if (otpAnswer) {
-				return await submitPaystackOtp(pendingSession, otpAnswer);
+		if (pendingSession) {
+			const payment = await prisma.payment.findUnique({
+				where: { reference: pendingSession.reference },
+				select: { metadata: true },
+			});
+			const isAwaitingOtp =
+				(payment?.metadata as any)?.awaitingOtp === true ||
+				(payment?.metadata as any)?.awaitingOtp === "true";
+
+			if (isAwaitingOtp) {
+				const rawTokens = text.split("*").filter(Boolean);
+				if (rawTokens.length === 0) {
+					return `CON You have a pending payment of GHS ${Number(pendingSession.amount).toFixed(2)}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`;
+				}
+				const otpAnswer = rawTokens[rawTokens.length - 1];
+				if (otpAnswer === "0") {
+					await prisma.ussdSession.update({
+						where: { id: pendingSession.id },
+						data: { status: "cancelled" },
+					});
+					text = "";
+				} else if (otpAnswer) {
+					return await submitPaystackOtp(pendingSession, otpAnswer);
+				}
 			}
 		}
 	}
@@ -797,7 +839,7 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 	const inputArray = reduceTokens(rawInputArray);
 	const depth = inputArray.length;
 
-	console.log("[USSD Core]", { text, rawInputArray, inputArray, depth });
+	console.log("[USSD Core]", { text, rawInputArray, inputArray, depth, isSimulation });
 
 	// 2. Welcome screen (Depth 0)
 	if (depth === 0) {
@@ -843,7 +885,12 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 				nomineeCode: nominee.nomineeCode,
 				eventTitle: nominee.event?.title,
 			});
-			return await handleNomineeDirectVotingFlow(nominee, tokens, phoneNumber);
+			return await handleNomineeDirectVotingFlow(
+				nominee,
+				tokens,
+				phoneNumber,
+				isSimulation,
+			);
 		}
 
 		// Fallback: try as event code
@@ -873,7 +920,12 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 			const directNominee = await fetchNomineeByCode(firstInput);
 			if (directNominee) {
 				tokens.shift();
-				return await handleNomineeDirectVotingFlow(directNominee, tokens, phoneNumber);
+				return await handleNomineeDirectVotingFlow(
+					directNominee,
+					tokens,
+					phoneNumber,
+					isSimulation,
+				);
 			}
 
 			// Fallback: treat firstInput as a ussdCode (deep-link like *384*77340*689#)
@@ -910,11 +962,11 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 	const eventType = event.type;
 
 	if (eventType === "voting") {
-		return await handleVotingFlow(event, tokens, phoneNumber);
+		return await handleVotingFlow(event, tokens, phoneNumber, isSimulation);
 	}
 
 	if (eventType === "ticketed") {
-		return await handleTicketFlow(event, tokens, phoneNumber);
+		return await handleTicketFlow(event, tokens, phoneNumber, isSimulation);
 	}
 
 	if (eventType === "standard" || eventType === "hybrid") {
@@ -923,10 +975,10 @@ async function handleUssdCore(phoneNumber: string, text: string): Promise<string
 			return `CON ${event.title}\n1. Voting\n2. Tickets\n0. Back`;
 		}
 		if (modeStr === "1") {
-			return await handleVotingFlow(event, tokens, phoneNumber);
+			return await handleVotingFlow(event, tokens, phoneNumber, isSimulation);
 		}
 		if (modeStr === "2") {
-			return await handleTicketFlow(event, tokens, phoneNumber);
+			return await handleTicketFlow(event, tokens, phoneNumber, isSimulation);
 		}
 		return "END Invalid selection.";
 	}
@@ -992,14 +1044,26 @@ export async function POST(req: NextRequest) {
 				});
 			}
 
+			const isSimulation =
+				Boolean(body.isSimulation) ||
+				Boolean(body.isSimulated) ||
+				String(sessionID).startsWith("SIM_") ||
+				userID === "sim_tester" ||
+				req.nextUrl.searchParams.get("simulation") === "true";
+
 			console.log("[USSD Arkesel]", {
 				currentInput,
 				accumulatedPath,
 				newSession,
+				isSimulation,
 			});
 
 			// Process using the shared handler with the accumulated path
-			const coreResult = await handleUssdCore(msisdn, accumulatedPath);
+			const coreResult = await handleUssdCore(
+				msisdn,
+				accumulatedPath,
+				isSimulation,
+			);
 			return toArkeselResponse(coreResult, sessionID, userID, msisdn);
 		}
 
@@ -1012,10 +1076,14 @@ export async function POST(req: NextRequest) {
 		const params = new URLSearchParams(bodyText);
 		const phoneNumber = params.get("phoneNumber") || "";
 		const text = params.get("text") || "";
+		const atSessionId = params.get("sessionId") || "";
+		const isAtSimulation =
+			atSessionId.startsWith("SIM_") ||
+			req.nextUrl.searchParams.get("simulation") === "true";
 
-		console.log("[USSD POST AT]", { phoneNumber, text });
+		console.log("[USSD POST AT]", { phoneNumber, text, isAtSimulation });
 
-		const coreResult = await handleUssdCore(phoneNumber, text);
+		const coreResult = await handleUssdCore(phoneNumber, text, isAtSimulation);
 		return textResponse(coreResult);
 	} catch (error) {
 		console.error("[USSD Webhook Error]:", error);
@@ -1044,6 +1112,10 @@ export async function GET(req: NextRequest) {
 			const msisdn = req.nextUrl.searchParams.get("msisdn") || req.nextUrl.searchParams.get("phoneNumber") || "";
 			const userData = req.nextUrl.searchParams.get("userData") || req.nextUrl.searchParams.get("text") || "";
 			const isNewSession = req.nextUrl.searchParams.get("newSession") === "true";
+			const isSimulation =
+				req.nextUrl.searchParams.get("simulation") === "true" ||
+				String(sessionID).startsWith("SIM_") ||
+				userID === "sim_tester";
 
 			const currentInput = normalizeArkeselInput(userData, isNewSession);
 			let accumulatedPath = currentInput;
@@ -1065,15 +1137,23 @@ export async function GET(req: NextRequest) {
 				});
 			}
 
-			const coreResult = await handleUssdCore(msisdn, accumulatedPath);
+			const coreResult = await handleUssdCore(
+				msisdn,
+				accumulatedPath,
+				isSimulation,
+			);
 			return toArkeselResponse(coreResult, sessionID, userID, msisdn);
 		}
 
 		// AT via GET (unlikely but supported)
 		const phoneNumber = req.nextUrl.searchParams.get("phoneNumber") || "";
 		const text = req.nextUrl.searchParams.get("text") || "";
+		const sessionId = req.nextUrl.searchParams.get("sessionId") || "";
+		const isSimulation =
+			req.nextUrl.searchParams.get("simulation") === "true" ||
+			sessionId.startsWith("SIM_");
 
-		const coreResult = await handleUssdCore(phoneNumber, text);
+		const coreResult = await handleUssdCore(phoneNumber, text, isSimulation);
 		return textResponse(coreResult);
 	} catch (error) {
 		console.error("[USSD GET Error]:", error);

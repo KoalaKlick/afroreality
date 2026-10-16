@@ -128,6 +128,7 @@ export function UssdPhoneSimulatorModal({
 						msisdn: phoneNumber,
 						userData: code,
 						newSession: true,
+						isSimulation: true,
 					}),
 				});
 
@@ -182,6 +183,7 @@ export function UssdPhoneSimulatorModal({
 					msisdn: phoneNumber,
 					userData: input,
 					newSession: false,
+					isSimulation: true,
 				}),
 			});
 
