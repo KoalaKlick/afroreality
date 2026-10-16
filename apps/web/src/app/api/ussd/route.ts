@@ -65,7 +65,7 @@ function getProvider(phone: string): "mtn" | "vod" | "tgo" {
 }
 
 /**
- * Arkesel sends the full USSD string on newSession (e.g. "*384*77340*689#").
+ * Arkesel sends the full USSD string on newSession (e.g. "*928*920*689#").
  * We strip the base code so handleUssdCore sees just "689" (like AT would).
  * On subsequent turns, Arkesel sends only the current input (e.g. "1").
  *
@@ -77,27 +77,11 @@ function normalizeArkeselInput(userData: string, newSession: boolean): string {
 
 	if (newSession) {
 		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
-		const envRoot = getUssdBaseCode();
-		const baseCodes = Array.from(
-			new Set([
-				envRoot,
-				"*928*920",
-				"*384*77340",
-				"*920*55",
-				"*920",
-				"*384",
-				"*713",
-				"*714",
-			])
-		)
-			.filter(Boolean)
-			.sort((a, b) => b.length - a.length);
+		const baseCode = getUssdBaseCode(); // e.g. "*928*920"
 
-		for (const base of baseCodes) {
-			if (cleaned.startsWith(base)) {
-				const extra = cleaned.substring(base.length);
-				return extra.startsWith("*") ? extra.substring(1) : extra;
-			}
+		if (cleaned.startsWith(baseCode)) {
+			const extra = cleaned.substring(baseCode.length);
+			return extra.startsWith("*") ? extra.substring(1) : extra;
 		}
 
 		// Generic regex for *XXX*YYY*code or *XXX*code
@@ -935,7 +919,7 @@ async function handleUssdCore(
 				);
 			}
 
-			// Fallback: treat firstInput as a ussdCode (deep-link like *384*77340*689#)
+			// Fallback: treat firstInput as a ussdCode (deep-link like *928*920*689#)
 			event = await fetchEventByCode(firstInput);
 			tokens.shift();
 		}

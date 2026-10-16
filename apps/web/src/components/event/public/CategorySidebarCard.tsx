@@ -9,7 +9,6 @@ import {
 	ChevronRight,
 	Calendar,
 	MapPin,
-	Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,7 +68,7 @@ export function CategorySidebarCard({
 	eventSlug,
 }: CategorySidebarCardProps) {
 	const isInternalVoting = event.votingMode === "internal";
-	const { bannerImageUrl: eventBannerImg, logoImageUrl: orgLogo } = formatEventDisplay(event);
+	const { bannerImageUrl: eventBannerImg } = formatEventDisplay(event);
 	const templateImg = getEventImageUrl(category.templateImage) || eventBannerImg;
 
 	return (
@@ -111,26 +110,8 @@ export function CategorySidebarCard({
 				{/* Bottom Gradient Backdrop for Title & Info */}
 				<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 
-				{/* Floating Header Info inside Banner to save vertical space */}
-				<div className="absolute bottom-3 left-3 right-3 z-10 space-y-1.5">
-					<Link
-						href={`/${orgSlug}/event/${eventSlug}`}
-						className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background/90 hover:bg-background text-foreground backdrop-blur-md border border-border/80 text-[11px] font-semibold transition-all shadow-xs group w-fit max-w-full"
-					>
-						{orgLogo ? (
-							<img
-								src={orgLogo}
-								alt={event.organization.name}
-								className="size-3.5 rounded-full object-cover border border-border/50 shrink-0"
-							/>
-						) : (
-							<Building2 className="size-3 text-primary shrink-0" />
-						)}
-						<span className="truncate group-hover:text-primary transition-colors max-w-[200px]">
-							{event.title}
-						</span>
-					</Link>
-
+				{/* Category title */}
+				<div className="absolute bottom-3 left-3 right-3 z-10">
 					<h1 className="text-lg sm:text-xl font-black uppercase tracking-tight text-white leading-tight font-millik drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
 						{category.name}
 					</h1>

@@ -44,6 +44,7 @@ export default async function AuthLayout({
               />
             </Link>
           </div>
+          
           <span className="mt-2 text-sm inline bg-secondary-50/90 dark:bg-zinc-900/90 px-2 py-1 backdrop-blur-sm font-medium text-foreground/80 rounded box-decoration-clone">
             Discover and book the hottest events across the continent.
           </span>

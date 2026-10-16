@@ -20,6 +20,7 @@ export interface AuthState {
     session: SessionPayload;
     userId: string;
     email: string;
+    phone?: string | null;
     fullName: string;
     username?: string | null;
     emailVerified: boolean;
@@ -39,6 +40,7 @@ export async function getAuthState(): Promise<AuthState | null> {
         select: {
             id: true,
             email: true,
+            phone: true,
             emailVerified: true,
             fullName: true,
             username: true,
@@ -51,6 +53,7 @@ export async function getAuthState(): Promise<AuthState | null> {
         session,
         userId: profile.id,
         email: profile.email,
+        phone: profile.phone || session.phone || null,
         fullName: profile.fullName,
         username: profile.username,
         emailVerified: profile.emailVerified ?? false,
@@ -58,9 +61,23 @@ export async function getAuthState(): Promise<AuthState | null> {
     };
 }
 
-/** True when this account must complete email verification before continuing. */
+/** True when this account must complete verification before continuing. */
 export function mustVerifyEmail(state: AuthState): boolean {
     return !state.emailVerified && !state.onboardingCompleted;
+}
+
+function buildVerifyRedirect(state: AuthState): string {
+    const params = new URLSearchParams();
+    if (state.phone) {
+        params.set("phone", state.phone);
+    } else if (state.email && !state.email.endsWith("@phone.fextiva.com")) {
+        params.set("email", state.email);
+    } else if (state.email && state.email.endsWith("@phone.fextiva.com")) {
+        const digits = (state.email.split("@")[0] ?? "").replace(/^phone_/, "");
+        params.set("phone", digits);
+    }
+    const qs = params.toString();
+    return `/verify${qs ? `?${qs}` : ""}`;
 }
 
 /**
@@ -74,8 +91,7 @@ export async function requireAppAccess(): Promise<AuthState> {
     if (!state) redirect("/login");
 
     if (mustVerifyEmail(state)) {
-        const params = new URLSearchParams({ email: state.email });
-        redirect(`/verify?${params.toString()}`);
+        redirect(buildVerifyRedirect(state));
     }
 
     if (!state.onboardingCompleted) redirect("/onboarding");
@@ -94,8 +110,7 @@ export async function requireOnboardingAccess(): Promise<AuthState> {
     if (!state) redirect("/login");
 
     if (mustVerifyEmail(state)) {
-        const params = new URLSearchParams({ email: state.email });
-        redirect(`/verify?${params.toString()}`);
+        redirect(buildVerifyRedirect(state));
     }
 
     if (state.onboardingCompleted) redirect("/dashboard");

@@ -67,7 +67,14 @@ export async function proxy(request: NextRequest) {
 
         if (isProtected || isOnboardingRoute || isAuthRoute) {
             const verifyUrl = new URL(VERIFY_PATH, request.url);
-            verifyUrl.searchParams.set('email', session.email || '');
+            if ((session as any).phone) {
+                verifyUrl.searchParams.set('phone', (session as any).phone);
+            } else if (session.email && !session.email.endsWith('@phone.fextiva.com')) {
+                verifyUrl.searchParams.set('email', session.email);
+            } else if (session.email && session.email.endsWith('@phone.fextiva.com')) {
+                const phoneDigits = session.email.split('@')[0].replace(/^phone_/, '');
+                verifyUrl.searchParams.set('phone', phoneDigits);
+            }
             if (!isAuthRoute) verifyUrl.searchParams.set('next', pathname);
             return NextResponse.redirect(verifyUrl);
         }

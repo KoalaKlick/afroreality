@@ -17,6 +17,7 @@ export interface SessionPayload {
   username?: string;
   fullName?: string;
   role?: string;
+  phone?: string | null;
   currentOrganizationId?: string | null;
   onboardingCompleted?: boolean;
 }
@@ -26,6 +27,7 @@ export interface AuthSession {
   email: string;
   emailVerified?: boolean;
   role?: string;
+  phone?: string | null;
   currentOrganizationId?: string | null;
   onboardingCompleted?: boolean;
 }

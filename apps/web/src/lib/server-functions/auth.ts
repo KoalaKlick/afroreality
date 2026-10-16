@@ -28,8 +28,90 @@ import { sendWhatsAppTextMessage } from "@/lib/services/whatsapp";
 const EMAIL_VERIFY_PREFIX = "email-verification";
 const PASSWORD_RESET_PREFIX = "password-reset";
 const PHONE_LOGIN_PREFIX = "phone-login";
+const PHONE_VERIFY_PREFIX = "phone-verification";
 const OTP_TTL_MINUTES = 15;
 const PHONE_OTP_TTL_MINUTES = 5;
+
+/**
+ * Sends a 6-digit verification OTP to a phone number via SMS or WhatsApp.
+ */
+export async function sendPhoneVerificationOtp({
+  phone,
+  purpose = "phone_verification",
+}: {
+  phone: string;
+  purpose?: string;
+}): Promise<{
+  success: boolean;
+  maskedPhone?: string;
+  channel?: "sms" | "whatsapp";
+  error?: string;
+}> {
+  try {
+    const normalizedPhone = normalizePhoneNumber(phone.trim());
+    if (normalizedPhone.length < 9) {
+      return { success: false, error: "Please enter a valid phone number." };
+    }
+
+    const otp = generateOtp();
+    const identifier = `${PHONE_VERIFY_PREFIX}:${normalizedPhone}`;
+
+    await prisma.verification.deleteMany({ where: { identifier } }).catch(() => {});
+    await prisma.verification.create({
+      data: {
+        id: `ver_phone_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+        identifier,
+        value: otp,
+        expiresAt: new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000),
+      },
+    });
+
+    const channel = await getPhoneLoginOtpChannel();
+    const otpMessage = `Your Fextiva verification code is: ${otp}\n\nThis code expires in ${OTP_TTL_MINUTES} minutes. Do not share it with anyone.`;
+
+    let sendSuccess = false;
+    if (channel === "whatsapp") {
+      try {
+        const waRes = await sendWhatsAppTextMessage({
+          to: normalizedPhone,
+          text: otpMessage,
+        });
+        sendSuccess = waRes.success;
+      } catch (err) {
+        console.error("[PhoneVerify] WhatsApp OTP send failed, falling back to SMS:", err);
+      }
+    }
+
+    if (!sendSuccess) {
+      const smsRes = await sendSmsMessage({
+        to: normalizedPhone,
+        message: `Your Fextiva verification code: ${otp}. Expires in ${OTP_TTL_MINUTES} mins.`,
+        purpose,
+      });
+      sendSuccess = smsRes.success;
+    }
+
+    if (!sendSuccess) {
+      return {
+        success: false,
+        error: "Failed to send verification code. Please check the phone number or try again.",
+      };
+    }
+
+    const lastFour = normalizedPhone.slice(-4);
+    const countryCode = normalizedPhone.slice(0, 3);
+    const maskedPhone = `+${countryCode} •••••• ${lastFour}`;
+
+    return {
+      success: true,
+      maskedPhone,
+      channel: sendSuccess ? (channel === "whatsapp" ? "whatsapp" : "sms") : "sms",
+    };
+  } catch (err: any) {
+    console.error("sendPhoneVerificationOtp error:", err);
+    return { success: false, error: "Failed to send verification code." };
+  }
+}
 
 /**
  * Detects whether the given identifier looks like a phone number.
@@ -235,7 +317,21 @@ export async function loginAction({
     // onboarding must verify their email before continuing.
     const onboardingCompleted = Boolean(user.onboardingCompleted);
     if (!user.emailVerified && !onboardingCompleted) {
-      // Generate a fresh OTP and email it to the user so they have the code immediately
+      // Check if user is a phone-registered account
+      const isPhoneAccount = Boolean(user.phone) && (user.email.endsWith("@phone.fextiva.com") || isPhoneIdentifier(identifier));
+      if (isPhoneAccount && user.phone) {
+        sendPhoneVerificationOtp({ phone: user.phone }).catch((err) =>
+          console.error("Failed to send phone verification OTP during login:", err)
+        );
+        return {
+          success: false,
+          needsVerification: true,
+          phone: user.phone,
+          error: "Please verify your phone number before continuing. A verification code has been sent to your phone.",
+        };
+      }
+
+      // Email verification flow
       const otp = generateOtp();
       await createOtpRecord(`${EMAIL_VERIFY_PREFIX}:${user.id}`, otp);
 
@@ -266,6 +362,7 @@ export async function loginAction({
     const token = await signSession({
       userId: user.id,
       email: user.email,
+      phone: user.phone || null,
       emailVerified: Boolean(user.emailVerified),
       fullName: user.fullName || "",
       username: user.username || "",
@@ -288,25 +385,103 @@ export async function loginAction({
 
 export async function registerAction({
   email,
+  phone,
   password,
   fullName,
   username,
 }: {
-  email: string;
+  email?: string;
+  phone?: string;
   password: string;
   fullName: string;
   username?: string;
 }): Promise<any> {
-  const cleanEmail = email.toLowerCase().trim();
+  const cleanEmail = email ? email.toLowerCase().trim() : undefined;
+  const cleanPhone = phone ? normalizePhoneNumber(phone.trim()) : undefined;
+
+  if (!cleanEmail && !cleanPhone) {
+    return { success: false, error: "Please provide either an email address or a phone number." };
+  }
 
   try {
+    // 1. Phone Registration Flow
+    if (cleanPhone) {
+      if (cleanPhone.length < 9) {
+        return { success: false, error: "Please enter a valid phone number." };
+      }
+
+      const existingPhoneUser = await prisma.profile.findFirst({
+        where: {
+          OR: [
+            { phone: cleanPhone },
+            { phone: phone?.trim() },
+          ],
+        },
+      });
+
+      if (existingPhoneUser) {
+        if (!existingPhoneUser.emailVerified && !existingPhoneUser.onboardingCompleted) {
+          sendPhoneVerificationOtp({ phone: cleanPhone }).catch(() => {});
+          return {
+            success: false,
+            needsVerification: true,
+            phone: cleanPhone,
+            error: "An account with this phone number already exists. Please verify your phone number.",
+          };
+        }
+        return { success: false, error: "An account with this phone number already exists. Please sign in." };
+      }
+
+      const syntheticEmail = cleanEmail || `phone_${cleanPhone.replace(/[^0-9]/g, "")}@phone.fextiva.com`;
+      const passwordHash = await bcrypt.hash(password, 10);
+      const fallbackUsername = `user_${cleanPhone.slice(-6)}`;
+
+      const user = await prisma.profile.create({
+        data: {
+          id: crypto.randomUUID(),
+          email: syntheticEmail,
+          phone: cleanPhone,
+          fullName: fullName.trim(),
+          username: (username || fallbackUsername).toLowerCase().trim(),
+          passwordHash,
+          emailVerified: false,
+          onboardingCompleted: false,
+          onboardingStep: 0,
+        },
+      });
+
+      // Send OTP to phone
+      sendPhoneVerificationOtp({ phone: cleanPhone }).catch((err) =>
+        console.error("Error sending registration phone verification OTP:", err)
+      );
+
+      const token = await signSession({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        emailVerified: false,
+        fullName: user.fullName || "",
+        username: user.username || "",
+        onboardingCompleted: false,
+      });
+      await setSessionCookie(token);
+
+      return {
+        success: true,
+        requiresVerification: true,
+        phone: cleanPhone,
+        emailVerified: false,
+        user: toSafeUserDto(user),
+        onboardingCompleted: false,
+      };
+    }
+
+    // 2. Email Registration Flow
     const existing = await prisma.profile.findUnique({
-      where: { email: cleanEmail },
+      where: { email: cleanEmail! },
     });
 
     if (existing) {
-      // Legacy accounts that completed onboarding simply exist — direct them to
-      // sign in. New-but-unverified accounts are sent to the verify flow.
       if (!existing.emailVerified && !existing.onboardingCompleted) {
         return {
           success: false,
@@ -319,12 +494,12 @@ export async function registerAction({
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const fallbackUsername = cleanEmail.split("@")[0]?.replace(/[^a-z0-9_]/g, "") || "user";
+    const fallbackUsername = cleanEmail!.split("@")[0]?.replace(/[^a-z0-9_]/g, "") || "user";
 
     const user = await prisma.profile.create({
       data: {
         id: crypto.randomUUID(),
-        email: cleanEmail,
+        email: cleanEmail!,
         fullName: fullName.trim(),
         username: (username || fallbackUsername).toLowerCase().trim(),
         passwordHash,
@@ -334,23 +509,20 @@ export async function registerAction({
       },
     });
 
-    // Generate and persist a verification code, then email it to the user.
+    // Generate and persist verification code, then email it
     const otp = generateOtp();
     await createOtpRecord(`${EMAIL_VERIFY_PREFIX}:${user.id}`, otp);
 
-    // Asynchronously send email without blocking registration
     sendVerificationEmail({
-      email: cleanEmail,
+      email: cleanEmail!,
       name: fullName,
       otp,
     }).catch((err) => console.error("Error sending registration verification email:", err));
 
-    // Sign the user in so we know who they are, but with emailVerified=false.
-    // The centralized proxy / route guards will send them to /verify before they
-    // can reach onboarding or any protected screen.
     const token = await signSession({
       userId: user.id,
       email: user.email,
+      phone: user.phone || null,
       emailVerified: false,
       fullName: user.fullName || "",
       username: user.username || "",
@@ -361,6 +533,7 @@ export async function registerAction({
     return {
       success: true,
       requiresVerification: true,
+      email: cleanEmail,
       emailVerified: false,
       user: toSafeUserDto(user),
       onboardingCompleted: false,
@@ -369,6 +542,22 @@ export async function registerAction({
     console.error("registerAction error:", error);
     return { success: false, error: error.message || "Failed to create account" };
   }
+}
+
+export async function sendVerificationOtpAction({
+  email,
+  phone,
+}: {
+  email?: string;
+  phone?: string;
+}): Promise<any> {
+  if (phone) {
+    return sendPhoneVerificationOtp({ phone });
+  }
+  if (email) {
+    return sendVerificationEmailAction({ email });
+  }
+  return { success: false, error: "Either email or phone is required." };
 }
 
 export async function sendVerificationEmailAction({
@@ -450,16 +639,84 @@ export async function sendRecoveryOtpAction({ email }: { email: string }): Promi
 
 export async function verifyOtpAction({
   email,
+  phone,
   otp,
   type = "verify",
 }: {
-  email: string;
+  email?: string;
+  phone?: string;
   otp: string;
   type?: "verify" | "recovery";
 }): Promise<any> {
-  const cleanEmail = email.toLowerCase().trim();
+  const cleanEmail = email?.toLowerCase().trim();
+  const cleanPhone = phone ? normalizePhoneNumber(phone.trim()) : undefined;
 
   try {
+    // 1. Phone OTP Verification
+    if (cleanPhone) {
+      const identifier =
+        type === "recovery"
+          ? `${PASSWORD_RESET_PREFIX}:${cleanPhone}`
+          : `${PHONE_VERIFY_PREFIX}:${cleanPhone}`;
+
+      let valid = await consumeOtp(identifier, otp);
+      if (!valid && type === "verify") {
+        valid = await consumeOtp(`${PHONE_LOGIN_PREFIX}:${cleanPhone}`, otp);
+      }
+
+      if (!valid) {
+        return { success: false, error: "Invalid or expired verification code." };
+      }
+
+      const user = await prisma.profile.findFirst({
+        where: {
+          OR: [
+            { phone: cleanPhone },
+            { phone: phone?.trim() },
+            { email: `phone_${cleanPhone.replace(/[^0-9]/g, "")}@phone.fextiva.com` },
+          ],
+        },
+      });
+
+      if (!user) {
+        return { success: false, error: "Account not found." };
+      }
+
+      if (type === "recovery") {
+        return { success: true, purpose: "recovery" };
+      }
+
+      // Activate user account
+      await prisma.profile.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
+      });
+
+      const token = await signSession({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone || cleanPhone,
+        emailVerified: true,
+        fullName: user.fullName || "",
+        username: user.username || "",
+        onboardingCompleted: Boolean(user.onboardingCompleted),
+      });
+      await setSessionCookie(token);
+
+      return {
+        success: true,
+        purpose: "verify",
+        emailVerified: true,
+        user: toSafeUserDto({ ...user, emailVerified: true }),
+        onboardingCompleted: Boolean(user.onboardingCompleted),
+      };
+    }
+
+    // 2. Email OTP Verification
+    if (!cleanEmail) {
+      return { success: false, error: "Missing email or phone number for verification." };
+    }
+
     const user = await prisma.profile.findFirst({
       where: {
         OR: [{ email: cleanEmail }, { username: cleanEmail }],
@@ -500,6 +757,7 @@ export async function verifyOtpAction({
     const token = await signSession({
       userId: user.id,
       email: user.email,
+      phone: user.phone || null,
       emailVerified: true,
       fullName: user.fullName || "",
       username: user.username || "",

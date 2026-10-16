@@ -29,14 +29,20 @@ function resolveNextUrl(next?: string | null): string {
 
 export function VerificationContent({
 	email: searchEmail,
+	phone: searchPhone,
 	next: searchNext,
 }: {
 	email?: string;
+	phone?: string;
 	next?: string | null;
 }) {
-	const { verifyOtp, sendVerificationEmail } = useAuth();
-	const [email] = useState(searchEmail || "");
+	const { verifyOtp, sendVerificationOtp } = useAuth();
 	const [nextUrl] = useState(() => resolveNextUrl(searchNext));
+	const isPhone = Boolean(searchPhone) || (Boolean(searchEmail) && searchEmail!.endsWith("@phone.fextiva.com"));
+	const rawPhone = searchPhone || (searchEmail && searchEmail.endsWith("@phone.fextiva.com") ? searchEmail.split("@")[0].replace(/^phone_/, "") : "");
+	const email = isPhone ? "" : (searchEmail || "");
+	const [phone] = useState(rawPhone);
+
 	const [otp, setOtp] = useState("");
 	const [error, setError] = useState("");
 	const [submitting, setSubmitting] = useState(false);
@@ -44,30 +50,32 @@ export function VerificationContent({
 	const [cooldown, setCooldown] = useState<number | null>(null);
 	const [verified, setVerified] = useState(false);
 
-	// A brand-new registration already persists an OTP and emails it. If the
-	// user lands here with no stored email (e.g. they clicked a stale link),
-	// prompt them to enter their email / resend. If we have an email but have
-	// no idea whether a code was sent, don't auto-fire — the resend button is
-	// available. When email is missing, auto-request one.
-	useEffect(() => {
-		if (!email) return;
-		// no auto-fire — avoid duplicate codes; user clicks "Resend Code" if needed
-	}, [email]);
+	const displayPhone = phone
+		? phone.length > 4
+			? `+${phone.slice(0, 3)} •••••• ${phone.slice(-4)}`
+			: phone
+		: "";
 
 	const handleVerify = async () => {
 		if (otp.length !== 6) {
 			setError("Please enter the 6-digit code");
 			return;
 		}
-		if (!email) {
-			setError("Missing email address. Please resend the code.");
+		if (!email && !phone) {
+			setError("Missing verification target. Please resend the code.");
 			return;
 		}
 
 		setSubmitting(true);
 		setError("");
 
-		const { error: err } = await verifyOtp({ email, otp, type: "verify" });
+		const { error: err } = await verifyOtp({
+			email: isPhone ? undefined : email,
+			phone: isPhone ? phone : undefined,
+			otp,
+			type: "verify",
+		});
+
 		if (err) {
 			const msg = (err as any)?.message || String(err);
 			toast.error(msg);
@@ -76,7 +84,7 @@ export function VerificationContent({
 			return;
 		}
 
-		toast.success("Email verified successfully!");
+		toast.success(isPhone ? "Phone verified successfully!" : "Email verified successfully!");
 		setVerified(true);
 		setTimeout(() => {
 			window.location.href = nextUrl;
@@ -84,12 +92,15 @@ export function VerificationContent({
 	};
 
 	const handleResend = async () => {
-		if (!email || cooldown !== null) return;
+		if ((!email && !phone) || cooldown !== null) return;
 		setResending(true);
 		setError("");
 
 		try {
-			const res = await sendVerificationEmail(email);
+			const res = await sendVerificationOtp({
+				email: isPhone ? undefined : email,
+				phone: isPhone ? phone : undefined,
+			});
 			const err = (res as any)?.error;
 			if (err) {
 				const msg = (err as any)?.message || String(err);
@@ -101,7 +112,7 @@ export function VerificationContent({
 					setError(msg);
 				}
 			} else {
-				toast.success("Verification code sent to your email!");
+				toast.success(isPhone ? "Verification code sent to your phone!" : "Verification code sent to your email!");
 				setCooldown(30);
 			}
 		} catch (e: any) {
@@ -132,7 +143,7 @@ export function VerificationContent({
 					<EmailVerifiedIllustration className="size-24 text-green-500" />
 				</div>
 				<h1 className="text-2xl font-semibold tracking-tight">
-					Email Verified!
+					{isPhone ? "Phone Verified!" : "Email Verified!"}
 				</h1>
 				<p className="text-sm text-muted-foreground">Redirecting to setup...</p>
 				<Loader2 className="h-6 w-6 animate-spin mx-auto" />
@@ -147,12 +158,13 @@ export function VerificationContent({
 					<OTPVerificationIllustration className="h-24 w-24" />
 				</div>
 				<h1 className="text-2xl font-semibold tracking-tight">
-					Verify Your Email
+					{isPhone ? "Verify Your Phone" : "Verify Your Email"}
 				</h1>
 				<p className="mt-1 text-sm text-muted-foreground">
-					Enter the 6-digit code sent to
-					{email && <strong className="block mt-1"> {email}</strong>}
-					{!email && <span className="block mt-1">your email address</span>}
+					{isPhone ? "Enter the 6-digit code sent via SMS to" : "Enter the 6-digit code sent to"}
+					{isPhone && phone && <strong className="block mt-1 font-mono"> {displayPhone}</strong>}
+					{!isPhone && email && <strong className="block mt-1"> {email}</strong>}
+					{!isPhone && !email && <span className="block mt-1">your email address</span>}
 				</p>
 			</div>
 
@@ -187,7 +199,7 @@ export function VerificationContent({
 					{submitting ? (
 						<Loader2 className="h-4 w-4 animate-spin mr-2" />
 					) : null}
-					Verify Email
+					{isPhone ? "Verify Phone Number" : "Verify Email"}
 				</Button>
 
 				<div className="flex gap-2">
@@ -195,7 +207,7 @@ export function VerificationContent({
 						variant="outline"
 						className="flex-1 rounded-full"
 						onClick={handleResend}
-						disabled={resending || cooldown !== null || !email}
+						disabled={resending || cooldown !== null || (!email && !phone)}
 					>
 						{resending ? (
 							<Loader2 className="h-4 w-4 animate-spin mr-2" />

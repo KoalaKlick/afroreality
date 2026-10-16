@@ -3,17 +3,18 @@ import { Loader2 } from "lucide-react";
 import { VerificationContent } from "@/components/auth/verification-content";
 
 export const metadata = {
-  title: "Verify Email - fextiva",
-  description: "Verify your email address",
+  title: "Verify Account - fextiva",
+  description: "Verify your account",
 };
 
 export default async function VerifyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string; next?: string }>;
+  searchParams: Promise<{ email?: string; phone?: string; next?: string }>;
 }) {
   const params = await searchParams;
   const email = params.email || "";
+  const phone = params.phone || "";
   const next = params.next || null;
 
   return (
@@ -24,7 +25,7 @@ export default async function VerifyPage({
         </div>
       }
     >
-      <VerificationContent email={email} next={next} />
+      <VerificationContent email={email} phone={phone} next={next} />
     </Suspense>
   );
 }

@@ -12,7 +12,6 @@ export interface Env {
 	PAYSTACK_SECRET_KEY?: string;
 	MAX_LISTED_EVENTS?: string;
 	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
-	USSD_ROOT_CODE?: string;
 }
 
 export const MAX_LISTED_EVENTS = 7;
@@ -1050,7 +1049,7 @@ export async function handleUssdCore(
 		}
 	} else {
 		const firstInput = tokens[0];
-		// 1. Check if firstInput directly matches an active event's ussd_code (direct dial e.g. *384*77340*104#)
+		// 1. Check if firstInput directly matches an active event's ussd_code (direct dial e.g. *928*920*104#)
 		event = await fetchEventByCode(sql, firstInput);
 
 		if (event) {
@@ -1182,26 +1181,11 @@ function normalizeArkeselInput(userData: string, newSession: boolean, envRootCod
 
 	if (newSession) {
 		const cleaned = trimmed.replace(/[#\uFF03]+$/, "");
-		const configuredRoot = (envRootCode || "*928*920*").replace(/[#*]+$/, "");
-		const baseCodes = Array.from(
-			new Set([
-				configuredRoot,
-				"*928*920",
-				"*384*77340",
-				"*920*55",
-				"*920",
-				"*384",
-				"*713",
-				"*714",
-			])
-		)
-			.filter(Boolean)
-			.sort((a, b) => b.length - a.length);
-		for (const base of baseCodes) {
-			if (cleaned.startsWith(base)) {
-				const extra = cleaned.substring(base.length);
-				return extra.startsWith("*") ? extra.substring(1) : extra;
-			}
+		const baseCode = (envRootCode || "*928*920*").replace(/[#*]+$/, ""); // e.g. "*928*920"
+
+		if (cleaned.startsWith(baseCode)) {
+			const extra = cleaned.substring(baseCode.length);
+			return extra.startsWith("*") ? extra.substring(1) : extra;
 		}
 		// Generic regex for *XXX*YYY*code or *XXX*code
 		const match = cleaned.match(/^\*\d+(?:\*\d+)*\*([^*#]+(?:\*.*)?)$/);
@@ -1302,7 +1286,7 @@ export default {
 
 			// Arkesel USSD flow
 			if (isArkeselRoute || bodyData.sessionID || bodyData.msisdn) {
-				const rootCode = env.NEXT_PUBLIC_USSD_ROOT_CODE || env.USSD_ROOT_CODE;
+				const rootCode = env.NEXT_PUBLIC_USSD_ROOT_CODE;
 				const currentInput = normalizeArkeselInput(rawText, isNewSession, rootCode);
 				let accumulatedPath = currentInput;
 

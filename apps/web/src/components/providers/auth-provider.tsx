@@ -8,6 +8,7 @@ import {
   logoutAction,
   sendRecoveryOtpAction,
   sendVerificationEmailAction,
+  sendVerificationOtpAction,
   verifyOtpAction,
   resetPasswordAction,
 } from "@/lib/server-functions/auth";
@@ -17,6 +18,7 @@ export interface AuthError {
   message: string;
   needsVerification?: boolean;
   email?: string;
+  phone?: string;
 }
 
 export interface AuthContextType {
@@ -29,7 +31,7 @@ export interface AuthContextType {
   signInWithPassword: (credentials: {
     identifier?: string;
     email?: string;
-    password: string;
+    password?: string;
     redirectTo?: string;
   }) => Promise<{
     data?: SafeUserDto | null;
@@ -45,22 +47,28 @@ export interface AuthContextType {
   /** Legacy alias kept for compatibility — positional form. */
   register: (email: string, pass: string, fullName: string, username?: string) => Promise<any>;
   signUp: (data: {
-    email: string;
+    email?: string;
+    phone?: string;
     password: string;
     fullName?: string;
     full_name?: string;
     username?: string;
-    phone?: string;
     redirectTo?: string;
   }) => Promise<{ data?: SafeUserDto | null; error: AuthError | null }>;
   logout: () => Promise<void>;
   signOut: () => Promise<void>;
   signInWithOAuth: (provider: string) => Promise<{ data?: any; error: { message: string } | null }>;
-  verifyOtp: (input: { email: string; otp: string; type?: "verify" | "recovery" }) => Promise<{
+  verifyOtp: (input: {
+    email?: string;
+    phone?: string;
+    otp: string;
+    type?: "verify" | "recovery";
+  }) => Promise<{
     error: AuthError | null;
     data?: any;
   }>;
   sendVerificationEmail: (email: string) => Promise<{ error: AuthError | null }>;
+  sendVerificationOtp: (target: { email?: string; phone?: string } | string) => Promise<{ error: AuthError | null }>;
   sendRecoveryOtp: (email: string) => Promise<{ error: AuthError | null }>;
   resetPassword: (input: { email: string; newPassword: string; otp?: string }) => Promise<{
     error: AuthError | null;
@@ -70,12 +78,30 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
- * Builds the `/verify` URL used whenever an account exists but its email is
- * not yet verified.
+ * Builds the `/verify` URL used whenever an account exists but is not yet verified.
  */
-function buildVerifyUrl(email: string, next?: string | null): string {
+function buildVerifyUrl(target: { email?: string; phone?: string } | string, next?: string | null): string {
   const params = new URLSearchParams();
-  if (email) params.set("email", email);
+  if (typeof target === "string") {
+    if (target.includes("@")) {
+      if (!target.endsWith("@phone.fextiva.com")) params.set("email", target);
+      else {
+        const phoneDigits = (target.split("@")[0] ?? "").replace(/^phone_/, "");
+        params.set("phone", phoneDigits);
+      }
+    } else {
+      params.set("phone", target);
+    }
+  } else {
+    if (target.phone) {
+      params.set("phone", target.phone);
+    } else if (target.email && !target.email.endsWith("@phone.fextiva.com")) {
+      params.set("email", target.email);
+    } else if (target.email && target.email.endsWith("@phone.fextiva.com")) {
+      const phoneDigits = (target.email.split("@")[0] ?? "").replace(/^phone_/, "");
+      params.set("phone", phoneDigits);
+    }
+  }
   if (next) params.set("next", next);
   const qs = params.toString();
   return `/verify${qs ? `?${qs}` : ""}`;
@@ -98,8 +124,8 @@ export function AuthProvider({
       if (res.success && res.user) {
         setUser(res.user);
         window.location.href = res.onboardingCompleted ? "/dashboard" : "/onboarding";
-      } else if (res.needsVerification && res.email) {
-        window.location.href = buildVerifyUrl(res.email);
+      } else if (res.needsVerification) {
+        window.location.href = buildVerifyUrl({ email: res.email, phone: res.phone || identifier });
       }
       return res;
     } finally {
@@ -110,7 +136,7 @@ export function AuthProvider({
   const handleSignInWithPassword = async (credentials: {
     identifier?: string;
     email?: string;
-    password: string;
+    password?: string;
     redirectTo?: string;
   }) => {
     setIsLoading(true);
@@ -122,15 +148,17 @@ export function AuthProvider({
       const res = await loginAction({ identifier: id, password });
 
       if (res.needsVerification) {
-        // Account exists but its email is not verified — send them to verify.
-        const email = res.email || id;
-        window.location.href = buildVerifyUrl(email, redirectTo);
+        window.location.href = buildVerifyUrl(
+          { email: res.email, phone: res.phone || (id.includes("@") ? undefined : id) },
+          redirectTo
+        );
         return {
           data: null,
           error: {
-            message: res.error || "Please verify your email address.",
+            message: res.error || "Please verify your account.",
             needsVerification: true,
-            email,
+            email: res.email,
+            phone: res.phone,
           },
         };
       }
@@ -157,7 +185,7 @@ export function AuthProvider({
         window.location.href = nextUrl;
         return { data: res.user, error: null };
       } else {
-        const errorMsg = res.error || "Invalid email/username or password";
+        const errorMsg = res.error || "Invalid email/phone/username or password";
         toast.error(errorMsg);
         return { data: null, error: { message: errorMsg } };
       }
@@ -176,10 +204,9 @@ export function AuthProvider({
       const res = await registerAction({ email, password: pass, fullName, username });
       if (res.success && res.user) {
         setUser(res.user);
-        // New registrations must verify their email before onboarding/app access.
-        window.location.href = buildVerifyUrl(res.user.email);
-      } else if (res.needsVerification && res.email) {
-        window.location.href = buildVerifyUrl(res.email);
+        window.location.href = buildVerifyUrl({ email: res.user.email, phone: res.phone });
+      } else if (res.needsVerification) {
+        window.location.href = buildVerifyUrl({ email: res.email, phone: res.phone });
       }
       return res;
     } finally {
@@ -188,39 +215,42 @@ export function AuthProvider({
   };
 
   const handleSignUp = async (data: {
-    email: string;
+    email?: string;
+    phone?: string;
     password: string;
     fullName?: string;
     full_name?: string;
     username?: string;
-    phone?: string;
     redirectTo?: string;
   }) => {
     setIsLoading(true);
-    const email = data.email || "";
+    const email = data.email || undefined;
+    const phone = data.phone || undefined;
     const password = data.password || "";
     const fullName = data.fullName || data.full_name || "";
     const username = data.username || undefined;
     const redirectTo = data.redirectTo;
 
     try {
-      const res = await registerAction({ email, password, fullName, username });
+      const res = await registerAction({ email, phone, password, fullName, username });
 
       if (res.success && res.user) {
         setUser(res.user);
-        toast.success("Account created! Please verify your email to continue.");
-        window.location.href = buildVerifyUrl(res.user.email, redirectTo);
+        const isPhone = Boolean(res.phone || phone);
+        toast.success(isPhone ? "Account created! Please verify your phone number." : "Account created! Please verify your email.");
+        window.location.href = buildVerifyUrl({ email: res.user.email, phone: res.phone || phone }, redirectTo);
         return { data: res.user, error: null };
       }
 
-      if (res.needsVerification && res.email) {
-        window.location.href = buildVerifyUrl(res.email, redirectTo);
+      if (res.needsVerification) {
+        window.location.href = buildVerifyUrl({ email: res.email, phone: res.phone || phone }, redirectTo);
         return {
           data: null,
           error: {
-            message: res.error || "Please verify your email.",
+            message: res.error || "Please verify your account.",
             needsVerification: true,
             email: res.email,
+            phone: res.phone || phone,
           },
         };
       }
@@ -254,21 +284,23 @@ export function AuthProvider({
   };
 
   const handleVerifyOtp = async (input: {
-    email: string;
+    email?: string;
+    phone?: string;
     otp: string;
     type?: "verify" | "recovery";
   }) => {
     setIsLoading(true);
     try {
-      const email = input.email || "";
+      const email = input.email || undefined;
+      const phone = input.phone || undefined;
       const otp = input.otp || "";
       const type = input.type || "verify";
-      const res = await verifyOtpAction({ email, otp, type });
+      const res = await verifyOtpAction({ email, phone, otp, type });
 
       if (res.success) {
         if (res.user) setUser(res.user);
         if (type === "verify") {
-          toast.success("Email verified successfully!");
+          toast.success(phone ? "Phone verified successfully!" : "Email verified successfully!");
         }
         return { error: null, data: res };
       }
@@ -291,6 +323,31 @@ export function AuthProvider({
       if (res.success) {
         if (!res.alreadyVerified) {
           toast.success("Verification code sent to your email!");
+        }
+        return { error: null };
+      }
+      const errorMsg = res.error || "Failed to send verification code";
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
+    } catch (err: any) {
+      const errorMsg = err.message || "Failed to send verification code";
+      toast.error(errorMsg);
+      return { error: { message: errorMsg } };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendVerificationOtp = async (target: { email?: string; phone?: string } | string) => {
+    setIsLoading(true);
+    try {
+      const payload = typeof target === "string"
+        ? (target.includes("@") ? { email: target } : { phone: target })
+        : target;
+      const res = await sendVerificationOtpAction(payload);
+      if (res.success) {
+        if (!res.alreadyVerified) {
+          toast.success(payload.phone ? "Verification code sent to your phone!" : "Verification code sent to your email!");
         }
         return { error: null };
       }
@@ -365,6 +422,7 @@ export function AuthProvider({
         signInWithOAuth: handleSignInWithOAuth,
         verifyOtp: handleVerifyOtp,
         sendVerificationEmail: handleSendVerificationEmail,
+        sendVerificationOtp: handleSendVerificationOtp,
         sendRecoveryOtp: handleSendRecoveryOtp,
         resetPassword: handleResetPassword,
       }}

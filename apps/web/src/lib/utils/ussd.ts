@@ -1,27 +1,19 @@
 /**
  * USSD helper utilities for formatting dialing codes and QR tel: payloads.
- * Unified to a single source of truth: NEXT_PUBLIC_USSD_ROOT_CODE (default: "*928*920#").
+ * Single source of truth: NEXT_PUBLIC_USSD_ROOT_CODE (default: "*928*920*").
  */
 
-export const DEFAULT_USSD_ROOT_CODE = "*928*920#";
-
-/**
- * Returns the raw configured USSD root value from env.
- */
-function getRawRootConfig(): string {
-	return (
-		process.env.NEXT_PUBLIC_USSD_ROOT_CODE ||
-		process.env.USSD_ROOT_CODE ||
-		DEFAULT_USSD_ROOT_CODE
-	).trim();
-}
+export const DEFAULT_USSD_ROOT_CODE = "*928*920*";
 
 /**
  * Returns the cleaned base prefix without trailing '*' or '#'.
  * e.g. "*928*920#", "*928*920*", or "*928*920" all normalize to "*928*920".
  */
 export function getUssdBaseCode(): string {
-	const raw = getRawRootConfig();
+	const raw = (
+		process.env.NEXT_PUBLIC_USSD_ROOT_CODE ||
+		DEFAULT_USSD_ROOT_CODE
+	).trim();
 	const withoutEdges = raw.replace(/^[#*]+/, "").replace(/[#*]+$/, "");
 	return `*${withoutEdges}`;
 }
