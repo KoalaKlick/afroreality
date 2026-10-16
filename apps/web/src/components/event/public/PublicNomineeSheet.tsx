@@ -309,12 +309,12 @@ export function NomineeGrid({
 								)}
 							>
 								{/* Nominee Avatar / Poster (Left in row, Top in col) */}
-								<div className="relative aspect-4/5 w-full @md:w-48 max-h-72 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
+								<div className="relative aspect-5/7 w-full @md:w-48 max-h-72 @lg:w-48 rounded-xl overflow-hidden bg-muted flex items-center justify-center shadow-none shrink-0">
 									{nominee.imageUrl ? (
 										<img
 											src={getEventImageUrl(nominee.imageUrl) || ""}
 											alt={nominee.optionText}
-											className="size-full object-cover transition-transform duration-500 group-hover:scale-102"
+											className="size-full object-cover object-top transition-transform duration-500 group-hover:scale-102"
 										/>
 									) : (
 										<div className="size-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground p-4 text-center">

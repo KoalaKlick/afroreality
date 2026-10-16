@@ -189,7 +189,7 @@ export default async function PublicEventPage({
 
 	return (
 		<main
-			className="min-h-[100svh] text-foreground flex flex-col justify-between w-full max-w-full overflow-x-hidden"
+			className="min-h-[100svh] text-foreground flex flex-col justify-between"
 			style={{
 				...brandVars,
 				backgroundColor: `color-mix(in srgb, ${brandPrimary} 7%, #ffffff)`,
@@ -279,15 +279,7 @@ export default async function PublicEventPage({
 			</div>
 
 			{/* Large Screen View (xl+) */}
-			<div className="hidden xl:flex flex-col flex-1 min-h-[100svh] max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
-				{isEnded && (
-					<div className="mb-6 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
-						<AlertTriangle className="size-4 shrink-0" />
-						<p className="text-xs font-bold uppercase tracking-wider">
-							This event has ended &mdash; you&apos;re viewing an archive.
-						</p>
-					</div>
-				)}
+			<div className="hidden xl:flex flex-1 min-h-[100svh] max-w-[96rem] w-full mx-auto px-6 lg:px-8 py-8">
 				<div className="grid grid-cols-12 gap-8 w-full items-start">
 					{/* Left Column: Sticky Sidebar Panel */}
 					<aside className="col-span-4 sticky top-6 max-h-[calc(100svh-3rem)] overflow-y-auto pr-1 space-y-4">
@@ -319,6 +311,14 @@ export default async function PublicEventPage({
 
 					{/* Right Column: Content Feed */}
 					<div className="col-span-8 space-y-6">
+						{isEnded && (
+							<div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
+								<AlertTriangle className="size-4 shrink-0" />
+								<p className="text-xs font-bold uppercase tracking-wider">
+									This event has ended &mdash; you&apos;re viewing an archive.
+								</p>
+							</div>
+						)}
 						{isVoting && (
 							<div id="voting" className="overflow-hidden">
 								<EventVotingCategories
