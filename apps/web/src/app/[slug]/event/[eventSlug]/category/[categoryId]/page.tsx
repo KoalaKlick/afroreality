@@ -260,11 +260,11 @@ export default async function PublicCategoryPage({
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
 						<div className="space-y-6 max-w-4xl">
 							<div className="flex flex-wrap items-center gap-2">
-								<Badge
+								{/* <Badge
 									className="text-xs font-bold rounded-sm px-2.5 py-0.5 bg-primary/15 text-primary border border-primary/30 shadow-2xs select-none"
 								>
 									Voting Category
-								</Badge>
+								</Badge> */}
 								{isInternalVoting && (
 									<Badge
 										variant="outline"
