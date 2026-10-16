@@ -102,7 +102,7 @@ export function PayoutsHistoryTable({
 							<ProviderLogo
 								bankCode={item.bankCode}
 								bankName={item.bankName}
-								className="size-7 shrink-0"
+								className="size-7 shrink-0 mr-1"
 							/>
 							<div className="flex flex-col min-w-0">
 								<span className="text-xs font-medium text-foreground truncate">
