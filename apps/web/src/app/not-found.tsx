@@ -32,7 +32,7 @@ export default function NotFound() {
                     </h2>
                     <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
                         The page may have been removed, or the
-                        content is restricted to certain .
+                        content is restricted.
                     </p>
 
                     <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
