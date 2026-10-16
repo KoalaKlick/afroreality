@@ -86,6 +86,7 @@ export interface SendWhatsAppResponse {
 	messageId?: string;
 	error?: string;
 	raw?: any;
+	waUrl?: string;
 }
 
 /**
@@ -732,36 +733,45 @@ export async function sendNomineeConfirmationWhatsAppNotification({
 		return parts;
 	}
 
-	// Candidate template names to try (register primary first, others as backup)
+	// Candidate template names to try (register primary first, others as backup, with and without _en suffix)
 	const candidateTemplates = [
 		"fextiva_nominee_confirmation_en",
-		"fextiva_nominee_nominated_en",
+		"fextiva_nominee_confirmation",
 		"fextiva_nominee_welcome_en",
+		"fextiva_nominee_welcome",
+		"fextiva_nominee_nominated_en",
+		"fextiva_nominee_nominated",
 	];
+
+	// Meta WhatsApp templates can be registered with language 'en_US' or 'en'
+	const candidateLanguages = ["en_US", "en"];
 
 	let templateRes: SendWhatsAppResponse = { success: false, error: "Not initiated" };
 
 	for (const tName of candidateTemplates) {
-		// 1. Try with header image
-		templateRes = await sendWhatsAppTemplateMessage({
-			to: phone,
-			templateName: tName,
-			languageCode: "en",
-			components: buildComponents(true),
-		});
-		if (templateRes.success) break;
+		for (const lang of candidateLanguages) {
+			// 1. Try with header image
+			templateRes = await sendWhatsAppTemplateMessage({
+				to: phone,
+				templateName: tName,
+				languageCode: lang,
+				components: buildComponents(true),
+			});
+			if (templateRes.success) break;
 
-		// 2. Retry without header (text-only template variant)
-		templateRes = await sendWhatsAppTemplateMessage({
-			to: phone,
-			templateName: tName,
-			languageCode: "en",
-			components: buildComponents(false),
-		});
+			// 2. Retry without header (text-only template variant)
+			templateRes = await sendWhatsAppTemplateMessage({
+				to: phone,
+				templateName: tName,
+				languageCode: lang,
+				components: buildComponents(false),
+			});
+			if (templateRes.success) break;
+		}
 		if (templateRes.success) break;
 	}
 
-	// 3. Plain-text fallback (always works within 24h session, friendly outside too)
+	// 3. Plain-text fallback (works within 24h session; if outside window, provides direct pre-filled wa.me link)
 	if (!templateRes.success) {
 		const codeSection = nomineeCode
 			? `\n\n🗳️ *Your Voting Code:* *#${nomineeCode}*\n_Share this code with your supporters so they can vote for you directly on the platform or via USSD._`
@@ -791,7 +801,21 @@ export async function sendNomineeConfirmationWhatsAppNotification({
 			`— *${organizationName || "Fextiva"}*`,
 		].join("\n");
 
-		return sendWhatsAppTextMessage({ to: phone, text: fallbackText });
+		const textRes = await sendWhatsAppTextMessage({ to: phone, text: fallbackText });
+		if (textRes.success) {
+			return textRes;
+		}
+
+		// When Cloud API cannot auto-send directly (e.g. outside 24h Meta customer window or unapproved template),
+		// provide a pre-filled direct WhatsApp link so the organizer can easily send the message with one tap.
+		const cleanDigits = phone.replace(/[^0-9]/g, "");
+		const directWaUrl = `https://wa.me/${cleanDigits}?text=${encodeURIComponent(fallbackText)}`;
+
+		return {
+			success: false,
+			error: textRes.error || "WhatsApp template not registered in Meta Business Manager. Click 'Open WhatsApp' to chat directly.",
+			waUrl: directWaUrl,
+		};
 	}
 
 	return templateRes;

@@ -38,13 +38,9 @@ interface NomineeCardProps {
   readonly displayImage: string | null;
   readonly canEdit: boolean;
   readonly isPending?: boolean;
-  readonly isResending?: boolean;
-  readonly isSendingWhatsApp?: boolean;
   readonly requiresDeletionCode?: boolean;
   readonly onEdit: () => void;
   readonly onDelete: (code?: string) => void;
-  readonly onResendCode?: () => void;
-  readonly onSendWhatsApp?: () => void;
   readonly onApprove?: () => void;
   readonly onReject?: () => void;
 }
@@ -54,13 +50,9 @@ export function NomineeCard({
   displayImage,
   canEdit,
   isPending = false,
-  isResending = false,
-  isSendingWhatsApp = false,
   requiresDeletionCode = false,
   onEdit,
   onDelete,
-  onResendCode,
-  onSendWhatsApp,
   onApprove,
   onReject,
 }: NomineeCardProps) {
@@ -155,38 +147,6 @@ export function NomineeCard({
                 >
                   <Pencil className="size-3.5" />
                 </Button>
-                {onResendCode && (
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className="size-8 bg-background/90 hover:bg-background text-foreground"
-                    onClick={onResendCode}
-                    disabled={isResending}
-                    title="Resend Nomination Details"
-                  >
-                    {isResending ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <Mail className="size-3.5" />
-                    )}
-                  </Button>
-                )}
-                {onSendWhatsApp && (option as any).phone && (
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    className="size-8 bg-background/90 hover:bg-background text-emerald-600 dark:text-emerald-400"
-                    onClick={onSendWhatsApp}
-                    disabled={isSendingWhatsApp}
-                    title="Send WhatsApp Nomination Confirmation"
-                  >
-                    {isSendingWhatsApp ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <MessageSquare className="size-3.5" />
-                    )}
-                  </Button>
-                )}
                 {hasVotes ? (
                   <Button
                     size="icon"

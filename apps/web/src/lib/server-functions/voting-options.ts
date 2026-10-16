@@ -673,6 +673,8 @@ export async function sendNomineeWhatsAppConfirmation({
 			organizationPhone,
 		});
 
+		const waUrl = waRes.waUrl || `https://wa.me/${cleanDigits}`;
+
 		if (waRes.success) {
 			await prisma.votingOption.update({
 				where: { id: option.id },
@@ -728,6 +730,208 @@ export async function sendNomineeWhatsAppConfirmation({
 			waUrl,
 		};
 	}
+}
+
+/**
+ * Sends nomination confirmation (email and/or WhatsApp) to a single nominee.
+ * Tracks confirmation status and skips already successful channels unless explicitly requested.
+ */
+export async function sendNomineeConfirmation({
+	data,
+}: {
+	data: { optionId: string };
+}): Promise<{ success: boolean; message: string; error?: string; waUrl?: string }> {
+	await requireSession();
+	const { optionId } = data;
+	if (!optionId) return { success: false, message: "", error: "Missing nominee ID" };
+
+	const option = await prisma.votingOption.findUnique({
+		where: { id: optionId },
+		include: {
+			category: true,
+			event: { include: { organization: true } },
+		},
+	});
+
+	if (!option) return { success: false, message: "", error: "Nominee not found" };
+
+	const nomineeEmail = option.email?.trim() || option.nominatedByEmail?.trim();
+	const nomineePhone = option.phone?.trim();
+
+	if (!nomineeEmail && !nomineePhone) {
+		return { success: false, message: "", error: "Nominee has no email or phone number recorded." };
+	}
+
+	const results: string[] = [];
+	let hasSuccess = false;
+
+	// Send Email
+	if (nomineeEmail) {
+		try {
+			const emailRes = await sendNominationConfirmationEmail({
+				email: nomineeEmail,
+				recipientName: option.optionText,
+				nomineeName: option.optionText,
+				categoryName: option.category?.name || "Category",
+				eventName: option.event?.title || "Event",
+				status: option.status,
+				nomineeCode: option.nomineeCode,
+				organizationName: option.event?.organization?.name || "Fextiva",
+				bannerUrl: option.event?.bannerImage || option.event?.flierImage,
+			});
+
+			if (emailRes.success) {
+				hasSuccess = true;
+				await prisma.votingOption.update({
+					where: { id: option.id },
+					data: {
+						confirmationEmailSentAt: new Date(),
+						confirmationEmailStatus: "sent",
+						confirmationEmailError: null,
+					},
+				});
+				results.push("Email sent");
+			} else {
+				await prisma.votingOption.update({
+					where: { id: option.id },
+					data: {
+						confirmationEmailStatus: "failed",
+						confirmationEmailError: emailRes.error || "Email failed",
+					},
+				});
+				results.push(`Email failed (${emailRes.error || "error"})`);
+			}
+		} catch (err: any) {
+			results.push("Email dispatch error");
+		}
+	}
+
+	// Send WhatsApp
+	let waUrl: string | undefined = undefined;
+	if (nomineePhone) {
+		const waRes = await sendNomineeWhatsAppConfirmation({ data: { optionId: option.id } });
+		if (waRes.success) {
+			hasSuccess = true;
+			results.push("WhatsApp sent");
+		} else {
+			results.push("WhatsApp failed");
+			if (waRes.waUrl) waUrl = waRes.waUrl;
+		}
+	}
+
+	return {
+		success: hasSuccess,
+		message: `Confirmation: ${results.join(", ")}`,
+		error: hasSuccess ? undefined : results.join(", "),
+		waUrl,
+	};
+}
+
+/**
+ * Sends nomination confirmation to all approved nominees in a category who have not yet
+ * successfully received them (or whose previous attempt failed).
+ */
+export async function sendCategoryNomineeConfirmations({
+	data,
+}: {
+	data: { categoryId: string };
+}): Promise<{ success: boolean; sentCount: number; message: string; error?: string }> {
+	await requireSession();
+	const { categoryId } = data;
+	if (!categoryId) return { success: false, sentCount: 0, message: "", error: "Missing category ID" };
+
+	const category = await prisma.votingCategory.findUnique({
+		where: { id: categoryId },
+		include: {
+			event: { include: { organization: true } },
+			votingOptions: {
+				where: { status: "approved" },
+			},
+		},
+	});
+
+	if (!category) return { success: false, sentCount: 0, message: "", error: "Category not found" };
+
+	const event = category.event;
+	const org = event?.organization;
+	const bannerImageUrl = event?.flierImage || event?.bannerImage || org?.logoUrl || null;
+
+	let sentCount = 0;
+
+	for (const option of category.votingOptions) {
+		const nomineeEmail = option.email?.trim() || option.nominatedByEmail?.trim();
+		const nomineePhone = option.phone?.trim();
+		let neededSend = false;
+
+		// 1. Send Email if not yet successfully sent
+		if (nomineeEmail && option.confirmationEmailStatus !== "sent") {
+			neededSend = true;
+			try {
+				const emailRes = await sendNominationConfirmationEmail({
+					email: nomineeEmail,
+					recipientName: option.optionText,
+					nomineeName: option.optionText,
+					categoryName: category.name,
+					eventName: event.title,
+					status: "approved",
+					nomineeCode: option.nomineeCode,
+					organizationName: org?.name || "Fextiva",
+					bannerUrl: bannerImageUrl,
+				});
+
+				if (emailRes.success) {
+					await prisma.votingOption.update({
+						where: { id: option.id },
+						data: {
+							confirmationEmailSentAt: new Date(),
+							confirmationEmailStatus: "sent",
+							confirmationEmailError: null,
+						},
+					});
+				} else {
+					await prisma.votingOption.update({
+						where: { id: option.id },
+						data: {
+							confirmationEmailStatus: "failed",
+							confirmationEmailError: emailRes.error || "Email delivery failed",
+						},
+					});
+				}
+			} catch (err: any) {
+				await prisma.votingOption.update({
+					where: { id: option.id },
+					data: {
+						confirmationEmailStatus: "failed",
+						confirmationEmailError: err?.message || "Failed to send email",
+					},
+				}).catch(() => {});
+			}
+		}
+
+		// 2. Send WhatsApp if phone exists and not yet delivered/sent
+		const waDone =
+			option.confirmationWhatsAppStatus === "delivered" ||
+			option.confirmationWhatsAppStatus === "read" ||
+			option.confirmationWhatsAppStatus === "sent";
+
+		if (nomineePhone && !waDone) {
+			neededSend = true;
+			await sendNomineeWhatsAppConfirmation({ data: { optionId: option.id } }).catch(() => {});
+		}
+
+		if (neededSend) {
+			sentCount++;
+		}
+	}
+
+	return {
+		success: true,
+		sentCount,
+		message:
+			sentCount > 0
+				? `Dispatched confirmations to ${sentCount} nominee(s).`
+				: "All nominees with contact details have already received their confirmations.",
+	};
 }
 
 export async function getSuggestedNomineeCode({

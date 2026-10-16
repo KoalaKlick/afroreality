@@ -29,7 +29,19 @@ import {
 	X,
 	Globe,
 	Users,
+	Send,
+	Loader2,
 } from "lucide-react";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { CategorySheet, type CategoryItem } from "./CategorySheet";
 import { OptionSheet, type OptionItem } from "./OptionSheet";
@@ -46,6 +58,7 @@ import {
 	rejectNomination,
 	resendNominationEmail,
 	sendNomineeWhatsAppConfirmation,
+	sendCategoryNomineeConfirmations,
 } from "@/lib/server-functions/voting-options";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
@@ -126,6 +139,8 @@ export function CategoryList({
 	const [isNominationSheetOpen, setIsNominationSheetOpen] = useState(false);
 	const [resendingOptionId, setResendingOptionId] = useState<string | null>(null);
 	const [sendingWhatsAppOptionId, setSendingWhatsAppOptionId] = useState<string | null>(null);
+	const [catConfirmTarget, setCatConfirmTarget] = useState<CategoryItem | null>(null);
+	const [isSendingCatConfirm, setIsSendingCatConfirm] = useState<string | null>(null);
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -289,6 +304,31 @@ export function CategoryList({
 			toast.error(getErrorMessage(err) || "Failed to send WhatsApp message");
 		} finally {
 			setSendingWhatsAppOptionId(null);
+		}
+	}
+
+	async function handleSendCategoryConfirmations(catId: string) {
+		setIsSendingCatConfirm(catId);
+		toast.loading("Sending confirmations to unconfirmed nominees...", { id: "cat-confirm" });
+		try {
+			const res = await sendCategoryNomineeConfirmations({ data: { categoryId: catId } });
+			toast.dismiss("cat-confirm");
+			if (res.success) {
+				if (res.sentCount > 0) {
+					toast.success(res.message || `Sent confirmation to ${res.sentCount} nominee${res.sentCount > 1 ? "s" : ""}!`);
+				} else {
+					toast.info(res.message || "All nominees in this category have already received their confirmation.");
+				}
+				if (onRefresh) onRefresh();
+			} else {
+				toast.error(res.error || "Failed to send category confirmations");
+			}
+		} catch (err: any) {
+			toast.dismiss("cat-confirm");
+			toast.error(getErrorMessage(err) || "Failed to send category confirmations");
+		} finally {
+			setIsSendingCatConfirm(null);
+			setCatConfirmTarget(null);
 		}
 	}
 
@@ -532,6 +572,23 @@ export function CategoryList({
 
 									{canEdit && (
 										<div className="flex items-center gap-2 shrink-0">
+											{approvedNominees.length > 0 && (
+												<Button
+													size="sm"
+													variant="outline"
+													onClick={() => setCatConfirmTarget(cat)}
+													disabled={isSendingCatConfirm === cat.id}
+													className="h-8 gap-1.5 text-xs border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+													title="Send confirmation messages to unconfirmed nominees in this category"
+												>
+													{isSendingCatConfirm === cat.id ? (
+														<Loader2 className="size-3.5 animate-spin" />
+													) : (
+														<Send className="size-3.5 text-emerald-600" />
+													)}
+													<span>Send Confirmations</span>
+												</Button>
+											)}
 											<Button
 												size="sm"
 												variant="outline"
@@ -614,12 +671,8 @@ export function CategoryList({
 														displayImage={opt.imageUrl ?? null}
 														canEdit={canEdit}
 														isPending={isDeleting}
-														isResending={resendingOptionId === opt.id}
-														isSendingWhatsApp={sendingWhatsAppOptionId === opt.id}
 														requiresDeletionCode={false}
 														onEdit={() => handleEditOption(cat, opt)}
-														onResendCode={() => handleResendCode(opt)}
-														onSendWhatsApp={() => handleSendWhatsApp(opt)}
 														onDelete={() => {
 															const votesCount = Number(opt.votesCount || 0);
 															if (votesCount > 0) {
@@ -700,6 +753,35 @@ export function CategoryList({
 					onRefresh?.();
 				}}
 			/>
+
+			{/* Category Confirmation Alert Dialog */}
+			<AlertDialog
+				open={Boolean(catConfirmTarget)}
+				onOpenChange={(open) => !open && !isSendingCatConfirm && setCatConfirmTarget(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Send Category Confirmations?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This will send nomination confirmation messages to approved nominees in &quot;{catConfirmTarget?.name}&quot; who haven&apos;t received them yet (or whose previous attempt failed). Nominees who have already received their confirmation will be skipped.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={Boolean(isSendingCatConfirm)}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							disabled={Boolean(isSendingCatConfirm)}
+							onClick={() => {
+								if (catConfirmTarget) {
+									handleSendCategoryConfirmations(catConfirmTarget.id);
+								}
+							}}
+							className="bg-emerald-600 hover:bg-emerald-700 text-white"
+						>
+							Confirm &amp; Send
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

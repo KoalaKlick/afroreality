@@ -14,13 +14,24 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import { Loader2, Upload, X, Lock, MessageSquare } from "lucide-react";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Upload, X, Lock, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
 	createVotingOption,
 	requestNomineeChange,
 	getSuggestedNomineeCode,
 	sendNomineeWhatsAppConfirmation,
+	sendNomineeConfirmation,
 } from "@/lib/server-functions/voting-options";
 import { useImageUpload } from "@/hooks/use-image-upload";
 import { getEventImageUrl } from "@/lib/image-url-utils";
@@ -67,6 +78,8 @@ export function OptionSheet({
 	const [description, setDescription] = useState("");
 	const [imageUrl, setImageUrl] = useState("");
 	const [sendWhatsApp, setSendWhatsApp] = useState(true);
+	const [isSendingConfirm, setIsSendingConfirm] = useState(false);
+	const [showConfirmAlert, setShowConfirmAlert] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const { isUploading, upload } = useImageUpload({
@@ -87,7 +100,7 @@ export function OptionSheet({
 			setNomineeCode(editingOption.nomineeCode ?? "");
 			setDescription(editingOption.description ?? "");
 			setImageUrl(editingOption.imageUrl ?? "");
-			setSendWhatsApp(false); // Don't re-send on every edit unless explicitly re-checked
+			setSendWhatsApp(false); // Don't re-send on every edit
 		} else {
 			setOptionText("");
 			setEmail("");
@@ -118,6 +131,40 @@ export function OptionSheet({
 			}
 		}
 	};
+
+	async function handleSendManualConfirmation() {
+		if (!editingOption) return;
+		setIsSendingConfirm(true);
+		toast.loading("Sending confirmation message...", { id: "send-single-confirm" });
+		try {
+			const res = await sendNomineeConfirmation({
+				data: { optionId: editingOption.id },
+			});
+			toast.dismiss("send-single-confirm");
+			if (res.success) {
+				toast.success(res.message || "Confirmation sent successfully!");
+			} else {
+				if ((res as any).waUrl) {
+					toast.info(res.error || "Click to open WhatsApp chat", {
+						action: {
+							label: "Open WhatsApp",
+							onClick: () => window.open((res as any).waUrl, "_blank"),
+						},
+						duration: 8000,
+					});
+					window.open((res as any).waUrl, "_blank");
+				} else {
+					toast.error(res.error || "Failed to send confirmation");
+				}
+			}
+		} catch (err) {
+			toast.dismiss("send-single-confirm");
+			toast.error(getErrorMessage(err) || "Failed to send confirmation");
+		} finally {
+			setIsSendingConfirm(false);
+			setShowConfirmAlert(false);
+		}
+	}
 
 	function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -155,24 +202,6 @@ export function OptionSheet({
 					if (res.success === false) {
 						toast.error(res.message || "Failed to update nominee.");
 						return;
-					}
-
-					// If user checked send WhatsApp during edit
-					if (sendWhatsApp && cleanPhone) {
-						sendNomineeWhatsAppConfirmation({
-							data: { optionId: editingOption.id },
-						}).then((waRes) => {
-							if (waRes.success) {
-								toast.success(waRes.message || "WhatsApp nomination confirmation sent!");
-							} else if (waRes.waUrl) {
-								toast.info(waRes.error || "Click to open WhatsApp chat", {
-									action: {
-										label: "Open WhatsApp",
-										onClick: () => window.open(waRes.waUrl, "_blank"),
-									},
-								});
-							}
-						}).catch(() => {});
 					}
 
 					if (res.requiresNomineeApproval) {
@@ -216,17 +245,40 @@ export function OptionSheet({
 	}
 
 	return (
-		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent className="w-full sm:max-w-lg p-0 flex flex-col h-full overflow-hidden">
-				<form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-					<SheetHeader className="shrink-0 p-6 pb-4 border-b">
-						<SheetTitle>
-							{editingOption ? "Edit Nominee / Option" : "Add Nominee / Option"}
-						</SheetTitle>
-						<SheetDescription>
-							Category: <span className="font-semibold">{categoryName}</span>
-						</SheetDescription>
-					</SheetHeader>
+		<>
+			<Sheet open={open} onOpenChange={onOpenChange}>
+				<SheetContent className="w-full sm:max-w-lg p-0 flex flex-col h-full overflow-hidden">
+					<form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+						<SheetHeader className="shrink-0 p-6 pb-4 border-b">
+							<div className="flex items-center justify-between gap-3">
+								<div className="space-y-1 min-w-0 flex-1">
+									<SheetTitle className="truncate">
+										{editingOption ? "Edit Nominee / Option" : "Add Nominee / Option"}
+									</SheetTitle>
+									<SheetDescription className="truncate">
+										Category: <span className="font-semibold">{categoryName}</span>
+									</SheetDescription>
+								</div>
+								{editingOption && (editingOption.phone || editingOption.email) && (
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										disabled={isSendingConfirm || isPending}
+										onClick={() => setShowConfirmAlert(true)}
+										className="shrink-0 h-8 gap-1.5 text-xs border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+										title="Send nomination confirmation message"
+									>
+										{isSendingConfirm ? (
+											<Loader2 className="size-3.5 animate-spin" />
+										) : (
+											<Send className="size-3.5 text-emerald-600" />
+										)}
+										<span>Send Confirmation</span>
+									</Button>
+								)}
+							</div>
+						</SheetHeader>
 
 					<div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
 						{/* Photo Upload */}
@@ -244,7 +296,7 @@ export function OptionSheet({
 									<img
 										src={getEventImageUrl(imageUrl) ?? ""}
 										alt="Nominee"
-										className="size-full object-cover"
+										className="size-full object-cover object-top"
 									/>
 									<button
 										type="button"
@@ -307,7 +359,7 @@ export function OptionSheet({
 								onChange={(e) => setPhone(e.target.value)}
 								placeholder="e.g., +233 24 123 4567"
 							/>
-							{phone.trim() && (
+							{!editingOption && phone.trim() && (
 								<div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs mt-1.5">
 									<Checkbox
 										id="send-whatsapp-confirm"
@@ -403,5 +455,27 @@ export function OptionSheet({
 				</form>
 			</SheetContent>
 		</Sheet>
+
+		<AlertDialog open={showConfirmAlert} onOpenChange={setShowConfirmAlert}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Send Confirmation Message?</AlertDialogTitle>
+					<AlertDialogDescription>
+						Send nomination confirmation details (voting code, organizer contact &amp; flyer request) to &quot;{optionText || editingOption?.optionText}&quot;?
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel disabled={isSendingConfirm}>Cancel</AlertDialogCancel>
+					<AlertDialogAction
+						disabled={isSendingConfirm}
+						onClick={handleSendManualConfirmation}
+						className="bg-emerald-600 hover:bg-emerald-700 text-white"
+					>
+						Confirm &amp; Send
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+		</>
 	);
 }
