@@ -98,6 +98,19 @@ export async function getPublicOrganizationProfile(
 								id: true,
 								name: true,
 								templateImage: true,
+								votingOptions: {
+									where: { status: "approved" },
+									select: {
+										id: true,
+										optionText: true,
+										nomineeCode: true,
+										imageUrl: true,
+									},
+									take: 8,
+									orderBy: {
+										orderIdx: "asc",
+									},
+								},
 							},
 							orderBy: {
 								orderIdx: "asc",
@@ -349,6 +362,12 @@ export async function getPublicCategoryDetails(
 						createdAt: "asc",
 					},
 				},
+				_count: {
+					select: {
+						votingCategories: true,
+						ticketTypes: true,
+					},
+				},
 			},
 		});
 
@@ -479,6 +498,19 @@ export async function getPublicEventsList(options: GetPublicEventsOptions = {}) 
 							id: true,
 							name: true,
 							templateImage: true,
+							votingOptions: {
+								where: { status: "approved" },
+								select: {
+									id: true,
+									optionText: true,
+									nomineeCode: true,
+									imageUrl: true,
+								},
+								take: 8,
+								orderBy: {
+									orderIdx: "asc",
+								},
+							},
 						},
 						orderBy: {
 							orderIdx: "asc",

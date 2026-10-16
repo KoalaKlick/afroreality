@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Vote, Share2, Sparkles, BarChart2, Hash, Users, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/common/SearchInput";
 import { cn } from "@/lib/utils";
 import {
 	Sheet,
@@ -282,25 +282,13 @@ export function NomineeGrid({
 		<div className="@container">
 			{/* Search bar when nominees > 2 */}
 			{nominees.length > 2 && (
-				<div className="relative mb-5 w-full max-w-sm">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-					<Input
-						type="text"
+				<div className="mb-5">
+					<SearchInput
+					className="sm:w-full md:w-full"
 						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
+						onChange={setSearchQuery}
 						placeholder="Search nominees by name or code..."
-						className="pl-9 pr-8 h-9 rounded-xl bg-card border-border text-xs focus-visible:ring-primary shadow-2xs"
 					/>
-					{searchQuery && (
-						<button
-							type="button"
-							onClick={() => setSearchQuery("")}
-							className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-							aria-label="Clear search"
-						>
-							<X className="size-3.5" />
-						</button>
-					)}
 				</div>
 			)}
 

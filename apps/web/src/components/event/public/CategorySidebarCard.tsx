@@ -30,6 +30,11 @@ interface CategorySidebarCardProps {
 		id: string;
 		title: string;
 		slug: string;
+		type?: string;
+		_count?: {
+			votingCategories?: number;
+			ticketTypes?: number;
+		};
 		votingMode?: string;
 		flierUrl?: string | null;
 		bannerUrl?: string | null;
@@ -63,6 +68,10 @@ export function CategorySidebarCard({
 	eventSlug,
 }: CategorySidebarCardProps) {
 	const isInternalVoting = event.votingMode === "internal";
+	const isSingleCategoryVoting =
+		(event.type === "voting" || event.type === "hybrid") &&
+		(event as any)._count?.ticketTypes === 0 &&
+		(event as any)._count?.votingCategories === 1;
 	const { bannerImageUrl: eventBannerImg } = formatEventDisplay(event);
 	const templateImg = getEventImageUrl(category.templateImage) || eventBannerImg;
 
@@ -87,8 +96,8 @@ export function CategorySidebarCard({
 				{/* Top-left Back link & status badge */}
 				<div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
 					<Button asChild variant="ghost" size="sm" className="h-7 px-2.5 gap-1.5 text-xs bg-background/90 text-foreground backdrop-blur-md border border-border rounded-sm hover:bg-background shadow-xs">
-						<Link href={`/${orgSlug}/event/${eventSlug}`}>
-							<ArrowLeft className="size-3.5" /> Back to Event
+						<Link href={isSingleCategoryVoting ? `/${orgSlug}` : `/${orgSlug}/event/${eventSlug}`}>
+							<ArrowLeft className="size-3.5" /> {isSingleCategoryVoting ? `Back to ${event.organization.name}` : "Back to Event"}
 						</Link>
 					</Button>
 

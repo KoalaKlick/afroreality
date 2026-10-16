@@ -6,6 +6,7 @@ import { getEventImageUrl } from "@/lib/image-url-utils";
 import { getUssdDialCode, getUssdRootDialCode } from "@/lib/utils/ussd";
 import { StatusBadge } from "@/components/common/status-badge";
 import { NoEventsIllustration } from "@/components/common/NoEventsIllustration";
+import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 
 export interface TawnyEventData {
 	id: string;
@@ -31,6 +32,12 @@ export interface TawnyEventData {
 		id: string;
 		name: string;
 		templateImage?: string | null;
+		votingOptions?: Array<{
+			id: string;
+			optionText: string;
+			nomineeCode?: string | null;
+			imageUrl?: string | null;
+		}>;
 	}> | null;
 	organization: {
 		name: string;
@@ -132,6 +139,27 @@ export function EventCard({ event, isPast = false, className }: EventCardProps) 
 						<span className="text-xs font-bold text-primary tracking-wide font-mono">
 							{eventCode}
 						</span>
+					</div>
+				)}
+
+				{/* Left-aligned Nominees Avatars at bottom of poster image for single-category events */}
+				{singleCategory?.votingOptions && singleCategory.votingOptions.length > 0 && (
+					<div className="absolute bottom-2.5 left-2.5 z-20 flex items-center">
+						<AnimatedTooltip
+							items={singleCategory.votingOptions
+								.slice(0, 4)
+								.map((nominee: any) => ({
+									id: nominee.id,
+									name: nominee.optionText,
+									designation: nominee.nomineeCode || "Nominee",
+									image: getEventImageUrl(nominee.imageUrl) || null,
+								}))}
+						/>
+						{singleCategory.votingOptions.length > 4 && (
+							<div className="relative h-8 w-8 -ml-1 rounded-full border-2 border-background bg-primary flex items-center justify-center shrink-0 z-30 text-primary-foreground text-[10px] font-bold shadow-xs">
+								+{singleCategory.votingOptions.length - 4}
+							</div>
+						)}
 					</div>
 				)}
 			</div>

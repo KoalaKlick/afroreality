@@ -39,7 +39,7 @@ export function VerificationContent({
 	const { verifyOtp, sendVerificationOtp } = useAuth();
 	const [nextUrl] = useState(() => resolveNextUrl(searchNext));
 	const isPhone = Boolean(searchPhone) || (Boolean(searchEmail) && searchEmail!.endsWith("@phone.fextiva.com"));
-	const rawPhone = searchPhone || (searchEmail && searchEmail.endsWith("@phone.fextiva.com") ? searchEmail.split("@")[0].replace(/^phone_/, "") : "");
+	const rawPhone = searchPhone || (searchEmail && searchEmail.endsWith("@phone.fextiva.com") ? (searchEmail.split("@")[0] || "").replace(/^phone_/, "") : "");
 	const email = isPhone ? "" : (searchEmail || "");
 	const [phone] = useState(rawPhone);
 

@@ -10,7 +10,7 @@ import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustrati
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { cn } from "@/lib/utils";
 import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/common/SearchInput";
 import { Button } from "@/components/ui/button";
 
 interface EventVotingCategoriesProps {
@@ -73,26 +73,11 @@ export function EventVotingCategories({
 
 					{/* Search bar when categories > 2 */}
 					{categories.length > 2 && (
-						<div className="relative w-full sm:w-72 md:w-80">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-							<Input
-								type="text"
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								placeholder="Search categories..."
-								className="pl-9 pr-8 h-9 rounded-xl bg-card border-border text-xs focus-visible:ring-primary shadow-2xs"
-							/>
-							{searchQuery && (
-								<button
-									type="button"
-									onClick={() => setSearchQuery("")}
-									className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-									aria-label="Clear search"
-								>
-									<X className="size-3.5" />
-								</button>
-							)}
-						</div>
+						<SearchInput
+							value={searchQuery}
+							onChange={setSearchQuery}
+							placeholder="Search categories by name or candidate..."
+						/>
 					)}
 				</div>
 

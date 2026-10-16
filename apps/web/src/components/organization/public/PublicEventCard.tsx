@@ -6,6 +6,7 @@ import { getEventImageUrl } from "@/lib/image-url-utils";
 import { Calendar, MapPin, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 
 interface PublicEventCardProps {
 	readonly event: Event;
@@ -145,6 +146,27 @@ export function PublicEventCard({
 					>
 						<Heart className="size-4 text-foreground/70" />
 					</button>
+
+					{/* Left-aligned Nominees Avatars at bottom of poster image for single-category events */}
+					{singleCategory?.votingOptions && singleCategory.votingOptions.length > 0 && (
+						<div className="absolute bottom-2.5 left-2.5 z-20 flex items-center">
+							<AnimatedTooltip
+								items={singleCategory.votingOptions
+									.slice(0, 4)
+									.map((nominee: any) => ({
+										id: nominee.id,
+										name: nominee.optionText,
+										designation: nominee.nomineeCode || "Nominee",
+										image: getEventImageUrl(nominee.imageUrl) || null,
+									}))}
+							/>
+							{singleCategory.votingOptions.length > 4 && (
+								<div className="relative h-8 w-8 -ml-1 rounded-full border-2 border-background bg-primary flex items-center justify-center shrink-0 z-30 text-primary-foreground text-[10px] font-bold shadow-xs">
+									+{singleCategory.votingOptions.length - 4}
+								</div>
+							)}
+						</div>
+					)}
 				</div>
 			</Link>
 		</div>

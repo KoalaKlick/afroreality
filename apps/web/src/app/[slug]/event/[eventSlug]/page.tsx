@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getPublicEventDetails } from "@/lib/dal/public";
 import { Section } from "@/components/Landing/shared/Section";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
@@ -57,6 +57,11 @@ export default async function PublicEventPage({
 
 	const ticketTypes = event.ticketTypes || [];
 	const votingCategories = event.votingCategories || [];
+
+	// When a voting event only has one category, directly route to that category's detail page
+	if (isVoting && !isTicketed && votingCategories.length === 1) {
+		redirect(`/${orgSlug}/event/${eventSlug}/category/${votingCategories[0].id}`);
+	}
 	const sponsors = event.sponsors || [];
 	const galleryLinks = event.galleryLinks || [];
 	const eventSocialLinks = event.socialLinks || [];

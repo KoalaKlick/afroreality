@@ -316,7 +316,7 @@ async function processPayment(
 	// In simulator preview mode, do not call Paystack or create real financial records
 	if (isSimulation) {
 		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
-		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${totalAmountGHS.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`;
+		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${baseAmount.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`;
 	}
 
 	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
@@ -502,8 +502,7 @@ async function handleNomineeDirectVotingFlow(
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = votePrice * quantity;
-		const feeCalc = await computeDynamicChargeAmount(baseAmount, "vote", "GHS", event.organizationId);
-		return `CON Confirm Vote\nNominee: ${nominee.optionText}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
+		return `CON Confirm Vote\nNominee: ${nominee.optionText}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
 	}
 
 	if (confirmToken !== "1") {
@@ -612,8 +611,7 @@ async function handleVotingFlow(
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = votePrice * quantity;
-		const feeCalc = await computeDynamicChargeAmount(baseAmount, "vote", "GHS", event.organizationId);
-		return `CON Confirm Vote\nNominee: ${selectedNominee.optionText}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
+		return `CON Confirm Vote\nNominee: ${selectedNominee.optionText}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
 	}
 
 	if (confirmToken !== "1") {
@@ -711,8 +709,7 @@ async function handleTicketFlow(
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = ticketPrice * quantity;
-		const feeCalc = await computeDynamicChargeAmount(baseAmount, "ticket", "GHS", event.organizationId);
-		return `CON Confirm Ticket Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
+		return `CON Confirm Ticket Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
 	}
 
 	if (confirmToken !== "1") {

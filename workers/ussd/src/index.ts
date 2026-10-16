@@ -735,10 +735,8 @@ export async function handleVotingFlow(
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = votePrice * quantity;
-		const orgId = event.organization_id || event.organizationId;
-		const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, "vote", orgId);
 		return textResponse(
-			`CON Confirm Vote\nNominee: ${selectedNominee.option_text}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`,
+			`CON Confirm Vote\nNominee: ${selectedNominee.option_text}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`,
 		);
 	}
 
@@ -831,10 +829,8 @@ export async function handleTicketFlow(
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = ticketPrice * quantity;
-		const orgId = event.organization_id || event.organizationId;
-		const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, "ticket", orgId);
 		return textResponse(
-			`CON Confirm Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`,
+			`CON Confirm Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`,
 		);
 	}
 
@@ -1019,8 +1015,7 @@ export async function handleUssdCore(
 				const confirmToken = tokens.shift();
 				if (!confirmToken) {
 					const baseAmount = votePrice * quantity;
-					const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, "vote", nom.organization_id);
-					return textResponse(`CON Confirm Vote\nNominee: ${nom.option_text}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${feeCalc.totalToCharge.toFixed(2)}\n1. Confirm & Pay\n0. Back`);
+					return textResponse(`CON Confirm Vote\nNominee: ${nom.option_text}\nVotes: ${quantity} @ GHS ${votePrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`);
 				}
 
 				if (confirmToken !== "1") {

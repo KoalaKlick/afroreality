@@ -96,6 +96,10 @@ export default async function PublicCategoryPage({
 	const { event, category } = data;
 	const { organization } = event;
 	const isInternalVoting = event.votingMode === "internal";
+	const isSingleCategoryVoting =
+		(event.type === "voting" || event.type === "hybrid") &&
+		(event as any)._count?.ticketTypes === 0 &&
+		(event as any)._count?.votingCategories === 1;
 
 	const isEnded =
 		event.status === "ended" ||
@@ -213,21 +217,29 @@ export default async function PublicCategoryPage({
 									{organization.name}
 								</Link>
 								<ChevronRight className="size-3.5 text-muted-foreground/60" />
-								<Link
-									href={`/${orgSlug}/event/${eventSlug}`}
-									className="font-semibold text-muted-foreground hover:text-foreground transition-colors truncate"
-								>
-									{event.title}
-								</Link>
-								<ChevronRight className="size-3.5 text-muted-foreground/60" />
-								<span className="font-bold text-foreground truncate">
-									{category.name}
-								</span>
+								{isSingleCategoryVoting ? (
+									<span className="font-bold text-foreground truncate">
+										{event.title}
+									</span>
+								) : (
+									<>
+										<Link
+											href={`/${orgSlug}/event/${eventSlug}`}
+											className="font-semibold text-muted-foreground hover:text-foreground transition-colors truncate"
+										>
+											{event.title}
+										</Link>
+										<ChevronRight className="size-3.5 text-muted-foreground/60" />
+										<span className="font-bold text-foreground truncate">
+											{category.name}
+										</span>
+									</>
+								)}
 							</div>
 
 							<Button asChild variant="ghost" size="sm" className="h-8 gap-1 text-xs">
-								<Link href={`/${orgSlug}/event/${eventSlug}`}>
-									<ArrowLeft className="size-3.5" /> Back to Event
+								<Link href={isSingleCategoryVoting ? `/${orgSlug}` : `/${orgSlug}/event/${eventSlug}`}>
+									<ArrowLeft className="size-3.5" /> {isSingleCategoryVoting ? `Back to ${organization.name}` : "Back to Event"}
 								</Link>
 							</Button>
 						</div>

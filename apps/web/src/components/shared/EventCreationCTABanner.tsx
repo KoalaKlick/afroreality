@@ -17,17 +17,24 @@ export function EventCreationCTABanner({
 }: EventCreationCTABannerProps) {
 	return (
 		<footer className={`w-full ${className}`}>
-			{/* Outer section: full-bleed painting background */}
-			<div className="relative w-full overflow-hidden py-10 sm:py-12 lg:py-14">
-				{/* Background painting — edge to edge */}
-				<img
-					src="/landing/cta/cta_image.png"
-					alt=""
-					aria-hidden="true"
-					className="absolute inset-0 w-full h-full object-cover object-center"
-				/>
-				{/* Subtle dark scrim so inner Card pops */}
-				<div className="absolute inset-0 bg-black/40" />
+			{/* Outer section: full-bleed glassy backdrop */}
+			<div className="relative w-full overflow-hidden py-10 sm:py-12 lg:py-14 border-y border-white/15">
+				{/* Glassy backdrop image layer */}
+				<div className="absolute inset-0 overflow-hidden pointer-events-none">
+					<img
+						src="/landing/cta/cta_image.png"
+						alt=""
+						aria-hidden="true"
+						className="w-full h-full object-cover object-center scale-110 filter blur-md sm:blur-lg saturate-150 contrast-105 brightness-90"
+					/>
+					{/* Frosted glass scrim & ambient specular sheen */}
+					<div className="absolute inset-0 bg-black/35 backdrop-blur-[6px]" />
+					<div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-black/40" />
+					<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/25 via-transparent to-black/30" />
+					{/* Glass edge reflections */}
+					<div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+					<div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+				</div>
 
 				{/* Inner container — reusable Card holds everything */}
 				<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-y-clip">

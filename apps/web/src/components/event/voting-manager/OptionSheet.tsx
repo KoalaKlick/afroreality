@@ -408,7 +408,7 @@ export function OptionSheet({
 								}
 							/>
 							{editingOption ? (
-								<p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
+								<p className="text-[11px] hidden text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
 									<Lock className="size-3 shrink-0" />
 									Nominee code is permanent once created (preserves voting, flyers & USSD routing).
 								</p>
