@@ -27,6 +27,11 @@ export interface TawnyEventData {
 	maxPrice?: number | null;
 	category?: string | null;
 	tags?: string[] | null;
+	votingCategories?: Array<{
+		id: string;
+		name: string;
+		templateImage?: string | null;
+	}> | null;
 	organization: {
 		name: string;
 		slug: string;
@@ -76,7 +81,11 @@ function getDisplayStatus(event: TawnyEventData, isPast: boolean): string {
 }
 
 export function EventCard({ event, isPast = false, className }: EventCardProps) {
-	const rawPoster = event.flierImage || event.bannerImage;
+	const eventType = (event.type || "standard").toLowerCase();
+	const isVoting = eventType === "voting" || eventType === "hybrid";
+	const singleCategory = isVoting && event.votingCategories?.length === 1 ? event.votingCategories[0] : null;
+
+	const rawPoster = singleCategory?.templateImage || event.flierImage || event.bannerImage;
 	const posterUrl = getEventImageUrl(rawPoster);
 
 	const eventCode = event.hasUssd
@@ -84,7 +93,6 @@ export function EventCard({ event, isPast = false, className }: EventCardProps) 
 		: null;
 
 	const venue = [event.venueName, event.venueCity].filter(Boolean).join(", ") || "Ghana";
-	const eventType = (event.type || "standard").toLowerCase();
 	const displayStatus = getDisplayStatus(event, isPast);
 
 	return (

@@ -7,7 +7,7 @@ import { SponsorsList } from "@/components/shared/SponsorsList";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { EventGallery } from "@/components/shared/EventGallery";
 import { EventLocationDisplayMap } from "@/components/shared/map";
-import { ImageIcon, ChevronRight, Trophy, MapPin, ExternalLink } from "lucide-react";
+import { ImageIcon, ChevronRight, Trophy, MapPin, ExternalLink, Calendar, Clock, Video } from "lucide-react";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";
 import { Badge } from "@/components/ui/badge";
 import { TagPill } from "@/components/ui/tag-pill";
@@ -20,6 +20,8 @@ interface EventDetailsSectionProps {
 	readonly galleryLinks?: any[];
 	readonly galleryImages?: string[];
 	readonly sponsors?: any[];
+	readonly startDate?: Date | string | null;
+	readonly endDate?: Date | string | null;
 	readonly latitude?: number | null;
 	readonly longitude?: number | null;
 	readonly venueName?: string | null;
@@ -27,7 +29,31 @@ interface EventDetailsSectionProps {
 	readonly venueCity?: string | null;
 	readonly venueCountry?: string | null;
 	readonly isVirtual?: boolean;
+	readonly virtualLink?: string | null;
 	readonly showAboutSection?: boolean;
+}
+
+function formatDateDisplay(date?: Date | string | null): string {
+	if (!date) return "";
+	const d = new Date(date);
+	if (isNaN(d.getTime())) return "";
+	return d.toLocaleDateString("en-GH", {
+		weekday: "short",
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	});
+}
+
+function formatTimeDisplay(date?: Date | string | null): string {
+	if (!date) return "";
+	const d = new Date(date);
+	if (isNaN(d.getTime())) return "";
+	return d.toLocaleTimeString("en-GH", {
+		hour: "numeric",
+		minute: "2-digit",
+		hour12: true,
+	});
 }
 
 export function EventDetailsSection({
@@ -38,6 +64,8 @@ export function EventDetailsSection({
 	galleryLinks = [],
 	galleryImages = [],
 	sponsors = [],
+	startDate,
+	endDate,
 	latitude,
 	longitude,
 	venueName,
@@ -45,6 +73,7 @@ export function EventDetailsSection({
 	venueCity,
 	venueCountry,
 	isVirtual = false,
+	virtualLink,
 	showAboutSection = true,
 }: EventDetailsSectionProps) {
 	const hasCoordinates =
@@ -59,19 +88,22 @@ export function EventDetailsSection({
 		galleryImages.length > 0 ||
 		sponsors.length > 0;
 
-	// If neither about, coordinates, nor right content exist, don't render an empty section
-	if (!showAboutSection && !hasCoordinates && !hasRightContent) {
+	const hasDateInfo = Boolean(startDate);
+	const hasVenueInfo = isVirtual || Boolean(venueName || venueAddress || venueCity);
+
+	// If neither schedule, about, coordinates, nor right content exist, don't render an empty section
+	if (!hasDateInfo && !hasVenueInfo && !showAboutSection && !hasCoordinates && !hasRightContent) {
 		return null;
 	}
 
 	return (
 		<Section
 			maxWidth="7xl"
-			className="py-16 border-t bg-background"
+			className="py-12 border-t bg-background"
 		>
 			<div className="mx-auto">
-				<div className="grid grid-cols-1 md:grid-cols-12 gap-16">
-					{/* Left: About and/or Venue Map */}
+				<div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+					{/* Left: Schedule, Venue, About and/or Venue Map */}
 					<div
 						className={
 							hasRightContent
@@ -80,6 +112,63 @@ export function EventDetailsSection({
 						}
 						id="details"
 					>
+						{/* Schedule & Location Cards nicely arranged below category list */}
+						{(hasDateInfo || hasVenueInfo) && (
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								{hasDateInfo && (
+									<div className="rounded-xl border border-border/80 bg-card p-4 flex items-start gap-3.5 shadow-2xs">
+										<div className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+											<Calendar className="size-4.5" />
+										</div>
+										<div className="space-y-1 min-w-0 flex-1">
+											<h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-millik">
+												Event Date &amp; Time
+											</h3>
+											<p className="text-sm font-bold text-foreground truncate">
+												{formatDateDisplay(startDate)}
+											</p>
+											<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+												<Clock className="size-3 text-primary shrink-0" />
+												<span>
+													{formatTimeDisplay(startDate)}
+													{endDate && ` – ${formatTimeDisplay(endDate)}`}
+												</span>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{hasVenueInfo && (
+									<div className="rounded-xl border border-border/80 bg-card p-4 flex items-start gap-3.5 shadow-2xs">
+										<div className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+											{isVirtual ? <Video className="size-4.5" /> : <MapPin className="size-4.5" />}
+										</div>
+										<div className="space-y-1 min-w-0 flex-1">
+											<h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-millik">
+												{isVirtual ? "Virtual Event" : "Location / Venue"}
+											</h3>
+											{isVirtual ? (
+												<p className="text-sm font-bold text-foreground">
+													Online Stream
+												</p>
+											) : (
+												<>
+													<p className="text-sm font-bold text-foreground truncate">
+														{venueName || [venueCity, venueCountry].filter(Boolean).join(", ") || "Venue TBA"}
+													</p>
+													{(venueAddress || venueCity) && (
+														<p className="text-xs text-muted-foreground truncate">
+															{[venueAddress, venueCity, venueCountry].filter(Boolean).join(", ")}
+														</p>
+													)}
+												</>
+											)}
+										</div>
+									</div>
+								)}
+							</div>
+						)}
+
 						{showAboutSection && (
 							<div className="space-y-4">
 								<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground flex items-center gap-2.5">

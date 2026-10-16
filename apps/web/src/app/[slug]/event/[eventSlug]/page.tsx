@@ -267,6 +267,8 @@ export default async function PublicEventPage({
 					galleryLinks={galleryLinks}
 					galleryImages={(event as any).galleryImages || []}
 					sponsors={sponsors}
+					startDate={event.startDate}
+					endDate={event.endDate}
 					latitude={event.latitude}
 					longitude={event.longitude}
 					venueName={event.venueName}
@@ -274,6 +276,7 @@ export default async function PublicEventPage({
 					venueCity={event.venueCity}
 					venueCountry={event.venueCountry}
 					isVirtual={event.isVirtual}
+					virtualLink={event.virtualLink}
 					showAboutSection={!isStandard}
 				/>
 			</div>

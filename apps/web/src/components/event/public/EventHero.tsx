@@ -1,15 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, MapPin, Share2, Building2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Share2, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TagPill } from "@/components/ui/tag-pill";
 import { formatEventDisplay } from "@/lib/utils/event-dto";
 import { shareEvent } from "@/lib/utils/share-utils";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
-import { SponsorsList } from "@/components/shared/SponsorsList";
-import { EventInfoPill } from "@/components/shared/EventInfoPill";
 import { OrgGeometricBanner } from "@/components/common/OrgGeometricBanner";
 
 interface EventHeroProps {
@@ -138,62 +134,12 @@ export function EventHero({
 			</header>
 
 			{/* ── Main Hero Details ── */}
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-				<div className="space-y-6 max-w-4xl">
-
-					{/* Category & Type Badges */}
-					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 rounded-sm px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide shadow-none">
-							{event.type}
-						</Badge>
-						{event.category && (
-							<Badge variant="secondary" className="rounded-sm px-2.5 py-0.5 text-xs font-semibold border">
-								{event.category}
-							</Badge>
-						)}
-					</div>
-
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+				<div className="space-y-4 max-w-4xl">
 					{/* Event Title */}
 					<h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-foreground leading-[1.1] font-millik">
 						{event.title}
 					</h1>
-
-					{/* Event Metadata Pills */}
-					<div className="flex flex-wrap gap-3 pt-1">
-						<EventInfoPill
-							icon={Calendar}
-							label="Date"
-							value={
-								<span>
-									{dateStr}
-									{endsOnStr ? ` (Ends ${endsOnStr})` : ""}
-								</span>
-							}
-						/>
-						{timeStr && (
-							<EventInfoPill
-								icon={Clock}
-								label="Time"
-								value={timeStr}
-							/>
-						)}
-						{event.venueName && (
-							<EventInfoPill
-								icon={MapPin}
-								label="Venue"
-								value={event.venueName}
-							/>
-						)}
-					</div>
-
-					{/* Tags */}
-					{event.tags && event.tags.length > 0 && (
-						<div className="flex flex-wrap items-center gap-1.5 pt-1">
-							{event.tags.map((tag) => (
-								<TagPill key={tag} tag={tag} size="sm" variant="secondary" />
-							))}
-						</div>
-					)}
 				</div>
 			</div>
 		</div>

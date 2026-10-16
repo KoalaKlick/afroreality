@@ -5,16 +5,11 @@ import {
 	Trophy,
 	ArrowLeft,
 	Lock,
-	ImageIcon,
-	ChevronRight,
-	Calendar,
-	MapPin,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { formatEventDisplay } from "@/lib/utils/event-dto";
-import { getSocialPlatform, getGalleryProvider } from "@/lib/utils/event-icons";
 import { SocialLinksList } from "@/components/shared/SocialLinksList";
 import { SponsorsList } from "@/components/shared/SponsorsList";
 import { RichTextDisplay } from "@/components/ui/rich-text-display";

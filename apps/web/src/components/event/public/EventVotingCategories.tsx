@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Vote, Users, ChevronRight, Clock, Sparkles } from "lucide-react";
+import { Vote, Users, ChevronRight, Clock, Sparkles, Search, X } from "lucide-react";
 import { Section } from "@/components/Landing/shared/Section";
 import { AnimatedTooltip } from "@/components/ui/animated-tooltip";
 import { NoCategoryIllustration } from "@/components/common/NoCategoryIllustration";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 import { cn } from "@/lib/utils";
 import { extractCategoryPrefix } from "@/lib/utils/nominee-code";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface EventVotingCategoriesProps {
 	readonly categories: any[];
@@ -32,6 +34,7 @@ export function EventVotingCategories({
 	startDate,
 }: EventVotingCategoriesProps) {
 	const [targetNominee, setTargetNominee] = useState<string | null>(null);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -44,23 +47,60 @@ export function EventVotingCategories({
 		}
 	}, []);
 
+	const filteredCategories = categories.filter((category) => {
+		if (!searchQuery.trim()) return true;
+		const q = searchQuery.toLowerCase().trim();
+		const nameMatch = category.name?.toLowerCase().includes(q);
+		const descMatch = category.description?.toLowerCase().includes(q);
+		const nomineeMatch = category.votingOptions?.some(
+			(n: any) =>
+				n.optionText?.toLowerCase().includes(q) ||
+				n.nomineeCode?.toLowerCase().includes(q),
+		);
+		return nameMatch || descMatch || nomineeMatch;
+	});
+
 	return (
 		<Section
 			maxWidth="7xl"
 			className="py-4 transition-colors @container  px-0! sm:px-0! lg:px-0!"
 		>
 			<div className="">
-				<div className="flex items-center gap-3 mb-4">
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
 					<h2 className="text-xl font-medium font-millik tracking-widest uppercase text-muted-foreground">
-						Vote Categories
+						{categories.length === 1 ? "Voting Category" : "Vote Categories"}
 					</h2>
+
+					{/* Search bar when categories > 2 */}
+					{categories.length > 2 && (
+						<div className="relative w-full sm:w-72 md:w-80">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+							<Input
+								type="text"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								placeholder="Search categories..."
+								className="pl-9 pr-8 h-9 rounded-xl bg-card border-border text-xs focus-visible:ring-primary shadow-2xs"
+							/>
+							{searchQuery && (
+								<button
+									type="button"
+									onClick={() => setSearchQuery("")}
+									className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+									aria-label="Clear search"
+								>
+									<X className="size-3.5" />
+								</button>
+							)}
+						</div>
+					)}
 				</div>
 
 				{isUpcoming && startDate && (
 					<div className="mb-4 bg-amber-500/10 px-4 py-3 flex items-center gap-2.5 text-amber-700 dark:text-amber-400">
 						<Clock className="size-4 shrink-0" />
 						<p className="text-xs font-medium uppercase ">
-							Voting has not started yet  opens on {new Date(startDate).toLocaleString("en-GH", {
+							Voting has not started yet — opens on {new Date(startDate).toLocaleString("en-GH", {
 								dateStyle: "medium",
 								timeStyle: "short",
 							})}.
@@ -68,9 +108,26 @@ export function EventVotingCategories({
 					</div>
 				)}
 
+				{searchQuery.trim() && categories.length > 2 && (
+					<div className="mb-3 flex items-center justify-between px-1 text-xs text-muted-foreground">
+						<span>
+							Showing {filteredCategories.length} of {categories.length}{" "}
+							{categories.length === 1 ? "category" : "categories"}
+						</span>
+						<button
+							type="button"
+							onClick={() => setSearchQuery("")}
+							className="text-primary hover:underline font-medium text-xs"
+						>
+							Clear filter
+						</button>
+					</div>
+				)}
+
 				{categories.length > 0 ? (
-					<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-6">
-						{categories.map((category) => {
+					filteredCategories.length > 0 ? (
+						<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-6">
+							{filteredCategories.map((category) => {
 							const matchingNominee = targetNominee
 								? category.votingOptions?.find((n: any, idx: number) => {
 										const code = (
@@ -184,7 +241,24 @@ export function EventVotingCategories({
 							</div>
 						);
 					})}
-					</div>
+						</div>
+					) : (
+						<div className="py-12 flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-border/80 bg-card/50 my-4">
+							<Search className="size-8 text-muted-foreground/60 mb-2" />
+							<h4 className="text-sm font-bold text-foreground">No matching categories</h4>
+							<p className="text-xs text-muted-foreground mt-1 max-w-sm">
+								No voting categories match &ldquo;{searchQuery}&rdquo;. Try another keyword or clear the search.
+							</p>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setSearchQuery("")}
+								className="mt-3 text-xs h-7 rounded-lg"
+							>
+								Clear Search
+							</Button>
+						</div>
+					)
 				) : (
 					<div className="flex flex-col items-center justify-center py-12 text-center">
 						<NoCategoryIllustration className="size-56 mb-6 opacity-80" />

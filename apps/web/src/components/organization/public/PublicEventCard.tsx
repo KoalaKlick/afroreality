@@ -59,9 +59,17 @@ export function PublicEventCard({
 	organizationSlug,
 	className,
 }: PublicEventCardProps) {
+	const singleCategory =
+		(event.type === "voting" || event.type === "hybrid") &&
+		(event as any).votingCategories?.length === 1
+			? (event as any).votingCategories[0]
+			: null;
+
 	const coverImageUrl =
-		getEventImageUrl(event.flierImage) || "/landing/a.webp";
-	const eventDetailsHref = `/${organizationSlug}/event/${event.slug}`;
+		getEventImageUrl(singleCategory?.templateImage || event.flierImage) || "/landing/a.webp";
+	const eventDetailsHref = singleCategory
+		? `/${organizationSlug}/event/${event.slug}/category/${singleCategory.id}`
+		: `/${organizationSlug}/event/${event.slug}`;
 	const locationParts = [event.venueCity, event.venueCountry].filter(Boolean);
 	const locationStr =
 		event.venueName ||

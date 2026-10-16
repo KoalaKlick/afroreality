@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Vote, Share2, Sparkles, BarChart2, Hash, Users } from "lucide-react";
+import { Vote, Share2, Sparkles, BarChart2, Hash, Users, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
 	Sheet,
@@ -77,6 +78,7 @@ export function NomineeGrid({
 		null,
 	);
 	const [highlightedCode, setHighlightedCode] = useState<string | null>(null);
+	const [searchQuery, setSearchQuery] = useState("");
 	const [recentlyVoted, setRecentlyVoted] = useState<{
 		optionId: string;
 		addedVotes: number;
@@ -262,10 +264,65 @@ export function NomineeGrid({
 		});
 	};
 
+	const filteredNominees = nominees.filter((nominee, index) => {
+		if (!searchQuery.trim()) return true;
+		const q = searchQuery.toLowerCase().trim();
+		const effectiveCode = getEffectiveNomineeCode(nominee, index).toLowerCase();
+		const nameMatch = nominee.optionText?.toLowerCase().includes(q);
+		const codeMatch =
+			effectiveCode.includes(q) ||
+			(nominee.nomineeCode?.toLowerCase() || "").includes(q);
+		const bioMatch = (nominee.description || nominee.bio || "")
+			.toLowerCase()
+			.includes(q);
+		return nameMatch || codeMatch || bioMatch;
+	});
+
 	return (
 		<div className="@container">
-			<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
-				{nominees.concat().map((nominee, index) => {
+			{/* Search bar when nominees > 2 */}
+			{nominees.length > 2 && (
+				<div className="relative mb-5 w-full max-w-sm">
+					<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+					<Input
+						type="text"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						placeholder="Search nominees by name or code..."
+						className="pl-9 pr-8 h-9 rounded-xl bg-card border-border text-xs focus-visible:ring-primary shadow-2xs"
+					/>
+					{searchQuery && (
+						<button
+							type="button"
+							onClick={() => setSearchQuery("")}
+							className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+							aria-label="Clear search"
+						>
+							<X className="size-3.5" />
+						</button>
+					)}
+				</div>
+			)}
+
+			{searchQuery.trim() && nominees.length > 2 && (
+				<div className="mb-3 flex items-center justify-between px-1 text-xs text-muted-foreground">
+					<span>
+						Showing {filteredNominees.length} of {nominees.length}{" "}
+						{filteredNominees.length === 1 ? "nominee" : "nominees"}
+					</span>
+					<button
+						type="button"
+						onClick={() => setSearchQuery("")}
+						className="text-primary hover:underline font-medium text-xs"
+					>
+						Clear filter
+					</button>
+				</div>
+			)}
+
+			{filteredNominees.length > 0 ? (
+				<div className="grid grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4 gap-5">
+					{filteredNominees.map((nominee, index) => {
 					const effectiveCode = getEffectiveNomineeCode(nominee, index);
 					const isTarget = Boolean(
 						highlightedCode &&
@@ -413,7 +470,24 @@ export function NomineeGrid({
 						</div>
 					);
 				})}
-			</div>
+				</div>
+			) : (
+				<div className="py-12 flex flex-col items-center justify-center text-center rounded-2xl border border-dashed border-border/80 bg-card/50 my-4">
+					<Search className="size-8 text-muted-foreground/60 mb-2" />
+					<h4 className="text-sm font-bold text-foreground">No matching nominees</h4>
+					<p className="text-xs text-muted-foreground mt-1 max-w-sm">
+						No candidates match &ldquo;{searchQuery}&rdquo;. Try another name or nominee code.
+					</p>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setSearchQuery("")}
+						className="mt-3 text-xs h-7 rounded-lg"
+					>
+						Clear Search
+					</Button>
+				</div>
+			)}
 
 			{/* Nominee Profile Quick-View Sheet / Drawer */}
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

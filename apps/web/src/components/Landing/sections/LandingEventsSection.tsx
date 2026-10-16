@@ -68,15 +68,26 @@ export function LandingEventsSection({
 				</div>
 			) : (
 				<div className="grid gap-5 grid-cols-1 @lg:grid-cols-2 @2xl:grid-cols-3 @6xl:grid-cols-4">
-					{events.slice(0, 6).map((event) => (
-						<Link
-							key={event.id}
-							href={`/${event.organization.slug}/event/${event.slug}`}
-							className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
-						>
-							<EventCard event={event} />
-						</Link>
-					))}
+					{events.slice(0, 6).map((event) => {
+						const singleCategory =
+							(event.type === "voting" || event.type === "hybrid") &&
+							event.votingCategories?.length === 1
+								? event.votingCategories[0]
+								: null;
+						const href = singleCategory
+							? `/${event.organization.slug}/event/${event.slug}/category/${singleCategory.id}`
+							: `/${event.organization.slug}/event/${event.slug}`;
+
+						return (
+							<Link
+								key={event.id}
+								href={href}
+								className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+							>
+								<EventCard event={event} />
+							</Link>
+						);
+					})}
 				</div>
 			)}
 		</Section>

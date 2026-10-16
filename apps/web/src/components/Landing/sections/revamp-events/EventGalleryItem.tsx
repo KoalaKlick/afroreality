@@ -88,8 +88,14 @@ export function EventCard({ item, index = 0, colorCount = 3, className, size = '
             : 'TBA'
         : (item as EventItem).date;
 
+    const singleCat = isDb && ((item as any).type === "voting" || (item as any).type === "hybrid") && (item as any).votingCategories?.length === 1
+        ? (item as any).votingCategories[0]
+        : null;
+
     const href = isDb
-        ? `/${(item as DbEvent).organization.slug}/event/${(item as DbEvent).slug}`
+        ? (singleCat
+            ? `/${(item as DbEvent).organization.slug}/event/${(item as DbEvent).slug}/category/${singleCat.id}`
+            : `/${(item as DbEvent).organization.slug}/event/${(item as DbEvent).slug}`)
         : `/events/${(item as EventItem).id}`;
 
     return (

@@ -93,6 +93,16 @@ export async function getPublicOrganizationProfile(
 						startDate: "desc",
 					},
 					include: {
+						votingCategories: {
+							select: {
+								id: true,
+								name: true,
+								templateImage: true,
+							},
+							orderBy: {
+								orderIdx: "asc",
+							},
+						},
 						sponsors: {
 							orderBy: {
 								createdAt: "asc",
@@ -462,6 +472,16 @@ export async function getPublicEventsList(options: GetPublicEventsOptions = {}) 
 							slug: true,
 							logoUrl: true,
 							primaryColor: true,
+						},
+					},
+					votingCategories: {
+						select: {
+							id: true,
+							name: true,
+							templateImage: true,
+						},
+						orderBy: {
+							orderIdx: "asc",
 						},
 					},
 					ticketTypes: {
