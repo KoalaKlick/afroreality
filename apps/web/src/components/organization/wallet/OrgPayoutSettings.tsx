@@ -1,7 +1,7 @@
 "use client";
 // src/components/organization/wallet/OrgPayoutSettings.tsx
 
-import { Banknote, Check, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Banknote, Check, Loader2, Pencil, Plus, ShieldAlert, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmPasswordDialog } from "@/components/shared/ConfirmPasswordDialog";
@@ -29,12 +29,18 @@ import {
 	verifyPaystackAccount,
 } from "@/lib/server-functions/paystack";
 import { usePermissions } from "@/hooks/use-permissions";
+import {
+	detectMomoNetworkFromPhone,
+	formatToLocalMomoNumber,
+	isSamePhoneNumber,
+} from "@/lib/utils/phone";
 import { PayoutAccountCard } from "./PayoutAccountCard";
 
 interface OrgPayoutSettingsProps {
 	readonly organization: {
 		id: string;
 		name: string;
+		phone?: string | null;
 		paystackBankCode?: string | null;
 		paystackAccountNumber?: string | null;
 		paystackAccountName?: string | null;
@@ -108,6 +114,30 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 	const [banks, setBanks] = useState<NetworkOption[]>([]);
 	const [momoNetworks, setMomoNetworks] = useState<NetworkOption[]>([]);
 	const [isLoadingNetworks, setIsLoadingNetworks] = useState(false);
+
+	const isOrgNumberMatch = isSamePhoneNumber(accountNumber, organization.phone);
+
+	function handleUseOrgPhone() {
+		if (!organization.phone) return;
+		const localNumber = formatToLocalMomoNumber(organization.phone);
+		setBankType("momo");
+		setAccountNumber(localNumber);
+		setVerifiedName(null);
+		setAccountName("");
+
+		const detected = detectMomoNetworkFromPhone(localNumber);
+		if (detected && momoNetworks.length > 0) {
+			const match = momoNetworks.find(
+				(n) =>
+					n.code.toUpperCase() === detected.code ||
+					n.label.toLowerCase().includes(detected.name.toLowerCase()),
+			);
+			if (match) {
+				setBankCode(match.code);
+			}
+		}
+		toast.info(`Loaded organization contact (${localNumber})`);
+	}
 
 	const networks = bankType === "momo" ? momoNetworks : banks;
 	const countryOptions = supportedCountries.map((c: any) => ({
@@ -391,7 +421,20 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label>Account Number</Label>
+									<div className="flex items-center justify-between">
+										<Label>Account Number</Label>
+										{organization.phone && (
+											<button
+												type="button"
+												onClick={handleUseOrgPhone}
+												className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium flex items-center gap-1 transition-colors cursor-pointer group"
+												title={`Use organization contact: ${organization.phone}`}
+											>
+												<Sparkles className="size-3 text-emerald-500 group-hover:rotate-12 transition-transform" />
+												<span>Use organization number ({organization.phone})</span>
+											</button>
+										)}
+									</div>
 									<Input
 										value={accountNumber}
 										onChange={(e) => {
@@ -406,10 +449,43 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 										}
 									/>
 									{verifiedName && (
-										<p className="text-sm text-primary font-medium flex items-center mt-2">
-											<Check className="h-4 w-4 mr-1 text-emerald-500" />
-											Verified Name: {verifiedName}
-										</p>
+										<div className="space-y-2.5 mt-2.5">
+											<p className="text-sm text-primary font-medium flex items-center">
+												<Check className="h-4 w-4 mr-1 text-emerald-500" />
+												Verified Name: <span className="font-semibold ml-1">{verifiedName}</span>
+											</p>
+											{isOrgNumberMatch ? (
+												<div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5 shadow-xs">
+													<ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+													<div className="space-y-0.5">
+														<p className="font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
+															<span>Organization Contact Matched</span>
+															<span className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider font-semibold">
+																Fast-Track
+															</span>
+														</p>
+														<p className="text-emerald-700 dark:text-emerald-300/90 leading-relaxed">
+															This number matches your organization's registered contact ({organization.phone}). Identity is pre-verified — you do not need to enter any PIN or OTP to save!
+														</p>
+													</div>
+												</div>
+											) : (
+												<div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 p-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5 shadow-xs">
+													<ShieldAlert className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+													<div className="space-y-0.5">
+														<p className="font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-1.5">
+															<span>Different Number Detected</span>
+															<span className="bg-amber-500/20 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider font-semibold">
+																Security Check
+															</span>
+														</p>
+														<p className="text-amber-700 dark:text-amber-300/90 leading-relaxed">
+															This account number differs from your organization's registered contact. For security, identity confirmation (password or OTP) is required to authorize this destination.
+														</p>
+													</div>
+												</div>
+											)}
+										</div>
 									)}
 								</div>
 							</div>
@@ -423,16 +499,38 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 							Cancel
 						</Button>
 						{verifiedName ? (
-							<Button
-								type="button"
-								onClick={() => setIsConfirmOpen(true)}
-								disabled={isCreating}
-							>
-								{isCreating && (
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								)}
-								Save Payout Details
-							</Button>
+							isOrgNumberMatch ? (
+								<Button
+									type="button"
+									onClick={handleSave}
+									disabled={isCreating}
+									className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 font-medium shadow-xs"
+								>
+									{isCreating ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Saving...
+										</>
+									) : (
+										<>
+											<ShieldCheck className="h-4 w-4" />
+											Save Payout Details
+										</>
+									)}
+								</Button>
+							) : (
+								<Button
+									type="button"
+									onClick={() => setIsConfirmOpen(true)}
+									disabled={isCreating}
+									className="gap-1.5 font-medium"
+								>
+									{isCreating && (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									)}
+									Confirm & Save Payout Details
+								</Button>
+							)
 						) : (
 							<Button
 								type="button"
@@ -452,9 +550,9 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 			<ConfirmPasswordDialog
 				open={isConfirmOpen}
 				onOpenChange={setIsConfirmOpen}
-				title="Confirm Payout Details Change"
-				description="For security, please verify your identity to update your payout account."
-				confirmLabel="Save Payout Details"
+				title="Confirm Payout Destination"
+				description="You are configuring a payout account that differs from your organization's registered contact. For security, please verify your identity to authorize this change."
+				confirmLabel="Authorize Payout Details"
 				onConfirm={handleSave}
 			/>
 

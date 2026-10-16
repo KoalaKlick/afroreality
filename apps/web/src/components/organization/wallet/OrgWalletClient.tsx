@@ -57,6 +57,7 @@ interface OrgWalletClientProps {
 	readonly organization: {
 		id: string;
 		name: string;
+		phone?: string | null;
 		paystackBankCode?: string | null;
 		paystackAccountNumber?: string | null;
 		paystackAccountName?: string | null;

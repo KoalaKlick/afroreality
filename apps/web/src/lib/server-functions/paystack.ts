@@ -2,6 +2,7 @@
 
 import { prisma } from "@repo/db";
 import { requireSession } from "../session";
+import { notifyPayoutAccountChange } from "./whatsapp-otp";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 
@@ -177,7 +178,13 @@ export async function createPaystackSubaccount({
 
 		const org = await prisma.organization.findUnique({
 			where: { id: data.organizationId },
-			select: { id: true, name: true, createdBy: true, subaccountCode: true },
+			select: {
+				id: true,
+				name: true,
+				createdBy: true,
+				subaccountCode: true,
+				paystackAccountNumber: true,
+			},
 		});
 
 		if (!org) {
@@ -213,6 +220,18 @@ export async function createPaystackSubaccount({
 					paystackAccountName: data.accountName || "Configured Account",
 				},
 			});
+
+			if (org.paystackAccountNumber && org.paystackAccountNumber !== data.accountNumber) {
+				notifyPayoutAccountChange({
+					data: {
+						organizationId: org.id,
+						organizationName: org.name,
+						currentAccountNumber: org.paystackAccountNumber,
+						action: "change",
+					},
+				}).catch(() => {});
+			}
+
 			return {
 				success: true,
 				subaccountCode: fallbackCode,
@@ -250,6 +269,17 @@ export async function createPaystackSubaccount({
 						paystackAccountName: data.accountName || null,
 					},
 				});
+
+				if (org.paystackAccountNumber && org.paystackAccountNumber !== data.accountNumber) {
+					notifyPayoutAccountChange({
+						data: {
+							organizationId: org.id,
+							organizationName: org.name,
+							currentAccountNumber: org.paystackAccountNumber,
+							action: "change",
+						},
+					}).catch(() => {});
+				}
 
 				return {
 					success: true,
@@ -300,6 +330,17 @@ export async function createPaystackSubaccount({
 			},
 		});
 
+		if (org.paystackAccountNumber && org.paystackAccountNumber !== data.accountNumber) {
+			notifyPayoutAccountChange({
+				data: {
+					organizationId: org.id,
+					organizationName: org.name,
+					currentAccountNumber: org.paystackAccountNumber,
+					action: "change",
+				},
+			}).catch(() => {});
+		}
+
 		return {
 			success: true,
 			subaccountCode,
@@ -324,7 +365,12 @@ export async function removePayoutAccount({
 
 		const org = await prisma.organization.findUnique({
 			where: { id: data.organizationId },
-			select: { id: true, createdBy: true },
+			select: {
+				id: true,
+				name: true,
+				createdBy: true,
+				paystackAccountNumber: true,
+			},
 		});
 
 		if (!org) {
@@ -359,6 +405,17 @@ export async function removePayoutAccount({
 				paystackAccountName: null,
 			},
 		});
+
+		if (org.paystackAccountNumber) {
+			notifyPayoutAccountChange({
+				data: {
+					organizationId: org.id,
+					organizationName: org.name,
+					currentAccountNumber: org.paystackAccountNumber,
+					action: "remove",
+				},
+			}).catch(() => {});
+		}
 
 		return {
 			success: true,

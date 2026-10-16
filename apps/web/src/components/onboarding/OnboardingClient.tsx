@@ -46,11 +46,12 @@ export function OnboardingClient({
   const [orgData, setOrgData] = useState({
     name: "",
     slug: "",
+    phone: "",
     description: "",
   });
 
   // Step 1: Org Info
-  const handleStep1OrgSuccess = (data: { name: string; slug: string }) => {
+  const handleStep1OrgSuccess = (data: { name: string; slug: string; phone?: string }) => {
     setOrgData((prev) => ({ ...prev, ...data }));
     setCurrentStep(1);
     void setOnboardingStep({ data: { step: 1 } });
@@ -74,6 +75,7 @@ export function OnboardingClient({
             data: {
               name: orgData.name,
               slug: orgData.slug,
+              phone: orgData.phone || undefined,
               description: orgData.description || undefined,
             },
           });
@@ -116,6 +118,7 @@ export function OnboardingClient({
               defaultValues={{
                 name: orgData.name,
                 slug: orgData.slug,
+                phone: orgData.phone,
               }}
               onSuccess={handleStep1OrgSuccess}
             />

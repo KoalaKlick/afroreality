@@ -93,6 +93,7 @@ export async function createOrganizationAccount({
 		data: {
 			name: data.name.trim(),
 			slug: data.slug.trim(),
+			phone: data.phone?.trim() || null,
 			description: data.description || null,
 			logoUrl: data.logoUrl || null,
 			contactEmail: data.contactEmail || null,

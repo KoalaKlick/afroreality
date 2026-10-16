@@ -745,6 +745,7 @@ export function EventDetailHeader({
 							organization={{
 								id: organization?.id ?? "",
 								name: organization?.name ?? "",
+								phone: organization?.phone ?? null,
 								paystackBankCode: organization?.paystackBankCode ?? null,
 								paystackAccountNumber: organization?.paystackAccountNumber ?? null,
 								paystackAccountName: organization?.paystackAccountName ?? null,

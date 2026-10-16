@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Building2, Check, Globe, Loader2, X } from "lucide-react";
+import { Building2, Check, Globe, Loader2, Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { checkOrgSlug } from "@/lib/server-functions/organization";
@@ -10,6 +10,7 @@ import {
 	isReservedSlug,
 	organizationNameSchema,
 	organizationSlugSchema,
+	orgPhoneSchema,
 } from "@/lib/validations/organization";
 import { useDebounce } from "@/hooks/use-debounce";
 import { DOMAIN_NAME } from "@/lib/constants/branding";
@@ -19,14 +20,16 @@ interface StepOrgInfoProps {
 	readonly defaultValues?: {
 		name?: string;
 		slug?: string;
+		phone?: string;
 	};
-	readonly onSuccess?: (data: { name: string; slug: string }) => void;
+	readonly onSuccess?: (data: { name: string; slug: string; phone?: string }) => void;
 }
 
 export function Step4OrgInfo({ defaultValues, onSuccess }: StepOrgInfoProps) {
 	const [isPending, startTransition] = useTransition();
 	const [name, setName] = useState(defaultValues?.name ?? "");
 	const [slug, setSlug] = useState(defaultValues?.slug ?? "");
+	const [phone, setPhone] = useState(defaultValues?.phone ?? "");
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [slugStatus, setSlugStatus] = useState<
 		"idle" | "checking" | "available" | "taken" | "invalid"
@@ -84,6 +87,7 @@ export function Step4OrgInfo({ defaultValues, onSuccess }: StepOrgInfoProps) {
 		e.preventDefault();
 		const cleanName = name.trim();
 		const cleanSlug = slug.trim().toLowerCase();
+		const cleanPhone = phone.trim();
 
 		const nameParse = organizationNameSchema.safeParse(cleanName);
 		if (!nameParse.success) {
@@ -99,6 +103,16 @@ export function Step4OrgInfo({ defaultValues, onSuccess }: StepOrgInfoProps) {
 			return;
 		}
 
+		if (cleanPhone) {
+			const phoneParse = orgPhoneSchema.safeParse(cleanPhone);
+			if (!phoneParse.success) {
+				toast.error(
+					phoneParse.error.issues[0]?.message ?? "Invalid phone number",
+				);
+				return;
+			}
+		}
+
 		if (slugStatus === "taken") {
 			toast.error("This organization URL is already taken");
 			return;
@@ -108,6 +122,7 @@ export function Step4OrgInfo({ defaultValues, onSuccess }: StepOrgInfoProps) {
 			onSuccess?.({
 				name: cleanName,
 				slug: cleanSlug,
+				phone: cleanPhone || undefined,
 			});
 		});
 	}
@@ -181,6 +196,24 @@ export function Step4OrgInfo({ defaultValues, onSuccess }: StepOrgInfoProps) {
 						<span className="font-semibold text-foreground font-mono">
 							{DOMAIN_NAME}/{slug || "handle"}
 						</span>
+					</p>
+				</div>
+
+				<div className="space-y-1.5">
+					<div className="flex items-center justify-between">
+						<label className="text-sm font-medium leading-none">
+							Contact Phone Number
+						</label>
+						<span className="text-xs text-muted-foreground">Recommended</span>
+					</div>
+					<Input
+						icon={<Phone className="size-4" />}
+						placeholder="e.g. 024 123 4567 or +233..."
+						value={phone}
+						onChange={(e) => setPhone(e.target.value)}
+					/>
+					<p className="text-xs text-muted-foreground">
+						Official contact number. you can use this number to link payouts instantly .
 					</p>
 				</div>
 

@@ -149,9 +149,19 @@ export const orgEmailSchema = z
 	.optional()
 	.or(z.literal(""));
 
+export const orgPhoneSchema = z
+	.string()
+	.regex(
+		/^[+]?[0-9\s()-]{7,20}$/,
+		"Phone number must be 7-20 digits with optional +",
+	)
+	.optional()
+	.or(z.literal(""));
+
 export const createOrgStep1Schema = z.object({
 	name: organizationNameSchema,
 	slug: organizationSlugSchema,
+	phone: orgPhoneSchema,
 });
 
 export const createOrgStep2Schema = z.object({
@@ -170,6 +180,7 @@ export const createOrgStep3Schema = z.object({
 export const createOrganizationSchema = z.object({
 	name: organizationNameSchema,
 	slug: organizationSlugSchema,
+	phone: orgPhoneSchema,
 	description: organizationDescriptionSchema,
 	logoUrl: orgStoragePathSchema,
 });
@@ -186,14 +197,7 @@ export const updateOrganizationSchema = z.object({
 	primaryColor: orgColorSchema,
 	secondaryColor: orgColorSchema,
 	tertiaryColor: orgColorSchema,
-	phone: z
-		.string()
-		.regex(
-			/^[+]?[0-9\s()-]{7,20}$/,
-			"Phone number must be 7-20 digits with optional +",
-		)
-		.optional()
-		.or(z.literal("")),
+	phone: orgPhoneSchema,
 	paystackAccountName: z.string().optional().or(z.literal("")),
 	paystackAccountNumber: z.string().optional().or(z.literal("")),
 	paystackBankCode: z.string().optional().or(z.literal("")),
