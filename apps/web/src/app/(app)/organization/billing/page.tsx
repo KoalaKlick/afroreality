@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
 import React from "react";
-import { notFound } from "next/navigation";
 import { CreditCard } from "lucide-react";
 import { prisma } from "@repo/db";
 import { requireSession } from "@/lib/session";
@@ -23,6 +22,7 @@ import {
 import { cookies } from "next/headers";
 import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
 import { getDynamicFeeConfig } from "@/lib/server-functions/fee-service";
+import { NoOrganizationState } from "@/components/organization/NoOrganizationState";
 
 export default async function OrgBillingPage({
 	searchParams,
@@ -34,17 +34,61 @@ export default async function OrgBillingPage({
 	const orgs = await getUserOrganizations(session.userId);
 
 	if (orgs.length === 0) {
-		notFound();
+		return (
+			<div className="space-y-6">
+				<PageHeader
+					breadcrumbs={[
+						{ label: "Organization", href: "/organization/manage" },
+						{ label: "Billing" },
+					]}
+				/>
+				<NoOrganizationState
+					title="Organization Billing"
+					description="You are not currently part of an organization. Create an organization to manage your plan, platform fees, and communication credits."
+				/>
+			</div>
+		);
 	}
 
 	const cookieStore = await cookies();
 	const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE_NAME)?.value;
 	const requestedOrgId = typeof params.org === "string" ? params.org : cookieOrg;
 	const activeOrg = orgs.find((o: any) => o.id === requestedOrgId) || orgs[0];
+
+	if (!activeOrg) {
+		return (
+			<div className="space-y-6">
+				<PageHeader
+					breadcrumbs={[
+						{ label: "Organization", href: "/organization/manage" },
+						{ label: "Billing" },
+					]}
+				/>
+				<NoOrganizationState
+					title="Organization Billing"
+					description="You are not currently part of an organization. Create an organization to manage your plan, platform fees, and communication credits."
+				/>
+			</div>
+		);
+	}
+
 	const organization = await getOrganizationById(activeOrg.id, session.userId);
 
 	if (!organization) {
-		notFound();
+		return (
+			<div className="space-y-6">
+				<PageHeader
+					breadcrumbs={[
+						{ label: "Organization", href: "/organization/manage" },
+						{ label: "Billing" },
+					]}
+				/>
+				<NoOrganizationState
+					title="Organization Not Found"
+					description="The requested organization could not be found or you do not have permission to view its billing details."
+				/>
+			</div>
+		);
 	}
 
 	const profile = await prisma.profile.findUnique({

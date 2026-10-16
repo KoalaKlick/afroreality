@@ -542,7 +542,7 @@ export function OrgWalletClient({
 				<SheetContent
 					side="right"
 					variant="brand"
-					className="w-full sm:max-w-xl flex flex-col h-full p-0 overflow-hidden"
+					className="w-full sm:max-w-2xl flex flex-col h-full p-0 overflow-hidden"
 				>
 					<SheetHeader className="shrink-0">
 						<div className="flex items-center gap-2.5">

@@ -12,6 +12,7 @@ import { serializeJsonSafe } from "@/lib/utils";
 import { ACTIVE_ORG_COOKIE_NAME } from "@/lib/constants/config";
 
 import { OrganizationProvider } from "@/lib/organization-context";
+import { getUserOrganizations } from "@/lib/dal/organization";
 
 export const dynamic = "force-dynamic";
 
@@ -19,19 +20,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 	const state = await requireAppAccess();
 	const user = await getSafeUser(state.userId);
 
-	// Fetch organizations user belongs to
-	const memberships = await prisma.teamMember.findMany({
-		where: { userId: state.userId },
-		include: { organization: true },
-		orderBy: { joinedAt: "asc" },
-	});
-
-	const organizations = memberships.map((m) => ({
-		id: m.organization.id,
-		name: m.organization.name,
-		slug: m.organization.slug,
-		logoUrl: m.organization.logoUrl,
-		role: m.role,
+	// Fetch organizations user belongs to or created
+	const userOrgs = await getUserOrganizations(state.userId);
+	const organizations = userOrgs.map((o) => ({
+		id: o.id,
+		name: o.name,
+		slug: o.slug,
+		logoUrl: o.logoUrl,
+		role: o.role,
 	}));
 
 	const cookieStore = await cookies();

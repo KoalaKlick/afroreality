@@ -460,12 +460,10 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 													<div className="space-y-0.5">
 														<p className="font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
 															<span>Organization Contact Matched</span>
-															<span className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider font-semibold">
-																Fast-Track
-															</span>
+															
 														</p>
 														<p className="text-emerald-700 dark:text-emerald-300/90 leading-relaxed">
-															This number matches your organization's registered contact ({organization.phone}). Identity is pre-verified — you do not need to enter any PIN or OTP to save!
+															No verification required
 														</p>
 													</div>
 												</div>
