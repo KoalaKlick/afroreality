@@ -43,11 +43,11 @@ export const navMain: NavItem[] = [
 			},
 		],
 	},
-	{
-		title: "Billing",
-		url: "/organization/billing",
-		icon: CreditCard,
-	},
+	// {
+	// 	title: "Billing",
+	// 	url: "/organization/billing",
+	// 	icon: CreditCard,
+	// },
 	{
 		title: "Organization",
 		url: "/organization/manage",
