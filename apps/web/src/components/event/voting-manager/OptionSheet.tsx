@@ -77,7 +77,7 @@ export function OptionSheet({
 	const [nomineeCode, setNomineeCode] = useState("");
 	const [description, setDescription] = useState("");
 	const [imageUrl, setImageUrl] = useState("");
-	const [sendWhatsApp, setSendWhatsApp] = useState(true);
+	const [sendWhatsApp, setSendWhatsApp] = useState(false);
 	const [isSendingConfirm, setIsSendingConfirm] = useState(false);
 	const [showConfirmAlert, setShowConfirmAlert] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);

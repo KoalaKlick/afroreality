@@ -59,6 +59,7 @@ import {
 import {
 	NomineeReportSettings,
 	ReportInterval,
+	ReportVoteAudience,
 	ActiveEventSummary,
 	updateNomineeReportSettings,
 	dispatchNomineeReportsNow,
@@ -172,6 +173,7 @@ export function NomineeReportsContent({
 				triggeredBy: "super_admin_manual",
 				selectedEventIds: targetScope === "selected" ? selectedEventIds : undefined,
 				channelOverride: broadcastChannel,
+				voteAudienceOverride: settings.voteAudience,
 			});
 
 			if (res.success) {
@@ -675,17 +677,32 @@ export function NomineeReportsContent({
 										{/* Recipient Filter */}
 										<div className="space-y-1.5">
 											<Label className="text-xs font-semibold">Audience Filter</Label>
-											<div className="pt-2 flex items-center gap-2">
-												<Switch
-													id="onlyWithVotesToggle"
-													checked={settings.onlyWithVotes}
-													onCheckedChange={(checked) =>
-														setSettings((prev) => ({ ...prev, onlyWithVotes: checked }))
-													}
-												/>
-												<Label htmlFor="onlyWithVotesToggle" className="text-xs cursor-pointer text-muted-foreground">
-													Only nominees with &gt; 0 votes
-												</Label>
+											<div className="pt-2 grid grid-cols-3 rounded-lg border border-border/70 bg-background p-1">
+												{([
+													["with_votes", "With votes"],
+													["without_votes", "No votes"],
+													["all", "Everyone"],
+												] as const).map(([value, label]) => (
+													<button
+														key={value}
+														type="button"
+														aria-pressed={settings.voteAudience === value}
+														onClick={() =>
+															setSettings((prev) => ({
+																...prev,
+																voteAudience: value as ReportVoteAudience,
+																onlyWithVotes: value === "with_votes",
+															}))
+														}
+														className={`rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors ${
+															settings.voteAudience === value
+																? "bg-primary text-primary-foreground shadow-xs"
+																: "text-muted-foreground hover:bg-muted"
+														}`}
+													>
+														{label}
+													</button>
+												))}
 											</div>
 										</div>
 									</div>

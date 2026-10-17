@@ -7,6 +7,7 @@ import { sendNomineeReportSms } from "@/lib/services/sms";
 import { revalidatePath } from "next/cache";
 
 export type ReportInterval = "every_6_hours" | "every_12_hours" | "daily" | "weekly";
+export type ReportVoteAudience = "all" | "with_votes" | "without_votes";
 
 export interface NomineeReportStats {
 	totalNominees: number;
@@ -22,6 +23,7 @@ export interface NomineeReportSettings {
 	interval: ReportInterval;
 	preferredHourUtc: number; // 0 - 23
 	preferredDayOfWeek: number; // 0 = Sun, 1 = Mon ... 6 = Sat
+	voteAudience: ReportVoteAudience;
 	onlyWithVotes: boolean;
 	defaultChannel: "whatsapp" | "sms" | "both";
 	lastRunAt: string | null;
@@ -49,6 +51,7 @@ const DEFAULT_NOMINEE_REPORT_SETTINGS: NomineeReportSettings = {
 	interval: "daily",
 	preferredHourUtc: 9, // 9:00 AM UTC
 	preferredDayOfWeek: 1, // Monday
+	voteAudience: "all",
 	onlyWithVotes: false,
 	defaultChannel: "whatsapp",
 	lastRunAt: null,
@@ -74,6 +77,12 @@ export async function getNomineeReportSettings(): Promise<NomineeReportSettings>
 			interval: val.interval || DEFAULT_NOMINEE_REPORT_SETTINGS.interval,
 			preferredHourUtc: typeof val.preferredHourUtc === "number" ? val.preferredHourUtc : DEFAULT_NOMINEE_REPORT_SETTINGS.preferredHourUtc,
 			preferredDayOfWeek: typeof val.preferredDayOfWeek === "number" ? val.preferredDayOfWeek : DEFAULT_NOMINEE_REPORT_SETTINGS.preferredDayOfWeek,
+			voteAudience:
+				val.voteAudience === "with_votes" || val.voteAudience === "without_votes"
+					? val.voteAudience
+					: val.onlyWithVotes === true
+						? "with_votes"
+						: "all",
 			onlyWithVotes: typeof val.onlyWithVotes === "boolean" ? val.onlyWithVotes : DEFAULT_NOMINEE_REPORT_SETTINGS.onlyWithVotes,
 			defaultChannel: val.defaultChannel || DEFAULT_NOMINEE_REPORT_SETTINGS.defaultChannel,
 			lastRunAt: val.lastRunAt || null,
@@ -189,11 +198,13 @@ export async function dispatchNomineeReportsNow({
 	triggeredBy = "manual",
 	selectedEventIds,
 	channelOverride,
+	voteAudienceOverride,
 }: {
 	force?: boolean;
 	triggeredBy?: string;
 	selectedEventIds?: string[];
 	channelOverride?: "whatsapp" | "sms" | "both" | "event_default";
+	voteAudienceOverride?: ReportVoteAudience;
 } = {}): Promise<{
 	success: boolean;
 	totalNominees: number;
@@ -302,7 +313,13 @@ export async function dispatchNomineeReportsNow({
 					: config?.reportChannel || settings.defaultChannel || "whatsapp";
 			if (channel === "none") continue;
 
-			const onlyWithVotes = config?.reportOnlyWithVotes ?? settings.onlyWithVotes;
+			const voteAudience: ReportVoteAudience =
+				voteAudienceOverride ||
+				(config
+					? config.reportOnlyWithVotes
+						? "with_votes"
+						: "all"
+					: settings.voteAudience);
 			const overrideShowRank = config?.reportShowRank ?? true;
 			const orgSlug = ev.organization?.slug || "org";
 			const bannerImageUrl = ev.bannerImage || ev.flierImage || undefined;
@@ -316,7 +333,10 @@ export async function dispatchNomineeReportsNow({
 				const sortedOptions = [...cat.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
 				sortedOptions.forEach((opt, idx) => {
-					if (onlyWithVotes && opt.votesCount <= 0) return;
+					if (
+						(voteAudience === "with_votes" && opt.votesCount <= 0) ||
+						(voteAudience === "without_votes" && opt.votesCount > 0)
+					) return;
 					if (!opt.phone || opt.phone.trim().length < 6) return;
 
 					dispatchTasks.push({
@@ -347,7 +367,10 @@ export async function dispatchNomineeReportsNow({
 				const sortedUncategorized = [...ev.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
 				sortedUncategorized.forEach((opt, idx) => {
-					if (onlyWithVotes && opt.votesCount <= 0) return;
+					if (
+						(voteAudience === "with_votes" && opt.votesCount <= 0) ||
+						(voteAudience === "without_votes" && opt.votesCount > 0)
+					) return;
 					if (!opt.phone || opt.phone.trim().length < 6) return;
 
 					dispatchTasks.push({
