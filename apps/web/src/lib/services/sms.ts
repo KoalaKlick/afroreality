@@ -293,13 +293,17 @@ export async function sendNomineeReportSms({
 		: category
 			? `${event} (${category})`
 			: event;
-	const detailedMessage =
-		`\nHi ${nominee}, your progress is ${progress} in ${eventLabel}.${rankLine}\n` +
+	const messageWithEventLink =
+		`\nHi ${nominee}, you have ${progress} in ${eventLabel}.${rankLine}\n` +
 		`Share for more votes: ${progressLink}`;
-	const compactMessage = `FEXTIVA\nHi ${nominee}, share for more votes: ${progressLink}`;
-	const message = detailedMessage.length <= SMS_CHAR_LIMIT
-		? detailedMessage
-		: compactMessage;
+	const messageWithHomepageLink =
+		`\nHi ${nominee}, you have ${progress} in ${eventLabel}.${rankLine}\n` +
+		"Share for more votes: https://fextiva.com";
+	const messageWithoutLink =
+		`FEXTIVA\nHi ${nominee}, you have ${progress} in ${eventLabel}.${rankLine}`;
+	const message = [messageWithEventLink, messageWithHomepageLink, messageWithoutLink].find(
+		(candidate) => candidate.length <= SMS_CHAR_LIMIT,
+	) ?? messageWithoutLink;
 
 	return sendSmsMessage({ to: phone, message, purpose: "nominee_report", eventId });
 }
