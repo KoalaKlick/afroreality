@@ -344,6 +344,7 @@ export async function dispatchNomineeReportsNow({
 			rank: number | string;
 			showRank: boolean;
 			categoryUrl: string;
+			eventUrl: string;
 			categoryPath: string;
 			eventSlug: string;
 			singleCategoryEvent: boolean;
@@ -399,6 +400,7 @@ export async function dispatchNomineeReportsNow({
 				);
 				const categoryPath = `${orgSlug}/event/${ev.slug}/category/${cat.id}`;
 				const categoryBaseUrl = `https://fextiva.com/${categoryPath}`;
+				const eventUrl = `https://fextiva.com/${orgSlug}/event/${ev.slug}`;
 
 				const sortedOptions = [...cat.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
@@ -426,6 +428,7 @@ export async function dispatchNomineeReportsNow({
 						categoryUrl: opt.nomineeCode
 							? `${categoryBaseUrl}?nominee=${encodeURIComponent(opt.nomineeCode)}#${encodeURIComponent(opt.nomineeCode)}`
 							: categoryBaseUrl,
+						eventUrl,
 						categoryPath,
 						eventSlug: ev.slug,
 						singleCategoryEvent: ev.votingCategories.length === 1,
@@ -465,6 +468,7 @@ export async function dispatchNomineeReportsNow({
 						categoryUrl: opt.nomineeCode
 							? `${eventUrl}?nominee=${encodeURIComponent(opt.nomineeCode)}#${encodeURIComponent(opt.nomineeCode)}`
 							: eventUrl,
+						eventUrl,
 						categoryPath: eventPath,
 						eventSlug: ev.slug,
 						singleCategoryEvent: false,
@@ -529,7 +533,7 @@ export async function dispatchNomineeReportsNow({
 						votesCount: task.votesCount,
 						rank: task.rank,
 						showRank: task.showRank,
-						categoryUrl: task.categoryUrl,
+						categoryUrl: task.eventUrl,
 						singleCategoryEvent: task.singleCategoryEvent,
 						voteDisplayType: task.voteDisplayType,
 						votePercentage: task.votePercentage,

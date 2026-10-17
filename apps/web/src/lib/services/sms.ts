@@ -294,8 +294,8 @@ export async function sendNomineeReportSms({
 			? `${event} (${category})`
 			: event;
 	const detailedMessage =
-		`FEXTIVA\nHi ${nominee}, your progress is ${progress} in ${eventLabel}.${rankLine}\n` +
-		`Share for more votes: ${progressLink}\nFextiva`;
+		`\nHi ${nominee}, your progress is ${progress} in ${eventLabel}.${rankLine}\n` +
+		`Share for more votes: ${progressLink}`;
 	const compactMessage = `FEXTIVA\nHi ${nominee}, share for more votes: ${progressLink}`;
 	const message = detailedMessage.length <= SMS_CHAR_LIMIT
 		? detailedMessage
