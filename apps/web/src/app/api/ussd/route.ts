@@ -590,7 +590,10 @@ async function handleVotingFlow(
 				n.categoryId === selectedCategory.id &&
 				(n.status === "approved" || !n.status),
 		)
-		.sort((a: any, b: any) => (a.orderIdx ?? 0) - (b.orderIdx ?? 0));
+		.sort(
+			(a: any, b: any) =>
+				new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+		);
 
 	if (nominees.length === 0) return `END No nominees in ${selectedCategory.name}.`;
 
