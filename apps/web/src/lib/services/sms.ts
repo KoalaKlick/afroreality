@@ -351,7 +351,7 @@ export async function getSmsUsageOverview(): Promise<SmsUsageSummary> {
 			prisma.smsMessageLog.count(),
 			prisma.smsMessageLog.count({ where: { status: "failed" } }),
 			prisma.smsMessageLog.count({ where: { isBillable: true } }),
-			prisma.smsMessageLog.findMany({ take: 25, orderBy: { createdAt: "desc" } }),
+			prisma.smsMessageLog.findMany({ take: 100, orderBy: { createdAt: "desc" } }),
 		]);
 
 		let estimatedSpendUsd = 0;

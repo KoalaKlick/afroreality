@@ -108,6 +108,7 @@ export function NomineeReportsContent({
 	// Search filters for clean Facebook-style tables
 	const [eventSearchQuery, setEventSearchQuery] = useState("");
 	const [smsSearchQuery, setSmsSearchQuery] = useState("");
+	const [waSearchQuery, setWaSearchQuery] = useState("");
 
 	// Broadcast modal state
 	const [targetScope, setTargetScope] = useState<"all" | "selected">("selected");
@@ -239,6 +240,21 @@ export function NomineeReportsContent({
 				l.status?.toLowerCase().includes(q)
 		);
 	}, [smsUsageData?.recentLogs, smsSearchQuery]);
+
+	// Filtered WhatsApp logs
+	const filteredWaLogs = useMemo(() => {
+		const logs = usageData?.recentLogs || [];
+		if (!waSearchQuery.trim()) return logs;
+		const q = waSearchQuery.toLowerCase();
+		return logs.filter(
+			(l) =>
+				l.recipientPhone?.toLowerCase().includes(q) ||
+				l.templateName?.toLowerCase().includes(q) ||
+				l.category?.toLowerCase().includes(q) ||
+				l.status?.toLowerCase().includes(q) ||
+				l.errorMessage?.toLowerCase().includes(q)
+		);
+	}, [usageData?.recentLogs, waSearchQuery]);
 
 	const calculatedRecipients = targetScope === "all"
 		? summaryData.eligibleNomineesCount
@@ -1143,6 +1159,101 @@ export function NomineeReportsContent({
 									</p>
 								</div>
 							</div>
+						</CardContent>
+					</Card>
+
+					{/* Searchable WhatsApp Outbound Logs Table */}
+					<Card className="border border-border/70 rounded-2xl shadow-xs overflow-hidden">
+						<CardHeader className="p-6 pb-4 border-b border-border/50">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+								<div>
+									<CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+										<MessageSquare className="h-4 w-4 text-emerald-500" />
+										Recent WhatsApp Cloud API Outbound Logs
+									</CardTitle>
+									<CardDescription className="text-xs mt-0.5">
+										Live transmission records, delivery confirmations, cost attribution, and error telemetry from Meta Cloud.
+									</CardDescription>
+								</div>
+
+								<div className="relative w-full sm:w-64">
+									<Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+									<Input
+										placeholder="Search phone, template, status..."
+										value={waSearchQuery}
+										onChange={(e) => setWaSearchQuery(e.target.value)}
+										className="pl-8 text-xs rounded-xl h-9"
+									/>
+								</div>
+							</div>
+						</CardHeader>
+
+						<CardContent className="p-0">
+							{filteredWaLogs.length === 0 ? (
+								<div className="text-center py-12 text-muted-foreground text-xs">
+									{waSearchQuery ? "No logs match your search filter." : "No WhatsApp messages sent yet."}
+								</div>
+							) : (
+								<div className="overflow-x-auto">
+									<table className="w-full text-left text-xs">
+										<thead className="bg-muted/40 border-b border-border/50 text-muted-foreground">
+											<tr>
+												<th className="py-3 px-5 font-semibold">Recipient</th>
+												<th className="py-3 px-4 font-semibold">Type / Template</th>
+												<th className="py-3 px-4 font-semibold">Category</th>
+												<th className="py-3 px-4 font-semibold">Status</th>
+												<th className="py-3 px-4 font-semibold">Cost</th>
+												<th className="py-3 px-5 font-semibold text-right">Time</th>
+											</tr>
+										</thead>
+										<tbody className="divide-y divide-border/40">
+											{filteredWaLogs.map((log) => (
+												<tr key={log.id} className="hover:bg-muted/20">
+													<td className="py-3.5 px-5 font-mono text-xs text-foreground font-medium">
+														{log.recipientPhone}
+													</td>
+													<td className="py-3.5 px-4 font-mono text-[11px] text-muted-foreground">
+														{log.templateName || "direct_text"}
+													</td>
+													<td className="py-3.5 px-4">
+														<span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground uppercase">
+															{log.category || "UTILITY"}
+														</span>
+													</td>
+													<td className="py-3.5 px-4">
+														<div>
+															<span
+																className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+																	log.status === "delivered"
+																		? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+																		: log.status === "read"
+																			? "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+																			: log.status === "sent"
+																				? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+																				: "bg-destructive/10 text-destructive border border-destructive/20"
+																}`}
+															>
+																{log.status}
+															</span>
+															{log.errorMessage && (
+																<p className="text-[10px] text-destructive mt-1 max-w-xs break-words">
+																	{log.errorMessage}
+																</p>
+															)}
+														</div>
+													</td>
+													<td className="py-3.5 px-4 font-mono text-muted-foreground text-[11px]">
+														${log.estimatedCost ? log.estimatedCost.toFixed(3) : "0.007"}
+													</td>
+													<td className="py-3.5 px-5 text-right text-muted-foreground text-[11px] whitespace-nowrap">
+														{new Date(log.createdAt).toLocaleString()}
+													</td>
+												</tr>
+											))}
+										</tbody>
+									</table>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				</TabsContent>
