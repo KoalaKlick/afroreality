@@ -250,7 +250,6 @@ export async function sendVoteReceiptSms({
 
 /**
  * Sends a nominee progress report SMS.
- * Condenses rank + votes into a tight message.
  */
 export async function sendNomineeReportSms({
 	phone,
@@ -261,6 +260,9 @@ export async function sendNomineeReportSms({
 	rank,
 	showRank,
 	categoryUrl,
+	singleCategoryEvent,
+	voteDisplayType,
+	votePercentage,
 	eventId,
 }: {
 	phone: string;
@@ -271,20 +273,33 @@ export async function sendNomineeReportSms({
 	rank: number | string;
 	showRank?: boolean;
 	categoryUrl?: string;
+	singleCategoryEvent?: boolean;
+	voteDisplayType?: "count" | "percentage";
+	votePercentage?: number;
 	eventId?: string | null;
 }): Promise<SmsResponse> {
 	const nominee = truncate(nomineeName, 20);
 	const event = truncate(eventTitle, 25);
 	const category = categoryName ? truncate(categoryName, 20) : null;
 	const votes = typeof votesCount === "number" ? votesCount.toLocaleString() : String(votesCount);
-	const rankStr = showRank !== false ? `Rank: #${rank}` : "Rank: Confidential";
-	const catLine = category ? `\nCategory: ${category}` : "";
+	const progress = voteDisplayType === "percentage" && votePercentage !== undefined
+		? `${votePercentage}%`
+		: `${votes} vote${votes === "1" ? "" : "s"}`;
 	const progressLink = categoryUrl || "https://fextiva.com";
 
-	const message = truncate(
-		`Fextiva Nominee Update\n${nominee}\nEvent: ${event}${catLine}\nVotes: ${votes}\n${rankStr}\nView progress: ${progressLink}\nFextiva`,
-		SMS_CHAR_LIMIT,
-	);
+	const rankLine = showRank !== false ? ` Rank #${rank}.` : "";
+	const eventLabel = singleCategoryEvent && category
+		? category
+		: category
+			? `${event} (${category})`
+			: event;
+	const detailedMessage =
+		`FEXTIVA\nHi ${nominee}, your progress is ${progress} in ${eventLabel}.${rankLine}\n` +
+		`Share for more votes: ${progressLink}\nFextiva`;
+	const compactMessage = `FEXTIVA\nHi ${nominee}, share for more votes: ${progressLink}`;
+	const message = detailedMessage.length <= SMS_CHAR_LIMIT
+		? detailedMessage
+		: compactMessage;
 
 	return sendSmsMessage({ to: phone, message, purpose: "nominee_report", eventId });
 }

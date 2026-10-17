@@ -185,6 +185,7 @@ export async function getActiveVotingEventsForReports(): Promise<ActiveEventSumm
 							select: {
 								id: true,
 								optionText: true,
+								nomineeCode: true,
 								phone: true,
 								votesCount: true,
 							},
@@ -200,6 +201,7 @@ export async function getActiveVotingEventsForReports(): Promise<ActiveEventSumm
 					select: {
 						id: true,
 						optionText: true,
+						nomineeCode: true,
 						phone: true,
 						votesCount: true,
 					},
@@ -295,6 +297,7 @@ export async function dispatchNomineeReportsNow({
 						id: true,
 						name: true,
 						showTotalVotesPublicly: true,
+						templateConfig: true,
 						votingOptions: {
 							where: {
 								status: "approved",
@@ -303,6 +306,7 @@ export async function dispatchNomineeReportsNow({
 							select: {
 								id: true,
 								optionText: true,
+								nomineeCode: true,
 								phone: true,
 								votesCount: true,
 							},
@@ -318,6 +322,7 @@ export async function dispatchNomineeReportsNow({
 					select: {
 						id: true,
 						optionText: true,
+						nomineeCode: true,
 						phone: true,
 						votesCount: true,
 					},
@@ -334,11 +339,14 @@ export async function dispatchNomineeReportsNow({
 			eventTitle: string;
 			categoryName: string;
 			votesCount: number;
+			voteDisplayType: "count" | "percentage";
+			votePercentage?: number;
 			rank: number | string;
 			showRank: boolean;
 			categoryUrl: string;
 			categoryPath: string;
 			eventSlug: string;
+			singleCategoryEvent: boolean;
 			categoryId?: string;
 			orgSlug: string;
 			bannerImageUrl?: string;
@@ -378,8 +386,19 @@ export async function dispatchNomineeReportsNow({
 			// 1. Process categorized options
 			for (const cat of ev.votingCategories) {
 				const showRank = overrideShowRank && (cat.showTotalVotesPublicly ?? true);
+				const voteDisplayType =
+					cat.templateConfig &&
+					typeof cat.templateConfig === "object" &&
+					"resultDisplayType" in cat.templateConfig &&
+					cat.templateConfig.resultDisplayType === "count"
+						? "count"
+						: "percentage";
+				const totalCategoryVotes = cat.votingOptions.reduce(
+					(total, option) => total + option.votesCount,
+					0,
+				);
 				const categoryPath = `${orgSlug}/event/${ev.slug}/category/${cat.id}`;
-				const categoryUrl = `https://fextiva.com/${categoryPath}`;
+				const categoryBaseUrl = `https://fextiva.com/${categoryPath}`;
 
 				const sortedOptions = [...cat.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
@@ -397,11 +416,19 @@ export async function dispatchNomineeReportsNow({
 						eventTitle: ev.title,
 						categoryName: cat.name,
 						votesCount: opt.votesCount,
+						voteDisplayType,
+						votePercentage:
+							totalCategoryVotes > 0
+								? Math.round((opt.votesCount / totalCategoryVotes) * 100)
+								: 0,
 						rank: showRank ? idx + 1 : "Confidential",
 						showRank,
-						categoryUrl,
+						categoryUrl: opt.nomineeCode
+							? `${categoryBaseUrl}?nominee=${encodeURIComponent(opt.nomineeCode)}#${encodeURIComponent(opt.nomineeCode)}`
+							: categoryBaseUrl,
 						categoryPath,
 						eventSlug: ev.slug,
+						singleCategoryEvent: ev.votingCategories.length === 1,
 						categoryId: cat.id,
 						orgSlug,
 						bannerImageUrl,
@@ -432,11 +459,15 @@ export async function dispatchNomineeReportsNow({
 						eventTitle: ev.title,
 						categoryName: "Official Selection",
 						votesCount: opt.votesCount,
+						voteDisplayType: "count",
 						rank: idx + 1,
 						showRank: true,
-						categoryUrl: eventUrl,
+						categoryUrl: opt.nomineeCode
+							? `${eventUrl}?nominee=${encodeURIComponent(opt.nomineeCode)}#${encodeURIComponent(opt.nomineeCode)}`
+							: eventUrl,
 						categoryPath: eventPath,
 						eventSlug: ev.slug,
+						singleCategoryEvent: false,
 						orgSlug,
 						bannerImageUrl,
 						channel,
@@ -499,6 +530,9 @@ export async function dispatchNomineeReportsNow({
 						rank: task.rank,
 						showRank: task.showRank,
 						categoryUrl: task.categoryUrl,
+						singleCategoryEvent: task.singleCategoryEvent,
+						voteDisplayType: task.voteDisplayType,
+						votePercentage: task.votePercentage,
 						eventId: task.eventId,
 					});
 					sent = smsRes.success;
