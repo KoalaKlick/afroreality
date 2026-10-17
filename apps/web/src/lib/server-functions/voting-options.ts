@@ -26,13 +26,21 @@ function generateConfirmationCode(): string {
 	return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+function getRandomAvailableNumber(usedNumbers: Set<number>): number | null {
+	const availableNumbers = Array.from({ length: 99 }, (_, index) => index + 1)
+		.filter((number) => !usedNumbers.has(number));
+
+	if (availableNumbers.length === 0) return null;
+	return availableNumbers[Math.floor(Math.random() * availableNumbers.length)] ?? null;
+}
+
 /**
 /**
  * Generate a 4-character nominee code: exactly 2 alphabets and 2 numbers (e.g. "GM01").
  * Uses an algorithm that ensures uniqueness across different events:
  * 1. Derives unique 2-letter uppercase prefixes for the event based on event title/slug.
  * 2. Checks against all other events so no two events share the same 2-letter prefix.
- * 3. Assigns the next sequential 2-digit number (01-99) within that event's prefix.
+ * 3. Assigns a random unused 2-digit number (01-99) within that event's prefix.
  */
 export async function generateNomineeCode(
 	eventId: string,
@@ -97,10 +105,9 @@ export async function generateNomineeCode(
 				}
 			}
 
-			for (let i = 1; i <= 99; i++) {
-				if (!usedNumbers.has(i)) {
-					return `${prefix}${i.toString().padStart(2, "0")}`;
-				}
+			const randomNumber = getRandomAvailableNumber(usedNumbers);
+			if (randomNumber !== null) {
+				return `${prefix}${randomNumber.toString().padStart(2, "0")}`;
 			}
 		}
 
@@ -150,7 +157,7 @@ export async function generateNomineeCode(
 			}
 		}
 
-		// Determine the first free number 01-99 for this prefix
+		// Choose a random free number 01-99 for this prefix
 		const usedNumbers = new Set<number>();
 		for (const code of thisEventCodes) {
 			if (code.startsWith(chosenPrefix)) {
@@ -159,10 +166,9 @@ export async function generateNomineeCode(
 			}
 		}
 
-		for (let i = 1; i <= 99; i++) {
-			if (!usedNumbers.has(i)) {
-				return `${chosenPrefix}${i.toString().padStart(2, "0")}`;
-			}
+		const randomNumber = getRandomAvailableNumber(usedNumbers);
+		if (randomNumber !== null) {
+			return `${chosenPrefix}${randomNumber.toString().padStart(2, "0")}`;
 		}
 
 		return `${chosenPrefix}01`;
