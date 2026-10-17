@@ -440,6 +440,13 @@ async function processPayment(
 		});
 
 		const paystackData = (await paystackRes.json()) as any;
+		console.info("[USSD-PAYSTACK-CHARGE]", {
+			reference,
+			provider: chargeProvider,
+			phone: chargePhone,
+			statusCode: paystackRes.status,
+			response: paystackData,
+		});
 
 		if (!paystackRes.ok || !paystackData.status) {
 			console.error("Paystack Charge Error:", paystackData);
@@ -456,8 +463,17 @@ async function processPayment(
 			return `END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`;
 		}
 
+		if (["pay_offline", "pending", "ongoing", "processing"].includes(paystackData.data?.status)) {
+			return "END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.";
+		}
+
 		if (paystackData.data?.status === "send_otp") {
-			return "END Payment request sent. Complete the mobile-money prompt on your phone; your vote will be confirmed automatically.";
+			console.error("[USSD-PAYSTACK-UNEXPECTED-OTP]", {
+				reference,
+				provider: chargeProvider,
+				response: paystackData,
+			});
+			return "END Payment could not be started through mobile money. Please try again or use another network.";
 		}
 	} catch (err) {
 		console.error("Paystack Charge Exception:", err);
