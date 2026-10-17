@@ -55,14 +55,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 			organizations={serializeJsonSafe(organizations)}
 			initialActiveOrgId={activeOrganizationId}
 		>
-			<SidebarProvider>
+			<SidebarProvider className="h-svh max-h-svh overflow-hidden">
 				<AppSidebar
 					user={serializeJsonSafe(sidebarUser)}
 					organizations={serializeJsonSafe(organizations)}
 					activeOrganizationId={activeOrganizationId}
 					pendingInvitations={serializeJsonSafe(pendingInvitations)}
 				/>
-				<SidebarInset className="font-sans min-h-svh flex flex-1 flex-col">
+				<SidebarInset className="font-sans h-svh max-h-svh min-h-0 flex flex-1 flex-col overflow-hidden">
 					{/* The Header */}
 					<AppHeader
 						pendingInvitations={serializeJsonSafe(pendingInvitations)}
@@ -70,14 +70,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 					/>
 
 					{/* Page Main Content */}
-					<div className="relative flex-1 flex flex-col min-w-0 p-2 sm:p-4 md:p-6 lg:p-8">
-						<div className="flex flex-1 flex-col gap-6">
+					<main className="relative flex-1 min-h-0 overflow-y-auto">
+						<div className="flex min-h-full flex-col p-2 sm:p-4 md:p-6 lg:p-8">
+							<div className="flex flex-1 flex-col gap-6">
 							{children}
+							</div>
 						</div>
-					</div>
+					</main>
 				</SidebarInset>
 			</SidebarProvider>
 		</OrganizationProvider>
 	);
 }
-
