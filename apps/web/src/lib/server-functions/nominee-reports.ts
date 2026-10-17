@@ -36,6 +36,10 @@ export interface ActiveEventSummary {
 	slug: string;
 	organizationName: string;
 	nomineeCount: number;
+	nominees: Array<{
+		name: string;
+		votesCount: number;
+	}>;
 	messagingConfig?: {
 		reportEnabled: boolean;
 		reportChannel: string;
@@ -169,18 +173,54 @@ export async function getActiveVotingEventsForReports(): Promise<ActiveEventSumm
 						},
 					},
 				},
+				votingCategories: {
+					select: {
+						votingOptions: {
+							where: {
+								status: "approved",
+								phone: { not: null },
+							},
+							select: {
+								optionText: true,
+								votesCount: true,
+							},
+						},
+					},
+				},
+				votingOptions: {
+					where: {
+						status: "approved",
+						phone: { not: null },
+						categoryId: null,
+					},
+					select: {
+						optionText: true,
+						votesCount: true,
+					},
+				},
 			},
 			orderBy: { createdAt: "desc" },
 		});
 
-		return events.map((ev) => ({
-			id: ev.id,
-			title: ev.title,
-			slug: ev.slug,
-			organizationName: ev.organization?.name || "Organization",
-			nomineeCount: ev._count.votingOptions,
-			messagingConfig: ev.messagingConfig,
-		}));
+		return events.map((ev) => {
+			const nominees = [
+				...ev.votingCategories.flatMap((category) => category.votingOptions),
+				...ev.votingOptions,
+			].map((nominee) => ({
+				name: nominee.optionText,
+				votesCount: nominee.votesCount,
+			}));
+
+			return {
+				id: ev.id,
+				title: ev.title,
+				slug: ev.slug,
+				organizationName: ev.organization?.name || "Organization",
+				nomineeCount: nominees.length,
+				nominees,
+				messagingConfig: ev.messagingConfig,
+			};
+		});
 	} catch (error) {
 		console.error("[NomineeReports] Failed to get active events:", error);
 		return [];

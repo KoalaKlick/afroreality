@@ -274,11 +274,29 @@ export function NomineeReportsContent({
 		return filteredWaLogs.slice(start, start + PAGE_SIZE);
 	}, [filteredWaLogs, waPage]);
 
-	const calculatedRecipients = targetScope === "all"
-		? summaryData.eligibleNomineesCount
-		: activeEvents
-				.filter((e) => selectedEventIds.includes(e.id))
-				.reduce((acc, curr) => acc + curr.nomineeCount, 0);
+	const calculatedRecipients = activeEvents
+		.filter((e) => targetScope === "all" || selectedEventIds.includes(e.id))
+				.reduce(
+					(acc, curr) =>
+						acc +
+						curr.nominees.filter((nominee) =>
+							settings.voteAudience === "with_votes"
+								? nominee.votesCount > 0
+								: settings.voteAudience === "without_votes"
+									? nominee.votesCount === 0
+									: true
+						).length,
+					0,
+				);
+
+	const getEligibleNominees = (event: ActiveEventSummary) =>
+		event.nominees.filter((nominee) =>
+			settings.voteAudience === "with_votes"
+				? nominee.votesCount > 0
+				: settings.voteAudience === "without_votes"
+					? nominee.votesCount === 0
+					: true
+		);
 
 	const formatHour = (hour: number) => {
 		const h = hour % 24;
@@ -1489,9 +1507,16 @@ export function NomineeReportsContent({
 														</div>
 													</div>
 
-													<Badge variant="outline" className="text-[10px] shrink-0">
-														{ev.nomineeCount} candidates
-													</Badge>
+													<div className="text-right shrink-0">
+														<Badge variant="outline" className="text-[10px]">
+															{getEligibleNominees(ev).length} to send
+														</Badge>
+														{getEligibleNominees(ev).length > 0 && (
+															<p className="text-[10px] text-muted-foreground mt-1 max-w-48 truncate">
+																{getEligibleNominees(ev).map((nominee) => nominee.name).join(", ")}
+															</p>
+														)}
+													</div>
 												</div>
 											);
 										})
