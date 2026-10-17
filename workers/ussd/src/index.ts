@@ -83,13 +83,13 @@ async function sendVoteReceiptSms(
 	}
 }
 
-export function getProvider(phone: string): string {
+export function getProvider(phone: string): "mtn" | "vod" | "atl" {
 	const localPhone = normalizePhone(phone);
 	const prefix = localPhone.substring(0, 3);
 	if (["024", "054", "055", "059", "025", "053"].includes(prefix))
 		return "mtn";
 	if (["020", "050"].includes(prefix)) return "vod";
-	if (["027", "057", "026", "056"].includes(prefix)) return "tgo";
+	if (["027", "057", "026", "056"].includes(prefix)) return "atl";
 	return "mtn";
 }
 
@@ -718,13 +718,8 @@ export async function processPayment(
 		}
 
 		if (paystackData.data?.status === "send_otp") {
-			await sql`
-				UPDATE payments 
-				SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{awaitingOtp}', 'true')
-				WHERE reference = ${reference}
-			`.catch(() => { });
 			return textResponse(
-				`CON ${paystackData.data.display_text || "Please enter the OTP sent to your phone"}:\n0. Back`,
+				"END Payment request sent. Complete the mobile-money prompt on your phone; your vote will be confirmed automatically.",
 			);
 		}
 	} catch (err) {
@@ -971,45 +966,6 @@ export async function handleUssdCore(
 	}
 
 	const sql = neon(dbUrl);
-
-	// OTP Resumption Interceptor (only when gateway requested OTP and not in simulation)
-	if (!isSimulation) {
-		const pendingSessions = await sql`
-			SELECT s.reference, s.amount 
-			FROM ussd_sessions s
-			JOIN payments p ON p.reference = s.reference
-			WHERE s.phone_number = ${phoneNumber} 
-			  AND s.status = 'pending' 
-			  AND (p.metadata->>'awaitingOtp') = 'true'
-			  AND s.created_at >= NOW() - INTERVAL '5 minutes'
-			ORDER BY s.created_at DESC 
-			LIMIT 1
-		`;
-
-		if (pendingSessions.length > 0) {
-			const pending = pendingSessions[0];
-			const rawTokens = text.split("*").filter(Boolean);
-
-			if (rawTokens.length === 0) {
-				return textResponse(
-					`CON You have a pending payment of GHS ${pending.amount}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`,
-				);
-			}
-			const otpAnswer = rawTokens[rawTokens.length - 1];
-			if (otpAnswer === "0") {
-				await sql`UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${pending.reference}`;
-				text = "";
-			} else {
-				return await submitOtp(
-					sql,
-					pending.reference,
-					otpAnswer,
-					paystackSecret,
-					env,
-				);
-			}
-		}
-	}
 
 	const rawInputArray = text.split("*").filter(Boolean);
 	const inputArray = reduceTokens(rawInputArray);

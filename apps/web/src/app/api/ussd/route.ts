@@ -55,12 +55,12 @@ function normalizePhone(phone: string): string {
 	return local;
 }
 
-function getProvider(phone: string): "mtn" | "vod" | "tgo" {
+function getProvider(phone: string): "mtn" | "vod" | "atl" {
 	const local = normalizePhone(phone);
 	const prefix = local.substring(0, 3);
 	if (["024", "054", "055", "059", "025", "053"].includes(prefix)) return "mtn";
 	if (["020", "050"].includes(prefix)) return "vod";
-	if (["027", "057", "026", "056"].includes(prefix)) return "tgo";
+	if (["027", "057", "026", "056"].includes(prefix)) return "atl";
 	return "mtn";
 }
 
@@ -457,7 +457,7 @@ async function processPayment(
 		}
 
 		if (paystackData.data?.status === "send_otp") {
-			return `CON ${paystackData.data.display_text || "Please enter the OTP sent to your phone"}:\n0. Back`;
+			return "END Payment request sent. Complete the mobile-money prompt on your phone; your vote will be confirmed automatically.";
 		}
 	} catch (err) {
 		console.error("Paystack Charge Exception:", err);
@@ -799,45 +799,6 @@ async function handleUssdCore(
 	text: string,
 	isSimulation: boolean = false,
 ): Promise<string> {
-	if (!isSimulation) {
-		const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
-		const pendingSession = await prisma.ussdSession.findFirst({
-			where: {
-				phoneNumber: normalizePhone(phoneNumber),
-				status: "pending",
-				createdAt: { gte: fiveMinsAgo },
-			},
-			orderBy: { createdAt: "desc" },
-		});
-
-		if (pendingSession) {
-			const payment = await prisma.payment.findUnique({
-				where: { reference: pendingSession.reference },
-				select: { metadata: true },
-			});
-			const isAwaitingOtp =
-				(payment?.metadata as any)?.awaitingOtp === true ||
-				(payment?.metadata as any)?.awaitingOtp === "true";
-
-			if (isAwaitingOtp) {
-				const rawTokens = text.split("*").filter(Boolean);
-				if (rawTokens.length === 0) {
-					return `CON You have a pending payment of GHS ${Number(pendingSession.amount).toFixed(2)}.\nEnter the OTP sent via SMS to confirm:\n0. Cancel`;
-				}
-				const otpAnswer = rawTokens[rawTokens.length - 1];
-				if (otpAnswer === "0") {
-					await prisma.ussdSession.update({
-						where: { id: pendingSession.id },
-						data: { status: "cancelled" },
-					});
-					text = "";
-				} else if (otpAnswer) {
-					return await submitPaystackOtp(pendingSession, otpAnswer);
-				}
-			}
-		}
-	}
-
 	const rawInputArray = text.split("*").filter(Boolean);
 	const inputArray = reduceTokens(rawInputArray);
 	const depth = inputArray.length;
