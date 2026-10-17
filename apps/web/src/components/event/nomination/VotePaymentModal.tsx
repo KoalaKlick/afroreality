@@ -74,6 +74,7 @@ export function VotePaymentModal({
 	const [step, setStep] = useState<ModalStep>("checkout");
 	const [voteCount, setVoteCount] = useState(1);
 	const [voterKey, setVoterKey] = useState("");
+	const [voterName, setVoterName] = useState("");
 	const [voterEmail, setVoterEmail] = useState("");
 	const [voterPhone, setVoterPhone] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -83,6 +84,7 @@ export function VotePaymentModal({
 		setStep("checkout");
 		setVoteCount(1);
 		setVoterKey("");
+		setVoterName("");
 		setVoterEmail("");
 		setVoterPhone("");
 		setLoading(false);
@@ -171,6 +173,7 @@ export function VotePaymentModal({
 					categoryId,
 					optionId: nominee!.id,
 					voteCount: isInternalVoting ? 1 : voteCount,
+					voterName: voterName.trim() || undefined,
 					voterEmail: voterEmail.trim() || undefined,
 					voterPhone: voterPhone.trim() || undefined,
 					voterKey: voterKey.trim().toUpperCase() || undefined,
@@ -205,7 +208,7 @@ export function VotePaymentModal({
 		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent className="sm:max-w-md" style={brandVars}>
 				<DialogHeader>
-					<DialogTitle className="text-xl font-bold">
+					<DialogTitle className={step === "checkout" ? "sr-only" : "text-xl font-bold"}>
 						{step === "success"
 							? "Vote Recorded!"
 							: step === "error"
@@ -214,28 +217,28 @@ export function VotePaymentModal({
 									? "Cast Member Ballot"
 									: isFree
 										? "Cast Free Vote"
-										: "Vote for Nominee"}
+										: `Vote for ${nominee.optionText}`}
 					</DialogTitle>
 				</DialogHeader>
 
 				{step === "checkout" && (
-					<form onSubmit={handleSubmitVote} className="space-y-5 pt-2">
+					<form onSubmit={handleSubmitVote} className="space-y-4">
 						{/* Nominee Profile Header */}
-						<div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-muted/40 border">
-							<div className="size-14 rounded-lg bg-muted border overflow-hidden shrink-0 flex items-center justify-center">
+						<div className="flex items-center gap-4">
+							<div className="size-16 rounded-md bg-muted overflow-hidden shrink-0 flex items-center justify-center">
 								{nomineeImgUrl ? (
 									<img
 										src={nomineeImgUrl}
 										alt={nominee.optionText}
-										className="size-full object-cover"
+										className="size-full object-cover object-top"
 									/>
 								) : (
 									<User className="size-6 text-muted-foreground" />
 								)}
 							</div>
 							<div className="min-w-0 flex-1">
-								<h4 className="font-bold text-sm text-foreground truncate">
-									{nominee.optionText}
+								<h4 className="font-bold text-base text-foreground truncate">
+									Vote for {nominee.optionText}
 								</h4>
 								{nominee.nomineeCode && (
 									<p className="text-[11px] font-mono text-muted-foreground uppercase">
@@ -336,7 +339,26 @@ export function VotePaymentModal({
 									</p>
 								</div>
 
-								{/* Email Address (Optional below) */}
+								{/* Voter Name (Optional) */}
+								<div className="space-y-2">
+									<Label htmlFor="voter-name" className="text-xs font-semibold">
+										Your Name (Optional)
+									</Label>
+									<div className="relative">
+										<User className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+										<Input
+											id="voter-name"
+											type="text"
+											placeholder="e.g. Kwame Mensah"
+											value={voterName}
+											onChange={(e) => setVoterName(e.target.value)}
+											className="pl-9 h-9 text-xs"
+											disabled={loading}
+										/>
+									</div>
+								</div>
+
+								{/* Email Address (Optional) */}
 								<div className="space-y-2">
 									<Label htmlFor="voter-email" className="text-xs font-semibold">
 										Email Address (Optional)
@@ -344,18 +366,15 @@ export function VotePaymentModal({
 									<div className="relative">
 										<Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
 										<Input
-											id="voter-email"
-											type="email"
-											placeholder="kwame@example.com (optional)"
-											value={voterEmail}
-											onChange={(e) => setVoterEmail(e.target.value)}
-											className="pl-9 h-9 text-xs"
-											disabled={loading}
+										id="voter-email"
+										type="email"
+										placeholder="kwame@example.com"
+										value={voterEmail}
+										onChange={(e) => setVoterEmail(e.target.value)}
+										className="pl-9 h-9 text-xs"
+										disabled={loading}
 										/>
 									</div>
-									<p className="text-[10px] text-muted-foreground">
-										Optional for receiving an email ballot receipt.
-									</p>
 								</div>
 							</div>
 						)}

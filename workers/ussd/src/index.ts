@@ -3,6 +3,8 @@ import { neon } from "@neondatabase/serverless";
 export interface Env {
 	DATABASE_URL: string;
 	PAYSTACK_SECRET_KEY?: string;
+	ARKESEL_API_KEY?: string;
+	ARKESEL_SENDER_ID?: string;
 	MAX_LISTED_EVENTS?: string;
 	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
 }
@@ -15,6 +17,70 @@ export function normalizePhone(phone: string): string {
 	let localPhone = phone.replace(/^\+?233/, "0");
 	if (localPhone.startsWith("00")) localPhone = localPhone.substring(1);
 	return localPhone;
+}
+
+function toArkeselPhone(phone: string): string {
+	const digits = phone.replace(/\D/g, "");
+	if (digits.startsWith("233")) return digits;
+	if (digits.startsWith("0")) return `233${digits.slice(1)}`;
+	return digits;
+}
+
+async function sendVoteReceiptSms(
+	env: Env,
+	{
+		phone,
+		voterName,
+		nomineeName,
+		votesCount,
+		reference,
+		eventId,
+	}: {
+		phone: string;
+		voterName?: string;
+		nomineeName: string;
+		votesCount: number;
+		reference: string;
+		eventId: string;
+	},
+): Promise<boolean> {
+	if (!env.ARKESEL_API_KEY) {
+		console.warn("[USSD-WORKER-SMS] ARKESEL_API_KEY is not configured.");
+		return false;
+	}
+
+	const firstName = voterName?.trim().split(/\s+/)[0]?.slice(0, 10);
+	const nominee = nomineeName.slice(0, 25);
+	const greeting = firstName ? `Hi ${firstName}, ` : "";
+	const message = `${greeting}${votesCount} vote(s) cast for ${nominee}!\nRef: ${reference.slice(-10)}\nThank you! -Fextiva`.slice(0, 155);
+
+	try {
+		const response = await fetch("https://sms.arkesel.com/api/v2/sms/send", {
+			method: "POST",
+			headers: {
+				"api-key": env.ARKESEL_API_KEY,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				sender: env.ARKESEL_SENDER_ID || "Fextiva",
+				message,
+				recipients: [toArkeselPhone(phone)],
+			}),
+		});
+		const data = (await response.json()) as { status?: string; message?: string };
+		if (!response.ok || data.status !== "success") {
+			console.error("[USSD-WORKER-SMS] Vote receipt failed:", {
+				eventId,
+				status: response.status,
+				message: data.message,
+			});
+			return false;
+		}
+		return true;
+	} catch (error) {
+		console.error("[USSD-WORKER-SMS] Vote receipt exception:", { eventId, error });
+		return false;
+	}
 }
 
 export function getProvider(phone: string): string {
@@ -255,6 +321,7 @@ export async function fulfillSuccessfulPaymentSql(
 	sql: any,
 	reference: string,
 	paystackData?: any,
+	env?: Env,
 ) {
 	try {
 		const payments = await sql`
@@ -324,6 +391,36 @@ export async function fulfillSuccessfulPaymentSql(
 					SET votes_count = votes_count + ${voteCount}, updated_at = NOW() 
 					WHERE id = ${optionId}
 				`;
+
+				if (voterPhone && env) {
+					try {
+						const configRows = await sql`
+							SELECT vote_receipt_channel
+							FROM event_messaging_configs
+							WHERE event_id = ${eventId}
+							LIMIT 1
+						`;
+						const voteReceiptChannel = configRows[0]?.vote_receipt_channel || "whatsapp";
+						if (voteReceiptChannel === "sms" || voteReceiptChannel === "whatsapp_sms") {
+							const nomineeRows = await sql`
+								SELECT option_text
+								FROM voting_options
+								WHERE id = ${optionId}
+								LIMIT 1
+							`;
+							await sendVoteReceiptSms(env, {
+								phone: voterPhone,
+								voterName: metadata.voterName,
+								nomineeName: nomineeRows[0]?.option_text || "Nominee",
+								votesCount: voteCount,
+								reference,
+								eventId,
+							});
+						}
+					} catch (notificationError) {
+						console.error("[USSD-WORKER-SMS] Vote receipt routing failed:", notificationError);
+					}
+				}
 			}
 		}
 
@@ -428,6 +525,7 @@ export async function submitOtp(
 	reference: string,
 	otp: string,
 	paystackSecret: string,
+	env?: Env,
 ): Promise<Response> {
 	try {
 		const paystackRes = await fetch(
@@ -450,7 +548,7 @@ export async function submitOtp(
 		}
 
 		if (paystackData.data?.status === "success") {
-			await fulfillSuccessfulPaymentSql(sql, reference, paystackData.data);
+			await fulfillSuccessfulPaymentSql(sql, reference, paystackData.data, env);
 			return textResponse(
 				"END Payment authorized! Your request has been confirmed.",
 			);
@@ -475,6 +573,7 @@ export async function processPayment(
 	paystackSecret: string,
 	otpStr?: string,
 	isSimulation: boolean = false,
+	env?: Env,
 ): Promise<Response> {
 	if (Number.isNaN(quantity) || quantity <= 0) {
 		return textResponse("END Invalid number. Try again.");
@@ -508,6 +607,7 @@ export async function processPayment(
 				pendingSessions[0].reference,
 				otpStr,
 				paystackSecret,
+				env,
 			);
 		}
 	}
@@ -610,7 +710,7 @@ export async function processPayment(
 
 		// Immediate fulfillment on success (e.g. test mode or pre-approved transactions)
 		if (paystackData.data?.status === "success") {
-			await fulfillSuccessfulPaymentSql(sql, reference, paystackData.data);
+			await fulfillSuccessfulPaymentSql(sql, reference, paystackData.data, env);
 			const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
 			return textResponse(
 				`END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`,
@@ -646,6 +746,7 @@ export async function handleVotingFlow(
 	phoneNumber: string,
 	paystackSecret: string,
 	isSimulation: boolean = false,
+	env?: Env,
 ): Promise<Response> {
 	const now = new Date();
 	const startDate = event.start_date || event.startDate;
@@ -754,6 +855,7 @@ export async function handleVotingFlow(
 		paystackSecret,
 		otpStr,
 		isSimulation,
+		env,
 	);
 }
 
@@ -765,6 +867,7 @@ export async function handleTicketFlow(
 	phoneNumber: string,
 	paystackSecret: string,
 	isSimulation: boolean = false,
+	env?: Env,
 ): Promise<Response> {
 	const now = new Date();
 	const endDate = event.end_date || event.endDate;
@@ -848,6 +951,7 @@ export async function handleTicketFlow(
 		paystackSecret,
 		otpStr,
 		isSimulation,
+		env,
 	);
 }
 
@@ -901,6 +1005,7 @@ export async function handleUssdCore(
 					pending.reference,
 					otpAnswer,
 					paystackSecret,
+					env,
 				);
 			}
 		}
@@ -1031,6 +1136,7 @@ export async function handleUssdCore(
 					paystackSecret,
 					otpStr,
 					isSimulation,
+					env,
 				);
 			}
 		}
@@ -1102,6 +1208,7 @@ export async function handleUssdCore(
 			phoneNumber,
 			paystackSecret,
 			isSimulation,
+			env,
 		);
 	}
 	if (eventType === "ticketed") {
@@ -1113,6 +1220,7 @@ export async function handleUssdCore(
 			phoneNumber,
 			paystackSecret,
 			isSimulation,
+			env,
 		);
 	}
 	if (eventType === "standard" || eventType === "hybrid") {
@@ -1129,6 +1237,7 @@ export async function handleUssdCore(
 				phoneNumber,
 				paystackSecret,
 				isSimulation,
+				env,
 			);
 		}
 		if (modeStr === "2") {
@@ -1140,6 +1249,7 @@ export async function handleUssdCore(
 				phoneNumber,
 				paystackSecret,
 				isSimulation,
+				env,
 			);
 		}
 		return textResponse("END Invalid selection.");

@@ -32,6 +32,7 @@ export interface PublicVoteInput {
 	categoryId: string;
 	optionId: string;
 	voteCount: number;
+	voterName?: string;
 	voterEmail?: string;
 	voterPhone?: string;
 	voterKey?: string; // for internal voting
@@ -461,6 +462,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 			categoryId,
 			optionId,
 			voteCount = 1,
+			voterName,
 			voterEmail,
 			voterPhone,
 			voterKey,
@@ -669,6 +671,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 				votingOptionId: optionId,
 				nomineeName: nominee.optionText,
 				voteCount,
+				voterName: voterName?.trim() || null,
 				voterEmail: voterEmail?.trim() || null,
 				voterPhone,
 				organizationId: organization.id,
@@ -712,6 +715,7 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 					votingOptionId: optionId,
 					nomineeName: nominee.optionText,
 					voteCount,
+					voterName: voterName?.trim() || null,
 					voterEmail,
 					voterPhone,
 					organizationId: organization.id,
