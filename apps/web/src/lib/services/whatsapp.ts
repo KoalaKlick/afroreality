@@ -9,6 +9,20 @@ const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN || "";
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
 const GRAPH_API_VERSION = "v22.0";
 
+function formatWhatsAppError(error: any, fallback: string): string {
+	if (!error) return fallback;
+	const details = error.error_data?.details || error.details;
+	return [
+		error.code ? `Code ${error.code}` : null,
+		error.type ? error.type : null,
+		error.title,
+		error.message,
+		details,
+	]
+		.filter(Boolean)
+		.join(": ") || fallback;
+}
+
 /**
  * Normalizes any phone number into international format without '+' or spaces.
  * E.g., "050 989 7757" -> "233509897757", "+233509897757" -> "233509897757"
@@ -135,6 +149,7 @@ export async function sendWhatsAppTextMessage({
 
 		if (!res.ok || data.error) {
 			console.error("[WhatsApp] Failed to send text message:", data.error);
+			const errorMessage = formatWhatsAppError(data.error, "Failed to send WhatsApp message");
 			try {
 				await prisma.whatsAppMessageLog.create({
 					data: {
@@ -143,14 +158,14 @@ export async function sendWhatsAppTextMessage({
 						category: "SERVICE",
 						status: "failed",
 						isBillable: false,
-						errorMessage: data.error?.message || "Failed to send WhatsApp message",
+						errorMessage,
 						rawPayload: data,
 					},
 				});
 			} catch (_) {}
 			return {
 				success: false,
-				error: data.error?.message || "Failed to send WhatsApp message",
+				error: errorMessage,
 				raw: data,
 			};
 		}
@@ -232,6 +247,7 @@ export async function sendWhatsAppTemplateMessage({
 
 		if (!res.ok || data.error) {
 			console.error("[WhatsApp] Failed to send template message:", data.error);
+			const errorMessage = formatWhatsAppError(data.error, "Failed to send WhatsApp template");
 			try {
 				await prisma.whatsAppMessageLog.create({
 					data: {
@@ -240,14 +256,14 @@ export async function sendWhatsAppTemplateMessage({
 						category: "UTILITY",
 						status: "failed",
 						isBillable: false,
-						errorMessage: data.error?.message || "Failed to send WhatsApp template",
+						errorMessage,
 						rawPayload: data,
 					},
 				});
 			} catch (_) {}
 			return {
 				success: false,
-				error: data.error?.message || "Failed to send WhatsApp template",
+				error: errorMessage,
 				raw: data,
 			};
 		}
@@ -871,6 +887,7 @@ export async function processWhatsAppWebhook(body: any): Promise<{
 							statusError.code ? `Code ${statusError.code}` : null,
 							statusError.title,
 							statusError.message,
+							statusError.error_data?.details,
 						]
 							.filter(Boolean)
 							.join(": ")
