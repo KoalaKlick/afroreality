@@ -722,7 +722,7 @@ export async function processPayment(
 				UPDATE payments 
 				SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{awaitingOtp}', 'true')
 				WHERE reference = ${reference}
-			`.catch(() => {});
+			`.catch(() => { });
 			return textResponse(
 				`CON ${paystackData.data.display_text || "Please enter the OTP sent to your phone"}:\n0. Back`,
 			);

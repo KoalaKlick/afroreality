@@ -737,6 +737,17 @@ export async function sendNomineeWhatsAppConfirmation({
 
 	if (!option) return { success: false, error: "Nomination not found" };
 
+	const alreadySent =
+		option.confirmationWhatsAppStatus === "sent" ||
+		option.confirmationWhatsAppStatus === "delivered" ||
+		option.confirmationWhatsAppStatus === "read";
+	if (alreadySent) {
+		return {
+			success: true,
+			message: `WhatsApp nomination confirmation was already sent to ${option.optionText}.`,
+		};
+	}
+
 	const nomineePhone = option.phone?.trim();
 	if (!nomineePhone) {
 		return { success: false, error: "Nominee does not have a phone number recorded." };
@@ -1021,8 +1032,10 @@ export async function sendCategoryNomineeConfirmations({
 			option.confirmationWhatsAppStatus === "sent";
 
 		if (nomineePhone && !waDone) {
-			neededSend = true;
-			await sendNomineeWhatsAppConfirmation({ data: { optionId: option.id } }).catch(() => {});
+			const waRes = await sendNomineeWhatsAppConfirmation({ data: { optionId: option.id } }).catch(() => ({
+				success: false,
+			}));
+			if (waRes.success) neededSend = true;
 		}
 
 		if (neededSend) {
