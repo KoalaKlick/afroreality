@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
 import {
 	Sheet,
 	SheetContent,
@@ -14,6 +15,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -24,13 +26,12 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Upload, X, Lock, MessageSquare, Send } from "lucide-react";
+import { Loader2, X, Lock, MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
 	createVotingOption,
 	requestNomineeChange,
 	getSuggestedNomineeCode,
-	sendNomineeWhatsAppConfirmation,
 	sendNomineeConfirmation,
 } from "@/lib/server-functions/voting-options";
 import { useImageUpload } from "@/hooks/use-image-upload";
@@ -117,7 +118,7 @@ export function OptionSheet({
 						const result = res as { code?: string };
 						if (result?.code) setNomineeCode(result.code);
 					})
-					.catch(() => {});
+					.catch(() => { });
 			}
 		}
 	}, [editingOption, open, eventId, categoryId]);
@@ -280,203 +281,203 @@ export function OptionSheet({
 							</div>
 						</SheetHeader>
 
-					<div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-						{/* Photo Upload */}
-						<div className="space-y-2">
-							<Label>Nominee Photo (Optional)</Label>
-							<input
-								ref={fileInputRef}
-								type="file"
-								accept="image/*"
-								onChange={handleImageChange}
-								className="hidden"
-							/>
-							{imageUrl ? (
-								<div className="relative size-28 rounded-xl overflow-hidden border">
-									<img
-										src={getEventImageUrl(imageUrl) ?? ""}
-										alt="Nominee"
-										className="size-full object-cover object-top"
-									/>
+						<div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+							{/* Photo Upload */}
+							<div className="space-y-2">
+								<Label>Nominee Photo (Optional)</Label>
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept="image/*"
+									onChange={handleImageChange}
+									className="hidden"
+								/>
+								{imageUrl ? (
+									<div className="relative size-28 rounded-xl overflow-hidden border">
+										<img
+											src={getEventImageUrl(imageUrl) ?? ""}
+											alt="Nominee"
+											className="size-full object-cover object-top"
+										/>
+										<button
+											type="button"
+											onClick={() => setImageUrl("")}
+											className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+										>
+											<X className="size-3.5" />
+										</button>
+									</div>
+								) : (
 									<button
 										type="button"
-										onClick={() => setImageUrl("")}
-										className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+										onClick={() => fileInputRef.current?.click()}
+										disabled={isUploading}
+										className="size-28 rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/60 flex flex-col items-center justify-center gap-1.5 text-muted-foreground transition-colors"
 									>
-										<X className="size-3.5" />
+										{isUploading ? (
+											<Loader2 className="size-6 animate-spin" />
+										) : (
+											<>
+												<AddFilesIcon className="size-8 text-primary/80 mb-0.5" />
+												<span className="text-[10px] font-medium">Upload Photo</span>
+											</>
+										)}
 									</button>
-								</div>
-							) : (
-								<button
-									type="button"
-									onClick={() => fileInputRef.current?.click()}
-									disabled={isUploading}
-									className="size-28 rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/60 flex flex-col items-center justify-center gap-1.5 text-muted-foreground transition-colors"
-								>
-									{isUploading ? (
-										<Loader2 className="size-6 animate-spin" />
-									) : (
-										<>
-											<AddFilesIcon className="size-8 text-primary/80 mb-0.5" />
-											<span className="text-[10px] font-medium">Upload Photo</span>
-										</>
-									)}
-								</button>
-							)}
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="option-name">Nominee Name / Option *</Label>
-							<Input
-								id="option-name"
-								value={optionText}
-								onChange={(e) => setOptionText(e.target.value)}
-								placeholder="e.g., John Doe or Team Alpha"
-								required
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="nominee-email">Nominee Email (Optional)</Label>
-							<Input
-								id="nominee-email"
-								type="email"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								placeholder="e.g., nominee@example.com (optional)"
-							/>
-							<p className="text-xs text-muted-foreground">
-								Optional. If provided, the nominee receives their voting code and update notices.
-							</p>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="nominee-phone">Nominee Phone (Optional)</Label>
-							<Input
-								id="nominee-phone"
-								type="tel"
-								value={phone}
-								onChange={(e) => setPhone(e.target.value)}
-								placeholder="e.g., +233 24 123 4567"
-							/>
-							{!editingOption && phone.trim() && (
-								<div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs mt-1.5">
-									<Checkbox
-										id="send-whatsapp-confirm"
-										checked={sendWhatsApp}
-										onCheckedChange={(checked) => setSendWhatsApp(Boolean(checked))}
-										className="mt-0.5"
-									/>
-									<div className="space-y-0.5 leading-snug">
-										<Label
-											htmlFor="send-whatsapp-confirm"
-											className="text-xs font-semibold text-emerald-950 dark:text-emerald-100 cursor-pointer flex items-center gap-1.5"
-										>
-											<MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
-											Send WhatsApp nomination confirmation
-										</Label>
-										<p className="text-[11px] text-emerald-800/80 dark:text-emerald-300/80">
-											Notifies candidate of their nomination, asks for their flyer picture, and includes organizer contact info.
-										</p>
-									</div>
-								</div>
-							)}
-						</div>
-
-						{/* Nominee Code Field: Editable when adding new; Locked/Disabled when editing */}
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<Label htmlFor="nominee-code">Nominee Code</Label>
-								{editingOption && (
-									<span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
-										<Lock className="size-2.5" />
-										Locked
-									</span>
 								)}
 							</div>
-							<Input
-								id="nominee-code"
-								value={nomineeCode}
-								onChange={(e) => setNomineeCode(e.target.value.toUpperCase())}
-								placeholder="e.g., GM01"
-								maxLength={4}
-								disabled={Boolean(editingOption)}
-								readOnly={Boolean(editingOption)}
-								className={
-									editingOption
-										? "bg-muted text-muted-foreground cursor-not-allowed opacity-85 select-none"
-										: ""
-								}
-							/>
-							{editingOption ? (
-								<p className="text-[11px] hidden text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
-									<Lock className="size-3 shrink-0" />
-									Nominee code is permanent once created (preserves voting, flyers & USSD routing).
-								</p>
-							) : (
+
+							<div className="space-y-2">
+								<Label htmlFor="option-name">Nominee Name / Option *</Label>
+								<Input
+									id="option-name"
+									value={optionText}
+									onChange={(e) => setOptionText(e.target.value)}
+									placeholder="e.g., John Doe or Team Alpha"
+									required
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="nominee-email">Nominee Email (Optional)</Label>
+								<Input
+									id="nominee-email"
+									type="email"
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									placeholder="e.g., nominee@example.com (optional)"
+								/>
 								<p className="text-xs text-muted-foreground">
-									4-character code (2 letters + 2 numbers, e.g. GM01) used for USSD and quick voting. Auto-generated if left blank.
+									Optional. If provided, the nominee receives their voting code and update notices.
 								</p>
-							)}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="nominee-phone">Nominee Phone (Optional)</Label>
+								<Input
+									id="nominee-phone"
+									type="tel"
+									value={phone}
+									onChange={(e) => setPhone(e.target.value)}
+									placeholder="e.g., +233 24 123 4567"
+								/>
+								{!editingOption && phone.trim() && (
+									<div className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs mt-1.5">
+										<Checkbox
+											id="send-whatsapp-confirm"
+											checked={sendWhatsApp}
+											onCheckedChange={(checked) => setSendWhatsApp(Boolean(checked))}
+											className="mt-0.5"
+										/>
+										<div className="space-y-0.5 leading-snug">
+											<Label
+												htmlFor="send-whatsapp-confirm"
+												className="text-xs font-semibold text-emerald-950 dark:text-emerald-100 cursor-pointer flex items-center gap-1.5"
+											>
+												<MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
+												Send WhatsApp nomination confirmation
+											</Label>
+											<p className="text-[11px] text-emerald-800/80 dark:text-emerald-300/80">
+												Notifies candidate of their nomination, asks for their flyer picture, and includes organizer contact info.
+											</p>
+										</div>
+									</div>
+								)}
+							</div>
+
+							{/* Nominee Code Field: Editable when adding new; Locked/Disabled when editing */}
+							<div className="space-y-2">
+								<div className="flex items-center justify-between">
+									<Label htmlFor="nominee-code">Nominee Code</Label>
+									{editingOption && (
+										<span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+											<Lock className="size-2.5" />
+											Locked
+										</span>
+									)}
+								</div>
+								<Input
+									id="nominee-code"
+									value={nomineeCode}
+									onChange={(e) => setNomineeCode(e.target.value.toUpperCase())}
+									placeholder="e.g., GM01"
+									maxLength={4}
+									disabled={Boolean(editingOption)}
+									readOnly={Boolean(editingOption)}
+									className={
+										editingOption
+											? "bg-muted text-muted-foreground cursor-not-allowed opacity-85 select-none"
+											: ""
+									}
+								/>
+								{editingOption ? (
+									<p className="text-[11px] hidden text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
+										<Lock className="size-3 shrink-0" />
+										Nominee code is permanent once created (preserves voting, flyers & USSD routing).
+									</p>
+								) : (
+									<p className="text-xs text-muted-foreground">
+										4-character code (2 letters + 2 numbers, e.g. GM01) used for USSD and quick voting. Auto-generated if left blank.
+									</p>
+								)}
+							</div>
+
+							<div className="space-y-2">
+								<Label>Bio / Description (Optional)</Label>
+								<RichTextEditor
+									value={description}
+									onChange={(val) => setDescription(val)}
+									placeholder="Brief profile or details about this nominee..."
+									minimal
+								/>
+							</div>
 						</div>
 
-						<div className="space-y-2">
-							<Label>Bio / Description (Optional)</Label>
-							<RichTextEditor
-								value={description}
-								onChange={(val) => setDescription(val)}
-								placeholder="Brief profile or details about this nominee..."
-								minimal
-							/>
-						</div>
-					</div>
+						<SheetFooter className="px-6 py-4 border-t bg-muted/20 shrink-0 flex flex-row items-center justify-end gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => onOpenChange(false)}
+								disabled={isPending}
+							>
+								Cancel
+							</Button>
+							<Button type="submit" disabled={isPending || isUploading}>
+								{isPending ? (
+									<>
+										<Loader2 className="mr-2 size-4 animate-spin" />
+										Saving...
+									</>
+								) : editingOption ? (
+									"Save Nominee"
+								) : (
+									"Add Nominee"
+								)}
+							</Button>
+						</SheetFooter>
+					</form>
+				</SheetContent>
+			</Sheet>
 
-					<SheetFooter className="px-6 py-4 border-t bg-muted/20 shrink-0 flex flex-row items-center justify-end gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-							disabled={isPending}
+			<AlertDialog open={showConfirmAlert} onOpenChange={setShowConfirmAlert}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Send Confirmation Message?</AlertDialogTitle>
+						<AlertDialogDescription>
+							Send nomination confirmation details (voting code, organizer contact &amp; flyer request) to &quot;{optionText || editingOption?.optionText}&quot;?
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isSendingConfirm}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							disabled={isSendingConfirm}
+							onClick={handleSendManualConfirmation}
+							className="bg-emerald-600 hover:bg-emerald-700 text-white"
 						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={isPending || isUploading}>
-							{isPending ? (
-								<>
-									<Loader2 className="mr-2 size-4 animate-spin" />
-									Saving...
-								</>
-							) : editingOption ? (
-								"Save Nominee"
-							) : (
-								"Add Nominee"
-							)}
-						</Button>
-					</SheetFooter>
-				</form>
-			</SheetContent>
-		</Sheet>
-
-		<AlertDialog open={showConfirmAlert} onOpenChange={setShowConfirmAlert}>
-			<AlertDialogContent>
-				<AlertDialogHeader>
-					<AlertDialogTitle>Send Confirmation Message?</AlertDialogTitle>
-					<AlertDialogDescription>
-						Send nomination confirmation details (voting code, organizer contact &amp; flyer request) to &quot;{optionText || editingOption?.optionText}&quot;?
-					</AlertDialogDescription>
-				</AlertDialogHeader>
-				<AlertDialogFooter>
-					<AlertDialogCancel disabled={isSendingConfirm}>Cancel</AlertDialogCancel>
-					<AlertDialogAction
-						disabled={isSendingConfirm}
-						onClick={handleSendManualConfirmation}
-						className="bg-emerald-600 hover:bg-emerald-700 text-white"
-					>
-						Confirm &amp; Send
-					</AlertDialogAction>
-				</AlertDialogFooter>
-			</AlertDialogContent>
-		</AlertDialog>
+							Confirm &amp; Send
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }
