@@ -468,12 +468,19 @@ async function processPayment(
 		}
 
 		if (paystackData.data?.status === "send_otp") {
-			console.error("[USSD-PAYSTACK-UNEXPECTED-OTP]", {
-				reference,
-				provider: chargeProvider,
-				response: paystackData,
+			const payment = await prisma.payment.findUnique({
+				where: { reference },
+				select: { metadata: true },
 			});
-			return "END Payment could not be started through mobile money. Please try again or use another network.";
+			const metadata =
+				payment?.metadata && typeof payment.metadata === "object"
+					? payment.metadata
+					: {};
+			await prisma.payment.update({
+				where: { reference },
+				data: { metadata: { ...metadata, awaitingOtp: true } },
+			});
+			return `CON ${paystackData.data.display_text || "Enter the OTP sent to your phone"}:\n0. Cancel`;
 		}
 	} catch (err) {
 		console.error("Paystack Charge Exception:", err);
@@ -815,6 +822,59 @@ async function handleUssdCore(
 	text: string,
 	isSimulation: boolean = false,
 ): Promise<string> {
+	if (!isSimulation) {
+		const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+		const pendingSession = await prisma.ussdSession.findFirst({
+			where: {
+				phoneNumber: normalizePhone(phoneNumber),
+				status: "pending",
+				createdAt: { gte: fiveMinsAgo },
+			},
+			orderBy: { createdAt: "desc" },
+		});
+
+		if (pendingSession) {
+			const payment = await prisma.payment.findUnique({
+				where: { reference: pendingSession.reference },
+				select: { metadata: true },
+			});
+			const metadata = payment?.metadata;
+			const isAwaitingOtp =
+				metadata &&
+				typeof metadata === "object" &&
+				"awaitingOtp" in metadata &&
+				metadata.awaitingOtp === true;
+
+			if (isAwaitingOtp) {
+				const rawTokens = text.split("*").filter(Boolean);
+				if (rawTokens.length === 0) {
+					return `CON You have a pending payment of GHS ${Number(pendingSession.amount).toFixed(2)}.\nEnter the OTP sent to your phone:\n0. Cancel`;
+				}
+				const otpAnswer = rawTokens[rawTokens.length - 1];
+				if (otpAnswer === "0") {
+					await prisma.ussdSession.update({
+						where: { id: pendingSession.id },
+						data: { status: "cancelled" },
+					});
+					text = "";
+				} else if (otpAnswer) {
+					const pendingEvent = await prisma.event.findUnique({
+						where: { id: pendingSession.eventId },
+						select: { title: true, type: true },
+					});
+					if (!pendingEvent) return "END Payment session expired. Please try again.";
+					return await submitOtp(
+						pendingSession.reference,
+						otpAnswer,
+						process.env.PAYSTACK_SECRET_KEY || "",
+						pendingEvent,
+						pendingSession.quantity,
+					);
+				}
+			}
+		}
+	}
+
 	const rawInputArray = text.split("*").filter(Boolean);
 	const inputArray = reduceTokens(rawInputArray);
 	const depth = inputArray.length;

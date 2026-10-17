@@ -725,13 +725,13 @@ export async function processPayment(
 		}
 
 		if (paystackData.data?.status === "send_otp") {
-			console.error("[USSD-PAYSTACK-UNEXPECTED-OTP]", {
-				reference,
-				provider: chargeProvider,
-				response: paystackData,
-			});
+			await sql`
+				UPDATE payments
+				SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{awaitingOtp}', 'true')
+				WHERE reference = ${reference}
+			`;
 			return textResponse(
-				"END Payment could not be started through mobile money. Please try again or use another network.",
+				`CON ${paystackData.data.display_text || "Enter the OTP sent to your phone"}:\n0. Cancel`,
 			);
 		}
 
@@ -984,6 +984,52 @@ export async function handleUssdCore(
 	}
 
 	const sql = neon(dbUrl);
+
+	// Vodafone charges may require Paystack's provider OTP; resume only sessions
+	// explicitly marked as awaiting that OTP.
+	if (!isSimulation) {
+		const pendingSessions = await sql`
+			SELECT s.reference, s.amount, s.event_id, s.quantity
+			FROM ussd_sessions s
+			JOIN payments p ON p.reference = s.reference
+			WHERE s.phone_number = ${phoneNumber}
+			  AND s.status = 'pending'
+			  AND (p.metadata->>'awaitingOtp') = 'true'
+			  AND s.created_at >= NOW() - INTERVAL '5 minutes'
+			ORDER BY s.created_at DESC
+			LIMIT 1
+		`;
+
+		if (pendingSessions.length > 0) {
+			const pending = pendingSessions[0];
+			const rawTokens = text.split("*").filter(Boolean);
+			if (rawTokens.length === 0) {
+				return textResponse(
+					`CON You have a pending payment of GHS ${pending.amount}.\nEnter the OTP sent to your phone:\n0. Cancel`,
+				);
+			}
+			const otpAnswer = rawTokens[rawTokens.length - 1];
+			if (otpAnswer === "0") {
+				await sql`UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${pending.reference}`;
+				text = "";
+			} else {
+				const events = await sql`
+					SELECT title, type
+					FROM events
+					WHERE id = ${pending.event_id}
+					LIMIT 1
+				`;
+				if (!events[0]) return textResponse("END Payment session expired. Please try again.");
+				return await submitOtp(
+					sql,
+					pending.reference,
+					otpAnswer,
+					paystackSecret,
+					env,
+				);
+			}
+		}
+	}
 
 	const rawInputArray = text.split("*").filter(Boolean);
 	const inputArray = reduceTokens(rawInputArray);
