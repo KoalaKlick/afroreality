@@ -479,7 +479,7 @@ export async function sendNomineeReportWhatsAppNotification({
 	bannerImageUrl?: string;
 }): Promise<SendWhatsAppResponse> {
 	const formattedVotes = typeof votesCount === "number" ? votesCount.toLocaleString() : String(votesCount);
-	const formattedRank = showRank ? (String(rank).startsWith("#") ? String(rank) : `#${rank}`) : "Confidential";
+	const formattedRank = showRank ? (String(rank).startsWith("#") ? String(rank) : `${rank}`) : "Confidential";
 
 	const baseUrl = getFrontendBaseUrl();
 	const defaultLogoBanner =
