@@ -586,8 +586,10 @@ async function handleVotingFlow(
 	);
 	if (categories.length === 0) return "END No voting categories available.";
 
+	const isSingleCategory = categories.length === 1;
 	const catSelection = getPaginatedSelection(tokens);
-	if (catSelection.selectedIndex === null) {
+	const selectedCategoryIndex = isSingleCategory ? 0 : catSelection.selectedIndex;
+	if (!isSingleCategory && selectedCategoryIndex === null) {
 		return buildPaginatedMenu(
 			`${event.title}\nSelect Category:`,
 			categories,
@@ -598,8 +600,9 @@ async function handleVotingFlow(
 			},
 		);
 	}
+	if (selectedCategoryIndex === null) return "END Invalid category.";
 
-	const selectedCategory = categories[catSelection.selectedIndex];
+	const selectedCategory = categories[selectedCategoryIndex];
 	if (!selectedCategory) return "END Invalid category.";
 
 	tokens = catSelection.remainingTokens;
