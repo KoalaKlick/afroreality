@@ -279,9 +279,10 @@ export async function sendNomineeReportSms({
 	const votes = typeof votesCount === "number" ? votesCount.toLocaleString() : String(votesCount);
 	const rankStr = showRank !== false ? `Rank: #${rank}` : "Rank: Confidential";
 	const catLine = category ? `\nCategory: ${category}` : "";
+	const progressLink = categoryUrl || "https://fextiva.com";
 
 	const message = truncate(
-		`${nominee} - ${event}${catLine}\nVotes: ${votes} | ${rankStr}\nView: fextiva.com\n-Fextiva`,
+		`Fextiva Nominee Update\n${nominee}\nEvent: ${event}${catLine}\nVotes: ${votes}\n${rankStr}\nView progress: ${progressLink}\nFextiva`,
 		SMS_CHAR_LIMIT,
 	);
 
