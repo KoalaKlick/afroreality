@@ -865,8 +865,16 @@ export async function processWhatsAppWebhook(body: any): Promise<{
 				const pricingCategory =
 					item.pricing?.category || item.conversation?.origin?.type || "utility";
 				const isBillable = item.pricing?.billable ?? true;
-				const errorMsg =
-					item.errors?.[0]?.message || item.errors?.[0]?.title || null;
+				const statusError = item.errors?.[0];
+				const errorMsg = statusError
+					? [
+							statusError.code ? `Code ${statusError.code}` : null,
+							statusError.title,
+							statusError.message,
+						]
+							.filter(Boolean)
+							.join(": ")
+					: null;
 
 				try {
 					await prisma.whatsAppMessageLog.upsert({

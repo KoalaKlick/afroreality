@@ -49,6 +49,12 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -1317,23 +1323,43 @@ export function NomineeReportsContent({
 													</td>
 													<td className="py-3.5 px-4">
 														<div>
-															<span
-																className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
-																	log.status === "delivered"
-																		? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-																		: log.status === "read"
-																			? "bg-blue-500/10 text-blue-600 border border-blue-500/20"
-																			: log.status === "sent"
-																				? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-																				: "bg-destructive/10 text-destructive border border-destructive/20"
-																}`}
-															>
-																{log.status}
-															</span>
-															{log.errorMessage && (
-																<p className="text-[10px] text-destructive mt-1 max-w-xs break-words">
-																	{log.errorMessage}
-																</p>
+															{log.errorMessage ? (
+																<TooltipProvider>
+																	<Tooltip>
+																		<TooltipTrigger asChild>
+																			<span
+																				className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase cursor-help ${
+																					log.status === "delivered"
+																						? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+																						: log.status === "read"
+																							? "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+																							: log.status === "sent"
+																								? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+																								: "bg-destructive/10 text-destructive border border-destructive/20"
+																				}`}
+																			>
+																				{log.status}
+																			</span>
+																		</TooltipTrigger>
+																		<TooltipContent side="top" className="max-w-xs text-xs">
+																			{log.errorMessage}
+																		</TooltipContent>
+																	</Tooltip>
+																</TooltipProvider>
+															) : (
+																<span
+																	className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+																		log.status === "delivered"
+																			? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+																			: log.status === "read"
+																				? "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+																				: log.status === "sent"
+																					? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+																					: "bg-destructive/10 text-destructive border border-destructive/20"
+																	}`}
+																>
+																	{log.status}
+																</span>
 															)}
 														</div>
 													</td>
