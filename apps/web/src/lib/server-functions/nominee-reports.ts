@@ -531,8 +531,6 @@ export async function dispatchNomineeReportsNow({
 						eventTitle: task.eventTitle,
 						categoryName: task.categoryName,
 						votesCount: task.votesCount,
-						rank: task.rank,
-						showRank: task.showRank,
 						categoryUrl: task.eventUrl,
 						singleCategoryEvent: task.singleCategoryEvent,
 						voteDisplayType: task.voteDisplayType,

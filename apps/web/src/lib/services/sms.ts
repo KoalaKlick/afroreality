@@ -257,8 +257,6 @@ export async function sendNomineeReportSms({
 	eventTitle,
 	categoryName,
 	votesCount,
-	rank,
-	showRank,
 	categoryUrl,
 	singleCategoryEvent,
 	voteDisplayType,
@@ -270,8 +268,6 @@ export async function sendNomineeReportSms({
 	eventTitle: string;
 	categoryName?: string;
 	votesCount: number | string;
-	rank: number | string;
-	showRank?: boolean;
 	categoryUrl?: string;
 	singleCategoryEvent?: boolean;
 	voteDisplayType?: "count" | "percentage";
@@ -287,20 +283,19 @@ export async function sendNomineeReportSms({
 		: `${votes} vote${votes === "1" ? "" : "s"}`;
 	const progressLink = categoryUrl || "https://fextiva.com";
 
-	const rankLine = showRank !== false ? ` Rank #${rank}.` : "";
 	const eventLabel = singleCategoryEvent && category
 		? category
 		: category
 			? `${event} (${category})`
 			: event;
 	const messageWithEventLink =
-		`\nHi ${nominee}, you have ${progress} in ${eventLabel}.${rankLine}\n` +
+		`FEXTIVA\nHi ${nominee}, you have ${progress} in ${eventLabel}.\n` +
 		`Share for more votes: ${progressLink}`;
 	const messageWithHomepageLink =
-		`\nHi ${nominee}, you have ${progress} in ${eventLabel}.${rankLine}\n` +
+		`FEXTIVA\nHi ${nominee}, you have ${progress} in ${eventLabel}.\n` +
 		"Share for more votes: https://fextiva.com";
 	const messageWithoutLink =
-		`FEXTIVA\nHi ${nominee}, you have ${progress} in ${eventLabel}.${rankLine}`;
+		`FEXTIVA\nHi ${nominee}, you have ${progress} in ${eventLabel}.`;
 	const message = [messageWithEventLink, messageWithHomepageLink, messageWithoutLink].find(
 		(candidate) => candidate.length <= SMS_CHAR_LIMIT,
 	) ?? messageWithoutLink;
