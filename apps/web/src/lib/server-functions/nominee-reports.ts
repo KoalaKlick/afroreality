@@ -37,7 +37,9 @@ export interface ActiveEventSummary {
 	organizationName: string;
 	nomineeCount: number;
 	nominees: Array<{
+		id: string;
 		name: string;
+		phone: string;
 		votesCount: number;
 	}>;
 	messagingConfig?: {
@@ -181,7 +183,9 @@ export async function getActiveVotingEventsForReports(): Promise<ActiveEventSumm
 								phone: { not: null },
 							},
 							select: {
+								id: true,
 								optionText: true,
+								phone: true,
 								votesCount: true,
 							},
 						},
@@ -194,7 +198,9 @@ export async function getActiveVotingEventsForReports(): Promise<ActiveEventSumm
 						categoryId: null,
 					},
 					select: {
+						id: true,
 						optionText: true,
+						phone: true,
 						votesCount: true,
 					},
 				},
@@ -207,7 +213,9 @@ export async function getActiveVotingEventsForReports(): Promise<ActiveEventSumm
 				...ev.votingCategories.flatMap((category) => category.votingOptions),
 				...ev.votingOptions,
 			].map((nominee) => ({
+				id: nominee.id,
 				name: nominee.optionText,
+				phone: nominee.phone ?? "",
 				votesCount: nominee.votesCount,
 			}));
 
@@ -239,12 +247,14 @@ export async function dispatchNomineeReportsNow({
 	selectedEventIds,
 	channelOverride,
 	voteAudienceOverride,
+	selectedNomineeIds,
 }: {
 	force?: boolean;
 	triggeredBy?: string;
 	selectedEventIds?: string[];
 	channelOverride?: "whatsapp" | "sms" | "both" | "event_default";
 	voteAudienceOverride?: ReportVoteAudience;
+	selectedNomineeIds?: string[];
 } = {}): Promise<{
 	success: boolean;
 	totalNominees: number;
@@ -360,6 +370,7 @@ export async function dispatchNomineeReportsNow({
 						? "with_votes"
 						: "all"
 					: settings.voteAudience);
+			const selectedIds = selectedNomineeIds ? new Set(selectedNomineeIds) : null;
 			const overrideShowRank = config?.reportShowRank ?? true;
 			const orgSlug = ev.organization?.slug || "org";
 			const bannerImageUrl = ev.bannerImage || ev.flierImage || undefined;
@@ -373,6 +384,7 @@ export async function dispatchNomineeReportsNow({
 				const sortedOptions = [...cat.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
 				sortedOptions.forEach((opt, idx) => {
+					if (selectedIds && !selectedIds.has(opt.id)) return;
 					if (
 						(voteAudience === "with_votes" && opt.votesCount <= 0) ||
 						(voteAudience === "without_votes" && opt.votesCount > 0)
@@ -407,6 +419,7 @@ export async function dispatchNomineeReportsNow({
 				const sortedUncategorized = [...ev.votingOptions].sort((a, b) => b.votesCount - a.votesCount);
 
 				sortedUncategorized.forEach((opt, idx) => {
+					if (selectedIds && !selectedIds.has(opt.id)) return;
 					if (
 						(voteAudience === "with_votes" && opt.votesCount <= 0) ||
 						(voteAudience === "without_votes" && opt.votesCount > 0)

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useMemo } from "react";
+import React, { useState, useTransition, useMemo, useEffect } from "react";
 import {
 	Send,
 	Clock,
@@ -121,6 +121,8 @@ export function NomineeReportsContent({
 		activeEvents.length > 0 && activeEvents[0]?.id ? [activeEvents[0].id] : []
 	);
 	const [broadcastChannel, setBroadcastChannel] = useState<"event_default" | "whatsapp" | "sms" | "both">("event_default");
+	const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+	const [selectedNomineeIds, setSelectedNomineeIds] = useState<string[]>([]);
 
 	// Event config quick-edit modal
 	const [editingEventConfig, setEditingEventConfig] = useState<(EventMessagingConfigData & { eventTitle: string }) | null>(null);
@@ -174,6 +176,7 @@ export function NomineeReportsContent({
 				selectedEventIds: targetScope === "selected" ? selectedEventIds : undefined,
 				channelOverride: broadcastChannel,
 				voteAudienceOverride: settings.voteAudience,
+				selectedNomineeIds,
 			});
 
 			if (res.success) {
@@ -221,6 +224,19 @@ export function NomineeReportsContent({
 			prev.includes(eventId) ? prev.filter((id) => id !== eventId) : [...prev, eventId]
 		);
 	};
+
+	const getEligibleNominees = (event: ActiveEventSummary) =>
+		event.nominees.filter((nominee) =>
+			settings.voteAudience === "with_votes"
+				? nominee.votesCount > 0
+				: settings.voteAudience === "without_votes"
+					? nominee.votesCount === 0
+					: true
+		);
+
+	useEffect(() => {
+		setSelectedNomineeIds(activeEvents.flatMap((event) => getEligibleNominees(event).map((nominee) => nominee.id)));
+	}, [activeEvents, settings.voteAudience]);
 
 	// Filtered configs list
 	const filteredConfigs = useMemo(() => {
@@ -275,28 +291,14 @@ export function NomineeReportsContent({
 	}, [filteredWaLogs, waPage]);
 
 	const calculatedRecipients = activeEvents
-		.filter((e) => targetScope === "all" || selectedEventIds.includes(e.id))
+				.filter((e) => targetScope === "all" || selectedEventIds.includes(e.id))
 				.reduce(
 					(acc, curr) =>
 						acc +
-						curr.nominees.filter((nominee) =>
-							settings.voteAudience === "with_votes"
-								? nominee.votesCount > 0
-								: settings.voteAudience === "without_votes"
-									? nominee.votesCount === 0
-									: true
-						).length,
-					0,
-				);
+						getEligibleNominees(curr).filter((nominee) => selectedNomineeIds.includes(nominee.id)).length,
+							0,
+						);
 
-	const getEligibleNominees = (event: ActiveEventSummary) =>
-		event.nominees.filter((nominee) =>
-			settings.voteAudience === "with_votes"
-				? nominee.votesCount > 0
-				: settings.voteAudience === "without_votes"
-					? nominee.votesCount === 0
-					: true
-		);
 
 	const formatHour = (hour: number) => {
 		const h = hour % 24;
@@ -1485,39 +1487,111 @@ export function NomineeReportsContent({
 									) : (
 										activeEvents.map((ev) => {
 											const isChecked = selectedEventIds.includes(ev.id);
+											const eligibleNominees = getEligibleNominees(ev);
+											const selectedForEvent = eligibleNominees.filter((nominee) =>
+													selectedNomineeIds.includes(nominee.id)
+											);
 											return (
-												<div
-													key={ev.id}
-													onClick={() => toggleEventSelection(ev.id)}
-													className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs border transition-colors ${
-														isChecked
-															? "bg-emerald-500/10 border-emerald-500/30 text-foreground"
-															: "bg-background border-border/60 hover:bg-muted/40 text-muted-foreground"
-													}`}
-												>
-													<div className="flex items-center gap-2.5 min-w-0">
-														{isChecked ? (
-															<CheckSquare className="h-4 w-4 text-emerald-600 shrink-0" />
-														) : (
-															<Square className="h-4 w-4 text-muted-foreground/60 shrink-0" />
-														)}
-														<div className="min-w-0">
-															<p className="font-medium text-foreground truncate">{ev.title}</p>
-															<p className="text-[10px] text-muted-foreground">{ev.organizationName}</p>
-														</div>
-													</div>
+													<div
+														key={ev.id}
+														className={`p-2 rounded-lg text-xs border transition-colors ${
+															isChecked
+																? "bg-emerald-500/10 border-emerald-500/30 text-foreground"
+																: "bg-background border-border/60 hover:bg-muted/40 text-muted-foreground"
+														}`}
+													>
+														<div className="flex items-center justify-between gap-2.5">
+															<button
+																type="button"
+																onClick={() => toggleEventSelection(ev.id)}
+																className="flex items-center gap-2.5 min-w-0 text-left"
+															>
+															{isChecked ? (
+																<CheckSquare className="h-4 w-4 text-emerald-600 shrink-0" />
+															) : (
+																<Square className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+															)}
+															<div className="min-w-0">
+																<p className="font-medium text-foreground truncate">{ev.title}</p>
+																<p className="text-[10px] text-muted-foreground">{ev.organizationName}</p>
+															</div>
+															</button>
 
-													<div className="text-right shrink-0">
-														<Badge variant="outline" className="text-[10px]">
-															{getEligibleNominees(ev).length} to send
-														</Badge>
-														{getEligibleNominees(ev).length > 0 && (
-															<p className="text-[10px] text-muted-foreground mt-1 max-w-48 truncate">
-																{getEligibleNominees(ev).map((nominee) => nominee.name).join(", ")}
-															</p>
+															<div className="flex items-center gap-2 shrink-0">
+															<Badge variant="outline" className="text-[10px]">
+																{selectedForEvent.length}/{eligibleNominees.length} to send
+															</Badge>
+															<button
+																type="button"
+																onClick={() => setExpandedEventId((current) => current === ev.id ? null : ev.id)}
+																className="text-[10px] text-primary hover:underline"
+															>
+																{expandedEventId === ev.id ? "Hide" : "View"}
+															</button>
+															</div>
+														</div>
+
+														{expandedEventId === ev.id && (
+															<div className="mt-2 space-y-1 border-t border-border/50 pt-2">
+																<div className="flex justify-end gap-2 text-[10px]">
+																	<button
+																		type="button"
+																		className="text-primary hover:underline"
+																		onClick={() =>
+																			setSelectedNomineeIds((current) => [
+																				...new Set([
+																					...current.filter((id) => !eligibleNominees.some((nominee) => nominee.id === id)),
+																					...eligibleNominees.map((nominee) => nominee.id),
+																				]),
+																			])
+																		}
+																	>
+																		Select all
+																	</button>
+																	<button
+																		type="button"
+																		className="text-muted-foreground hover:underline"
+																		onClick={() =>
+																			setSelectedNomineeIds((current) =>
+																				current.filter((id) => !eligibleNominees.some((nominee) => nominee.id === id))
+																			)
+																		}
+																	>
+																		Clear
+																	</button>
+																</div>
+																{eligibleNominees.map((nominee) => {
+																	const selected = selectedNomineeIds.includes(nominee.id);
+																	return (
+																		<button
+																			type="button"
+																			key={nominee.id}
+																			onClick={() =>
+																				setSelectedNomineeIds((current) =>
+																					selected
+																						? current.filter((id) => id !== nominee.id)
+																						: [...current, nominee.id]
+																				)
+																			}
+																			className="w-full flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted/50"
+																		>
+																			<span className="flex items-center gap-2 min-w-0">
+																				{selected ? (
+																					<CheckSquare className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+																				) : (
+																					<Square className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+																				)}
+																				<span className="truncate">{nominee.name}</span>
+																			</span>
+																			<span className="text-[10px] text-muted-foreground shrink-0">
+																				{nominee.phone}
+																			</span>
+																		</button>
+																	);
+																})}
+															</div>
 														)}
 													</div>
-												</div>
 											);
 										})
 									)}
