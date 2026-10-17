@@ -246,7 +246,7 @@ export async function getWorkerFeeCalculation(
 export async function fetchEventDetails(sql: any, eventId: string) {
 	const [categories, options, ticketTypes] = await Promise.all([
 		sql`SELECT id, name, order_idx, vote_price FROM voting_categories WHERE event_id = ${eventId} ORDER BY order_idx ASC`,
-		sql`SELECT id, category_id, option_text, order_idx, status FROM voting_options WHERE event_id = ${eventId} AND status = 'approved' ORDER BY order_idx ASC`,
+		sql`SELECT id, category_id, option_text, order_idx, status FROM voting_options WHERE event_id = ${eventId} AND status = 'approved' ORDER BY created_at ASC`,
 		sql`SELECT id, name, price, status, order_idx, min_per_order, max_per_order FROM ticket_types WHERE event_id = ${eventId} AND status = 'available' ORDER BY order_idx ASC`,
 	]);
 

@@ -9,6 +9,7 @@ function sanitizePrismaData<T>(data: T): T {
 			if (typeof value === "bigint") {
 				return value.toString();
 			}
+
 			return value;
 		}),
 	);
@@ -108,7 +109,7 @@ export async function getPublicOrganizationProfile(
 									},
 									take: 8,
 									orderBy: {
-										orderIdx: "asc",
+										createdAt: "asc",
 									},
 								},
 							},
@@ -234,7 +235,7 @@ export async function getPublicEventDetails(
 						votingOptions: {
 							where: isOrganizer ? undefined : { status: "approved" },
 							orderBy: {
-								orderIdx: "asc",
+								createdAt: "asc",
 							},
 						},
 					},
@@ -382,7 +383,7 @@ export async function getPublicCategoryDetails(
 				votingOptions: {
 					where: isOrganizer ? undefined : { status: "approved" },
 					orderBy: {
-						orderIdx: "asc",
+						createdAt: "asc",
 					},
 				},
 			},
@@ -508,7 +509,7 @@ export async function getPublicEventsList(options: GetPublicEventsOptions = {}) 
 								},
 								take: 8,
 								orderBy: {
-									orderIdx: "asc",
+									createdAt: "asc",
 								},
 							},
 						},
@@ -765,4 +766,3 @@ export async function getActiveFextivaOrganizations() {
 		return [];
 	}
 }
-
