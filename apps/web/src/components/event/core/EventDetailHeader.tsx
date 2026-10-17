@@ -30,6 +30,9 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { EventAuditTrailDrawer } from "../audit/EventAuditTrailDrawer";
 import { EventDepositModal } from "./EventDepositModal";
+import { EventPublishConsentDialog } from "./EventPublishConsentDialog";
+import Image from "next/image";
+import refundableHeaderImg from "@/assets/refundable-bg.jpg";
 import AddFilesIcon from "@/assets/add-files.svg";
 import { StatusBadge } from "@/components/common/status-badge";
 import {
@@ -121,6 +124,7 @@ export function EventDetailHeader({
 	const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
 	const [isPayoutDrawerOpen, setIsPayoutDrawerOpen] = useState(false);
 	const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
+	const [isPublishConsentOpen, setIsPublishConsentOpen] = useState(false);
 
 	// Security deposit modal state
 	const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
@@ -243,27 +247,13 @@ export function EventDetailHeader({
 			return;
 		}
 
-		// 2. Gate publishing behind refundable security deposit SECOND (only after payout account check passes)
+		// 2. Gate publishing behind official settlement policy consent
 		if (newStatus === "published") {
-			try {
-				const depReq = await checkEventDepositRequirement({
-					eventId: event.id,
-					organizationId: event.organizationId,
-				});
-
-				if (depReq.required) {
-					setDepositModalData({
-						amount: depReq.amount || 100,
-						refundWindowDays: depReq.refundWindowDays || 2,
-					});
-					setIsDepositModalOpen(true);
-					return;
-				}
-			} catch (err) {
-				console.error("[DEPOSIT-CHECK-ERROR]", err);
-			}
+			setIsPublishConsentOpen(true);
+			return;
 		}
 
+		// Direct unpublish to draft
 		startStatusTransition(async () => {
 			try {
 				await updateExistingEvent({
@@ -272,11 +262,45 @@ export function EventDetailHeader({
 						status: newStatus,
 					},
 				});
-				toast.success(
-					newStatus === "published"
-						? "Event published live!"
-						: "Event moved to draft",
-				);
+				toast.success("Event moved to draft");
+				if (onRefresh) onRefresh();
+			} catch (err) {
+				toast.error(getErrorMessage(err));
+			}
+		});
+	}
+
+	async function executePublishAfterConsent() {
+		setIsPublishConsentOpen(false);
+
+		// Gate publishing behind refundable security deposit if required
+		try {
+			const depReq = await checkEventDepositRequirement({
+				eventId: event.id,
+				organizationId: event.organizationId,
+			});
+
+			if (depReq.required) {
+				setDepositModalData({
+					amount: depReq.amount || 100,
+					refundWindowDays: depReq.refundWindowDays || 2,
+				});
+				setIsDepositModalOpen(true);
+				return;
+			}
+		} catch (err) {
+			console.error("[DEPOSIT-CHECK-ERROR]", err);
+		}
+
+		startStatusTransition(async () => {
+			try {
+				await updateExistingEvent({
+					data: {
+						id: event.id,
+						status: "published",
+					},
+				});
+				toast.success("Event published live!");
 				if (onRefresh) onRefresh();
 			} catch (err) {
 				toast.error(getErrorMessage(err));
@@ -689,21 +713,43 @@ export function EventDetailHeader({
 				open={showPaymentPrompt}
 				onOpenChange={setShowPaymentPrompt}
 			>
-				<AlertDialogContent variant="brand">
-					<AlertDialogHeader>
-						<AlertDialogTitle>Payout Account Required</AlertDialogTitle>
-						<AlertDialogDescription>
-							You need to set up an organization payout method (Mobile Money
-							or Bank Account) before you can publish a paid event. This ensures
-							you can receive earnings from ticket sales or votes.
-							<em className="block text-center bg-secondary-100/50 mt-2 p-2 rounded">
-								Note: No amount is charged from your account.
-							</em>
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
+				<AlertDialogContent className="sm:max-w-md p-0 overflow-hidden bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl gap-0">
+					{/* Header Banner Image */}
+					<div className="relative w-full h-36 sm:h-32 overflow-hidden bg-zinc-100 dark:bg-zinc-800/60 border-b border-zinc-200/80 dark:border-zinc-800">
+						<Image
+							src={refundableHeaderImg}
+							alt="Payout Account Required"
+							fill
+							priority
+							className="object-cover object-center"
+						/>
+						<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+						<div className="absolute bottom-3 left-5 right-5 flex items-end justify-between text-white">
+							<div>
+							
+								<div className="text-base font-bold text-white tracking-tight mt-0.5">
+									Payout Account Required
+								</div>
+							</div>
+							<Badge className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border-white/20 text-[10px] px-2 py-0.5 font-mono">
+								MoMo / Bank
+							</Badge>
+						</div>
+					</div>
+
+					<div className="p-5 sm:p-6 space-y-3 dark:bg-zinc-900/60 text-xs text-muted-foreground">
+						<p className="leading-relaxed text-zinc-600 dark:text-zinc-300">
+							You need to configure an organization payout destination (Mobile Money or Bank Account) before publishing a paid event. This ensures your ticket and voting revenue can be settled smoothly.
+						</p>
+						<div className="rounded-lg bg-zinc-100 dark:bg-zinc-800/60 p-2.5 text-[11px] text-zinc-600 dark:text-zinc-400 border border-zinc-200/80 dark:border-zinc-700/60">
+							Note: No setup fees or debit charges are made against your account.
+						</div>
+					</div>
+
+					<AlertDialogFooter className="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 gap-2 sm:gap-0">
+						<AlertDialogCancel className="text-xs">Cancel</AlertDialogCancel>
 						<AlertDialogAction
+							className="text-xs font-semibold"
 							onClick={() => {
 								setShowPaymentPrompt(false);
 								setIsPayoutDrawerOpen(true);
@@ -794,6 +840,21 @@ export function EventDetailHeader({
 				eventTitle={event.title}
 				amount={depositModalData.amount}
 				refundWindowDays={depositModalData.refundWindowDays}
+			/>
+
+			{/* Event Publication & Settlement Policy Consent Dialog */}
+			<EventPublishConsentDialog
+				open={isPublishConsentOpen}
+				onOpenChange={setIsPublishConsentOpen}
+				eventTitle={event.title}
+				eventType={event.type}
+				isPaidEvent={
+					event.type === "ticketed" ||
+					event.type === "hybrid" ||
+					event.type === "voting"
+				}
+				onConfirm={executePublishAfterConsent}
+				isPublishing={isStatusChanging}
 			/>
 		</>
 	);

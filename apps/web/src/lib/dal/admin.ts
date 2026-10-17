@@ -995,6 +995,7 @@ export interface AdminPayoutItem {
 			slug: string;
 		} | null;
 	} | null;
+	providerResponse?: any;
 }
 
 export async function getAdminWalletsList(): Promise<{
@@ -1125,6 +1126,7 @@ export async function getAdminWalletsList(): Promise<{
 		completedAt: p.completedAt ? p.completedAt.toISOString() : null,
 		approver: p.approver,
 		wallet: p.wallet,
+		providerResponse: p.providerResponse,
 	});
 
 	const recentPayouts: AdminPayoutItem[] = payoutsData.map(mapPayout);

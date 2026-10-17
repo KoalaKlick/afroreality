@@ -1,11 +1,13 @@
 "use client";
 // src/components/organization/wallet/OrgPayoutSettings.tsx
 
-import { Banknote, Check, Loader2, Pencil, Plus, ShieldAlert, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
+import { Banknote, Check, Loader2, Pencil, Plus, ShieldAlert, ShieldCheck, Sparkles, Trash2, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmPasswordDialog } from "@/components/shared/ConfirmPasswordDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { PayoutPolicyModal } from "@/components/shared/PayoutPolicyModal";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -69,6 +71,8 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 	const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
 	const [isRemoving, setIsRemoving] = useState(false);
 	const [country, setCountry] = useState(supportedCountries[0]?.code ?? "GH");
+	const [hasAgreedToPolicy, setHasAgreedToPolicy] = useState(false);
+	const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 
 	const [payoutBankCode, setPayoutBankCode] = useState(
 		organization.paystackBankCode ?? "",
@@ -224,6 +228,10 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 
 	async function handleSave() {
 		if (!accountNumber || !bankCode) return;
+		if (!hasAgreedToPolicy) {
+			toast.error("Please review and agree to the Payout Policy before saving payout details.");
+			return;
+		}
 		setIsCreating(true);
 		try {
 			const result = await createPaystackSubaccount({
@@ -310,16 +318,10 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 	}
 
 	return (
-		<div className="space-y-6">
-			<Card>
+		<div className="space-y-6  h-full">
+			<Card className="shadow-none h-full ">
 				<CardHeader>
 					<div className="flex items-start justify-between gap-4">
-						<div>
-							<CardTitle className="flex items-center gap-2">
-								<Banknote className="h-5 w-5" />
-								Payout Details
-							</CardTitle>
-						</div>
 						{hasExistingPayout && !isEditing && canManagePayouts && (
 							<div className="flex items-center gap-2">
 								<Button
@@ -484,45 +486,93 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 												<Check className="h-4 w-4 mr-1 text-emerald-500" />
 												Verified Name: <span className="font-semibold ml-1">{verifiedName}</span>
 											</p>
-											{isOrgNumberMatch ? (
-												<div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5 shadow-xs">
-													<ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-													<div className="space-y-0.5">
-														<p className="font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
-															<span>Organization Contact Matched</span>
-															
-														</p>
-														<p className="text-emerald-700 dark:text-emerald-300/90 leading-relaxed">
-															No verification required
-														</p>
-													</div>
-												</div>
-											) : (
-												<div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 p-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5 shadow-xs">
-													<ShieldAlert className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-													<div className="space-y-0.5">
-														<p className="font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-1.5">
-															<span>Different Number Detected</span>
-															<span className="bg-amber-500/20 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider font-semibold">
-																Security Check
-															</span>
-														</p>
-														<p className="text-amber-700 dark:text-amber-300/90 leading-relaxed">
-															This account number differs from your organization's registered contact. For security, identity confirmation (password or OTP) is required to authorize this destination.
-														</p>
-													</div>
-												</div>
-											)}
+
 										</div>
 									)}
+
 								</div>
+
 							</div>
+							{verifiedName && isOrgNumberMatch && (
+								<div className="rounded-md col-span-2 bg-emerald-50 dark:bg-emerald-950/40  p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5 shadow-xs">
+									<ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+									<div className="space-y-0.5">
+										<p className="font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-1.5">
+											<span>Organization Contact Matched</span>
+
+										</p>
+										<p className="text-emerald-700 dark:text-emerald-300/90 leading-relaxed">
+											No verification required
+										</p>
+									</div>
+								</div>
+							)}
+
+							{verifiedName && !isOrgNumberMatch && (
+								<div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5 shadow-xs">
+									<ShieldAlert className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+									<div className="space-y-0.5">
+										<p className="font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-1.5">
+											<span>Different Number Detected</span>
+											<span className="bg-amber-500/20 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider font-semibold">
+												Security Check
+											</span>
+										</p>
+										<p className="text-amber-700 dark:text-amber-300/90 leading-relaxed">
+											This account number differs from your organization's registered contact. For security, identity confirmation (password or OTP) is required to authorize this destination.
+										</p>
+									</div>
+								</div>
+							)}
+
+							{/* Settlement Policy Consent Box */}
+							{verifiedName && (
+								<div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 p-3.5 space-y-2 col-span-2">
+									<div className="flex items-start space-x-2.5">
+										<Checkbox
+											id="payout-settings-policy-consent"
+											checked={hasAgreedToPolicy}
+											onCheckedChange={(checked) => setHasAgreedToPolicy(checked === true)}
+											className="mt-0.5 shrink-0"
+										/>
+										<Label
+											htmlFor="payout-settings-policy-consent"
+											className="text-xs text-zinc-700 dark:text-zinc-300 font-normal inline leading-relaxed cursor-pointer"
+										>
+											I confirm that I have reviewed, understand, and agree to the{" "}
+											<button
+												type="button"
+												onClick={(e) => {
+													e.preventDefault();
+													setIsPolicyModalOpen(true);
+												}}
+												className="text-primary inline-flex font-semibold underline underline-offset-2 hover:opacity-80"
+											>
+												Platform Settlement & Payout Policy
+											</button>
+										</Label>
+									</div>
+									<div className="flex justify-end pt-1 border-t border-zinc-200 dark:border-zinc-700/60">
+										<Button
+											type="button"
+											variant="link"
+											size="sm"
+											onClick={() => setIsPolicyModalOpen(true)}
+											className="h-auto p-0 text-xs font-semibold text-primary inline-flex items-center gap-1"
+										>
+											<FileText className="size-3.5" />
+											View Official Payout Policy (PDF)
+										</Button>
+									</div>
+								</div>
+							)}
 						</div>
 					)}
 				</CardContent>
 
+
 				{isEditing && canManagePayouts && (
-					<CardFooter className="flex justify-end gap-4 border-t px-6 py-4 bg-muted/20">
+					<CardFooter className="flex justify-end mt-auto gap-4 px-6 py-4 bg-muted/20">
 						<Button variant="ghost" onClick={() => setIsEditing(false)}>
 							Cancel
 						</Button>
@@ -531,7 +581,7 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 								<Button
 									type="button"
 									onClick={handleSave}
-									disabled={isCreating}
+									disabled={isCreating || !hasAgreedToPolicy}
 									className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 font-medium shadow-xs"
 								>
 									{isCreating ? (
@@ -550,7 +600,7 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 								<Button
 									type="button"
 									onClick={() => setIsConfirmOpen(true)}
-									disabled={isCreating}
+									disabled={isCreating || !hasAgreedToPolicy}
 									className="gap-1.5 font-medium"
 								>
 									{isCreating && (
@@ -591,6 +641,12 @@ export function OrgPayoutSettings({ organization, onSuccess }: OrgPayoutSettings
 				description="Are you sure you want to remove this payout account? Automated payouts will be paused until a new account is configured."
 				confirmLabel="Remove Payout Details"
 				onConfirm={handleRemove}
+			/>
+
+			{/* Official PDF Document Viewer Modal */}
+			<PayoutPolicyModal
+				open={isPolicyModalOpen}
+				onOpenChange={setIsPolicyModalOpen}
 			/>
 		</div>
 	);

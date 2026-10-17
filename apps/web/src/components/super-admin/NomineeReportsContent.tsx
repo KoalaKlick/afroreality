@@ -31,6 +31,7 @@ import {
 	Sparkles,
 	SlidersHorizontal,
 	ChevronRight,
+	ChevronLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,10 +106,13 @@ export function NomineeReportsContent({
 	const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 	const [copiedField, setCopiedField] = useState<string | null>(null);
 
-	// Search filters for clean Facebook-style tables
+	// Search & pagination filters for clean Facebook-style tables
 	const [eventSearchQuery, setEventSearchQuery] = useState("");
 	const [smsSearchQuery, setSmsSearchQuery] = useState("");
 	const [waSearchQuery, setWaSearchQuery] = useState("");
+	const [smsPage, setSmsPage] = useState(1);
+	const [waPage, setWaPage] = useState(1);
+	const PAGE_SIZE = 10;
 
 	// Broadcast modal state
 	const [targetScope, setTargetScope] = useState<"all" | "selected">("selected");
@@ -241,6 +245,12 @@ export function NomineeReportsContent({
 		);
 	}, [smsUsageData?.recentLogs, smsSearchQuery]);
 
+	const totalSmsPages = Math.max(1, Math.ceil(filteredSmsLogs.length / PAGE_SIZE));
+	const paginatedSmsLogs = useMemo(() => {
+		const start = (smsPage - 1) * PAGE_SIZE;
+		return filteredSmsLogs.slice(start, start + PAGE_SIZE);
+	}, [filteredSmsLogs, smsPage]);
+
 	// Filtered WhatsApp logs
 	const filteredWaLogs = useMemo(() => {
 		const logs = usageData?.recentLogs || [];
@@ -255,6 +265,12 @@ export function NomineeReportsContent({
 				l.errorMessage?.toLowerCase().includes(q)
 		);
 	}, [usageData?.recentLogs, waSearchQuery]);
+
+	const totalWaPages = Math.max(1, Math.ceil(filteredWaLogs.length / PAGE_SIZE));
+	const paginatedWaLogs = useMemo(() => {
+		const start = (waPage - 1) * PAGE_SIZE;
+		return filteredWaLogs.slice(start, start + PAGE_SIZE);
+	}, [filteredWaLogs, waPage]);
 
 	const calculatedRecipients = targetScope === "all"
 		? summaryData.eligibleNomineesCount
@@ -926,7 +942,10 @@ export function NomineeReportsContent({
 									<Input
 										placeholder="Search phone or text..."
 										value={smsSearchQuery}
-										onChange={(e) => setSmsSearchQuery(e.target.value)}
+										onChange={(e) => {
+											setSmsSearchQuery(e.target.value);
+											setSmsPage(1);
+										}}
 										className="pl-8 text-xs rounded-xl h-9"
 									/>
 								</div>
@@ -951,7 +970,7 @@ export function NomineeReportsContent({
 											</tr>
 										</thead>
 										<tbody className="divide-y divide-border/40">
-											{filteredSmsLogs.map((log) => (
+											{paginatedSmsLogs.map((log) => (
 												<tr key={log.id} className="hover:bg-muted/20">
 													<td className="py-3.5 px-5 font-mono text-xs text-foreground font-medium">
 														{log.recipientPhone}
@@ -980,6 +999,42 @@ export function NomineeReportsContent({
 											))}
 										</tbody>
 									</table>
+								</div>
+							)}
+
+							{/* Pagination Footer */}
+							{filteredSmsLogs.length > 0 && (
+								<div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border/50 text-xs text-muted-foreground bg-muted/10">
+									<div>
+										Showing <span className="font-semibold text-foreground">{Math.min((smsPage - 1) * PAGE_SIZE + 1, filteredSmsLogs.length)}</span> to{" "}
+										<span className="font-semibold text-foreground">{Math.min(smsPage * PAGE_SIZE, filteredSmsLogs.length)}</span> of{" "}
+										<span className="font-semibold text-foreground">{filteredSmsLogs.length}</span> records
+									</div>
+									<div className="flex items-center gap-1.5">
+										<Button
+											variant="outline"
+											size="sm"
+											className="h-8 px-2.5 text-xs rounded-lg gap-1"
+											disabled={smsPage <= 1}
+											onClick={() => setSmsPage((p) => Math.max(1, p - 1))}
+										>
+											<ChevronLeft className="h-3.5 w-3.5" />
+											Prev
+										</Button>
+										<span className="text-xs font-medium px-2">
+											Page {smsPage} of {totalSmsPages}
+										</span>
+										<Button
+											variant="outline"
+											size="sm"
+											className="h-8 px-2.5 text-xs rounded-lg gap-1"
+											disabled={smsPage >= totalSmsPages}
+											onClick={() => setSmsPage((p) => Math.min(totalSmsPages, p + 1))}
+										>
+											Next
+											<ChevronRight className="h-3.5 w-3.5" />
+										</Button>
+									</div>
 								</div>
 							)}
 						</CardContent>
@@ -1181,7 +1236,10 @@ export function NomineeReportsContent({
 									<Input
 										placeholder="Search phone, template, status..."
 										value={waSearchQuery}
-										onChange={(e) => setWaSearchQuery(e.target.value)}
+										onChange={(e) => {
+											setWaSearchQuery(e.target.value);
+											setWaPage(1);
+										}}
 										className="pl-8 text-xs rounded-xl h-9"
 									/>
 								</div>
@@ -1207,7 +1265,7 @@ export function NomineeReportsContent({
 											</tr>
 										</thead>
 										<tbody className="divide-y divide-border/40">
-											{filteredWaLogs.map((log) => (
+											{paginatedWaLogs.map((log) => (
 												<tr key={log.id} className="hover:bg-muted/20">
 													<td className="py-3.5 px-5 font-mono text-xs text-foreground font-medium">
 														{log.recipientPhone}
@@ -1252,6 +1310,42 @@ export function NomineeReportsContent({
 											))}
 										</tbody>
 									</table>
+								</div>
+							)}
+
+							{/* Pagination Footer */}
+							{filteredWaLogs.length > 0 && (
+								<div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border/50 text-xs text-muted-foreground bg-muted/10">
+									<div>
+										Showing <span className="font-semibold text-foreground">{Math.min((waPage - 1) * PAGE_SIZE + 1, filteredWaLogs.length)}</span> to{" "}
+										<span className="font-semibold text-foreground">{Math.min(waPage * PAGE_SIZE, filteredWaLogs.length)}</span> of{" "}
+										<span className="font-semibold text-foreground">{filteredWaLogs.length}</span> records
+									</div>
+									<div className="flex items-center gap-1.5">
+										<Button
+											variant="outline"
+											size="sm"
+											className="h-8 px-2.5 text-xs rounded-lg gap-1"
+											disabled={waPage <= 1}
+											onClick={() => setWaPage((p) => Math.max(1, p - 1))}
+										>
+											<ChevronLeft className="h-3.5 w-3.5" />
+											Prev
+										</Button>
+										<span className="text-xs font-medium px-2">
+											Page {waPage} of {totalWaPages}
+										</span>
+										<Button
+											variant="outline"
+											size="sm"
+											className="h-8 px-2.5 text-xs rounded-lg gap-1"
+											disabled={waPage >= totalWaPages}
+											onClick={() => setWaPage((p) => Math.min(totalWaPages, p + 1))}
+										>
+											Next
+											<ChevronRight className="h-3.5 w-3.5" />
+										</Button>
+									</div>
 								</div>
 							)}
 						</CardContent>

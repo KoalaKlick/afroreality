@@ -463,16 +463,27 @@ export function AdminWalletsContent({
 								<div className="divide-y divide-border">
 									{pendingApprovals.map((p) => {
 										const isProcessing = p.status === "processing";
+										const requiresOtp = isProcessing && (
+											(p.providerResponse as any)?.status === "otp" ||
+											(p.providerResponse as any)?.requiresOtp === true
+										);
 										return (
 											<div key={p.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 												<div className="min-w-0 flex-1">
 													<div className="flex items-center gap-2 flex-wrap">
-														{isProcessing ? (
+														{requiresOtp ? (
 															<Badge
 																variant="outline"
 																className="bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
 															>
-																Awaiting OTP / Processing
+																Awaiting OTP
+															</Badge>
+														) : isProcessing ? (
+															<Badge
+																variant="outline"
+																className="bg-sky-500/10 text-sky-600 border-sky-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
+															>
+																Processing on Paystack
 															</Badge>
 														) : (
 															<Badge
@@ -523,7 +534,7 @@ export function AdminWalletsContent({
 														</p>
 													</div>
 
-													{isProcessing ? (
+													{requiresOtp ? (
 														<>
 															<Button
 																variant="default"
@@ -549,6 +560,20 @@ export function AdminWalletsContent({
 															>
 																<RotateCw className={`h-3.5 w-3.5 mr-1 ${syncingId === p.id ? "animate-spin" : ""}`} />
 																Sync
+															</Button>
+														</>
+													) : isProcessing ? (
+														<>
+															<Button
+																variant="outline"
+																size="sm"
+																disabled={isPending || syncingId === p.id}
+																onClick={() => handleSyncPayout(p)}
+																className="text-xs font-semibold rounded-none shadow-none border-border hover:bg-muted"
+																title="Check Paystack transfer status"
+															>
+																<RotateCw className={`h-3.5 w-3.5 mr-1 ${syncingId === p.id ? "animate-spin" : ""}`} />
+																Sync Status
 															</Button>
 
 															<Button
@@ -662,19 +687,21 @@ export function AdminWalletsContent({
 
 												{p.status === "processing" && (
 													<div className="flex items-center gap-1.5">
-														<Button
-															variant="outline"
-															size="sm"
-															disabled={isPending}
-															onClick={() => {
-																setOtpTarget({ payout: p, transferCode: p.providerReference || "" });
-																setOtpValue("");
-															}}
-															className="text-[11px] h-7 px-2 font-semibold rounded-none shadow-none text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
-														>
-															<KeyRound className="h-3 w-3 mr-1" />
-															OTP
-														</Button>
+														{((p.providerResponse as any)?.status === "otp" || (p.providerResponse as any)?.requiresOtp === true) && (
+															<Button
+																variant="outline"
+																size="sm"
+																disabled={isPending}
+																onClick={() => {
+																	setOtpTarget({ payout: p, transferCode: p.providerReference || "" });
+																	setOtpValue("");
+																}}
+																className="text-[11px] h-7 px-2 font-semibold rounded-none shadow-none text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
+															>
+																<KeyRound className="h-3 w-3 mr-1" />
+																OTP
+															</Button>
+														)}
 														<Button
 															variant="ghost"
 															size="sm"
@@ -771,7 +798,7 @@ export function AdminWalletsContent({
 							Approve Payout
 						</DialogTitle>
 						<DialogDescription className="text-xs">
-							This will initiate the Paystack transfer. If OTP is enabled on your account, you'll be prompted to enter the OTP sent to your email/phone.
+							This will initiate the Paystack transfer. The system will automatically detect whether your Paystack account requires OTP and handle the flow accordingly.
 						</DialogDescription>
 					</DialogHeader>
 

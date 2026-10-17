@@ -15,12 +15,17 @@ import {
 	Lock,
 	ShieldAlert,
 	KeyRound,
+	FileText,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { ConfirmPasswordDialog } from "@/components/shared/ConfirmPasswordDialog";
+import { PayoutPolicyModal } from "@/components/shared/PayoutPolicyModal";
+import Image from "next/image";
+import refundableHeaderImg from "@/assets/refundable-bg.jpg";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,6 +136,8 @@ export function OrgWalletClient({
 	// Withdrawal dialog states
 	const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+	const [hasAgreedToPayoutPolicy, setHasAgreedToPayoutPolicy] = useState(false);
+	const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 	const [withdrawalAmount, setWithdrawalAmount] = useState("");
 	const [withdrawalMemo, setWithdrawalMemo] = useState("");
 	const [isSubmittingWithdrawal, setIsSubmittingWithdrawal] = useState(false);
@@ -317,6 +324,10 @@ export function OrgWalletClient({
 			toast.error(
 				`Amount exceeds available balance (${currency} ${availableBalance.toFixed(2)})`,
 			);
+			return;
+		}
+		if (!hasAgreedToPayoutPolicy) {
+			toast.error("Please review and agree to the Payout Policy before continuing.");
 			return;
 		}
 		setIsWithdrawOpen(false);
@@ -775,18 +786,38 @@ export function OrgWalletClient({
 
 			{/* Withdrawal Modal Dialog */}
 			<Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-				<DialogContent className="sm:max-w-lg">
-					<DialogHeader>
-						<DialogTitle className="flex items-center gap-2">
-							<ArrowDownToLine className="size-5 text-primary" />
-							Request Withdrawal
-						</DialogTitle>
-						<DialogDescription>
-							Transfer available funds directly to your verified payout account.
-						</DialogDescription>
-					</DialogHeader>
+				<DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl gap-0">
+					{/* Accessible Title & Description */}
+					<DialogTitle className="sr-only">Request Withdrawal</DialogTitle>
+					<DialogDescription className="sr-only">Transfer available funds directly to your verified payout account.</DialogDescription>
 
-					<div className="space-y-4 py-2">
+					{/* Clean Header Banner Image */}
+					<div className="relative w-full h-32 sm:h-28 overflow-hidden bg-zinc-100 dark:bg-zinc-800/60 border-b border-zinc-200/80 dark:border-zinc-800">
+						<Image
+							src={refundableHeaderImg}
+							alt="Request Withdrawal"
+							fill
+							priority
+							className="object-cover object-center"
+						/>
+						<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+						<div className="absolute bottom-3 left-5 right-5 flex items-end justify-between text-white">
+							<div>
+								<div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+									<ArrowDownToLine className="size-3.5" />
+									<span>Instant Settlement Request</span>
+								</div>
+								<div className="text-base font-bold text-white tracking-tight mt-0.5">
+									Request Withdrawal
+								</div>
+							</div>
+							<Badge className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border-white/20 text-[10px] px-2 py-0.5 font-mono">
+								Paystack
+							</Badge>
+						</div>
+					</div>
+
+					<div className="p-5 sm:p-6 space-y-4 dark:bg-zinc-900/60">
 						{/* Clean Unified Summary Card */}
 						<div className="rounded-xl border border-border/70 bg-muted/30 p-3.5 space-y-2.5">
 							<div className="flex items-center justify-between">
@@ -971,13 +1002,49 @@ export function OrgWalletClient({
 							</div>
 						</div>
 
-						{/* Compact T+1 Settlement Policy Note */}
-						<p className="text-[11px] text-muted-foreground text-center pt-0.5">
-							Disbursed directly to your account via Paystack on T+1 business days.
-						</p>
+						{/* Policy Consent Box */}
+						<div className="rounded-xl border border-border/80 bg-muted/30 p-3 space-y-2">
+							<div className="flex items-start space-x-2.5">
+								<Checkbox
+									id="wallet-payout-consent"
+									checked={hasAgreedToPayoutPolicy}
+									onCheckedChange={(checked) => setHasAgreedToPayoutPolicy(checked === true)}
+									className="mt-0.5 shrink-0"
+								/>
+								<Label
+									htmlFor="wallet-payout-consent"
+									className="text-xs text-foreground/90 font-normal leading-relaxed cursor-pointer"
+								>
+									I confirm that I have read and agree to the{" "}
+									<button
+										type="button"
+										onClick={(e) => {
+											e.preventDefault();
+											setIsPolicyModalOpen(true);
+										}}
+										className="text-primary font-semibold underline underline-offset-2 hover:opacity-80"
+									>
+										Platform Settlement & Payout Policy
+									</button>
+									. I acknowledge the T+1 settlement cycle, transfer fee schedule, and event cooling periods.
+								</Label>
+							</div>
+							<div className="flex justify-end pt-0.5 border-t border-border/50">
+								<Button
+									type="button"
+									variant="link"
+									size="sm"
+									onClick={() => setIsPolicyModalOpen(true)}
+									className="h-auto p-0 text-xs font-semibold text-primary inline-flex items-center gap-1"
+								>
+									<FileText className="size-3.5" />
+									View Official Payout Policy (PDF)
+								</Button>
+							</div>
+						</div>
 					</div>
 
-					<DialogFooter>
+					<DialogFooter className="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 gap-2 sm:gap-0">
 						<Button
 							variant="ghost"
 							size="sm"
@@ -988,7 +1055,7 @@ export function OrgWalletClient({
 						<Button
 							size="sm"
 							onClick={handleProceedToConfirm}
-							disabled={!isValidWithdrawalAmount}
+							disabled={!isValidWithdrawalAmount || !hasAgreedToPayoutPolicy}
 						>
 							Continue to Confirm
 						</Button>
@@ -1004,6 +1071,20 @@ export function OrgWalletClient({
 				description={`You are about to submit a withdrawal of ${currency} ${parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"}${selectedWithdrawalEvent ? ` for "${selectedWithdrawalEvent.title}"` : ""} (${isNextWithdrawalFree ? "Free weekly payout" : `Fee: ${currency} ${calculatedFee.toFixed(2)}`} • Net to receive: ${currency} ${netPayoutAmount.toFixed(2)}) to your verified payout account (${organization.paystackAccountNumber || "MoMo/Bank"}). Please enter your password to authorize this transaction.`}
 				confirmLabel="Authorize & Submit"
 				onConfirm={handleConfirmedWithdraw}
+			/>
+
+			{/* Official PDF Document Viewer Modal */}
+			<PayoutPolicyModal
+				open={isPolicyModalOpen}
+				onOpenChange={setIsPolicyModalOpen}
+				rules={{
+					minAmount: minWithdrawalAmount,
+					transferFee: transferFee,
+					freePerWeek: (wallet as any)?.freeWithdrawalsPerWeek ?? 1,
+					minEventAgeDays: (wallet as any)?.minEventAgeDays ?? 7,
+					residualAutoPayoutDays: (wallet as any)?.residualAutoPayoutDays ?? 14,
+					currency: currency,
+				}}
 			/>
 
 		</>

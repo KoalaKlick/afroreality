@@ -66,8 +66,21 @@ export async function getWhatsAppUsageOverview(): Promise<WhatsAppUsageSummary> 
 			prisma.whatsAppMessageLog.count({ where: { status: "failed" } }),
 			prisma.whatsAppMessageLog.count({ where: { isBillable: true } }),
 			prisma.whatsAppMessageLog.findMany({
-				take: 100,
+				take: 2000,
 				orderBy: { createdAt: "desc" },
+				select: {
+					id: true,
+					messageId: true,
+					recipientPhone: true,
+					templateName: true,
+					category: true,
+					pricingCategory: true,
+					status: true,
+					isBillable: true,
+					estimatedCost: true,
+					errorMessage: true,
+					createdAt: true,
+				},
 			}),
 		]);
 

@@ -196,6 +196,8 @@ export const WITHDRAWAL_CONFIG = {
 	minAmount: 20, // Minimum GHS 20.00
 	transferFee: 1.0, // GHS 1.00 Paystack transfer fee
 	freePerWeek: 1, // 1 free withdrawal per rolling 7 days
+	minEventAgeDays: 7, // Minimum days from first transaction before first withdrawal
+	residualAutoPayoutDays: 14, // Days after event ends to auto-disburse balances below minimum
 } as const;
 
 export const CASHOUT_CONFIG = {

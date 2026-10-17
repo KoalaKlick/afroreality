@@ -49,6 +49,7 @@ import {
 	adminDeleteOrganizationFeeOverride,
 	adminUpdatePaystackGatewaySettings,
 	adminUpdateWithdrawalRules,
+	adminTriggerResidualAutoPayouts,
 	type EventDepositRules,
 } from "@/lib/server-functions/admin";
 
@@ -123,10 +124,13 @@ export function AdminFeesContent({
 
 	// Withdrawal Rules Modal State (Option B configurable)
 	const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
+	const [isSweepingResiduals, setIsSweepingResiduals] = useState(false);
 	const [withdrawalForm, setWithdrawalForm] = useState({
 		minAmount: withdrawalRules?.minAmount ?? 20,
 		transferFee: withdrawalRules?.transferFee ?? 1.0,
 		freePerWeek: withdrawalRules?.freePerWeek ?? 1,
+		minEventAgeDays: (withdrawalRules as any)?.minEventAgeDays ?? 7,
+		residualAutoPayoutDays: (withdrawalRules as any)?.residualAutoPayoutDays ?? 14,
 	});
 
 	// Org Override Modal State
@@ -244,6 +248,8 @@ export function AdminFeesContent({
 				minAmount: Number(withdrawalForm.minAmount),
 				transferFee: Number(withdrawalForm.transferFee),
 				freePerWeek: Number(withdrawalForm.freePerWeek),
+				minEventAgeDays: Number(withdrawalForm.minEventAgeDays),
+				residualAutoPayoutDays: Number(withdrawalForm.residualAutoPayoutDays),
 			});
 
 			if (res.success) {
@@ -253,6 +259,23 @@ export function AdminFeesContent({
 				toast.error(res.error || "Failed to update withdrawal rules");
 			}
 		});
+	};
+
+	const handleRunResidualSweep = async () => {
+		setIsSweepingResiduals(true);
+		try {
+			toast.loading("Scanning ended events and sweeping residual balances...", { id: "sweep-residuals" });
+			const res = await adminTriggerResidualAutoPayouts();
+			if (res.success) {
+				toast.success(res.message || `Processed ${res.processedCount} residual payout(s).`, { id: "sweep-residuals" });
+			} else {
+				toast.error(res.message || "Failed to process residual payouts.", { id: "sweep-residuals" });
+			}
+		} catch (err: any) {
+			toast.error(err?.message || "Failed to sweep residual balances.", { id: "sweep-residuals" });
+		} finally {
+			setIsSweepingResiduals(false);
+		}
 	};
 
 	const handleOpenNewOverride = (preselectedOrgId?: string) => {
@@ -914,6 +937,63 @@ export function AdminFeesContent({
 							<p className="text-[11px] text-muted-foreground">
 								Number of withdrawals per 7 days where Fextiva absorbs the transfer fee. Subsequent withdrawals will have the transfer fee deducted from the organizer's payout.
 							</p>
+						</div>
+
+						<div className="space-y-1.5">
+							<Label className="text-xs font-semibold">Minimum Event Age Before First Withdrawal (Days)</Label>
+							<Input
+								type="number"
+								step="1"
+								min="0"
+								value={withdrawalForm.minEventAgeDays}
+								onChange={(e) =>
+									setWithdrawalForm({
+										...withdrawalForm,
+										minEventAgeDays: parseInt(e.target.value, 10) || 0,
+									})
+								}
+								className="text-xs h-9"
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Cooling period: Organizers cannot request an initial withdrawal until this many days have elapsed from the first completed transaction on the event.
+							</p>
+						</div>
+
+						<div className="space-y-1.5">
+							<Label className="text-xs font-semibold">Post-Event Residual Auto-Payout Window (Days)</Label>
+							<Input
+								type="number"
+								step="1"
+								min="1"
+								value={withdrawalForm.residualAutoPayoutDays}
+								onChange={(e) =>
+									setWithdrawalForm({
+										...withdrawalForm,
+										residualAutoPayoutDays: parseInt(e.target.value, 10) || 1,
+									})
+								}
+								className="text-xs h-9"
+							/>
+							<p className="text-[11px] text-muted-foreground">
+								Days after an event ends after which any remaining balance below the minimum threshold (GHS {withdrawalForm.minAmount}) is automatically disbursed with fee waived.
+							</p>
+						</div>
+
+						<div className="rounded-lg border border-border/80 bg-muted/30 p-3 flex items-center justify-between mt-2">
+							<div>
+								<div className="text-xs font-semibold text-foreground">Residual Balance Sweep</div>
+								<div className="text-[11px] text-muted-foreground">Disburse sub-threshold balances for concluded events now</div>
+							</div>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleRunResidualSweep}
+								disabled={isSweepingResiduals}
+								className="text-xs h-8 shrink-0 ml-2"
+							>
+								{isSweepingResiduals ? "Sweeping..." : "Run Sweep Now"}
+							</Button>
 						</div>
 					</div>
 

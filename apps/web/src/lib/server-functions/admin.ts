@@ -5,6 +5,7 @@ import { prisma } from "@repo/db";
 import { requirePlatformAdmin } from "@/lib/admin/admin-auth";
 import { WITHDRAWAL_CONFIG } from "@repo/pricing";
 import { generateAvailableUssdCode } from "@/lib/server-functions/ussd";
+import { processResidualAutoPayouts } from "@/lib/server-functions/wallet";
 
 /**
  * Super Admin action to lock or unlock an organization wallet.
@@ -499,6 +500,8 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 		minAmount: typeof withdrawalRulesRaw.minAmount === "number" ? withdrawalRulesRaw.minAmount : WITHDRAWAL_CONFIG.minAmount,
 		transferFee: typeof withdrawalRulesRaw.transferFee === "number" ? withdrawalRulesRaw.transferFee : WITHDRAWAL_CONFIG.transferFee,
 		freePerWeek: typeof withdrawalRulesRaw.freePerWeek === "number" ? withdrawalRulesRaw.freePerWeek : WITHDRAWAL_CONFIG.freePerWeek,
+		minEventAgeDays: typeof withdrawalRulesRaw.minEventAgeDays === "number" ? withdrawalRulesRaw.minEventAgeDays : WITHDRAWAL_CONFIG.minEventAgeDays,
+		residualAutoPayoutDays: typeof withdrawalRulesRaw.residualAutoPayoutDays === "number" ? withdrawalRulesRaw.residualAutoPayoutDays : WITHDRAWAL_CONFIG.residualAutoPayoutDays,
 	};
 
 	const depositRulesRaw = (depositSetting?.value as any) || {};
@@ -800,6 +803,8 @@ export async function adminUpdateWithdrawalRules(data: {
 	minAmount: number;
 	transferFee: number;
 	freePerWeek: number;
+	minEventAgeDays?: number;
+	residualAutoPayoutDays?: number;
 }): Promise<{ success: boolean; message?: string; error?: string }> {
 	try {
 		await requirePlatformAdmin();
@@ -807,16 +812,18 @@ export async function adminUpdateWithdrawalRules(data: {
 		const minAmount = Math.max(1, Number(data.minAmount || WITHDRAWAL_CONFIG.minAmount));
 		const transferFee = Math.max(0, Number(data.transferFee ?? WITHDRAWAL_CONFIG.transferFee));
 		const freePerWeek = Math.max(0, Math.floor(Number(data.freePerWeek ?? WITHDRAWAL_CONFIG.freePerWeek)));
+		const minEventAgeDays = Math.max(0, Math.floor(Number(data.minEventAgeDays ?? WITHDRAWAL_CONFIG.minEventAgeDays)));
+		const residualAutoPayoutDays = Math.max(1, Math.floor(Number(data.residualAutoPayoutDays ?? WITHDRAWAL_CONFIG.residualAutoPayoutDays)));
 
 		await prisma.platformSetting.upsert({
 			where: { key: "wallet_withdrawal_rules" },
 			create: {
 				key: "wallet_withdrawal_rules",
-				value: { minAmount, transferFee, freePerWeek },
-				description: "Wallet payout minimum amount and Paystack transfer fee policy",
+				value: { minAmount, transferFee, freePerWeek, minEventAgeDays, residualAutoPayoutDays },
+				description: "Wallet payout minimum amount, transfer fee, cooling period, and residual post-event auto-payout policy",
 			},
 			update: {
-				value: { minAmount, transferFee, freePerWeek },
+				value: { minAmount, transferFee, freePerWeek, minEventAgeDays, residualAutoPayoutDays },
 				updatedAt: new Date(),
 			},
 		});
@@ -833,6 +840,23 @@ export async function adminUpdateWithdrawalRules(data: {
 		console.error("[ADMIN_UPDATE_WITHDRAWAL_RULES_ERROR]", err);
 		return { success: false, error: err?.message || "Failed to update withdrawal rules" };
 	}
+}
+
+/**
+ * Super Admin: Trigger manual residual auto-payout sweep for ended events.
+ */
+export async function adminTriggerResidualAutoPayouts(): Promise<{
+	success: boolean;
+	processedCount: number;
+	payouts: Array<{ organizationId: string; amount: number; reference: string; orgName?: string }>;
+	message: string;
+}> {
+	await requirePlatformAdmin();
+	const res = await processResidualAutoPayouts();
+	revalidatePath("/super");
+	revalidatePath("/super/fees");
+	revalidatePath("/super/wallets");
+	return res;
 }
 
 /**
@@ -908,9 +932,32 @@ export async function adminApprovePayout(data: {
 			return { success: false, error: `Paystack transfer error: ${transferResult.message || "Failed to initiate transfer."}` };
 		}
 
-		const isImmediateSuccess = transferResult.status === "success";
-		const requiresOtp = transferResult.status === "otp";
+		let isImmediateSuccess = transferResult.status === "success";
+		const requiresOtp = transferResult.status === "otp" || transferResult.raw?.status === "otp";
+		let currentRaw = transferResult.raw;
+
+		// If OTP is not requested by Paystack (OTP disabled on dashboard),
+		// perform a quick verification check after a short wait (1.2s)
+		// because Paystack often processes direct MoMo/bank payouts almost instantly.
+		if (!requiresOtp && !isImmediateSuccess) {
+			try {
+				await new Promise((resolve) => setTimeout(resolve, 1200));
+				const { verifyPaystackTransfer } = await import("./paystack");
+				const verifyRes = await verifyPaystackTransfer(payout.reference);
+				if (verifyRes.success && verifyRes.status === "success") {
+					isImmediateSuccess = true;
+					currentRaw = verifyRes.raw;
+				}
+			} catch (verifyErr) {
+				console.warn("[ADMIN_APPROVE_PAYOUT_VERIFY_WARN]", verifyErr);
+			}
+		}
+
 		const now = new Date();
+		const providerData = {
+			...(currentRaw ?? {}),
+			requiresOtp,
+		};
 
 		// 4. Update payout record with Paystack data
 		await prisma.payout.update({
@@ -922,7 +969,7 @@ export async function adminApprovePayout(data: {
 				processedAt: now,
 				completedAt: isImmediateSuccess ? now : undefined,
 				providerReference: transferResult.transferCode,
-				providerResponse: transferResult.raw ?? undefined,
+				providerResponse: providerData,
 			},
 		});
 
@@ -932,7 +979,7 @@ export async function adminApprovePayout(data: {
 			data: {
 				status: isImmediateSuccess ? "completed" : "processing",
 				providerReference: transferResult.transferCode,
-				providerResponse: transferResult.raw ?? undefined,
+				providerResponse: providerData,
 				completedAt: isImmediateSuccess ? now : undefined,
 			},
 		});
@@ -943,7 +990,7 @@ export async function adminApprovePayout(data: {
 			await fulfillPayoutTransfer({
 				reference: payout.reference,
 				status: "completed",
-				paystackData: transferResult.raw,
+				paystackData: currentRaw,
 			});
 		}
 
@@ -963,7 +1010,8 @@ export async function adminApprovePayout(data: {
 					feeAmount,
 					netDisbursedAmount,
 					transferCode: transferResult.transferCode,
-					status: transferResult.status,
+					status: isImmediateSuccess ? "success" : transferResult.status,
+					requiresOtp,
 				},
 			},
 		}).catch(() => {});
@@ -984,8 +1032,8 @@ export async function adminApprovePayout(data: {
 		return {
 			success: true,
 			message: isImmediateSuccess
-				? "Payout approved and transfer completed successfully!"
-				: "Payout approved. Transfer is processing on Paystack.",
+				? "Payout approved and transfer completed successfully on Paystack! (No OTP required)"
+				: "Payout approved! Transfer is currently being processed by Paystack (No OTP required).",
 		};
 	} catch (err: any) {
 		console.error("[ADMIN_APPROVE_PAYOUT_ERROR]", err);

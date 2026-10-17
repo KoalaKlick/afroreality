@@ -31,6 +31,8 @@ export async function getDynamicWithdrawalRules() {
 				minAmount: typeof v.minAmount === "number" && v.minAmount > 0 ? Number(v.minAmount) : WITHDRAWAL_CONFIG.minAmount,
 				transferFee: typeof v.transferFee === "number" && v.transferFee >= 0 ? Number(v.transferFee) : WITHDRAWAL_CONFIG.transferFee,
 				freePerWeek: typeof v.freePerWeek === "number" && v.freePerWeek >= 0 ? Number(v.freePerWeek) : WITHDRAWAL_CONFIG.freePerWeek,
+				minEventAgeDays: typeof v.minEventAgeDays === "number" && v.minEventAgeDays >= 0 ? Number(v.minEventAgeDays) : WITHDRAWAL_CONFIG.minEventAgeDays,
+				residualAutoPayoutDays: typeof v.residualAutoPayoutDays === "number" && v.residualAutoPayoutDays >= 0 ? Number(v.residualAutoPayoutDays) : WITHDRAWAL_CONFIG.residualAutoPayoutDays,
 			};
 		}
 	} catch (e) {
@@ -40,6 +42,8 @@ export async function getDynamicWithdrawalRules() {
 		minAmount: WITHDRAWAL_CONFIG.minAmount,
 		transferFee: WITHDRAWAL_CONFIG.transferFee,
 		freePerWeek: WITHDRAWAL_CONFIG.freePerWeek,
+		minEventAgeDays: WITHDRAWAL_CONFIG.minEventAgeDays,
+		residualAutoPayoutDays: WITHDRAWAL_CONFIG.residualAutoPayoutDays,
 	};
 }
 
@@ -443,6 +447,8 @@ export async function getOrgWallet({
 				minWithdrawalAmount: withdrawalRules.minAmount,
 				transferFee: withdrawalRules.transferFee,
 				freeWithdrawalsPerWeek: withdrawalRules.freePerWeek,
+				minEventAgeDays: withdrawalRules.minEventAgeDays,
+				residualAutoPayoutDays: withdrawalRules.residualAutoPayoutDays,
 				recentWeeklyPayoutsCount: recentPayoutsCount,
 				isNextWithdrawalFree,
 				eventInflows,
@@ -479,6 +485,8 @@ export async function getOrgWallet({
 		minWithdrawalAmount: withdrawalRules.minAmount,
 		transferFee: withdrawalRules.transferFee,
 		freeWithdrawalsPerWeek: withdrawalRules.freePerWeek,
+		minEventAgeDays: withdrawalRules.minEventAgeDays,
+		residualAutoPayoutDays: withdrawalRules.residualAutoPayoutDays,
 		recentWeeklyPayoutsCount: 0,
 		isNextWithdrawalFree: true,
 		eventInflows: [],
@@ -787,6 +795,69 @@ export async function requestWalletWithdrawal({
 				where: { id: data.eventId, organizationId: data.organizationId },
 				select: { id: true, title: true, slug: true },
 			});
+		}
+
+		// Enforce configurable holding period (cooling period) before the first withdrawal
+		if (withdrawalRules.minEventAgeDays > 0) {
+			if (event) {
+				const priorPayoutForEvent = await tx.payout.findFirst({
+					where: {
+						walletId: wallet.id,
+						status: { in: ["pending", "processing", "completed"] },
+						notes: { contains: event.id },
+					},
+				});
+
+				if (!priorPayoutForEvent) {
+					const firstEventCredit = await tx.transaction.findFirst({
+						where: {
+							walletId: wallet.id,
+							status: "completed",
+							type: "credit",
+							notes: { contains: event.id },
+						},
+						orderBy: { completedAt: "asc" },
+					});
+
+					if (firstEventCredit) {
+						const firstTxDate = firstEventCredit.completedAt || firstEventCredit.createdAt || new Date();
+						const diffDays = Math.floor((now.getTime() - firstTxDate.getTime()) / (24 * 60 * 60 * 1000));
+						if (diffDays < withdrawalRules.minEventAgeDays) {
+							const daysRemaining = withdrawalRules.minEventAgeDays - diffDays;
+							const eligibleDate = new Date(firstTxDate.getTime() + withdrawalRules.minEventAgeDays * 24 * 60 * 60 * 1000);
+							throw new Error(
+								`Holding period active: Platform payout policy requires at least ${withdrawalRules.minEventAgeDays} days from the first event transaction before your initial withdrawal for "${event.title}". You will be eligible in ${daysRemaining} day${daysRemaining > 1 ? "s" : ""} (on ${eligibleDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}). Please review the Payout Policy.`
+							);
+						}
+					}
+				}
+			} else {
+				const priorAnyPayout = await tx.payout.findFirst({
+					where: {
+						walletId: wallet.id,
+						status: { in: ["pending", "processing", "completed"] },
+					},
+				});
+
+				if (!priorAnyPayout) {
+					const firstCredit = await tx.transaction.findFirst({
+						where: { walletId: wallet.id, status: "completed", type: "credit" },
+						orderBy: { completedAt: "asc" },
+					});
+
+					if (firstCredit) {
+						const firstTxDate = firstCredit.completedAt || firstCredit.createdAt || new Date();
+						const diffDays = Math.floor((now.getTime() - firstTxDate.getTime()) / (24 * 60 * 60 * 1000));
+						if (diffDays < withdrawalRules.minEventAgeDays) {
+							const daysRemaining = withdrawalRules.minEventAgeDays - diffDays;
+							const eligibleDate = new Date(firstTxDate.getTime() + withdrawalRules.minEventAgeDays * 24 * 60 * 60 * 1000);
+							throw new Error(
+								`Holding period active: Platform payout policy requires at least ${withdrawalRules.minEventAgeDays} days from your first revenue transaction before your initial withdrawal. You will be eligible in ${daysRemaining} day${daysRemaining > 1 ? "s" : ""} (on ${eligibleDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}). Please review the Payout Policy.`
+							);
+						}
+					}
+				}
+			}
 		}
 
 		const eventPrefix = event ? `${event.title} • ` : "";
@@ -1235,6 +1306,212 @@ export async function syncPayoutStatus({
 	}
 
 	return { success: true, message: `Payout is currently ${psStatus} on Paystack.`, status: psStatus };
+}
+
+/**
+ * Automatically sweeps residual balances below the minimum withdrawal threshold
+ * for organizations whose events have ended more than `residualAutoPayoutDays` ago.
+ * Can be invoked via automated cron or manually by Super Admin.
+ */
+export async function processResidualAutoPayouts(): Promise<{
+	success: boolean;
+	processedCount: number;
+	payouts: Array<{ organizationId: string; amount: number; reference: string; orgName?: string }>;
+	message: string;
+}> {
+	try {
+		const rules = await getDynamicWithdrawalRules();
+		const now = new Date();
+		const residualThresholdDate = new Date(now.getTime() - rules.residualAutoPayoutDays * 24 * 60 * 60 * 1000);
+
+		// Find ended events that ended on or before the residual threshold date
+		const endedEvents = await prisma.event.findMany({
+			where: {
+				OR: [
+					{ status: "ended" },
+					{ endDate: { lte: residualThresholdDate } },
+				],
+			},
+			select: {
+				id: true,
+				title: true,
+				organizationId: true,
+				status: true,
+				endDate: true,
+			},
+		});
+
+		if (endedEvents.length === 0) {
+			return {
+				success: true,
+				processedCount: 0,
+				payouts: [],
+				message: `No eligible ended events found older than ${rules.residualAutoPayoutDays} days.`,
+			};
+		}
+
+		const orgIds = Array.from(new Set(endedEvents.map((e) => e.organizationId)));
+		const processedPayouts: Array<{ organizationId: string; amount: number; reference: string; orgName?: string }> = [];
+
+		for (const orgId of orgIds) {
+			// Check if this org has any active/ongoing events that are still selling
+			const activeEvent = await prisma.event.findFirst({
+				where: {
+					organizationId: orgId,
+					status: { in: ["published", "draft"] },
+					OR: [
+						{ endDate: null },
+						{ endDate: { gt: residualThresholdDate } },
+					],
+				},
+			});
+
+			if (activeEvent) continue;
+
+			// Fetch organization details and payout account
+			const org = await prisma.organization.findUnique({
+				where: { id: orgId },
+				select: {
+					id: true,
+					name: true,
+					paystackBankCode: true,
+					paystackAccountNumber: true,
+					paystackAccountName: true,
+				},
+			});
+
+			if (!org || !org.paystackBankCode || !org.paystackAccountNumber) {
+				continue;
+			}
+
+			const wallet = await prisma.wallet.findFirst({
+				where: { organizationId: orgId },
+			});
+
+			if (!wallet || wallet.isLocked) continue;
+
+			// Check if there is already a pending or processing payout
+			const activePayout = await prisma.payout.findFirst({
+				where: {
+					walletId: wallet.id,
+					status: { in: ["pending", "processing"] },
+				},
+			});
+
+			if (activePayout) continue;
+
+			// Calculate available cleared balance
+			const completedCredits = await prisma.transaction.findMany({
+				where: { walletId: wallet.id, status: "completed", type: "credit" },
+				select: { amount: true, completedAt: true, createdAt: true },
+			});
+
+			let clearedSum = 0;
+			for (const c of completedCredits) {
+				const dt = c.completedAt || c.createdAt || new Date();
+				if (isTPlusOneSettled(dt)) {
+					clearedSum += Number(c.amount || 0);
+				}
+			}
+
+			const completedDebits = await prisma.transaction.findMany({
+				where: { walletId: wallet.id, type: "debit", status: "completed" },
+				select: { amount: true },
+			});
+			const completedDebitsSum = Math.round(
+				completedDebits.reduce((s, d) => s + Number(d.amount || 0), 0) * 100
+			) / 100;
+
+			const pendingDebitsAgg = await prisma.transaction.aggregate({
+				where: {
+					walletId: wallet.id,
+					type: "debit",
+					status: { in: ["pending", "processing"] },
+				},
+				_sum: { amount: true },
+			});
+			const activePendingDebits = Math.round(Number(pendingDebitsAgg._sum.amount || 0) * 100) / 100;
+
+			const availableCleared = Math.round(
+				Math.max(0, clearedSum - completedDebitsSum - activePendingDebits) * 100
+			) / 100;
+
+			// Residual condition: Balance must be > 0 AND strictly below minAmount
+			if (availableCleared > 0 && availableCleared < rules.minAmount) {
+				const ref = `RES-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+				await prisma.$transaction(async (tx) => {
+					await tx.payout.create({
+						data: {
+							reference: ref,
+							walletId: wallet.id,
+							recipientName: org.paystackAccountName || org.name,
+							bankCode: org.paystackBankCode!,
+							bankName: "",
+							accountNumber: org.paystackAccountNumber!,
+							accountName: org.paystackAccountName || org.name,
+							amount: availableCleared,
+							feeAmount: 0,
+							currency: wallet.currency,
+							status: "pending",
+							requiresApproval: true,
+							provider: "paystack",
+							description: `Residual balance settlement (Below threshold auto-clearance, ${rules.residualAutoPayoutDays} days post-event)`,
+							notes: `Auto residual payout: GHS ${availableCleared.toFixed(2)} disbursed under post-event residual policy (minAmount: GHS ${rules.minAmount.toFixed(2)}).`,
+							providerResponse: { isResidualAutoPayout: true, residualAutoPayoutDays: rules.residualAutoPayoutDays },
+						},
+					});
+
+					await tx.wallet.update({
+						where: { id: wallet.id },
+						data: {
+							pendingDebits: { increment: availableCleared },
+							lastTransactionAt: now,
+						},
+					});
+
+					await tx.transaction.create({
+						data: {
+							reference: ref,
+							walletId: wallet.id,
+							type: "debit",
+							category: "wallet_withdrawal",
+							status: "pending",
+							amount: availableCleared,
+							feeAmount: 0,
+							currency: wallet.currency,
+							description: `Residual balance auto-payout to ${org.paystackAccountNumber} (Transfer fee waived)`,
+							notes: `Post-event residual clearance`,
+							balanceBefore: Number(wallet.balance),
+							balanceAfter: Number(wallet.balance),
+						},
+					});
+				});
+
+				processedPayouts.push({
+					organizationId: orgId,
+					orgName: org.name,
+					amount: availableCleared,
+					reference: ref,
+				});
+			}
+		}
+
+		return {
+			success: true,
+			processedCount: processedPayouts.length,
+			payouts: processedPayouts,
+			message: `Processed ${processedPayouts.length} residual auto-payout(s).`,
+		};
+	} catch (err: any) {
+		console.error("[PROCESS_RESIDUAL_AUTO_PAYOUTS_ERROR]", err);
+		return {
+			success: false,
+			processedCount: 0,
+			payouts: [],
+			message: err?.message || "Failed to process residual auto-payouts.",
+		};
+	}
 }
 
 
