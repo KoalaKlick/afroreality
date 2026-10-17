@@ -2,10 +2,9 @@
 import { prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "../session";
-import { serializeJsonSafe, getFrontendBaseUrl } from "../utils";
+import { serializeJsonSafe } from "../utils";
 import {
 	sendNominationConfirmationEmail,
-	sendNomineeChangeRequestEmail,
 	sendNomineeUpdateNotificationEmail,
 } from "@/lib/email/nomination";
 import { extractCategoryPrefix, extractEventPrefixCandidates } from "@/lib/utils/nominee-code";
