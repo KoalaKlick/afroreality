@@ -10,12 +10,20 @@ export interface Env {
 	JUNIPAY_PRIVATE_KEY?: string;
 	JUNIPAY_CALLBACK_URL?: string;
 	JUNIPAY_BASE_URL?: string;
+	HUBTEL_CLIENT_ID?: string;
+	HUBTEL_CLIENT_SECRET?: string;
+	HUBTEL_POS_SALES_ID?: string;
+	HUBTEL_CALLBACK_URL?: string;
+	HUBTEL_BASE_URL?: string;
+	USSD_PAYMENT_GATEWAY?: string;
 	MAX_LISTED_EVENTS?: string;
 	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
 }
 
 const JUNIPAY_BASE_URL = "https://api.junipayments.com";
 const JUNIPAY_EXPERIMENT_EVENT_CODES = ["134"];
+const HUBTEL_BASE_URL = "https://rmp.hubtel.com";
+const HUBTEL_EXPERIMENT_EVENT_CODES = ["134", "135"];
 
 export const MAX_LISTED_EVENTS = 7;
 export const ENTER_CODE_OPTION = "0";
@@ -275,6 +283,108 @@ async function initiateJunipayCollection(
 		transId2,
 		reqToken,
 		success,
+		message,
+	};
+}
+
+// ─── Hubtel (Ghana mobile money) adapter ─────────────────────────────────────
+
+export function mapHubtelChannel(provider: "mtn" | "vod" | "atl"): string {
+	switch (provider) {
+		case "mtn":
+			return "mtn-gh";
+		case "vod":
+			return "vodafone-gh";
+		case "atl":
+			return "tigo-gh";
+		default:
+			return "mtn-gh";
+	}
+}
+
+function toInternationalMsisdn(phone: string): string {
+	const digits = phone.replace(/\D/g, "");
+	if (digits.startsWith("233")) return digits;
+	if (digits.startsWith("0")) return `233${digits.slice(1)}`;
+	return `233${digits}`;
+}
+
+function generateHubtelReference(): string {
+	const ts = Date.now().toString(36).toUpperCase();
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	let rand = "";
+	for (let i = 0; i < 6; i++) {
+		rand += chars[Math.floor(Math.random() * chars.length)];
+	}
+	return `HT${ts}${rand}`.slice(0, 36);
+}
+
+async function initiateHubtelCollection(
+	clientId: string,
+	clientSecret: string,
+	posSalesId: string,
+	baseUrl: string,
+	request: {
+		amount: number;
+		phoneNumber: string;
+		channel: string;
+		email: string;
+		description: string;
+		clientReference: string;
+		callbackUrl?: string;
+	},
+): Promise<{ ok: boolean; statusCode: number; data: any; responseCode: string; transactionId: string; clientReference: string; success: boolean; pending: boolean; message: string }> {
+	const basic = btoa(`${clientId}:${clientSecret}`);
+	const url = `${baseUrl}/merchantaccount/merchants/${encodeURIComponent(posSalesId)}/receive/mobilemoney`;
+
+	const response = await fetch(url, {
+		method: "POST",
+		headers: {
+			Authorization: `Basic ${basic}`,
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		},
+		body: JSON.stringify({
+			CustomerName: undefined,
+			CustomerMsisdn: toInternationalMsisdn(request.phoneNumber),
+			CustomerEmail: request.email,
+			Channel: request.channel,
+			Amount: Number(request.amount.toFixed(2)),
+			PrimaryCallbackUrl: request.callbackUrl,
+			Description: request.description,
+			ClientReference: request.clientReference,
+		}),
+	});
+
+	const data = (await response.json().catch(() => ({}))) as any;
+	console.info("[USSD-HUBTEL-CHARGE]", {
+		clientReference: request.clientReference,
+		channel: request.channel,
+		statusCode: response.status,
+		response: data,
+	});
+
+	const responseCode = String(
+		data?.ResponseCode ?? data?.responseCode ?? data?.response_code ?? "",
+	);
+	const nested = data?.Data ?? {};
+	const transactionId = String(
+		nested?.TransactionId ?? nested?.TransactionID ?? data?.TransactionId ?? "",
+	);
+	const clientReference = String(
+		nested?.ClientReference ?? data?.ClientReference ?? request.clientReference,
+	);
+	const message = String(data?.Message ?? data?.message ?? "");
+
+	return {
+		ok: response.ok,
+		statusCode: response.status,
+		data,
+		responseCode,
+		transactionId,
+		clientReference,
+		success: responseCode === "0000",
+		pending: responseCode === "0001",
 		message,
 	};
 }
@@ -779,14 +889,23 @@ export async function processPayment(
 		);
 	}
 
-	// Isolated JuniPay experiment (per-event-code, credential-gated).
-	const eventUssdCode = String(event.ussd_code || event.ussdCode || "").trim();
-	if (
-		JUNIPAY_EXPERIMENT_EVENT_CODES.includes(eventUssdCode) &&
-		env?.JUNIPAY_CLIENT_ID &&
-		env?.JUNIPAY_PRIVATE_KEY
-	) {
+	// Isolated gateway selection: JuniPay / Hubtel experiments (credential-gated),
+	// falling back to Paystack for everything else. If a non-Paystack gateway is
+	// selected but not configured, we gracefully fall back to Paystack.
+	const gateway = resolveUssdGateway(env, event);
+	if (gateway === "junipay" && env) {
 		return await processJunipayPayment(
+			sql,
+			event,
+			optionId,
+			quantity,
+			price,
+			phoneNumber,
+			env,
+		);
+	}
+	if (gateway === "hubtel" && env) {
+		return await processHubtelPayment(
 			sql,
 			event,
 			optionId,
@@ -1065,6 +1184,158 @@ async function processJunipayPayment(
 	return textResponse(
 		"END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.",
 	);
+}
+
+/**
+ * Isolated Hubtel payment path. Mirrors the JuniPay path and keeps the live
+ * Paystack flow untouched unless Hubtel is explicitly selected.
+ */
+async function processHubtelPayment(
+	sql: any,
+	event: any,
+	optionId: string,
+	quantity: number,
+	price: number,
+	phoneNumber: string,
+	env: Env,
+): Promise<Response> {
+	const clientId = env.HUBTEL_CLIENT_ID || "";
+	const clientSecret = env.HUBTEL_CLIENT_SECRET || "";
+	const posSalesId = env.HUBTEL_POS_SALES_ID || "";
+	if (!clientId || !clientSecret || !posSalesId) {
+		return textResponse("END Hubtel is not configured. Please try again later.");
+	}
+
+	const baseAmount = Number(price) * quantity;
+	const feeType = event.type === "voting" ? "vote" : "ticket";
+	const orgId = event.organization_id || event.organizationId;
+	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId);
+	const totalAmountGHS = feeCalc.totalToCharge;
+
+	const reference = generateHubtelReference();
+	const channel = mapHubtelChannel(getProvider(phoneNumber));
+
+	await sql`
+		INSERT INTO ussd_sessions (reference, phone_number, event_id, option_id, quantity, amount, status)
+		VALUES (${reference}, ${phoneNumber}, ${event.id}, ${optionId}, ${quantity}, ${baseAmount}, 'pending')
+	`;
+
+	await sql`
+		INSERT INTO payments (reference, email, purpose, amount, currency, provider, status, metadata, created_at, updated_at)
+		VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@fextiva.com`}, ${event.type === "voting" ? "vote_purchase" : "ticket_purchase"}, ${baseAmount}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
+			gateway: "hubtel",
+			source: "ussd",
+			channel: "ussd",
+			event_id: event.id,
+			eventId: event.id,
+			organization_id: orgId,
+			organizationId: orgId,
+			option_id: optionId,
+			optionId: optionId,
+			votingOptionId: optionId,
+			ticketTypeId: optionId,
+			quantity,
+			voteCount: quantity,
+			phone_number: phoneNumber,
+			phone: phoneNumber,
+			baseAmount,
+			platformFee: feeCalc.platformFee,
+			organizerReceives: feeCalc.organizerReceives,
+			totalToCharge: totalAmountGHS,
+		})}, NOW(), NOW())
+		ON CONFLICT (reference) DO NOTHING
+	`;
+
+	const result = await initiateHubtelCollection(
+		clientId,
+		clientSecret,
+		posSalesId,
+		env.HUBTEL_BASE_URL || HUBTEL_BASE_URL,
+		{
+			amount: totalAmountGHS,
+			phoneNumber: normalizePhone(phoneNumber),
+			channel,
+			email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+			description: `USSD payment for ${event.title}`,
+			clientReference: reference,
+			callbackUrl: env.HUBTEL_CALLBACK_URL || undefined,
+		},
+	);
+
+	if (result.transactionId) {
+		await sql`
+			UPDATE payments
+			SET provider_reference = ${result.transactionId},
+				provider_response = ${JSON.stringify(result.data)},
+				metadata = jsonb_set(
+					COALESCE(metadata, '{}'::jsonb),
+					'{hubtelTransactionId}', to_jsonb(${result.transactionId}::text)
+				)
+			WHERE reference = ${reference}
+		`.catch(() => {});
+	}
+
+	if (result.success) {
+		await fulfillSuccessfulPaymentSql(sql, reference, {
+			id: result.transactionId || reference,
+			metadata: { gateway: "hubtel" },
+		}, env);
+		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+		return textResponse(
+			`END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`,
+		);
+	}
+
+	if (result.pending) {
+		return textResponse(
+			"END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.",
+		);
+	}
+
+	return textResponse(`END Payment initiation failed: ${result.message || "Please try again."}`);
+}
+
+/**
+ * Resolve which payment gateway to use for a USSD payment. Non-experiment events
+ * always use Paystack. Experiment events honour USSD_PAYMENT_GATEWAY when set,
+ * otherwise fall back to per-gateway experiment codes, then Paystack.
+ */
+function resolveUssdGateway(
+	env: Env | undefined,
+	event: any,
+): "paystack" | "junipay" | "hubtel" {
+	const code = String(event.ussd_code || event.ussdCode || "").trim();
+	const isExperiment =
+		JUNIPAY_EXPERIMENT_EVENT_CODES.includes(code) ||
+		HUBTEL_EXPERIMENT_EVENT_CODES.includes(code);
+	if (!isExperiment) return "paystack";
+
+	const explicit = (env?.USSD_PAYMENT_GATEWAY || "").toLowerCase();
+	if (explicit === "junipay" && env?.JUNIPAY_CLIENT_ID && env?.JUNIPAY_PRIVATE_KEY) {
+		return "junipay";
+	}
+	if (
+		explicit === "hubtel" &&
+		env?.HUBTEL_CLIENT_ID &&
+		env?.HUBTEL_CLIENT_SECRET &&
+		env?.HUBTEL_POS_SALES_ID
+	) {
+		return "hubtel";
+	}
+
+	if (JUNIPAY_EXPERIMENT_EVENT_CODES.includes(code) && env?.JUNIPAY_CLIENT_ID && env?.JUNIPAY_PRIVATE_KEY) {
+		return "junipay";
+	}
+	if (
+		HUBTEL_EXPERIMENT_EVENT_CODES.includes(code) &&
+		env?.HUBTEL_CLIENT_ID &&
+		env?.HUBTEL_CLIENT_SECRET &&
+		env?.HUBTEL_POS_SALES_ID
+	) {
+		return "hubtel";
+	}
+
+	return "paystack";
 }
 
 // Flow Handlers

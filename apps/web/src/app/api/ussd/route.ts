@@ -10,6 +10,14 @@ import {
 	isJunipayExperimentEvent,
 	mapJunipayProvider,
 } from "@/lib/server-functions/junipay-payments";
+import {
+	generateHubtelReference,
+	getHubtelConfig,
+	initiateHubtelCollection,
+	isHubtelConfigured,
+	isHubtelExperimentEvent,
+	mapHubtelChannel,
+} from "@/lib/server-functions/hubtel-payments";
 import { getUssdBaseCode } from "@/lib/utils/ussd";
 
 export const dynamic = "force-dynamic";
@@ -409,6 +417,152 @@ async function processJunipayPayment(
 	return "END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.";
 }
 
+/**
+ * Isolated Hubtel payment path. Mirrors the JuniPay path and keeps the live
+ * Paystack flow untouched unless Hubtel is explicitly selected.
+ */
+async function processHubtelPayment(
+	event: any,
+	optionId: string,
+	quantity: number,
+	price: number,
+	phoneNumber: string,
+): Promise<string> {
+	const config = getHubtelConfig();
+	if (!config) {
+		return "END Hubtel is not configured. Please try again later.";
+	}
+
+	const baseAmount = Number(price) * quantity;
+	const feeType = event.type === "voting" ? "vote" : "ticket";
+	const feeCalc = await computeDynamicChargeAmount(
+		baseAmount,
+		feeType,
+		"GHS",
+		event.organizationId,
+	);
+	const totalAmountGHS = feeCalc.totalToCharge;
+
+	const reference = generateHubtelReference();
+	const channel = mapHubtelChannel(getProvider(phoneNumber));
+
+	// Persist pending records BEFORE calling Hubtel so the callback can reconcile.
+	await prisma.ussdSession.create({
+		data: {
+			reference,
+			phoneNumber,
+			eventId: event.id,
+			optionId,
+			quantity,
+			amount: baseAmount,
+			status: "pending",
+		},
+	});
+
+	await prisma.payment.upsert({
+		where: { reference },
+		update: {},
+		create: {
+			reference,
+			email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+			purpose: event.type === "voting" ? "vote_purchase" : "ticket_purchase",
+			amount: baseAmount,
+			currency: "GHS",
+			// PaymentProvider enum has no "hubtel" value; keep schema untouched and
+			// record the real gateway in metadata.
+			provider: "paystack",
+			status: "pending",
+			metadata: {
+				gateway: "hubtel",
+				source: "ussd",
+				channel: "ussd",
+				eventId: event.id,
+				optionId,
+				votingOptionId: optionId,
+				ticketTypeId: optionId,
+				quantity,
+				voteCount: quantity,
+				phoneNumber,
+				baseAmount,
+				platformFee: feeCalc.platformFee,
+				organizerReceives: feeCalc.organizerReceives,
+				totalToCharge: totalAmountGHS,
+			},
+		},
+	});
+
+	const result = await initiateHubtelCollection(config, {
+		amount: totalAmountGHS,
+		phoneNumber: normalizePhone(phoneNumber),
+		channel,
+		email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+		description: `USSD payment for ${event.title}`,
+		clientReference: reference,
+		callbackUrl: config.callbackUrl,
+	});
+
+	if (result.transactionId) {
+		const payment = await prisma.payment.findUnique({
+			where: { reference },
+			select: { metadata: true },
+		});
+		const metadata =
+			payment?.metadata && typeof payment.metadata === "object"
+				? payment.metadata
+				: {};
+		await prisma.payment
+			.update({
+				where: { reference },
+				data: {
+					providerReference: result.transactionId,
+					providerResponse: result.data ?? undefined,
+					metadata: { ...metadata, hubtelTransactionId: result.transactionId },
+				},
+			})
+			.catch(() => {});
+	}
+
+	if (result.success) {
+		await fulfillSuccessfulPayment({
+			reference,
+			paystackData: {
+				id: result.transactionId || reference,
+				metadata: { gateway: "hubtel" },
+			},
+		});
+		const itemLabel =
+			event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+		return `END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`;
+	}
+
+	if (result.pending) {
+		return "END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.";
+	}
+
+	return `END Payment initiation failed: ${result.message || "Please try again."}`;
+}
+
+/**
+ * Resolve which payment gateway to use for a USSD payment. Non-experiment events
+ * always use Paystack. Experiment events honour USSD_PAYMENT_GATEWAY when set,
+ * otherwise fall back to the per-gateway experiment codes, then Paystack.
+ */
+function resolveUssdGateway(event: any): "paystack" | "junipay" | "hubtel" {
+	const code = (event.ussdCode || "").trim();
+	const isExperiment =
+		isJunipayExperimentEvent(event) || isHubtelExperimentEvent(event);
+	if (!isExperiment) return "paystack";
+
+	const explicit = (process.env.USSD_PAYMENT_GATEWAY || "").toLowerCase();
+	if (explicit === "junipay" && isJunipayConfigured()) return "junipay";
+	if (explicit === "hubtel" && isHubtelConfigured()) return "hubtel";
+
+	if (isJunipayExperimentEvent(event) && isJunipayConfigured()) return "junipay";
+	if (isHubtelExperimentEvent(event) && isHubtelConfigured()) return "hubtel";
+
+	return "paystack";
+}
+
 async function submitOtp(
 	reference: string,
 	otp: string,
@@ -472,9 +626,15 @@ async function processPayment(
 		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${baseAmount.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`;
 	}
 
-	// Isolated JuniPay experiment (per-event-code, credential-gated).
-	if (isJunipayExperimentEvent(event) && isJunipayConfigured()) {
+	// Isolated gateway selection: JuniPay / Hubtel experiments (credential-gated),
+	// falling back to Paystack for everything else. If a non-Paystack gateway is
+	// selected but not configured, we gracefully fall back to Paystack.
+	const gateway = resolveUssdGateway(event);
+	if (gateway === "junipay") {
 		return await processJunipayPayment(event, optionId, quantity, price, phoneNumber);
+	}
+	if (gateway === "hubtel") {
+		return await processHubtelPayment(event, optionId, quantity, price, phoneNumber);
 	}
 
 	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
