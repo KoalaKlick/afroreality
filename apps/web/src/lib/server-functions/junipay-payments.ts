@@ -26,7 +26,21 @@
 import { importPKCS8, SignJWT } from "jose";
 
 export const JUNIPAY_BASE_URL = "https://api.junipayments.com";
-export const JUNIPAY_EXPERIMENT_EVENT_CODES = ["134"];
+const JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
+
+/**
+ * Comma-separated USSD event codes that may use JuniPay, e.g. "134,135".
+ * Defaults to an empty list (no event uses JuniPay) unless JUNIPAY_EVENT_CODES
+ * is explicitly set.
+ */
+export function getJunipayEventCodes(): string[] {
+	const raw = (process.env.JUNIPAY_EVENT_CODES || "").trim();
+	if (!raw) return [...JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT];
+	return raw
+		.split(",")
+		.map((c) => c.trim())
+		.filter(Boolean);
+}
 
 export interface JunipayConfig {
 	clientId: string;
@@ -59,7 +73,7 @@ export function isJunipayExperimentEvent(event: {
 	ussdCode?: string | null;
 }): boolean {
 	const code = (event.ussdCode || "").trim();
-	return JUNIPAY_EXPERIMENT_EVENT_CODES.includes(code);
+	return getJunipayEventCodes().includes(code);
 }
 
 /**

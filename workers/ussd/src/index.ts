@@ -16,14 +16,33 @@ export interface Env {
 	HUBTEL_CALLBACK_URL?: string;
 	HUBTEL_BASE_URL?: string;
 	USSD_PAYMENT_GATEWAY?: string;
+	JUNIPAY_EVENT_CODES?: string;
+	HUBTEL_EVENT_CODES?: string;
 	MAX_LISTED_EVENTS?: string;
 	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
 }
 
 const JUNIPAY_BASE_URL = "https://api.junipayments.com";
-const JUNIPAY_EXPERIMENT_EVENT_CODES = ["134"];
+const JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
 const HUBTEL_BASE_URL = "https://rmp.hubtel.com";
-const HUBTEL_EXPERIMENT_EVENT_CODES = ["134", "135"];
+const HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
+
+function parseEventCodes(raw: string | undefined, fallback: string[]): string[] {
+	const trimmed = (raw || "").trim();
+	if (!trimmed) return [...fallback];
+	return trimmed
+		.split(",")
+		.map((c) => c.trim())
+		.filter(Boolean);
+}
+
+function getJunipayEventCodes(env: Env | undefined): string[] {
+	return parseEventCodes(env?.JUNIPAY_EVENT_CODES, JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT);
+}
+
+function getHubtelEventCodes(env: Env | undefined): string[] {
+	return parseEventCodes(env?.HUBTEL_EVENT_CODES, HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT);
+}
 
 export const MAX_LISTED_EVENTS = 7;
 export const ENTER_CODE_OPTION = "0";
@@ -1075,8 +1094,8 @@ export async function processPayment(
 
 /**
  * Isolated JuniPay payment path (mirrors apps/web/.../junipay-payments.ts).
- * Activated only when the event code is in JUNIPAY_EXPERIMENT_EVENT_CODES AND
- * the JuniPay credentials are configured, so Paystack stays untouched otherwise.
+ * Activated only when the event code is in JUNIPAY_EVENT_CODES AND the JuniPay
+ * credentials are configured, so Paystack stays untouched otherwise.
  */
 async function processJunipayPayment(
 	sql: any,
@@ -1305,9 +1324,9 @@ function resolveUssdGateway(
 	event: any,
 ): "paystack" | "junipay" | "hubtel" {
 	const code = String(event.ussd_code || event.ussdCode || "").trim();
-	const isExperiment =
-		JUNIPAY_EXPERIMENT_EVENT_CODES.includes(code) ||
-		HUBTEL_EXPERIMENT_EVENT_CODES.includes(code);
+	const junipayCodes = getJunipayEventCodes(env);
+	const hubtelCodes = getHubtelEventCodes(env);
+	const isExperiment = junipayCodes.includes(code) || hubtelCodes.includes(code);
 	if (!isExperiment) return "paystack";
 
 	const explicit = (env?.USSD_PAYMENT_GATEWAY || "").toLowerCase();
@@ -1323,11 +1342,11 @@ function resolveUssdGateway(
 		return "hubtel";
 	}
 
-	if (JUNIPAY_EXPERIMENT_EVENT_CODES.includes(code) && env?.JUNIPAY_CLIENT_ID && env?.JUNIPAY_PRIVATE_KEY) {
+	if (junipayCodes.includes(code) && env?.JUNIPAY_CLIENT_ID && env?.JUNIPAY_PRIVATE_KEY) {
 		return "junipay";
 	}
 	if (
-		HUBTEL_EXPERIMENT_EVENT_CODES.includes(code) &&
+		hubtelCodes.includes(code) &&
 		env?.HUBTEL_CLIENT_ID &&
 		env?.HUBTEL_CLIENT_SECRET &&
 		env?.HUBTEL_POS_SALES_ID

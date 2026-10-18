@@ -21,7 +21,21 @@
  */
 
 export const HUBTEL_BASE_URL = "https://rmp.hubtel.com";
-export const HUBTEL_EXPERIMENT_EVENT_CODES = ["134", "135"];
+const HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
+
+/**
+ * Comma-separated USSD event codes that may use Hubtel, e.g. "134,135,136".
+ * Defaults to an empty list (no event uses Hubtel) unless HUBTEL_EVENT_CODES is
+ * explicitly set.
+ */
+export function getHubtelEventCodes(): string[] {
+	const raw = (process.env.HUBTEL_EVENT_CODES || "").trim();
+	if (!raw) return [...HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT];
+	return raw
+		.split(",")
+		.map((c) => c.trim())
+		.filter(Boolean);
+}
 
 export interface HubtelConfig {
 	clientId: string;
@@ -57,7 +71,7 @@ export function isHubtelExperimentEvent(event: {
 	ussdCode?: string | null;
 }): boolean {
 	const code = (event.ussdCode || "").trim();
-	return HUBTEL_EXPERIMENT_EVENT_CODES.includes(code);
+	return getHubtelEventCodes().includes(code);
 }
 
 /**
