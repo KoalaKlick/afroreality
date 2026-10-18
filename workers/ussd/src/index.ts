@@ -810,7 +810,7 @@ export async function handleVotingFlow(
 	const selectedCategory = categories[selectedCategoryIndex];
 	if (!selectedCategory) return textResponse("END Invalid category.");
 
-	tokens = catSelection.remainingTokens;
+	tokens = isSingleCategory ? tokens : catSelection.remainingTokens;
 	const votePrice = Number(selectedCategory.vote_price ?? selectedCategory.votePrice) || 0.5;
 
 	const nominees = (details.options || []).filter(

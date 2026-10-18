@@ -605,7 +605,7 @@ async function handleVotingFlow(
 	const selectedCategory = categories[selectedCategoryIndex];
 	if (!selectedCategory) return "END Invalid category.";
 
-	tokens = catSelection.remainingTokens;
+	tokens = isSingleCategory ? tokens : catSelection.remainingTokens;
 	const votePrice = Number(selectedCategory.votePrice) || 0.5;
 
 	// Filter nominees from event-level votingOptions by category_id
