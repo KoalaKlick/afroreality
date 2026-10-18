@@ -3,6 +3,13 @@ import { prisma } from "@repo/db";
 import { toPesewas } from "@repo/pricing";
 import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
+import {
+	getJunipayConfig,
+	initiateJunipayCollection,
+	isJunipayConfigured,
+	isJunipayExperimentEvent,
+	mapJunipayProvider,
+} from "@/lib/server-functions/junipay-payments";
 import { getUssdBaseCode } from "@/lib/utils/ussd";
 
 export const dynamic = "force-dynamic";
@@ -268,6 +275,140 @@ async function fetchNomineeByCode(code: string) {
 // ─── Payment Initiation Helper ───────────────────────────────────────────────
 // Mirrors: _shared/ussd-handler.ts processPayment
 
+/**
+ * Isolated JuniPay payment path. Used only when the event code is in
+ * JUNIPAY_EXPERIMENT_EVENT_CODES AND JuniPay credentials are configured, so the
+ * live Paystack flow is never affected otherwise.
+ */
+async function processJunipayPayment(
+	event: any,
+	optionId: string,
+	quantity: number,
+	price: number,
+	phoneNumber: string,
+): Promise<string> {
+	const config = getJunipayConfig();
+	if (!config) {
+		return "END JuniPay is not configured. Please try again later.";
+	}
+
+	const baseAmount = Number(price) * quantity;
+	const feeType = event.type === "voting" ? "vote" : "ticket";
+	const feeCalc = await computeDynamicChargeAmount(
+		baseAmount,
+		feeType,
+		"GHS",
+		event.organizationId,
+	);
+	const totalAmountGHS = feeCalc.totalToCharge;
+
+	const reference = `JUNIPAY_${Date.now()}_${Math.random()
+		.toString(36)
+		.substring(2, 8)
+		.toUpperCase()}`;
+	const provider = mapJunipayProvider(getProvider(phoneNumber));
+
+	// Persist pending records BEFORE calling JuniPay so the callback can reconcile.
+	await prisma.ussdSession.create({
+		data: {
+			reference,
+			phoneNumber,
+			eventId: event.id,
+			optionId,
+			quantity,
+			amount: baseAmount,
+			status: "pending",
+		},
+	});
+
+	await prisma.payment.upsert({
+		where: { reference },
+		update: {},
+		create: {
+			reference,
+			email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+			purpose: event.type === "voting" ? "vote_purchase" : "ticket_purchase",
+			amount: baseAmount,
+			currency: "GHS",
+			// PaymentProvider enum has no "junipay" value; keep schema untouched and
+			// record the real gateway in metadata.
+			provider: "paystack",
+			status: "pending",
+			metadata: {
+				gateway: "junipay",
+				source: "ussd",
+				channel: "ussd",
+				eventId: event.id,
+				optionId,
+				votingOptionId: optionId,
+				ticketTypeId: optionId,
+				quantity,
+				voteCount: quantity,
+				phoneNumber,
+				baseAmount,
+				platformFee: feeCalc.platformFee,
+				organizerReceives: feeCalc.organizerReceives,
+				totalToCharge: totalAmountGHS,
+			},
+		},
+	});
+
+	const result = await initiateJunipayCollection(config, {
+		amount: totalAmountGHS,
+		phoneNumber: normalizePhone(phoneNumber),
+		provider,
+		email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+		description: `USSD payment for ${event.title}`,
+		foreignId: reference,
+		callbackUrl: config.callbackUrl,
+	});
+
+	if (result.transId || result.transId2 || result.reqToken) {
+		const payment = await prisma.payment.findUnique({
+			where: { reference },
+			select: { metadata: true },
+		});
+		const metadata =
+			payment?.metadata && typeof payment.metadata === "object"
+				? payment.metadata
+				: {};
+		await prisma.payment
+			.update({
+				where: { reference },
+				data: {
+					providerReference: result.transId || result.reqToken || result.transId2,
+					providerResponse: result.data ?? undefined,
+					metadata: {
+						...metadata,
+						junipayTransId: result.transId,
+						junipayTransId2: result.transId2,
+						junipayReqToken: result.reqToken,
+					},
+				},
+			})
+			.catch(() => {});
+	}
+
+	if (result.success) {
+		await fulfillSuccessfulPayment({
+			reference,
+			paystackData: {
+				id: result.transId || reference,
+				metadata: { gateway: "junipay" },
+			},
+		});
+		const itemLabel =
+			event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+		return `END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`;
+	}
+
+	if (!result.ok) {
+		return `END Payment initiation failed: ${result.message || "Please try again."}`;
+	}
+
+	return "END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.";
+}
+
 async function submitOtp(
 	reference: string,
 	otp: string,
@@ -329,6 +470,11 @@ async function processPayment(
 	if (isSimulation) {
 		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
 		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${baseAmount.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`;
+	}
+
+	// Isolated JuniPay experiment (per-event-code, credential-gated).
+	if (isJunipayExperimentEvent(event) && isJunipayConfigured()) {
+		return await processJunipayPayment(event, optionId, quantity, price, phoneNumber);
 	}
 
 	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";

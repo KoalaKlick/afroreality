@@ -1,13 +1,21 @@
 import { neon } from "@neondatabase/serverless";
+import { importPKCS8, SignJWT } from "jose";
 
 export interface Env {
 	DATABASE_URL: string;
 	PAYSTACK_SECRET_KEY?: string;
 	ARKESEL_API_KEY?: string;
 	ARKESEL_SENDER_ID?: string;
+	JUNIPAY_CLIENT_ID?: string;
+	JUNIPAY_PRIVATE_KEY?: string;
+	JUNIPAY_CALLBACK_URL?: string;
+	JUNIPAY_BASE_URL?: string;
 	MAX_LISTED_EVENTS?: string;
 	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
 }
+
+const JUNIPAY_BASE_URL = "https://api.junipayments.com";
+const JUNIPAY_EXPERIMENT_EVENT_CODES = ["134"];
 
 export const MAX_LISTED_EVENTS = 7;
 export const ENTER_CODE_OPTION = "0";
@@ -91,6 +99,184 @@ export function getProvider(phone: string): "mtn" | "vod" | "atl" {
 	if (["020", "050"].includes(prefix)) return "vod";
 	if (["027", "057", "026", "056"].includes(prefix)) return "atl";
 	return "mtn";
+}
+
+// ─── JuniPay (Ghana mobile money) adapter ────────────────────────────────────
+
+export function mapJunipayProvider(provider: "mtn" | "vod" | "atl"): string {
+	switch (provider) {
+		case "mtn":
+			return "mtn";
+		case "vod":
+			return "vodafone";
+		case "atl":
+			return "airteltigo";
+		default:
+			return "mtn";
+	}
+}
+
+function bytesToBinary(bytes: Uint8Array): string {
+	let s = "";
+	for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+	return s;
+}
+
+function binaryToBytes(bin: string): Uint8Array {
+	const bytes = new Uint8Array(bin.length);
+	for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+	return bytes;
+}
+
+function derEncodeLength(len: number): number[] {
+	if (len < 0x80) return [len];
+	const bytes: number[] = [];
+	let remaining = len;
+	while (remaining > 0) {
+		bytes.unshift(remaining & 0xff);
+		remaining >>>= 8;
+	}
+	return [0x80 | bytes.length, ...bytes];
+}
+
+function derEncode(tag: number, content: number[]): number[] {
+	return [tag, ...derEncodeLength(content.length), ...content];
+}
+
+function derSequence(children: number[][]): number[] {
+	return derEncode(0x30, children.flat());
+}
+
+function derInteger(value: number): number[] {
+	const bytes: number[] = [];
+	if (value === 0) {
+		bytes.push(0);
+	} else {
+		let remaining = value;
+		while (remaining > 0) {
+			bytes.unshift(remaining & 0xff);
+			remaining >>>= 8;
+		}
+	}
+	if ((bytes[0] ?? 0) & 0x80) bytes.unshift(0);
+	return derEncode(0x02, bytes);
+}
+
+const RSA_ENCRYPTION_OID = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01];
+
+function derOid(oid: number[]): number[] {
+	return derEncode(0x06, oid);
+}
+
+function pkcs1ToPkcs8(pkcs1Der: Uint8Array): Uint8Array {
+	const algorithmIdentifier = derSequence([derOid(RSA_ENCRYPTION_OID), [0x05, 0x00]]);
+	const privateKeyOctets = derEncode(0x04, Array.from(pkcs1Der));
+	const privateKeyInfo = derSequence([
+		derInteger(0),
+		algorithmIdentifier,
+		privateKeyOctets,
+	]);
+	return new Uint8Array(privateKeyInfo);
+}
+
+function normalizePrivateKey(pem: string): string {
+	const trimmed = pem.trim();
+	if (!trimmed.includes("BEGIN RSA PRIVATE KEY")) return trimmed;
+	const b64 = trimmed
+		.replace(/-----(BEGIN|END)[^-]+-----/g, "")
+		.replace(/[^A-Za-z0-9+/=]/g, "");
+	const pkcs8Der = pkcs1ToPkcs8(binaryToBytes(atob(b64)));
+	const outB64 = btoa(bytesToBinary(pkcs8Der));
+	const lines = outB64.match(/.{1,64}/g)?.join("\n") ?? outB64;
+	return `-----BEGIN PRIVATE KEY-----\n${lines}\n-----END PRIVATE KEY-----`;
+}
+
+async function signJunipayToken(clientId: string, privateKeyPem: string): Promise<string> {
+	const privateKey = await importPKCS8(normalizePrivateKey(privateKeyPem), "RS256");
+	return await new SignJWT({ payload: clientId })
+		.setProtectedHeader({ alg: "RS256" })
+		.setIssuedAt()
+		.sign(privateKey);
+}
+
+async function initiateJunipayCollection(
+	clientId: string,
+	privateKeyPem: string,
+	baseUrl: string,
+	request: {
+		amount: number;
+		phoneNumber: string;
+		provider: string;
+		email: string;
+		description: string;
+		foreignId: string;
+		callbackUrl?: string;
+	},
+): Promise<{ ok: boolean; statusCode: number; data: any; transId: string; transId2: string; reqToken: string; success: boolean; message: string }> {
+	const token = await signJunipayToken(clientId, privateKeyPem);
+
+	const response = await fetch(`${baseUrl}/payment`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${token}`,
+			clientid: clientId,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			channel: "mobile_money",
+			phoneNumber: request.phoneNumber,
+			provider: request.provider,
+			amount: request.amount,
+			tot_amnt: request.amount,
+			senderEmail: request.email,
+			description: request.description,
+			foreignID: request.foreignId,
+			callbackUrl: request.callbackUrl,
+		}),
+	});
+
+	const data = (await response.json().catch(() => ({}))) as any;
+	console.info("[USSD-JUNIPAY-CHARGE]", {
+		foreignId: request.foreignId,
+		provider: request.provider,
+		statusCode: response.status,
+		response: data,
+	});
+
+	// JuniPay returns a flat response body, e.g.
+	// { status: "pending", message: "TRANSACTION PENDING", transID: "COL...",
+	//   transID2: "1762...", foreignID: "...", reqToken: "COL..." }
+	const nested = data?.data ?? {};
+	const transId = String(
+		nested?.transID ?? nested?.trans_id ?? data?.transID ?? data?.trans_id ?? "",
+	);
+	const transId2 = String(
+		nested?.transID2 ?? nested?.trans_id2 ?? data?.transID2 ?? data?.trans_id2 ?? "",
+	);
+	const reqToken = String(
+		nested?.reqToken ?? nested?.req_token ?? data?.reqToken ?? data?.req_token ?? "",
+	);
+	const rawStatus = String(
+		nested?.status ?? nested?.state ?? data?.status ?? data?.state ?? "",
+	).toLowerCase();
+	const success =
+		data?.success === true ||
+		nested?.success === true ||
+		["success", "completed", "paid", "approved", "successful"].includes(rawStatus);
+	const message = String(
+		nested?.message ?? nested?.description ?? data?.message ?? data?.description ?? "",
+	);
+
+	return {
+		ok: response.ok,
+		statusCode: response.status,
+		data,
+		transId,
+		transId2,
+		reqToken,
+		success,
+		message,
+	};
 }
 
 export function textResponse(body: string): Response {
@@ -593,6 +779,24 @@ export async function processPayment(
 		);
 	}
 
+	// Isolated JuniPay experiment (per-event-code, credential-gated).
+	const eventUssdCode = String(event.ussd_code || event.ussdCode || "").trim();
+	if (
+		JUNIPAY_EXPERIMENT_EVENT_CODES.includes(eventUssdCode) &&
+		env?.JUNIPAY_CLIENT_ID &&
+		env?.JUNIPAY_PRIVATE_KEY
+	) {
+		return await processJunipayPayment(
+			sql,
+			event,
+			optionId,
+			quantity,
+			price,
+			phoneNumber,
+			env,
+		);
+	}
+
 	if (otpStr) {
 		const pendingSessions = await sql`
 			SELECT reference 
@@ -747,6 +951,119 @@ export async function processPayment(
 
 	return textResponse(
 		"END Request received. Please check your phone for the prompt to enter your MoMo PIN.",
+	);
+}
+
+/**
+ * Isolated JuniPay payment path (mirrors apps/web/.../junipay-payments.ts).
+ * Activated only when the event code is in JUNIPAY_EXPERIMENT_EVENT_CODES AND
+ * the JuniPay credentials are configured, so Paystack stays untouched otherwise.
+ */
+async function processJunipayPayment(
+	sql: any,
+	event: any,
+	optionId: string,
+	quantity: number,
+	price: number,
+	phoneNumber: string,
+	env: Env,
+): Promise<Response> {
+	const clientId = env.JUNIPAY_CLIENT_ID || "";
+	const privateKey = env.JUNIPAY_PRIVATE_KEY || "";
+	if (!clientId || !privateKey) {
+		return textResponse("END JuniPay is not configured. Please try again later.");
+	}
+
+	const baseAmount = Number(price) * quantity;
+	const feeType = event.type === "voting" ? "vote" : "ticket";
+	const orgId = event.organization_id || event.organizationId;
+	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId);
+	const totalAmountGHS = feeCalc.totalToCharge;
+
+	const reference = `JUNIPAY_${Date.now()}_${Math.random()
+		.toString(36)
+		.substring(2, 8)
+		.toUpperCase()}`;
+	const provider = mapJunipayProvider(getProvider(phoneNumber));
+
+	// Persist pending records BEFORE calling JuniPay so the callback can reconcile.
+	await sql`
+		INSERT INTO ussd_sessions (reference, phone_number, event_id, option_id, quantity, amount, status)
+		VALUES (${reference}, ${phoneNumber}, ${event.id}, ${optionId}, ${quantity}, ${baseAmount}, 'pending')
+	`;
+
+	await sql`
+		INSERT INTO payments (reference, email, purpose, amount, currency, provider, status, metadata, created_at, updated_at)
+		VALUES (${reference}, ${`${normalizePhone(phoneNumber)}@fextiva.com`}, ${event.type === "voting" ? "vote_purchase" : "ticket_purchase"}, ${baseAmount}, 'GHS', 'paystack', 'pending', ${JSON.stringify({
+			gateway: "junipay",
+			source: "ussd",
+			channel: "ussd",
+			event_id: event.id,
+			eventId: event.id,
+			organization_id: orgId,
+			organizationId: orgId,
+			option_id: optionId,
+			optionId: optionId,
+			votingOptionId: optionId,
+			ticketTypeId: optionId,
+			quantity,
+			voteCount: quantity,
+			phone_number: phoneNumber,
+			phone: phoneNumber,
+			baseAmount,
+			platformFee: feeCalc.platformFee,
+			organizerReceives: feeCalc.organizerReceives,
+			totalToCharge: totalAmountGHS,
+		})}, NOW(), NOW())
+		ON CONFLICT (reference) DO NOTHING
+	`;
+
+	const result = await initiateJunipayCollection(clientId, privateKey, env.JUNIPAY_BASE_URL || JUNIPAY_BASE_URL, {
+		amount: totalAmountGHS,
+		phoneNumber: normalizePhone(phoneNumber),
+		provider,
+		email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+		description: `USSD payment for ${event.title}`,
+		foreignId: reference,
+		callbackUrl: env.JUNIPAY_CALLBACK_URL || undefined,
+	});
+
+	if (result.transId || result.transId2 || result.reqToken) {
+		await sql`
+			UPDATE payments
+			SET provider_reference = ${result.transId || result.reqToken || result.transId2},
+				provider_response = ${JSON.stringify(result.data)},
+				metadata = jsonb_set(
+					jsonb_set(
+						jsonb_set(
+							COALESCE(metadata, '{}'::jsonb),
+							'{junipayTransId}', to_jsonb(${result.transId}::text)
+						),
+						'{junipayTransId2}', to_jsonb(${result.transId2}::text)
+					),
+					'{junipayReqToken}', to_jsonb(${result.reqToken}::text)
+				)
+			WHERE reference = ${reference}
+		`.catch(() => {});
+	}
+
+	if (result.success) {
+		await fulfillSuccessfulPaymentSql(sql, reference, {
+			id: result.transId || reference,
+			metadata: { gateway: "junipay" },
+		}, env);
+		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
+		return textResponse(
+			`END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`,
+		);
+	}
+
+	if (!result.ok) {
+		return textResponse(`END Payment initiation failed: ${result.message || "Please try again."}`);
+	}
+
+	return textResponse(
+		"END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.",
 	);
 }
 
