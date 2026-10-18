@@ -980,6 +980,7 @@ export async function handleUssdCore(
 	text: string,
 	env: Env,
 	isSimulation: boolean = false,
+	isNewSession: boolean = false,
 ): Promise<Response> {
 	const dbUrl = env.DATABASE_URL;
 	const paystackSecret = env.PAYSTACK_SECRET_KEY || "";
@@ -1009,7 +1010,7 @@ export async function handleUssdCore(
 		if (pendingSessions.length > 0) {
 			const pending = pendingSessions[0];
 			const rawTokens = text.split("*").filter(Boolean);
-			if (rawTokens.length === 0) {
+			if (isNewSession || rawTokens.length === 0) {
 				return textResponse(
 					`CON You have a pending payment of GHS ${pending.amount}.\nEnter the OTP sent to your phone:\n0. Cancel`,
 				);
@@ -1450,6 +1451,7 @@ export default {
 					accumulatedPath,
 					env,
 					isSimulation,
+					isNewSession,
 				);
 				return await toArkeselResponse(
 					atResponse,
