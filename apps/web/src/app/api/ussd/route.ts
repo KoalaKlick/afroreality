@@ -824,6 +824,7 @@ async function handleUssdCore(
 	phoneNumber: string,
 	text: string,
 	isSimulation: boolean = false,
+	isNewSession: boolean = false,
 ): Promise<string> {
 	if (!isSimulation) {
 		const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -850,7 +851,7 @@ async function handleUssdCore(
 
 			if (isAwaitingOtp) {
 				const rawTokens = text.split("*").filter(Boolean);
-				if (rawTokens.length === 0) {
+				if (isNewSession || rawTokens.length === 0) {
 					return `CON You have a pending payment of GHS ${Number(pendingSession.amount).toFixed(2)}.\nEnter the OTP sent to your phone:\n0. Cancel`;
 				}
 				const otpAnswer = rawTokens[rawTokens.length - 1];
@@ -1106,6 +1107,7 @@ export async function POST(req: NextRequest) {
 				msisdn,
 				accumulatedPath,
 				isSimulation,
+				newSession,
 			);
 			return toArkeselResponse(coreResult, sessionID, userID, msisdn);
 		}
@@ -1184,6 +1186,7 @@ export async function GET(req: NextRequest) {
 				msisdn,
 				accumulatedPath,
 				isSimulation,
+				isNewSession,
 			);
 			return toArkeselResponse(coreResult, sessionID, userID, msisdn);
 		}
