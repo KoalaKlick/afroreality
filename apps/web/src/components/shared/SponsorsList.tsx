@@ -73,7 +73,7 @@ export function SponsorsList({
 					<img
 						src={imgUrl}
 						alt={sponsorName}
-						className="w-full h-full object-contain filter contrast-105 hover:brightness-105 transition-all duration-200"
+						className="w-auto h-full object-contain filter contrast-105 hover:brightness-105 transition-all duration-200"
 						loading="lazy"
 					/>
 				) : (
