@@ -7,6 +7,10 @@
  *
  * Required environment variables:
  *   JUNIPAY_CLIENT_ID      - your JuniPay dashboard Client ID
+ *   JUNIPAY_SECRET         - dashboard Secret (reserved for the dashboard
+ *                            authentication flow; not used by Direct Access)
+ *   JUNIPAY_TOKEN_LINK     - dashboard Token Link (reserved for the dashboard
+ *                            authentication flow; not used by Direct Access)
  *   JUNIPAY_PRIVATE_KEY    - the RSA private key (PKCS#1 "BEGIN RSA PRIVATE KEY"
  *                            or PKCS#8 "BEGIN PRIVATE KEY") used to sign tokens
  *   JUNIPAY_CALLBACK_URL   - (optional) https endpoint JuniPay POSTs results to

@@ -7,6 +7,8 @@ export interface Env {
 	ARKESEL_API_KEY?: string;
 	ARKESEL_SENDER_ID?: string;
 	JUNIPAY_CLIENT_ID?: string;
+	JUNIPAY_SECRET?: string;
+	JUNIPAY_TOKEN_LINK?: string;
 	JUNIPAY_PRIVATE_KEY?: string;
 	JUNIPAY_CALLBACK_URL?: string;
 	JUNIPAY_BASE_URL?: string;
