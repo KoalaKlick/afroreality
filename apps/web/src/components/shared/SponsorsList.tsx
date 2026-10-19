@@ -65,7 +65,7 @@ export function SponsorsList({
 		const TriggerContent = (
 			<div
 				className={cn(
-					"border border-border/80 bg-card hover:bg-card/90 flex items-center justify-center hover:border-primary/50 transition-all shadow-xs hover:shadow-md hover:scale-[1.03] active:scale-[0.98] cursor-pointer shrink-0 overflow-hidden",
+					"bg-border/30 hover:bg-card/90 flex items-center justify-center hover:border-primary/50 transition-all shadow-xs hover:shadow-md hover:scale-[1.03] active:scale-[0.98] cursor-pointer shrink-0 overflow-hidden",
 					currentSize.container,
 				)}
 			>
