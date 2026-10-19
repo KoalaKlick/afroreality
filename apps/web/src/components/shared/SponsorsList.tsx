@@ -28,17 +28,17 @@ interface SponsorsListProps {
 
 const sizeConfig = {
 	sm: {
-		container: "h-11 aspect-square p-1.5 ",
+		container: "h-11  p-1.5 ",
 		icon: "size-4",
 		text: "text-[9px]",
 	},
 	md: {
-		container: "h-14 sm:h-16 aspect-square p-2",
+		container: "h-14 sm:h-16 p-2",
 		icon: "size-5",
 		text: "text-[11px]",
 	},
 	lg: {
-		container: "h-16 sm:h-20 aspect-square p-2.5 sm:p-3",
+		container: "h-16 sm:h-20  p-2.5 sm:p-3",
 		icon: "size-6",
 		text: "text-xs",
 	},
