@@ -448,7 +448,6 @@ export interface AdminEventPaymentRouting {
 	ussdCode: string | null;
 	hasUssd: boolean;
 	paymentGateway: string | null;
-	paymentChannel: string | null;
 	organization: {
 		id: string;
 		name: string;
@@ -469,8 +468,8 @@ export interface AdminPlatformFeesData {
 		hubtel: AdminGatewayFeeConfig;
 	};
 	routingDefaults: {
-		gateway: string;
-		channel: string;
+		ussd: string;
+		web: string;
 	};
 	eventRoutings: AdminEventPaymentRouting[];
 	withdrawalRules: {
@@ -537,7 +536,6 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 				ussdCode: true,
 				hasUssd: true,
 				paymentGateway: true,
-				paymentChannel: true,
 				organization: {
 					select: { id: true, name: true, slug: true },
 				},
@@ -563,14 +561,11 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 		hubtel: normalizeGatewayFee(hubtelSetting?.value, { feeRate: 0, feeCap: 0 }),
 	};
 
+	const gatewayNames = ["paystack", "junipay", "hubtel"];
 	const routingRaw = (routingSetting?.value as any) || {};
 	const routingDefaults = {
-		gateway: ["paystack", "junipay", "hubtel"].includes(routingRaw.gateway)
-			? routingRaw.gateway
-			: "paystack",
-		channel: ["ussd", "web"].includes(routingRaw.channel)
-			? routingRaw.channel
-			: "web",
+		ussd: gatewayNames.includes(routingRaw.ussd) ? routingRaw.ussd : "paystack",
+		web: gatewayNames.includes(routingRaw.web) ? routingRaw.web : "paystack",
 	};
 
 	const withdrawalRulesRaw = (withdrawalSetting?.value as any) || {};
@@ -622,7 +617,6 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 			ussdCode: ev.ussdCode,
 			hasUssd: ev.hasUssd,
 			paymentGateway: ev.paymentGateway,
-			paymentChannel: ev.paymentChannel,
 			organization: ev.organization,
 		})),
 		withdrawalRules,
@@ -935,11 +929,11 @@ export async function adminUpdateGatewayFeeSettings(data: {
 }
 
 /**
- * Super Admin: Update the default payment gateway and channel.
+ * Super Admin: Update the default payment gateway per channel (USSD and Web).
  */
 export async function adminUpdatePaymentRoutingDefaults(data: {
-	gateway: "paystack" | "junipay" | "hubtel";
-	channel: "ussd" | "web";
+	ussd: "paystack" | "junipay" | "hubtel";
+	web: "paystack" | "junipay" | "hubtel";
 }): Promise<{ success: boolean; message?: string; error?: string }> {
 	try {
 		await requirePlatformAdmin();
@@ -948,11 +942,11 @@ export async function adminUpdatePaymentRoutingDefaults(data: {
 			where: { key: "payment_routing_default" },
 			create: {
 				key: "payment_routing_default",
-				value: { gateway: data.gateway, channel: data.channel },
-				description: "Default payment gateway and channel for all events",
+				value: { ussd: data.ussd, web: data.web },
+				description: "Default payment gateway for USSD and Web payments",
 			},
 			update: {
-				value: { gateway: data.gateway, channel: data.channel },
+				value: { ussd: data.ussd, web: data.web },
 				updatedAt: new Date(),
 			},
 		});
@@ -968,12 +962,12 @@ export async function adminUpdatePaymentRoutingDefaults(data: {
 }
 
 /**
- * Super Admin: Set a per-event payment gateway and/or channel override.
+ * Super Admin: Set a per-event payment gateway override (applies to both USSD
+ * and web surfaces).
  */
 export async function adminUpdateEventPaymentRouting(data: {
 	eventId: string;
 	gateway: "paystack" | "junipay" | "hubtel" | null;
-	channel: "ussd" | "web" | null;
 }): Promise<{ success: boolean; message?: string; error?: string }> {
 	try {
 		await requirePlatformAdmin();
@@ -982,7 +976,6 @@ export async function adminUpdateEventPaymentRouting(data: {
 			where: { id: data.eventId },
 			data: {
 				paymentGateway: data.gateway,
-				paymentChannel: data.channel,
 			},
 		});
 

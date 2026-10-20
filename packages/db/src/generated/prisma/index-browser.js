@@ -167,7 +167,6 @@ exports.Prisma.EventScalarFieldEnum = {
   hasUssd: 'hasUssd',
   ussdCode: 'ussdCode',
   paymentGateway: 'paymentGateway',
-  paymentChannel: 'paymentChannel',
   galleryImages: 'galleryImages'
 };
 
@@ -786,11 +785,6 @@ exports.PaymentGateway = exports.$Enums.PaymentGateway = {
   paystack: 'paystack',
   junipay: 'junipay',
   hubtel: 'hubtel'
-};
-
-exports.PaymentChannel = exports.$Enums.PaymentChannel = {
-  ussd: 'ussd',
-  web: 'web'
 };
 
 exports.EventMemberStatus = exports.$Enums.EventMemberStatus = {

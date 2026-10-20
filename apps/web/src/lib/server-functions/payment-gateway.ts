@@ -5,12 +5,15 @@ import { prisma } from "@repo/db";
  *
  * The actual API credentials (PAYSTACK_SECRET_KEY, JUNIPAY_PRIVATE_KEY, etc.)
  * remain environment secrets. This module only resolves WHICH gateway an event
- * uses and reads the per-gateway defaults/fees stored in `platform_settings`.
+ * uses and reads the per-gateway fees stored in `platform_settings`.
+ *
+ * USSD vs web is determined by the request context, never by the event: an
+ * event is a USSD payment when it has a `ussdCode`/`hasUssd`; otherwise it is a
+ * web payment. Both surfaces exist on every event.
  *
  * Resolution order for an event + request channel:
- *   1. Event `paymentGateway` override (when the event's `paymentChannel` is
- *      unset or matches the request channel).
- *   2. Default gateway from `payment_routing_default`.
+ *   1. Event `paymentGateway` override (applies to both surfaces).
+ *   2. Per-channel default from `payment_routing_default` (ussd | web).
  *   3. Fall back to Paystack if the resolved gateway has no credentials.
  */
 
@@ -18,7 +21,6 @@ export type GatewayName = "paystack" | "junipay" | "hubtel";
 export type ChannelName = "ussd" | "web";
 
 export const DEFAULT_GATEWAY: GatewayName = "paystack";
-export const DEFAULT_CHANNEL: ChannelName = "web";
 
 export const GATEWAY_SETTING_KEYS: Record<GatewayName, string> = {
 	paystack: "payment_gateway_paystack",
@@ -41,8 +43,8 @@ export function isChannelName(value: unknown): value is ChannelName {
 }
 
 export interface PaymentRoutingDefaults {
-	gateway: GatewayName;
-	channel: ChannelName;
+	ussd: GatewayName;
+	web: GatewayName;
 }
 
 export interface GatewayFeeConfig {
@@ -71,7 +73,7 @@ export function isGatewayConfigured(gateway: GatewayName): boolean {
 	return false;
 }
 
-/** Read the default gateway + channel from platform settings. */
+/** Read the per-channel default gateways from platform settings. */
 export async function getPaymentRoutingDefaults(): Promise<PaymentRoutingDefaults> {
 	try {
 		const row = await prisma.platformSetting.findUnique({
@@ -79,12 +81,12 @@ export async function getPaymentRoutingDefaults(): Promise<PaymentRoutingDefault
 		});
 		const value = (row?.value ?? {}) as any;
 		return {
-			gateway: isGatewayName(value?.gateway) ? value.gateway : DEFAULT_GATEWAY,
-			channel: isChannelName(value?.channel) ? value.channel : DEFAULT_CHANNEL,
+			ussd: isGatewayName(value?.ussd) ? value.ussd : DEFAULT_GATEWAY,
+			web: isGatewayName(value?.web) ? value.web : DEFAULT_GATEWAY,
 		};
 	} catch (err) {
 		console.warn("[PAYMENT-GATEWAY] Could not read routing defaults:", err);
-		return { gateway: DEFAULT_GATEWAY, channel: DEFAULT_CHANNEL };
+		return { ussd: DEFAULT_GATEWAY, web: DEFAULT_GATEWAY };
 	}
 }
 
@@ -112,27 +114,24 @@ export async function getGatewayFeeConfig(gateway: GatewayName): Promise<Gateway
 /**
  * Resolve the gateway to charge for an event on the given request channel.
  *
- * `event.paymentChannel` scopes an event's `paymentGateway` override to a single
- * surface: when set and different from `contextChannel`, the override is ignored
- * and the default gateway is used.
+ * A per-event `paymentGateway` override applies to both USSD and web. Otherwise
+ * the per-channel default (ussd | web) is used. Paystack is the final fallback
+ * when the resolved gateway has no credentials.
  */
 export async function resolveEventGateway(
 	event:
-		| { paymentGateway?: string | null; paymentChannel?: string | null }
+		| { paymentGateway?: string | null }
 		| null
 		| undefined,
 	contextChannel: ChannelName,
 ): Promise<GatewayName> {
 	const defaults = await getPaymentRoutingDefaults();
-	let gateway: GatewayName = defaults.gateway;
-
 	const eventGateway = event?.paymentGateway ?? null;
-	const eventChannel = event?.paymentChannel ?? null;
+
+	let gateway: GatewayName = defaults[contextChannel];
 
 	if (isGatewayName(eventGateway)) {
-		if (!isChannelName(eventChannel) || eventChannel === contextChannel) {
-			gateway = eventGateway;
-		}
+		gateway = eventGateway;
 	}
 
 	// Never route to a gateway whose credentials are missing.

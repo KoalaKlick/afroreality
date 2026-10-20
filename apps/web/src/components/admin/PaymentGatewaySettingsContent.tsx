@@ -37,7 +37,6 @@ import {
 
 const GATEWAYS = ["paystack", "junipay", "hubtel"] as const;
 type Gateway = (typeof GATEWAYS)[number];
-type Channel = "ussd" | "web";
 
 interface Props {
 	gatewayConfigs: {
@@ -46,8 +45,8 @@ interface Props {
 		hubtel: AdminGatewayFeeConfig;
 	};
 	routingDefaults: {
-		gateway: string;
-		channel: string;
+		ussd: string;
+		web: string;
 	};
 	eventRoutings: AdminEventPaymentRouting[];
 }
@@ -79,19 +78,13 @@ export function PaymentGatewaySettingsContent({
 	});
 
 	const [defaults, setDefaults] = useState({
-		gateway: routingDefaults.gateway as Gateway,
-		channel: routingDefaults.channel as Channel,
+		ussd: (routingDefaults.ussd || "paystack") as Gateway,
+		web: (routingDefaults.web || "paystack") as Gateway,
 	});
 
 	const [search, setSearch] = useState("");
-	const [routing, setRouting] = useState<Record<string, { gateway: string; channel: string }>>(
-		() =>
-			Object.fromEntries(
-				eventRoutings.map((ev) => [
-					ev.id,
-					{ gateway: ev.paymentGateway || "inherit", channel: ev.paymentChannel || "inherit" },
-				]),
-			),
+	const [routing, setRouting] = useState<Record<string, string>>(() =>
+		Object.fromEntries(eventRoutings.map((ev) => [ev.id, ev.paymentGateway || "inherit"])),
 	);
 
 	const saveGatewayFee = (gateway: Gateway) => {
@@ -109,8 +102,8 @@ export function PaymentGatewaySettingsContent({
 	const saveDefaults = () => {
 		startTransition(async () => {
 			const res = await adminUpdatePaymentRoutingDefaults({
-				gateway: defaults.gateway,
-				channel: defaults.channel,
+				ussd: defaults.ussd,
+				web: defaults.web,
 			});
 			if (res.success) toast.success(res.message);
 			else toast.error(res.error || "Failed to update routing defaults");
@@ -123,8 +116,7 @@ export function PaymentGatewaySettingsContent({
 		startTransition(async () => {
 			const res = await adminUpdateEventPaymentRouting({
 				eventId,
-				gateway: r.gateway === "inherit" ? null : (r.gateway as Gateway),
-				channel: r.channel === "inherit" ? null : (r.channel as Channel),
+				gateway: r === "inherit" ? null : (r as Gateway),
 			});
 			if (res.success) toast.success(res.message);
 			else toast.error(res.error || "Failed to update event routing");
@@ -215,15 +207,15 @@ export function PaymentGatewaySettingsContent({
 						Default Payment Routing
 					</CardTitle>
 					<CardDescription className="text-xs">
-						Events without an explicit override use these defaults.
+						Every event can be paid via USSD and Web. Set the default gateway for each surface.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-4 grid gap-4 sm:grid-cols-2">
 					<div className="space-y-2">
-						<Label className="text-xs font-semibold">Default Gateway</Label>
+						<Label className="text-xs font-semibold">USSD Gateway</Label>
 						<Select
-							value={defaults.gateway}
-							onValueChange={(v) => setDefaults((p) => ({ ...p, gateway: v as Gateway }))}
+							value={defaults.ussd}
+							onValueChange={(v) => setDefaults((p) => ({ ...p, ussd: v as Gateway }))}
 						>
 							<SelectTrigger className="h-9 text-xs">
 								<SelectValue placeholder="Select gateway" />
@@ -236,17 +228,18 @@ export function PaymentGatewaySettingsContent({
 						</Select>
 					</div>
 					<div className="space-y-2">
-						<Label className="text-xs font-semibold">Default Channel</Label>
+						<Label className="text-xs font-semibold">Web Gateway</Label>
 						<Select
-							value={defaults.channel}
-							onValueChange={(v) => setDefaults((p) => ({ ...p, channel: v as Channel }))}
+							value={defaults.web}
+							onValueChange={(v) => setDefaults((p) => ({ ...p, web: v as Gateway }))}
 						>
 							<SelectTrigger className="h-9 text-xs">
-								<SelectValue placeholder="Select channel" />
+								<SelectValue placeholder="Select gateway" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="web">Web</SelectItem>
-								<SelectItem value="ussd">USSD</SelectItem>
+								<SelectItem value="paystack">Paystack</SelectItem>
+								<SelectItem value="junipay">JuniPay</SelectItem>
+								<SelectItem value="hubtel">Hubtel</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -272,7 +265,7 @@ export function PaymentGatewaySettingsContent({
 						Per-Event Payment Routing
 					</CardTitle>
 					<CardDescription className="text-xs">
-						Override the gateway or channel for individual events. &ldquo;Default&rdquo; inherits the platform default.
+						Override the gateway for individual events (applies to both USSD and Web). &ldquo;Default&rdquo; inherits the per-channel default.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-4 space-y-4">
@@ -293,11 +286,11 @@ export function PaymentGatewaySettingsContent({
 							</p>
 						) : (
 							filteredEvents.map((ev) => {
-								const r = routing[ev.id] || { gateway: "inherit", channel: "inherit" };
+								const r = routing[ev.id] || "inherit";
 								return (
 									<div
 										key={ev.id}
-										className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center rounded-lg border border-border/80 p-3"
+										className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-center rounded-lg border border-border/80 p-3"
 									>
 										<div className="min-w-0">
 											<p className="text-sm font-semibold truncate">{ev.title}</p>
@@ -308,15 +301,9 @@ export function PaymentGatewaySettingsContent({
 										</div>
 
 										<Select
-											value={r.gateway}
+											value={r}
 											onValueChange={(v) =>
-												setRouting((prev) => ({
-													...prev,
-													[ev.id]: {
-														...(prev[ev.id] || { gateway: "inherit", channel: "inherit" }),
-														gateway: v,
-													},
-												}))
+												setRouting((prev) => ({ ...prev, [ev.id]: v }))
 											}
 										>
 											<SelectTrigger className="h-8 w-[140px] text-xs">
@@ -327,28 +314,6 @@ export function PaymentGatewaySettingsContent({
 												<SelectItem value="paystack">Paystack</SelectItem>
 												<SelectItem value="junipay">JuniPay</SelectItem>
 												<SelectItem value="hubtel">Hubtel</SelectItem>
-											</SelectContent>
-										</Select>
-
-										<Select
-											value={r.channel}
-											onValueChange={(v) =>
-												setRouting((prev) => ({
-													...prev,
-													[ev.id]: {
-														...(prev[ev.id] || { gateway: "inherit", channel: "inherit" }),
-														channel: v,
-													},
-												}))
-											}
-										>
-											<SelectTrigger className="h-8 w-[120px] text-xs">
-												<SelectValue placeholder="Channel" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="inherit">Default</SelectItem>
-												<SelectItem value="web">Web</SelectItem>
-												<SelectItem value="ussd">USSD</SelectItem>
 											</SelectContent>
 										</Select>
 

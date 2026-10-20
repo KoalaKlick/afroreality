@@ -546,8 +546,8 @@ async function processHubtelPayment(
 
 /**
  * Resolve which payment gateway to use for a USSD payment. Routing is
- * super-admin configured: event `paymentGateway`/`paymentChannel` override the
- * platform default, with Paystack as the final fallback.
+ * super-admin configured: the event `paymentGateway` override wins, otherwise
+ * the USSD channel default is used, with Paystack as the final fallback.
  */
 async function resolveUssdGateway(event: any): Promise<GatewayName> {
 	return resolveEventGateway(event, "ussd");
