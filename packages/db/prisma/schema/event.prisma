@@ -30,6 +30,8 @@ model Event {
   publishedAt          DateTime?                @map("published_at") @db.Timestamptz(6)
   hasUssd              Boolean                  @default(false) @map("has_ussd")
   ussdCode             String?                  @unique @map("ussd_code")
+  paymentGateway       PaymentGateway?          @map("payment_gateway")
+  paymentChannel       PaymentChannel?          @map("payment_channel")
   galleryImages        String[]                 @default([]) @map("gallery_images")
   galleryLinks         EventGalleryLink[]
   members              EventMember[]

@@ -435,6 +435,27 @@ const DEFAULT_DEPOSIT_RULES: EventDepositRules = {
 	refundWindowDays: 2,
 };
 
+export interface AdminGatewayFeeConfig {
+	feeRate: number;
+	feeCap: number;
+}
+
+export interface AdminEventPaymentRouting {
+	id: string;
+	title: string;
+	type: string;
+	status: string;
+	ussdCode: string | null;
+	hasUssd: boolean;
+	paymentGateway: string | null;
+	paymentChannel: string | null;
+	organization: {
+		id: string;
+		name: string;
+		slug: string;
+	} | null;
+}
+
 export interface AdminPlatformFeesData {
 	globalFees: AdminFeeConfigItem[];
 	orgOverrides: AdminFeeConfigItem[];
@@ -442,6 +463,16 @@ export interface AdminPlatformFeesData {
 		feeRate: number;
 		feeCap: number;
 	};
+	gatewayConfigs: {
+		paystack: AdminGatewayFeeConfig;
+		junipay: AdminGatewayFeeConfig;
+		hubtel: AdminGatewayFeeConfig;
+	};
+	routingDefaults: {
+		gateway: string;
+		channel: string;
+	};
+	eventRoutings: AdminEventPaymentRouting[];
 	withdrawalRules: {
 		minAmount: number;
 		transferFee: number;
@@ -461,7 +492,7 @@ export interface AdminPlatformFeesData {
 export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 	await requirePlatformAdmin();
 
-	const [globalFees, orgOverrides, gatewaySetting, withdrawalSetting, depositSetting, organizations] = await Promise.all([
+	const [globalFees, orgOverrides, gatewaySetting, junipaySetting, hubtelSetting, routingSetting, withdrawalSetting, depositSetting, organizations, eventRoutings] = await Promise.all([
 		prisma.feeConfiguration.findMany({
 			where: { organizationId: null },
 			orderBy: [{ feeType: "asc" }, { createdAt: "desc" }],
@@ -479,6 +510,15 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 			where: { key: "payment_gateway_paystack" },
 		}),
 		prisma.platformSetting.findUnique({
+			where: { key: "payment_gateway_junipay" },
+		}),
+		prisma.platformSetting.findUnique({
+			where: { key: "payment_gateway_hubtel" },
+		}),
+		prisma.platformSetting.findUnique({
+			where: { key: "payment_routing_default" },
+		}),
+		prisma.platformSetting.findUnique({
 			where: { key: "wallet_withdrawal_rules" },
 		}),
 		prisma.platformSetting.findUnique({
@@ -488,11 +528,49 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 			select: { id: true, name: true, slug: true },
 			orderBy: { name: "asc" },
 		}),
+		prisma.event.findMany({
+			select: {
+				id: true,
+				title: true,
+				type: true,
+				status: true,
+				ussdCode: true,
+				hasUssd: true,
+				paymentGateway: true,
+				paymentChannel: true,
+				organization: {
+					select: { id: true, name: true, slug: true },
+				},
+			},
+			orderBy: [{ createdAt: "desc" }],
+			take: 200,
+		}),
 	]);
 
 	const paystackConfig = (gatewaySetting?.value as any) || {
 		feeRate: 0.0195,
 		feeCap: 100,
+	};
+
+	const normalizeGatewayFee = (raw: any, fallback: AdminGatewayFeeConfig): AdminGatewayFeeConfig => ({
+		feeRate: typeof raw?.feeRate === "number" ? raw.feeRate : fallback.feeRate,
+		feeCap: typeof raw?.feeCap === "number" ? raw.feeCap : fallback.feeCap,
+	});
+
+	const gatewayConfigs = {
+		paystack: normalizeGatewayFee(gatewaySetting?.value, { feeRate: 0.0195, feeCap: 100 }),
+		junipay: normalizeGatewayFee(junipaySetting?.value, { feeRate: 0, feeCap: 0 }),
+		hubtel: normalizeGatewayFee(hubtelSetting?.value, { feeRate: 0, feeCap: 0 }),
+	};
+
+	const routingRaw = (routingSetting?.value as any) || {};
+	const routingDefaults = {
+		gateway: ["paystack", "junipay", "hubtel"].includes(routingRaw.gateway)
+			? routingRaw.gateway
+			: "paystack",
+		channel: ["ussd", "web"].includes(routingRaw.channel)
+			? routingRaw.channel
+			: "web",
 	};
 
 	const withdrawalRulesRaw = (withdrawalSetting?.value as any) || {};
@@ -534,6 +612,19 @@ export async function getAdminPlatformFees(): Promise<AdminPlatformFeesData> {
 			feeRate: typeof paystackConfig.feeRate === "number" ? paystackConfig.feeRate : 0.0195,
 			feeCap: typeof paystackConfig.feeCap === "number" ? paystackConfig.feeCap : 100,
 		},
+		gatewayConfigs,
+		routingDefaults,
+		eventRoutings: eventRoutings.map((ev) => ({
+			id: ev.id,
+			title: ev.title,
+			type: ev.type,
+			status: ev.status,
+			ussdCode: ev.ussdCode,
+			hasUssd: ev.hasUssd,
+			paymentGateway: ev.paymentGateway,
+			paymentChannel: ev.paymentChannel,
+			organization: ev.organization,
+		})),
 		withdrawalRules,
 		depositRules,
 		organizations,
@@ -793,6 +884,115 @@ export async function adminUpdatePaystackGatewaySettings(data: {
 	} catch (err: any) {
 		console.error("[ADMIN_UPDATE_GATEWAY_SETTINGS_ERROR]", err);
 		return { success: false, error: err?.message || "Failed to update gateway settings" };
+	}
+}
+
+/**
+ * Super Admin: Update any gateway's fee rate and cap settings.
+ */
+export async function adminUpdateGatewayFeeSettings(data: {
+	gateway: "paystack" | "junipay" | "hubtel";
+	feeRate: number; // e.g. 0.0195 or 1.95
+	feeCap: number; // e.g. 100
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		await requirePlatformAdmin();
+
+		const normalizedRate = data.feeRate > 1 ? data.feeRate / 100 : data.feeRate;
+		const key = `payment_gateway_${data.gateway}`;
+		const label = data.gateway.charAt(0).toUpperCase() + data.gateway.slice(1);
+
+		await prisma.platformSetting.upsert({
+			where: { key },
+			create: {
+				key,
+				value: {
+					feeRate: normalizedRate,
+					feeCap: data.feeCap,
+				},
+				description: `${label} gateway fee rate and surcharge cap`,
+			},
+			update: {
+				value: {
+					feeRate: normalizedRate,
+					feeCap: data.feeCap,
+				},
+				updatedAt: new Date(),
+			},
+		});
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+
+		return {
+			success: true,
+			message: `${label} gateway settings updated successfully.`,
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_UPDATE_GATEWAY_FEE_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to update gateway settings" };
+	}
+}
+
+/**
+ * Super Admin: Update the default payment gateway and channel.
+ */
+export async function adminUpdatePaymentRoutingDefaults(data: {
+	gateway: "paystack" | "junipay" | "hubtel";
+	channel: "ussd" | "web";
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		await requirePlatformAdmin();
+
+		await prisma.platformSetting.upsert({
+			where: { key: "payment_routing_default" },
+			create: {
+				key: "payment_routing_default",
+				value: { gateway: data.gateway, channel: data.channel },
+				description: "Default payment gateway and channel for all events",
+			},
+			update: {
+				value: { gateway: data.gateway, channel: data.channel },
+				updatedAt: new Date(),
+			},
+		});
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+
+		return { success: true, message: "Payment routing defaults updated successfully." };
+	} catch (err: any) {
+		console.error("[ADMIN_UPDATE_ROUTING_DEFAULTS_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to update routing defaults" };
+	}
+}
+
+/**
+ * Super Admin: Set a per-event payment gateway and/or channel override.
+ */
+export async function adminUpdateEventPaymentRouting(data: {
+	eventId: string;
+	gateway: "paystack" | "junipay" | "hubtel" | null;
+	channel: "ussd" | "web" | null;
+}): Promise<{ success: boolean; message?: string; error?: string }> {
+	try {
+		await requirePlatformAdmin();
+
+		await prisma.event.update({
+			where: { id: data.eventId },
+			data: {
+				paymentGateway: data.gateway,
+				paymentChannel: data.channel,
+			},
+		});
+
+		revalidatePath("/super");
+		revalidatePath("/super/fees");
+
+		return { success: true, message: "Event payment routing updated successfully." };
+	} catch (err: any) {
+		console.error("[ADMIN_UPDATE_EVENT_ROUTING_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to update event payment routing" };
 	}
 }
 

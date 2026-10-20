@@ -63,7 +63,7 @@ interface PublicTicketPaymentModalProps {
 	readonly brandVars?: React.CSSProperties;
 }
 
-type ModalStep = "checkout" | "processing" | "success" | "error";
+type ModalStep = "checkout" | "processing" | "pending" | "success" | "error";
 
 interface AttendeeEntry {
 	name: string;
@@ -225,6 +225,9 @@ export function PublicTicketPaymentModal({
 			} else if (result.authorizationUrl) {
 				// Redirect to Paystack Checkout
 				window.location.href = result.authorizationUrl;
+			} else if (result.gateway === "junipay" || result.gateway === "hubtel") {
+				// MoMo prompt: no redirect, customer approves on their phone.
+				setStep("pending");
 			} else {
 				throw new Error("Unable to proceed to payment.");
 			}
@@ -573,6 +576,36 @@ export function PublicTicketPaymentModal({
 								Please wait while we secure your tickets.
 							</p>
 						</div>
+					</div>
+				)}
+
+				{step === "pending" && (
+					<div className="flex flex-col flex-1 overflow-hidden">
+						<div className="flex-1 overflow-y-auto px-6 py-8 text-center space-y-4">
+							<div className="size-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto dark:bg-blue-950/50 dark:text-blue-400">
+								<Smartphone className="size-8" />
+							</div>
+							<div className="space-y-1.5">
+								<h4 className="font-bold text-base text-foreground">
+									Approve on Your Phone
+								</h4>
+								<p className="text-xs text-muted-foreground max-w-xs mx-auto">
+									A payment prompt has been sent to{" "}
+									<strong>{phone}</strong>. Approve it on your mobile money
+									menu to complete your purchase. Your tickets will be
+									confirmed automatically.
+								</p>
+							</div>
+						</div>
+						<SheetFooter className="border-t bg-background p-6 flex gap-2">
+							<Button
+								variant="outline"
+								onClick={() => handleClose(false)}
+								className="flex-1 text-xs border-border/80 cursor-pointer"
+							>
+								Done
+							</Button>
+						</SheetFooter>
 					</div>
 				)}
 

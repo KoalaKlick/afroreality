@@ -28,6 +28,7 @@ import {
 	CreditCard,
 	Sparkles,
 	Phone,
+	Smartphone,
 } from "lucide-react";
 import AddFilesIcon from "@/assets/add-files.svg";
 import { toast } from "sonner";
@@ -44,7 +45,7 @@ interface PublicNominationModalProps {
 	readonly brandVars?: React.CSSProperties;
 }
 
-type PayStep = "checkout" | "processing" | "success" | "error";
+type PayStep = "checkout" | "processing" | "pending" | "success" | "error";
 
 export function PublicNominationModal({
 	eventId,
@@ -214,6 +215,8 @@ export function PublicNominationModal({
 			} else if (res.authorizationUrl) {
 				// Redirect to Paystack payment gateway
 				window.location.href = res.authorizationUrl;
+			} else if (res.gateway === "junipay" || res.gateway === "hubtel") {
+				setPayStep("pending");
 			} else {
 				setPayStep("error");
 				setErrorMsg("Unable to initialize payment gateway.");
@@ -526,6 +529,36 @@ export function PublicNominationModal({
 								<p className="text-xs text-muted-foreground">
 									{isPaid ? "Redirecting to payment gateway..." : "Submitting your nomination..."}
 								</p>
+							</div>
+						)}
+
+						{/* Pending Step (MoMo prompt approval) */}
+						{payStep === "pending" && (
+							<div className="flex flex-col items-center py-6 space-y-3 text-center">
+								<div className="size-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+									<Smartphone className="size-7" />
+								</div>
+								<div>
+									<h4 className="font-bold text-base">Approve on Your Phone</h4>
+									<p className="text-xs text-muted-foreground mt-1 max-w-xs">
+										A payment prompt has been sent to{" "}
+										<strong>{nominatorPhone}</strong>. Approve it on your mobile
+										money menu to complete your nomination. It will be
+										confirmed automatically.
+									</p>
+								</div>
+								<Button
+									size="sm"
+									variant="outline"
+									className="text-xs h-9 border-border/80"
+									onClick={() => {
+										setShowConfirmDialog(false);
+										setSheetOpen(false);
+										resetForm();
+									}}
+								>
+									Done
+								</Button>
 							</div>
 						)}
 

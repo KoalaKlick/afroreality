@@ -10,6 +10,25 @@ import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 import { submitPublicNomination } from "@/lib/server-functions/voting-options";
 import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
 import { sendTicketWhatsAppNotification } from "@/lib/services/whatsapp";
+import {
+	getJunipayConfig,
+	initiateJunipayCollection,
+	mapJunipayProvider,
+} from "@/lib/server-functions/junipay-payments";
+import {
+	generateHubtelReference,
+	getHubtelConfig,
+	initiateHubtelCollection,
+	mapHubtelChannel,
+} from "@/lib/server-functions/hubtel-payments";
+import {
+	resolveEventGateway,
+	type GatewayName,
+} from "@/lib/server-functions/payment-gateway";
+import {
+	detectMomoNetworkFromPhone,
+	formatToLocalMomoNumber,
+} from "@/lib/utils/phone";
 
 export interface AttendeeInput {
 	name: string;
@@ -56,6 +75,89 @@ export interface PublicNominationCheckoutInput {
 	nominatorPhone?: string;
 	orgSlug?: string;
 	eventSlug?: string;
+}
+
+type MomoProvider = "mtn" | "vod" | "atl";
+
+/** Map a Ghana phone number to the internal MoMo provider token. */
+function detectProvider(phone: string): MomoProvider {
+	const network = detectMomoNetworkFromPhone(phone);
+	if (network?.code === "MTN") return "mtn";
+	if (network?.code === "VOD") return "vod";
+	if (network?.code === "ATL") return "atl";
+	return "mtn";
+}
+
+interface WebMobileMoneyResult {
+	ok: boolean;
+	success: boolean;
+	pending: boolean;
+	message: string;
+	providerReference?: string;
+	providerResponse?: unknown;
+}
+
+/**
+ * Initiate a MoMo prompt for the web checkout via JuniPay or Hubtel. Unlike
+ * Paystack, these gateways do not redirect — the customer approves a prompt on
+ * their phone and the webhook fulfills the payment.
+ */
+async function initiateWebMobileMoneyCollection(params: {
+	gateway: "junipay" | "hubtel";
+	phoneNumber: string;
+	email: string;
+	amountGHS: number;
+	description: string;
+	reference: string;
+}): Promise<WebMobileMoneyResult> {
+	const provider = detectProvider(params.phoneNumber);
+	const localPhone = formatToLocalMomoNumber(params.phoneNumber);
+
+	if (params.gateway === "junipay") {
+		const config = getJunipayConfig();
+		if (!config) {
+			return { ok: false, success: false, pending: false, message: "JuniPay is not configured." };
+		}
+		const result = await initiateJunipayCollection(config, {
+			amount: params.amountGHS,
+			phoneNumber: localPhone,
+			provider: mapJunipayProvider(provider),
+			email: params.email,
+			description: params.description,
+			foreignId: params.reference,
+			callbackUrl: config.callbackUrl,
+		});
+		return {
+			ok: result.ok,
+			success: result.success,
+			pending: result.ok && !result.success,
+			message: result.message,
+			providerReference: result.transId || result.reqToken || result.transId2 || undefined,
+			providerResponse: result.data,
+		};
+	}
+
+	const config = getHubtelConfig();
+	if (!config) {
+		return { ok: false, success: false, pending: false, message: "Hubtel is not configured." };
+	}
+	const result = await initiateHubtelCollection(config, {
+		amount: params.amountGHS,
+		phoneNumber: localPhone,
+		channel: mapHubtelChannel(provider),
+		email: params.email,
+		description: params.description,
+		clientReference: params.reference,
+		callbackUrl: config.callbackUrl,
+	});
+	return {
+		ok: result.ok,
+		success: result.success,
+		pending: result.pending,
+		message: result.message,
+		providerReference: result.transactionId || result.clientReference || undefined,
+		providerResponse: result.data,
+	};
 }
 
 /**
@@ -165,8 +267,11 @@ export async function initiatePublicTicketCheckout({
 		const organization = ticketType.event.organization;
 		const subaccountCode = (organization as any)?.subaccountCode || null;
 
-		// Compute Platform Fee & Paystack Surcharge based on database single source of truth (checking org override)
-		const feeCalc = await computeDynamicChargeAmount(baseAmount, "ticket", "GHS", organization?.id);
+		// Resolve the gateway first so the fee uses the correct gateway's rate/cap.
+		const gateway = await resolveEventGateway(ticketType.event, "web");
+
+		// Compute Platform Fee & Gateway Surcharge based on database single source of truth (checking org override)
+		const feeCalc = await computeDynamicChargeAmount(baseAmount, "ticket", "GHS", organization?.id, gateway);
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
 		const platformFee = feeCalc.platformFee;
@@ -346,6 +451,104 @@ export async function initiatePublicTicketCheckout({
 		const callbackUrl = `${getFrontendBaseUrl()}/${organization.slug}/event/${ticketType.event.slug}`;
 		const sanitizedPhone = (buyerPhone || "").replace(/[^0-9]/g, "") || "attendee";
 		const paymentEmail = buyerEmail?.trim() || `${sanitizedPhone}@customer.fextiva.com`;
+
+		// JuniPay / Hubtel: direct MoMo prompt (no redirect).
+		if (gateway === "junipay" || gateway === "hubtel") {
+			const reference =
+				gateway === "hubtel"
+					? generateHubtelReference()
+					: `JUNIPAY_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+			const ticketMetadata = {
+				ticketOrderId: order.id,
+				orderId: order.id,
+				orderNumber,
+				eventId,
+				ticketTypeId,
+				ticketTypeName: ticketType.name,
+				quantity,
+				buyerName,
+				buyerEmail: buyerEmail?.trim() || null,
+				buyerPhone,
+				attendees: (data.attendees || []) as any,
+				organizationId: organization.id,
+				orgSlug: organization.slug,
+				eventSlug: ticketType.event.slug,
+				baseAmount,
+				platformFee,
+				organizerReceives,
+				paystackFee,
+				totalToCharge,
+				isSplit: !!subaccountCode,
+				gateway,
+				sourcePath: `/${organization.slug}/event/${ticketType.event.slug}`,
+			};
+
+			const payment = await prisma.payment.create({
+				data: {
+					reference,
+					email: paymentEmail,
+					purpose: "ticket_purchase",
+					amount: baseAmount,
+					currency: "GHS",
+					provider: "paystack",
+					status: "pending",
+					metadata: ticketMetadata,
+				},
+			});
+
+			await prisma.ticketOrder.update({
+				where: { id: order.id },
+				data: { paymentId: payment.id },
+			});
+
+			const collection = await initiateWebMobileMoneyCollection({
+				gateway,
+				phoneNumber: buyerPhone,
+				email: paymentEmail,
+				amountGHS: totalToCharge,
+				description: `Ticket purchase for ${ticketType.event.title}`,
+				reference,
+			});
+
+			if (collection.providerReference || collection.providerResponse) {
+				await prisma.payment
+					.update({
+						where: { reference },
+						data: {
+							providerReference: collection.providerReference ?? null,
+							providerResponse: collection.providerResponse as any,
+						},
+					})
+					.catch(() => {});
+			}
+
+			if (collection.success) {
+				await fulfillSuccessfulPayment({
+					reference,
+					paystackData: { id: collection.providerReference || reference, metadata: { gateway } },
+				});
+			}
+
+			if (!collection.ok) {
+				return {
+					success: false,
+					error: collection.message || "Payment initiation failed. Please try again.",
+				};
+			}
+
+			return {
+				success: true,
+				isFree: false,
+				gateway,
+				pending: collection.pending,
+				orderId: order.id,
+				orderNumber,
+				reference,
+				message: "Please approve the payment request on your phone.",
+				feeBreakdown: { baseAmount, paystackFee, totalToCharge },
+			};
+		}
 
 		const paystackRes = await paystack.transaction.initialize({
 			email: paymentEmail,
@@ -648,12 +851,105 @@ export async function initiatePublicVote({ data }: { data: PublicVoteInput }) {
 		const organization = category.event.organization;
 		const subaccountCode = (organization as any)?.subaccountCode || null;
 
-		const feeCalc = await computeDynamicChargeAmount(baseAmount, "vote", "GHS", organization?.id);
+		const gateway = await resolveEventGateway(category.event, "web");
+
+		const feeCalc = await computeDynamicChargeAmount(baseAmount, "vote", "GHS", organization?.id, gateway);
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
 		const platformFee = feeCalc.platformFee;
 		const organizerReceives = feeCalc.organizerReceives;
 		const splitChargePesewas = feeCalc.splitChargePesewas;
+
+		// JuniPay / Hubtel: direct MoMo prompt (no redirect).
+		if (gateway === "junipay" || gateway === "hubtel") {
+			const reference =
+				gateway === "hubtel"
+					? generateHubtelReference()
+					: `JUNIPAY_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+			const voteMetadata = {
+				purpose: "voting",
+				eventId,
+				categoryId,
+				categoryName: category.name,
+				optionId,
+				votingOptionId: optionId,
+				nomineeName: nominee.optionText,
+				voteCount,
+				voterName: voterName?.trim() || null,
+				voterEmail,
+				voterPhone,
+				organizationId: organization.id,
+				orgSlug: organization.slug,
+				eventSlug: category.event.slug,
+				baseAmount,
+				platformFee,
+				organizerReceives,
+				paystackFee,
+				totalToCharge,
+				isSplit: !!subaccountCode,
+				gateway,
+				sourcePath: `/${organization.slug}/event/${category.event.slug}/category/${categoryId}`,
+			};
+
+			await prisma.payment.create({
+				data: {
+					reference,
+					email: paymentEmail,
+					purpose: "vote_purchase",
+					amount: baseAmount,
+					currency: "GHS",
+					provider: "paystack",
+					status: "pending",
+					metadata: voteMetadata,
+				},
+			});
+
+			const collection = await initiateWebMobileMoneyCollection({
+				gateway,
+				phoneNumber: voterPhone,
+				email: paymentEmail,
+				amountGHS: totalToCharge,
+				description: `Vote purchase for ${category.event.title}`,
+				reference,
+			});
+
+			if (collection.providerReference || collection.providerResponse) {
+				await prisma.payment
+					.update({
+						where: { reference },
+						data: {
+							providerReference: collection.providerReference ?? null,
+							providerResponse: collection.providerResponse as any,
+						},
+					})
+					.catch(() => {});
+			}
+
+			if (collection.success) {
+				await fulfillSuccessfulPayment({
+					reference,
+					paystackData: { id: collection.providerReference || reference, metadata: { gateway } },
+				});
+			}
+
+			if (!collection.ok) {
+				return {
+					success: false,
+					error: collection.message || "Payment initiation failed. Please try again.",
+				};
+			}
+
+			return {
+				success: true,
+				isPaid: true,
+				gateway,
+				pending: collection.pending,
+				reference,
+				message: "Please approve the payment request on your phone.",
+				feeBreakdown: { baseAmount, paystackFee, totalToCharge },
+			};
+		}
 
 		const callbackUrl = `${getFrontendBaseUrl()}/${organization.slug}/event/${category.event.slug}/category/${categoryId}`;
 
@@ -845,14 +1141,111 @@ export async function initiatePublicNomination({
 			nomineeEmail?.trim() ||
 			(nominatorPhone ? `${nominatorPhone.replace(/[^0-9]/g, "")}@customer.fextiva.com` : `nom-${Date.now().toString().slice(-6)}@pay.fextiva.com`);
 
-		const feeCalc = await computeDynamicChargeAmount(nominationPrice, "nomination");
+		const organization = category.event.organization;
+		const subaccountCode = (organization as any)?.subaccountCode || null;
+
+		// JuniPay/Hubtel need a phone for the MoMo prompt; fall back to Paystack otherwise.
+		let gateway = await resolveEventGateway(category.event, "web");
+		if ((gateway === "junipay" || gateway === "hubtel") && !nominatorPhone) {
+			gateway = "paystack";
+		}
+
+		const feeCalc = await computeDynamicChargeAmount(nominationPrice, "nomination", "GHS", organization?.id, gateway);
 		const totalToCharge = feeCalc.totalToCharge;
 		const paystackFee = feeCalc.paystackFee;
 		const platformFee = feeCalc.platformFee;
 		const organizerReceives = feeCalc.organizerReceives;
 		const splitChargePesewas = feeCalc.splitChargePesewas;
-		const organization = category.event.organization;
-		const subaccountCode = (organization as any)?.subaccountCode || null;
+
+		// JuniPay / Hubtel: direct MoMo prompt (no redirect).
+		if (gateway === "junipay" || gateway === "hubtel") {
+			const reference =
+				gateway === "hubtel"
+					? generateHubtelReference()
+					: `JUNIPAY_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+			const nominationMetadata = {
+				purpose: "nomination",
+				eventId,
+				categoryId,
+				categoryName: category.name,
+				nomineeName: nomineeName.trim(),
+				nomineeEmail: nomineeEmail || null,
+				nomineeBio: nomineeBio || null,
+				nomineeImageUrl: nomineeImageUrl || null,
+				nominatorName: nominatorName || null,
+				nominatorEmail: nominatorEmail || null,
+				nominatorPhone: nominatorPhone || null,
+				organizationId: organization.id,
+				orgSlug: orgSlug || organization.slug,
+				eventSlug: eventSlug || category.event.slug,
+				baseAmount: nominationPrice,
+				platformFee,
+				organizerReceives,
+				paystackFee,
+				totalToCharge,
+				isSplit: !!subaccountCode,
+				gateway,
+				sourcePath: `/${orgSlug || organization.slug}/event/${eventSlug || category.event.slug}/category/${categoryId}`,
+			};
+
+			await prisma.payment.create({
+				data: {
+					reference,
+					email: payerEmail,
+					purpose: "nomination",
+					amount: nominationPrice,
+					currency: "GHS",
+					provider: "paystack",
+					status: "pending",
+					metadata: nominationMetadata,
+				},
+			});
+
+			const collection = await initiateWebMobileMoneyCollection({
+				gateway,
+				phoneNumber: nominatorPhone as string,
+				email: payerEmail,
+				amountGHS: totalToCharge,
+				description: `Nomination fee for ${category.event.title}`,
+				reference,
+			});
+
+			if (collection.providerReference || collection.providerResponse) {
+				await prisma.payment
+					.update({
+						where: { reference },
+						data: {
+							providerReference: collection.providerReference ?? null,
+							providerResponse: collection.providerResponse as any,
+						},
+					})
+					.catch(() => {});
+			}
+
+			if (collection.success) {
+				await fulfillSuccessfulPayment({
+					reference,
+					paystackData: { id: collection.providerReference || reference, metadata: { gateway } },
+				});
+			}
+
+			if (!collection.ok) {
+				return {
+					success: false,
+					error: collection.message || "Payment initiation failed. Please try again.",
+				};
+			}
+
+			return {
+				success: true,
+				isFree: false,
+				gateway,
+				pending: collection.pending,
+				reference,
+				message: "Please approve the payment request on your phone.",
+			};
+		}
 
 		const callbackUrl = `${getFrontendBaseUrl()}/${orgSlug || organization.slug}/event/${eventSlug || category.event.slug}/category/${categoryId}`;
 

@@ -1,9 +1,8 @@
 /**
  * Hubtel Receive Money API adapter (Ghana mobile money).
  *
- * Isolated payment path that can be switched on per event code (or via
- * USSD_PAYMENT_GATEWAY) so it can be tested without affecting the live Paystack
- * flow. It is DISABLED until the required credentials are configured.
+ * Isolated payment path activated when an event's resolved gateway is Hubtel and
+ * the required credentials are configured. It is DISABLED until credentials exist.
  *
  * Required environment variables:
  *   HUBTEL_CLIENT_ID     - Hubtel API Client ID
@@ -21,21 +20,6 @@
  */
 
 export const HUBTEL_BASE_URL = "https://rmp.hubtel.com";
-const HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
-
-/**
- * Comma-separated USSD event codes that may use Hubtel, e.g. "134,135,136".
- * Defaults to an empty list (no event uses Hubtel) unless HUBTEL_EVENT_CODES is
- * explicitly set.
- */
-export function getHubtelEventCodes(): string[] {
-	const raw = (process.env.HUBTEL_EVENT_CODES || "").trim();
-	if (!raw) return [...HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT];
-	return raw
-		.split(",")
-		.map((c) => c.trim())
-		.filter(Boolean);
-}
 
 export interface HubtelConfig {
 	clientId: string;
@@ -65,13 +49,6 @@ export function getHubtelConfig(): HubtelConfig | null {
 
 export function isHubtelConfigured(): boolean {
 	return getHubtelConfig() !== null;
-}
-
-export function isHubtelExperimentEvent(event: {
-	ussdCode?: string | null;
-}): boolean {
-	const code = (event.ussdCode || "").trim();
-	return getHubtelEventCodes().includes(code);
 }
 
 /**

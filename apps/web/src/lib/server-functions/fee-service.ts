@@ -5,10 +5,9 @@ import {
 	round2,
 	DEFAULT_CURRENCY,
 	PLATFORM_FEES,
-	PAYSTACK_FEE_RATE,
-	PAYSTACK_FEE_CAP,
 	type TransactionType,
 } from "@repo/pricing";
+import { getGatewayFeeConfig, type GatewayName } from "./payment-gateway";
 
 export interface DynamicFeeConfig {
 	feeType: TransactionType;
@@ -17,8 +16,9 @@ export interface DynamicFeeConfig {
 	minFee?: number;
 	maxFee?: number;
 	currency: string;
-	paystackFeeRate: number; // e.g. 0.0195
-	paystackFeeCap: number; // e.g. 100
+	paystackFeeRate: number; // selected gateway's rate, e.g. 0.0195
+	paystackFeeCap: number; // selected gateway's cap, e.g. 100
+	gateway: GatewayName;
 	organizationId?: string | null;
 	isCustomOverride?: boolean;
 }
@@ -34,6 +34,7 @@ export interface DynamicChargeBreakdown {
 	fixedFee: number;
 	feePercentage: number;
 	currency: string;
+	gateway: GatewayName;
 	isCustomOverride?: boolean;
 }
 
@@ -46,6 +47,7 @@ export interface DynamicChargeBreakdown {
 export async function getDynamicFeeConfig(
 	type: TransactionType = "vote",
 	organizationId?: string,
+	gateway: GatewayName = "paystack",
 ): Promise<DynamicFeeConfig> {
 	let feePercentage: number = PLATFORM_FEES[type]?.percentage ?? 0.065;
 	let feeFixed: number = PLATFORM_FEES[type]?.fixed ?? 0;
@@ -126,39 +128,10 @@ export async function getDynamicFeeConfig(
 		console.warn(`[FEE-SERVICE] Could not query FeeConfiguration for ${type} (org: ${organizationId}):`, err);
 	}
 
-	let paystackRate = PAYSTACK_FEE_RATE;
-	let paystackCap = PAYSTACK_FEE_CAP;
-
-	try {
-		const gatewaySetting = await prisma.platformSetting.findUnique({
-			where: { key: "payment_gateway_paystack" },
-		});
-
-		if (gatewaySetting && typeof gatewaySetting.value === "object" && gatewaySetting.value !== null) {
-			const val = gatewaySetting.value as any;
-			if (typeof val.feeRate === "number") {
-				paystackRate = val.feeRate > 1 ? val.feeRate / 100 : val.feeRate;
-			}
-			if (typeof val.feeCap === "number") {
-				paystackCap = val.feeCap;
-			}
-		} else {
-			// Persist default setting to DB
-			await prisma.platformSetting
-				.upsert({
-					where: { key: "payment_gateway_paystack" },
-					create: {
-						key: "payment_gateway_paystack",
-						value: { feeRate: PAYSTACK_FEE_RATE, feeCap: PAYSTACK_FEE_CAP },
-						description: "Paystack Ghana gateway fee rate and fee cap",
-					},
-					update: {},
-				})
-				.catch(() => {});
-		}
-	} catch (err) {
-		console.warn("[FEE-SERVICE] Could not query PlatformSetting for Paystack gateway:", err);
-	}
+	// Selected gateway's processing surcharge (Paystack/JuniPay/Hubtel may differ).
+	const gatewayFee = await getGatewayFeeConfig(gateway);
+	const paystackRate = gatewayFee.feeRate;
+	const paystackCap = gatewayFee.feeCap;
 
 	return {
 		feeType: type,
@@ -169,6 +142,7 @@ export async function getDynamicFeeConfig(
 		currency,
 		paystackFeeRate: paystackRate,
 		paystackFeeCap: paystackCap,
+		gateway,
 		organizationId: matchedOrgId,
 		isCustomOverride,
 	};
@@ -187,6 +161,7 @@ export async function computeDynamicChargeAmount(
 	type: TransactionType = "vote",
 	currency: string = DEFAULT_CURRENCY,
 	organizationId?: string,
+	gateway: GatewayName = "paystack",
 ): Promise<DynamicChargeBreakdown> {
 	const amount = Number(baseAmount) || 0;
 	if (amount <= 0) {
@@ -201,11 +176,12 @@ export async function computeDynamicChargeAmount(
 			fixedFee: 0,
 			feePercentage: 0,
 			currency,
+			gateway,
 			isCustomOverride: false,
 		};
 	}
 
-	const config = await getDynamicFeeConfig(type, organizationId);
+	const config = await getDynamicFeeConfig(type, organizationId, gateway);
 
 	// 1. Calculate platform fee
 	const percentageFee = round2(amount * config.percentage);
@@ -244,5 +220,6 @@ export async function computeDynamicChargeAmount(
 		fixedFee: config.fixedAmount,
 		feePercentage: config.percentage,
 		currency: config.currency,
+		gateway,
 	};
 }

@@ -24,6 +24,7 @@ import {
 	Lock,
 	User,
 	Phone,
+	Smartphone,
 } from "lucide-react";
 import { initiatePublicVote } from "@/lib/server-functions/public-checkout";
 import { VoteSuccessAnimation } from "@/components/voting/VoteSuccessAnimation";
@@ -53,7 +54,7 @@ interface VotePaymentModalProps {
 	readonly startDate?: string | Date | null;
 }
 
-type ModalStep = "checkout" | "processing" | "success" | "error";
+type ModalStep = "checkout" | "processing" | "pending" | "success" | "error";
 
 export function VotePaymentModal({
 	nominee,
@@ -192,6 +193,8 @@ export function VotePaymentModal({
 				router.refresh();
 			} else if (result.authorizationUrl) {
 				window.location.href = result.authorizationUrl;
+			} else if (result.gateway === "junipay" || result.gateway === "hubtel") {
+				setStep("pending");
 			} else {
 				setStep("error");
 				setErrorMsg("Unable to redirect to payment gateway.");
@@ -420,6 +423,30 @@ export function VotePaymentModal({
 								Please wait while we verify and record your vote.
 							</p>
 						</div>
+					</div>
+				)}
+
+				{step === "pending" && (
+					<div className="py-8 text-center space-y-4">
+						<div className="size-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto dark:bg-blue-950/50 dark:text-blue-400">
+							<Smartphone className="size-8" />
+						</div>
+						<div className="space-y-1.5">
+							<h4 className="font-bold text-base">Approve on Your Phone</h4>
+							<p className="text-xs text-muted-foreground max-w-xs mx-auto">
+								A payment prompt has been sent to{" "}
+								<strong>{voterPhone}</strong>. Approve it on your mobile
+								money menu to complete your vote. It will be counted
+								automatically.
+							</p>
+						</div>
+						<Button
+							variant="outline"
+							onClick={() => handleClose(false)}
+							className="w-full text-xs border-border/80 cursor-pointer"
+						>
+							Done
+						</Button>
 					</div>
 				)}
 

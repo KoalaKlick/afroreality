@@ -166,6 +166,8 @@ exports.Prisma.EventScalarFieldEnum = {
   publishedAt: 'publishedAt',
   hasUssd: 'hasUssd',
   ussdCode: 'ussdCode',
+  paymentGateway: 'paymentGateway',
+  paymentChannel: 'paymentChannel',
   galleryImages: 'galleryImages'
 };
 
@@ -778,6 +780,17 @@ exports.EventStatus = exports.$Enums.EventStatus = {
   ongoing: 'ongoing',
   ended: 'ended',
   cancelled: 'cancelled'
+};
+
+exports.PaymentGateway = exports.$Enums.PaymentGateway = {
+  paystack: 'paystack',
+  junipay: 'junipay',
+  hubtel: 'hubtel'
+};
+
+exports.PaymentChannel = exports.$Enums.PaymentChannel = {
+  ussd: 'ussd',
+  web: 'web'
 };
 
 exports.EventMemberStatus = exports.$Enums.EventMemberStatus = {

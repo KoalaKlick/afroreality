@@ -17,33 +17,37 @@ export interface Env {
 	HUBTEL_POS_SALES_ID?: string;
 	HUBTEL_CALLBACK_URL?: string;
 	HUBTEL_BASE_URL?: string;
-	USSD_PAYMENT_GATEWAY?: string;
-	JUNIPAY_EVENT_CODES?: string;
-	HUBTEL_EVENT_CODES?: string;
 	MAX_LISTED_EVENTS?: string;
 	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
 }
 
 const JUNIPAY_BASE_URL = "https://api.junipayments.com";
-const JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
 const HUBTEL_BASE_URL = "https://rmp.hubtel.com";
-const HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
 
-function parseEventCodes(raw: string | undefined, fallback: string[]): string[] {
-	const trimmed = (raw || "").trim();
-	if (!trimmed) return [...fallback];
-	return trimmed
-		.split(",")
-		.map((c) => c.trim())
-		.filter(Boolean);
+type GatewayName = "paystack" | "junipay" | "hubtel";
+type ChannelName = "ussd" | "web";
+
+function isGatewayName(value: unknown): value is GatewayName {
+	return value === "paystack" || value === "junipay" || value === "hubtel";
 }
 
-function getJunipayEventCodes(env: Env | undefined): string[] {
-	return parseEventCodes(env?.JUNIPAY_EVENT_CODES, JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT);
-}
-
-function getHubtelEventCodes(env: Env | undefined): string[] {
-	return parseEventCodes(env?.HUBTEL_EVENT_CODES, HUBTEL_EXPERIMENT_EVENT_CODES_DEFAULT);
+function isGatewayConfigured(env: Env | undefined, gateway: GatewayName): boolean {
+	if (gateway === "paystack") {
+		return Boolean((env?.PAYSTACK_SECRET_KEY || "").trim());
+	}
+	if (gateway === "junipay") {
+		return Boolean(
+			(env?.JUNIPAY_CLIENT_ID || "").trim() && (env?.JUNIPAY_PRIVATE_KEY || "").trim(),
+		);
+	}
+	if (gateway === "hubtel") {
+		return Boolean(
+			(env?.HUBTEL_CLIENT_ID || "").trim() &&
+				(env?.HUBTEL_CLIENT_SECRET || "").trim() &&
+				(env?.HUBTEL_POS_SALES_ID || "").trim(),
+		);
+	}
+	return false;
 }
 
 export const MAX_LISTED_EVENTS = 7;
@@ -509,7 +513,7 @@ export async function fetchEventByCode(sql: any, code: string) {
 	const unpadded = !Number.isNaN(num) ? num.toString() : trimmed;
 
 	const events = await sql`
-		SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date
+		SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date, payment_gateway, payment_channel
 		FROM events 
 		WHERE (ussd_code = ${trimmed} OR ussd_code = ${padded} OR ussd_code = ${unpadded}) AND has_ussd = true
 		LIMIT 1
@@ -522,6 +526,7 @@ export async function getWorkerFeeCalculation(
 	baseAmount: number,
 	feeType: "vote" | "ticket" = "vote",
 	organizationId?: string,
+	gateway: GatewayName = "paystack",
 ) {
 	let feePct = 0.065;
 	let fixedFee = 0;
@@ -572,10 +577,14 @@ export async function getWorkerFeeCalculation(
 
 	let paystackRate = 0.0195;
 	let paystackCap = 100;
+	if (gateway === "junipay" || gateway === "hubtel") {
+		paystackRate = 0;
+		paystackCap = 0;
+	}
 
 	try {
 		const gatewayRows = await sql`
-			SELECT value FROM platform_settings WHERE key = 'payment_gateway_paystack' LIMIT 1
+			SELECT value FROM platform_settings WHERE key = ${`payment_gateway_${gateway}`} LIMIT 1
 		`;
 		if (gatewayRows.length > 0 && gatewayRows[0].value) {
 			const val = gatewayRows[0].value;
@@ -896,10 +905,14 @@ export async function processPayment(
 		return textResponse("END Invalid number. Try again.");
 	}
 
+	// Resolve the gateway first so the fee surcharge uses the correct gateway's
+	// rate/cap (Paystack, JuniPay, and Hubtel may all differ).
+	const gateway = await resolveUssdGateway(sql, env, event);
+
 	const baseAmount = Number(price) * quantity;
 	const feeType = event.type === "voting" ? "vote" : "ticket";
 	const orgId = event.organization_id || event.organizationId;
-	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId);
+	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId, gateway);
 	const totalAmountGHS = feeCalc.totalToCharge;
 	const amountPesewas = Math.round(totalAmountGHS * 100);
 
@@ -910,10 +923,6 @@ export async function processPayment(
 		);
 	}
 
-	// Isolated gateway selection: JuniPay / Hubtel experiments (credential-gated),
-	// falling back to Paystack for everything else. If a non-Paystack gateway is
-	// selected but not configured, we gracefully fall back to Paystack.
-	const gateway = resolveUssdGateway(env, event);
 	if (gateway === "junipay" && env) {
 		return await processJunipayPayment(
 			sql,
@@ -1096,8 +1105,8 @@ export async function processPayment(
 
 /**
  * Isolated JuniPay payment path (mirrors apps/web/.../junipay-payments.ts).
- * Activated only when the event code is in JUNIPAY_EVENT_CODES AND the JuniPay
- * credentials are configured, so Paystack stays untouched otherwise.
+ * Activated only when the event resolves to JuniPay AND the JuniPay credentials
+ * are configured, so Paystack stays untouched otherwise.
  */
 async function processJunipayPayment(
 	sql: any,
@@ -1117,7 +1126,7 @@ async function processJunipayPayment(
 	const baseAmount = Number(price) * quantity;
 	const feeType = event.type === "voting" ? "vote" : "ticket";
 	const orgId = event.organization_id || event.organizationId;
-	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId);
+	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId, "junipay");
 	const totalAmountGHS = feeCalc.totalToCharge;
 
 	const reference = `JUNIPAY_${Date.now()}_${Math.random()
@@ -1230,7 +1239,7 @@ async function processHubtelPayment(
 	const baseAmount = Number(price) * quantity;
 	const feeType = event.type === "voting" ? "vote" : "ticket";
 	const orgId = event.organization_id || event.organizationId;
-	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId);
+	const feeCalc = await getWorkerFeeCalculation(sql, baseAmount, feeType, orgId, "hubtel");
 	const totalAmountGHS = feeCalc.totalToCharge;
 
 	const reference = generateHubtelReference();
@@ -1317,46 +1326,45 @@ async function processHubtelPayment(
 }
 
 /**
- * Resolve which payment gateway to use for a USSD payment. Non-experiment events
- * always use Paystack. Experiment events honour USSD_PAYMENT_GATEWAY when set,
- * otherwise fall back to per-gateway experiment codes, then Paystack.
+ * Resolve which payment gateway to use for a USSD payment. Routing is
+ * super-admin configured: event `payment_gateway`/`payment_channel` override
+ * the platform default, with Paystack as the final fallback.
  */
-function resolveUssdGateway(
+async function resolveUssdGateway(
+	sql: any,
 	env: Env | undefined,
 	event: any,
-): "paystack" | "junipay" | "hubtel" {
-	const code = String(event.ussd_code || event.ussdCode || "").trim();
-	const junipayCodes = getJunipayEventCodes(env);
-	const hubtelCodes = getHubtelEventCodes(env);
-	const isExperiment = junipayCodes.includes(code) || hubtelCodes.includes(code);
-	if (!isExperiment) return "paystack";
+): Promise<GatewayName> {
+	let defaultGateway: GatewayName = "paystack";
 
-	const explicit = (env?.USSD_PAYMENT_GATEWAY || "").toLowerCase();
-	if (explicit === "junipay" && env?.JUNIPAY_CLIENT_ID && env?.JUNIPAY_PRIVATE_KEY) {
-		return "junipay";
-	}
-	if (
-		explicit === "hubtel" &&
-		env?.HUBTEL_CLIENT_ID &&
-		env?.HUBTEL_CLIENT_SECRET &&
-		env?.HUBTEL_POS_SALES_ID
-	) {
-		return "hubtel";
+	try {
+		const rows = await sql`
+			SELECT value FROM platform_settings WHERE key = 'payment_routing_default' LIMIT 1
+		`;
+		if (rows.length > 0 && rows[0].value) {
+			const val = rows[0].value;
+			if (isGatewayName(val?.gateway)) defaultGateway = val.gateway;
+		}
+	} catch (err) {
+		console.warn("[USSD-WORKER-ROUTING-ERROR] Could not read routing defaults:", err);
 	}
 
-	if (junipayCodes.includes(code) && env?.JUNIPAY_CLIENT_ID && env?.JUNIPAY_PRIVATE_KEY) {
-		return "junipay";
-	}
-	if (
-		hubtelCodes.includes(code) &&
-		env?.HUBTEL_CLIENT_ID &&
-		env?.HUBTEL_CLIENT_SECRET &&
-		env?.HUBTEL_POS_SALES_ID
-	) {
-		return "hubtel";
+	let gateway: GatewayName = defaultGateway;
+	const eventGateway = event?.payment_gateway ?? event?.paymentGateway ?? null;
+	const eventChannel = event?.payment_channel ?? event?.paymentChannel ?? null;
+
+	if (isGatewayName(eventGateway)) {
+		const scoped = eventChannel === "ussd" || eventChannel === "web";
+		if (!scoped || eventChannel === "ussd") {
+			gateway = eventGateway;
+		}
 	}
 
-	return "paystack";
+	if (!isGatewayConfigured(env, gateway)) {
+		gateway = "paystack";
+	}
+
+	return gateway;
 }
 
 // Flow Handlers
@@ -1798,7 +1806,7 @@ export async function handleUssdCore(
 			);
 
 			const listedEvents = await sql`
-				SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date
+				SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date, payment_gateway, payment_channel
 				FROM events 
 				WHERE has_ussd = true 
 				  AND status IN ('published', 'ongoing')

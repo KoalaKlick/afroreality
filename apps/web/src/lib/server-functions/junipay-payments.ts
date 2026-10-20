@@ -1,9 +1,9 @@
 /**
  * JuniPay Collections API adapter (Ghana mobile money).
  *
- * This is an isolated payment path that can be switched on per event code so it
- * can be tested without affecting the live Paystack flow. It is DISABLED until
- * the required credentials are configured.
+ * This is an isolated payment path activated when an event's resolved gateway is
+ * JuniPay and the required credentials are configured, so the live Paystack flow
+ * is never affected otherwise. It is DISABLED until credentials are configured.
  *
  * Required environment variables:
  *   JUNIPAY_CLIENT_ID      - your JuniPay dashboard Client ID
@@ -30,21 +30,6 @@
 import { importPKCS8, SignJWT } from "jose";
 
 export const JUNIPAY_BASE_URL = "https://api.junipayments.com";
-const JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT: string[] = [];
-
-/**
- * Comma-separated USSD event codes that may use JuniPay, e.g. "134,135".
- * Defaults to an empty list (no event uses JuniPay) unless JUNIPAY_EVENT_CODES
- * is explicitly set.
- */
-export function getJunipayEventCodes(): string[] {
-	const raw = (process.env.JUNIPAY_EVENT_CODES || "").trim();
-	if (!raw) return [...JUNIPAY_EXPERIMENT_EVENT_CODES_DEFAULT];
-	return raw
-		.split(",")
-		.map((c) => c.trim())
-		.filter(Boolean);
-}
 
 export interface JunipayConfig {
 	clientId: string;
@@ -71,13 +56,6 @@ export function getJunipayConfig(): JunipayConfig | null {
 
 export function isJunipayConfigured(): boolean {
 	return getJunipayConfig() !== null;
-}
-
-export function isJunipayExperimentEvent(event: {
-	ussdCode?: string | null;
-}): boolean {
-	const code = (event.ussdCode || "").trim();
-	return getJunipayEventCodes().includes(code);
 }
 
 /**

@@ -6,18 +6,18 @@ import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 import {
 	getJunipayConfig,
 	initiateJunipayCollection,
-	isJunipayConfigured,
-	isJunipayExperimentEvent,
 	mapJunipayProvider,
 } from "@/lib/server-functions/junipay-payments";
 import {
 	generateHubtelReference,
 	getHubtelConfig,
 	initiateHubtelCollection,
-	isHubtelConfigured,
-	isHubtelExperimentEvent,
 	mapHubtelChannel,
 } from "@/lib/server-functions/hubtel-payments";
+import {
+	resolveEventGateway,
+	type GatewayName,
+} from "@/lib/server-functions/payment-gateway";
 import { getUssdBaseCode } from "@/lib/utils/ussd";
 
 export const dynamic = "force-dynamic";
@@ -307,6 +307,7 @@ async function processJunipayPayment(
 		feeType,
 		"GHS",
 		event.organizationId,
+		"junipay",
 	);
 	const totalAmountGHS = feeCalc.totalToCharge;
 
@@ -440,6 +441,7 @@ async function processHubtelPayment(
 		feeType,
 		"GHS",
 		event.organizationId,
+		"hubtel",
 	);
 	const totalAmountGHS = feeCalc.totalToCharge;
 
@@ -543,24 +545,12 @@ async function processHubtelPayment(
 }
 
 /**
- * Resolve which payment gateway to use for a USSD payment. Non-experiment events
- * always use Paystack. Experiment events honour USSD_PAYMENT_GATEWAY when set,
- * otherwise fall back to the per-gateway experiment codes, then Paystack.
+ * Resolve which payment gateway to use for a USSD payment. Routing is
+ * super-admin configured: event `paymentGateway`/`paymentChannel` override the
+ * platform default, with Paystack as the final fallback.
  */
-function resolveUssdGateway(event: any): "paystack" | "junipay" | "hubtel" {
-	const code = (event.ussdCode || "").trim();
-	const isExperiment =
-		isJunipayExperimentEvent(event) || isHubtelExperimentEvent(event);
-	if (!isExperiment) return "paystack";
-
-	const explicit = (process.env.USSD_PAYMENT_GATEWAY || "").toLowerCase();
-	if (explicit === "junipay" && isJunipayConfigured()) return "junipay";
-	if (explicit === "hubtel" && isHubtelConfigured()) return "hubtel";
-
-	if (isJunipayExperimentEvent(event) && isJunipayConfigured()) return "junipay";
-	if (isHubtelExperimentEvent(event) && isHubtelConfigured()) return "hubtel";
-
-	return "paystack";
+async function resolveUssdGateway(event: any): Promise<GatewayName> {
+	return resolveEventGateway(event, "ussd");
 }
 
 async function submitOtp(
@@ -614,9 +604,19 @@ async function processPayment(
 		return "END Invalid number. Try again.";
 	}
 
+	// Resolve the gateway first so the fee surcharge uses the correct gateway's
+	// rate/cap (Paystack, JuniPay, and Hubtel may all differ).
+	const gateway = await resolveUssdGateway(event);
+
 	const baseAmount = Number(price) * quantity;
 	const feeType = event.type === "voting" ? "vote" : "ticket";
-	const feeCalc = await computeDynamicChargeAmount(baseAmount, feeType, "GHS", event.organizationId);
+	const feeCalc = await computeDynamicChargeAmount(
+		baseAmount,
+		feeType,
+		"GHS",
+		event.organizationId,
+		gateway,
+	);
 	const totalAmountGHS = feeCalc.totalToCharge;
 	const amountPesewas = toPesewas(totalAmountGHS);
 
@@ -626,10 +626,6 @@ async function processPayment(
 		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${baseAmount.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`;
 	}
 
-	// Isolated gateway selection: JuniPay / Hubtel experiments (credential-gated),
-	// falling back to Paystack for everything else. If a non-Paystack gateway is
-	// selected but not configured, we gracefully fall back to Paystack.
-	const gateway = resolveUssdGateway(event);
 	if (gateway === "junipay") {
 		return await processJunipayPayment(event, optionId, quantity, price, phoneNumber);
 	}
