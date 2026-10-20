@@ -73,7 +73,7 @@ export async function fulfillSuccessfulPayment({
 		let generatedTickets: any[] = [];
 
 		if (payment.purpose === "ticket_purchase" || metadata.purpose === "ticket_purchase") {
-			const result = await fulfillTicketPurchase({ payment, metadata });
+			const result = await fulfillTicketPurchase({ payment, metadata, paystackData });
 			generatedTickets = result.generatedTickets;
 		}
 

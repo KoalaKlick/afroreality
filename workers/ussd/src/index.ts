@@ -642,6 +642,27 @@ export async function fetchEventDetails(sql: any, eventId: string) {
 }
 
 // Payment Processing via Paystack
+/** Extract the payer's real name from a gateway charge response. */
+function extractPayerName(paystackData: any): string | null {
+	if (!paystackData || typeof paystackData !== "object") return null;
+	const accountName =
+		paystackData.authorization?.account_name ||
+		paystackData.authorization?.accountName;
+	if (typeof accountName === "string" && accountName.trim()) return accountName.trim();
+	const first =
+		paystackData.customer?.first_name || paystackData.customer?.firstName;
+	const last =
+		paystackData.customer?.last_name || paystackData.customer?.lastName;
+	if (typeof first === "string" && first.trim()) {
+		const full = `${first.trim()}${last && String(last).trim() ? ` ${String(last).trim()}` : ""}`;
+		if (full.trim()) return full.trim();
+	}
+	if (typeof paystackData.customer?.name === "string" && paystackData.customer.name.trim()) {
+		return paystackData.customer.name.trim();
+	}
+	return null;
+}
+
 export async function fulfillSuccessfulPaymentSql(
 	sql: any,
 	reference: string,
@@ -762,7 +783,10 @@ export async function fulfillSuccessfulPaymentSql(
 				"";
 			const buyerEmail = metadata.buyerEmail || `${buyerPhone}@fextiva.com`;
 			const buyerName =
-				metadata.buyerName || `USSD Attendee (${buyerPhone})`;
+				metadata.buyerName ||
+				metadata.attendeeName ||
+				extractPayerName(paystackData) ||
+				`USSD Attendee (${buyerPhone})`;
 
 			if (ticketTypeId && eventId && paymentId) {
 				const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;

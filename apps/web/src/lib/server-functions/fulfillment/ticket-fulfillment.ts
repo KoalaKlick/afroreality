@@ -4,6 +4,7 @@ import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
 import { normalizePhoneNumber } from "@/lib/services/whatsapp";
 import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
 import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfillment/notifications";
+import { extractPayerName } from "@/lib/server-functions/fulfillment/payer-name";
 import { getFrontendBaseUrl } from "@/lib/utils";
 
 function buildOrgColors(org: any) {
@@ -37,9 +38,11 @@ async function fetchNotifEvent(eventId: string) {
 export async function fulfillTicketPurchase({
 	payment,
 	metadata,
+	paystackData,
 }: {
 	payment: any;
 	metadata: any;
+	paystackData?: any;
 }): Promise<{ generatedTickets: any[] }> {
 	let generatedTickets: any[] = [];
 	let ticketOrderId = metadata.ticketOrderId || metadata.orderId || payment.ticketOrders?.[0]?.id;
@@ -49,6 +52,7 @@ export async function fulfillTicketPurchase({
 	const buyerName =
 		metadata.buyerName ||
 		metadata.attendeeName ||
+		extractPayerName(paystackData) ||
 		`USSD Attendee (${metadata.phoneNumber || payment.email})`;
 	const buyerEmail = metadata.buyerEmail || metadata.attendeeEmail || payment.email;
 
@@ -129,7 +133,7 @@ export async function fulfillTicketPurchase({
 		}));
 	}
 
-	await sendTicketNotifications({ payment, metadata, generatedTickets, order });
+	await sendTicketNotifications({ payment, metadata, generatedTickets, order, resolvedBuyerName: buyerName });
 	return { generatedTickets };
 }
 
@@ -138,14 +142,17 @@ export async function sendTicketNotifications({
 	metadata,
 	generatedTickets,
 	order,
+	resolvedBuyerName,
 }: {
 	payment: any;
 	metadata: any;
 	generatedTickets: any[];
 	order: any;
+	resolvedBuyerName?: string;
 }) {
 	const eventId = metadata.eventId;
 	const buyerName =
+		resolvedBuyerName ||
 		metadata.buyerName ||
 		metadata.attendeeName ||
 		order?.buyerName ||
