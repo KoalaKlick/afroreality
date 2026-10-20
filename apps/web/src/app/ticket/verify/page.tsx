@@ -2,9 +2,45 @@ import { verifyAndCheckInTicket } from "@/lib/server-functions/public-checkout";
 import { TicketVerifyClient } from "./TicketVerifyClient";
 import { getAuthState } from "@/lib/auth-guards";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
-import { ShieldCheck, Lock, ArrowLeft } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+
+function GateLockSvg({ className = "size-20" }: { className?: string }) {
+	return (
+		<svg
+			viewBox="0 0 64 64"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			className={className}
+		>
+			<circle cx="32" cy="32" r="30" fill="url(#gate-grad)" />
+			<circle cx="32" cy="32" r="26" fill="#3B82F6" />
+			<path
+				d="M25 28V23.5C25 19.634 28.134 16.5 32 16.5C35.866 16.5 39 19.634 39 23.5V28"
+				stroke="white"
+				strokeWidth="3.5"
+				strokeLinecap="round"
+			/>
+			<rect x="22" y="28" width="20" height="17" rx="3.5" fill="white" />
+			<circle cx="32" cy="36" r="2" fill="#2563EB" />
+			<path d="M32 38V41" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" />
+			<defs>
+				<linearGradient
+					id="gate-grad"
+					x1="6"
+					y1="6"
+					x2="58"
+					y2="58"
+					gradientUnits="userSpaceOnUse"
+				>
+					<stop stopColor="#60A5FA" />
+					<stop offset="1" stopColor="#1D4ED8" />
+				</linearGradient>
+			</defs>
+		</svg>
+	);
+}
 
 interface TicketVerifyPageProps {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -38,12 +74,12 @@ export default async function TicketVerifyPage({
 		return (
 			<div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
 				<header className="border-b border-border/60 bg-card/40 backdrop-blur-sm">
-					<div className="max-w-md mx-auto px-4 h-12 flex items-center justify-between text-xs">
-						<span className="font-semibold tracking-tight text-foreground flex items-center gap-1.5">
-							<ShieldCheck className="size-3.5 text-primary" />
+					<div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between text-xs">
+						<span className="font-bold tracking-tight text-foreground flex items-center gap-2">
+							<ShieldCheck className="size-4 text-primary" />
 							Gate Verification
 						</span>
-						<Button asChild variant="ghost" size="sm" className="h-7 text-xs">
+						<Button asChild variant="ghost" size="sm" className="h-8 text-xs">
 							<Link href={`/login?next=${encodeURIComponent(returnUrl)}`}>
 								Sign In
 							</Link>
@@ -51,21 +87,19 @@ export default async function TicketVerifyPage({
 					</div>
 				</header>
 
-				<main className="max-w-sm w-full mx-auto px-4 py-16 flex flex-col items-center text-center space-y-4">
-					<div className="size-9 rounded-full bg-muted/60 border border-border/80 flex items-center justify-center text-muted-foreground">
-						<Lock className="size-4" />
-					</div>
+				<main className="max-w-md w-full mx-auto px-4 py-16 flex flex-col items-center text-center space-y-6">
+					<GateLockSvg className="size-20" />
 
-					<div className="space-y-1">
-						<h1 className="text-base font-bold text-foreground">
-							Verifier Sign-In Required
+					<div className="space-y-2">
+						<h1 className="text-2xl font-black text-foreground tracking-tight">
+							Organizer Sign-In Required
 						</h1>
-						<p className="text-xs text-muted-foreground">
-							Sign in with an organizer account to verify tickets and admit attendees.
+						<p className="text-sm text-muted-foreground leading-relaxed">
+							Sign in with an event organizer account to verify attendee tickets and manage door admission.
 						</p>
 					</div>
 
-					<Button asChild size="sm" className="w-full text-xs font-semibold h-9">
+					<Button asChild size="lg" className="w-full h-12 text-sm font-bold shadow-none">
 						<Link href={`/login?next=${encodeURIComponent(returnUrl)}`}>
 							Sign In to Verify
 						</Link>
@@ -94,33 +128,24 @@ export default async function TicketVerifyPage({
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
 			<header className="border-b border-border/60 bg-card/40 backdrop-blur-sm sticky top-0 z-40">
-				<div className="max-w-lg mx-auto px-4 h-12 flex items-center justify-between text-xs">
-					<div className="flex items-center gap-1.5 font-semibold text-foreground">
-						<ShieldCheck className="size-3.5 text-primary" />
+				<div className="max-w-xl mx-auto px-4 h-14 flex items-center justify-between text-xs">
+					<div className="flex items-center gap-2 font-bold text-foreground">
+						<ShieldCheck className="size-4 text-primary" />
 						<span>Gate Access</span>
 					</div>
 
 					<div className="flex items-center gap-3">
-						<span className="text-[11px] text-muted-foreground truncate max-w-[140px] sm:max-w-xs">
+						<span className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-xs font-medium">
 							{auth.fullName || auth.email}
 						</span>
-						<Button asChild variant="ghost" size="sm" className="h-7 text-xs px-2">
+						<Button asChild variant="ghost" size="sm" className="h-8 text-xs px-2.5">
 							<Link href="/dashboard">Dashboard</Link>
 						</Button>
 					</div>
 				</div>
 			</header>
 
-			<main className="flex-1 max-w-lg w-full mx-auto px-4 py-6 sm:py-8 space-y-5">
-				<div className="space-y-0.5">
-					<h1 className="text-lg font-bold text-foreground tracking-tight">
-						Ticket Check-In
-					</h1>
-					<p className="text-xs text-muted-foreground">
-						Scan attendee QR pass or enter ticket code.
-					</p>
-				</div>
-
+			<main className="flex-1 max-w-xl w-full mx-auto px-4 py-8 sm:py-10">
 				<TicketVerifyClient
 					initialToken={token}
 					initialTicket={initialData?.ticket}
