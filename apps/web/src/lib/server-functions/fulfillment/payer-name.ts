@@ -6,6 +6,13 @@
  * name registered on the MoMo wallet) instead of falling back to a placeholder.
  */
 
+import {
+	detectMomoNetworkFromPhone,
+	formatToLocalMomoNumber,
+} from "@/lib/utils/phone";
+
+const PAYSTACK_SECRET = () => (process.env.PAYSTACK_SECRET_KEY || "").trim();
+
 export function extractPayerName(paystackData: any): string | null {
 	if (!paystackData || typeof paystackData !== "object") return null;
 
@@ -30,6 +37,67 @@ export function extractPayerName(paystackData: any): string | null {
 	// Some providers expose a flat customer name.
 	if (typeof paystackData.customer?.name === "string" && paystackData.customer.name.trim()) {
 		return paystackData.customer.name.trim();
+	}
+
+	return null;
+}
+
+/**
+ * Resolve the MoMo account-holder name using Paystack's `bank/resolve` API,
+ * the same mechanism used when verifying a payout account. The network code is
+ * derived from the phone prefix (MTN / VOD / ATL).
+ *
+ * Used as a fallback when a non-Paystack gateway (e.g. JuniPay, Hubtel) does
+ * not return the account name in its own callback.
+ */
+export async function resolvePayerNameFromPaystack(phone: string): Promise<string | null> {
+	const secret = PAYSTACK_SECRET();
+	if (!secret || !phone) return null;
+
+	const network = detectMomoNetworkFromPhone(phone);
+	if (!network) return null;
+
+	const accountNumber = formatToLocalMomoNumber(phone);
+	if (!accountNumber) return null;
+
+	try {
+		const url = `https://api.paystack.co/bank/resolve?account_number=${encodeURIComponent(
+			accountNumber,
+		)}&bank_code=${encodeURIComponent(network.code)}`;
+		const response = await fetch(url, {
+			method: "GET",
+			headers: { Authorization: `Bearer ${secret}` },
+			cache: "no-store",
+		});
+		const result = await response.json();
+		if (result.status && typeof result.data?.account_name === "string") {
+			const name = result.data.account_name.trim();
+			if (name) return name;
+		}
+	} catch (err) {
+		console.warn("[PAYER-NAME] Paystack account resolve failed:", err);
+	}
+
+	return null;
+}
+
+/**
+ * Resolve the payer name: gateway response first, then a Paystack account
+ * resolve (network derived from the phone prefix), then null.
+ */
+export async function resolvePayerName({
+	paystackData,
+	phone,
+}: {
+	paystackData?: any;
+	phone?: string | null;
+}): Promise<string | null> {
+	const fromResponse = extractPayerName(paystackData);
+	if (fromResponse) return fromResponse;
+
+	if (phone) {
+		const fromPaystack = await resolvePayerNameFromPaystack(phone);
+		if (fromPaystack) return fromPaystack;
 	}
 
 	return null;

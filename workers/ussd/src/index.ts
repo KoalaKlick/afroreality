@@ -663,6 +663,43 @@ function extractPayerName(paystackData: any): string | null {
 	return null;
 }
 
+/**
+ * Resolve the MoMo account-holder name via Paystack `bank/resolve`, deriving the
+ * network bank code (MTN/VOD/ATL) from the phone prefix. Fallback for gateways
+ * (e.g. JuniPay, Hubtel) whose callback does not include the account name.
+ */
+async function resolvePayerNameFromPaystack(
+	env: Env | undefined,
+	phone: string | null | undefined,
+): Promise<string | null> {
+	const secret = (env?.PAYSTACK_SECRET_KEY || "").trim();
+	if (!secret || !phone) return null;
+
+	const provider = getProvider(phone);
+	const bankCode = provider === "mtn" ? "MTN" : provider === "vod" ? "VOD" : "ATL";
+	const accountNumber = normalizePhone(phone);
+	if (!accountNumber) return null;
+
+	try {
+		const url = `https://api.paystack.co/bank/resolve?account_number=${encodeURIComponent(
+			accountNumber,
+		)}&bank_code=${encodeURIComponent(bankCode)}`;
+		const response = await fetch(url, {
+			method: "GET",
+			headers: { Authorization: `Bearer ${secret}` },
+		});
+		const result = (await response.json()) as any;
+		if (result.status && typeof result.data?.account_name === "string") {
+			const name = result.data.account_name.trim();
+			if (name) return name;
+		}
+	} catch (err) {
+		console.warn("[USSD-WORKER-PAYER-NAME] Paystack account resolve failed:", err);
+	}
+
+	return null;
+}
+
 export async function fulfillSuccessfulPaymentSql(
 	sql: any,
 	reference: string,
@@ -786,6 +823,7 @@ export async function fulfillSuccessfulPaymentSql(
 				metadata.buyerName ||
 				metadata.attendeeName ||
 				extractPayerName(paystackData) ||
+				(await resolvePayerNameFromPaystack(env, buyerPhone)) ||
 				`USSD Attendee (${buyerPhone})`;
 
 			if (ticketTypeId && eventId && paymentId) {

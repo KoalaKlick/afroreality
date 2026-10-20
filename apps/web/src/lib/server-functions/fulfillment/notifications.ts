@@ -12,7 +12,7 @@ import {
 	sendNominationSms,
 } from "@/lib/services/sms";
 import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
-import { extractPayerName } from "@/lib/server-functions/fulfillment/payer-name";
+import { resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
 import { getFrontendBaseUrl } from "@/lib/utils";
 
 // ─── Channel Routing Helpers ──────────────────────────────────────────────────
@@ -196,8 +196,9 @@ export async function dispatchPendingNotificationsIfAny({
 
 			if (tickets.length > 0 && (!alreadyDispatched || unsentWhatsapp || unsentSms)) {
 				const eventId = metadata.eventId || order?.eventId;
-				const buyerName = metadata.buyerName || metadata.attendeeName || extractPayerName(paystackData) || order?.buyerName || `Attendee (${payment.email})`;
 				const buyerPhone = metadata.buyerPhone || metadata.phone || metadata.phone_number || metadata.attendeePhone || order?.buyerPhone || null;
+				const resolvedPayerName = await resolvePayerName({ paystackData, phone: buyerPhone });
+				const buyerName = metadata.buyerName || metadata.attendeeName || resolvedPayerName || order?.buyerName || `Attendee (${payment.email})`;
 				const buyerEmail = metadata.buyerEmail || metadata.attendeeEmail || payment.email;
 
 				const [notifEvent, messagingConfig] = await Promise.all([

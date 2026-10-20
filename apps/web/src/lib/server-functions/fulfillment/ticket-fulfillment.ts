@@ -4,7 +4,7 @@ import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
 import { normalizePhoneNumber } from "@/lib/services/whatsapp";
 import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
 import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfillment/notifications";
-import { extractPayerName } from "@/lib/server-functions/fulfillment/payer-name";
+import { resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
 import { getFrontendBaseUrl } from "@/lib/utils";
 
 function buildOrgColors(org: any) {
@@ -49,11 +49,21 @@ export async function fulfillTicketPurchase({
 	const ticketTypeId = metadata.ticketTypeId || metadata.optionId;
 	const eventId = metadata.eventId;
 	const quantity = Math.max(1, Number(metadata.quantity) || 1);
+	const payerPhone =
+		metadata.phoneNumber ||
+		metadata.buyerPhone ||
+		metadata.phone ||
+		metadata.phone_number ||
+		null;
+	const resolvedPayerName = await resolvePayerName({
+		paystackData,
+		phone: payerPhone,
+	});
 	const buyerName =
 		metadata.buyerName ||
 		metadata.attendeeName ||
-		extractPayerName(paystackData) ||
-		`USSD Attendee (${metadata.phoneNumber || payment.email})`;
+		resolvedPayerName ||
+		`USSD Attendee (${payerPhone || payment.email})`;
 	const buyerEmail = metadata.buyerEmail || metadata.attendeeEmail || payment.email;
 
 	if (!ticketOrderId && ticketTypeId && eventId) {
@@ -64,7 +74,7 @@ export async function fulfillTicketPurchase({
 					paymentId: payment.id,
 					orderNumber: `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
 					buyerName,
-					buyerPhone: metadata.phoneNumber || null,
+					buyerPhone: payerPhone,
 					subtotal: payment.amount,
 					status: "completed",
 				},
