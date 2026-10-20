@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { verifyAndCheckInTicket } from "@/lib/server-functions/public-checkout";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
+import Link from "next/link";
 
 interface TicketVerifyClientProps {
 	readonly initialToken?: string;

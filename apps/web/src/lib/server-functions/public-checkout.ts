@@ -29,6 +29,8 @@ import {
 	detectMomoNetworkFromPhone,
 	formatToLocalMomoNumber,
 } from "@/lib/utils/phone";
+import { getAuthState } from "@/lib/auth-guards";
+import { isPlatformAdmin } from "@/lib/admin/admin-auth";
 
 export interface AttendeeInput {
 	name: string;
@@ -1386,6 +1388,40 @@ export async function verifyAndCheckInTicket({
 			isValid: false,
 			status: "not_found",
 			message: "Ticket not found in event registry.",
+		};
+	}
+
+	// ── Authorization: only the event's organizers (or a platform admin) may
+	// verify, check in, or check out tickets. This prevents any unauthenticated
+	// visitor from scanning/looking up attendee details or altering check-in.
+	const auth = await getAuthState();
+	if (!auth) {
+		return {
+			isValid: false,
+			status: "login_required",
+			message: "You must be logged in to verify tickets.",
+		};
+	}
+
+	const organizationId = ticket.event?.organizationId ?? ticket.event?.organization?.id;
+	const isAdmin = await isPlatformAdmin(auth.email);
+	const membership = isAdmin
+		? null
+		: await prisma.teamMember.findUnique({
+				where: {
+					organizationId_userId: {
+						organizationId: organizationId || "",
+						userId: auth.userId,
+					},
+				},
+				select: { role: true },
+			});
+
+	if (!isAdmin && !membership) {
+		return {
+			isValid: false,
+			status: "unauthorized",
+			message: "You must be an organizer of this event to verify tickets.",
 		};
 	}
 

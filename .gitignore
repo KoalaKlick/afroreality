@@ -39,3 +39,4 @@ yarn-error.log*
 
 # ui
 dist/
+lookup-project-test/

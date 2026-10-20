@@ -1,5 +1,6 @@
 import { verifyAndCheckInTicket } from "@/lib/server-functions/public-checkout";
 import { TicketVerifyClient } from "./TicketVerifyClient";
+import { getAuthState } from "@/lib/auth-guards";
 import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
 import { ShieldCheck, ArrowLeft } from "lucide-react";
@@ -18,6 +19,28 @@ export const metadata = {
 export default async function TicketVerifyPage({
 	searchParams,
 }: TicketVerifyPageProps) {
+	const auth = await getAuthState();
+
+	if (!auth) {
+		return (
+			<div className="min-h-screen bg-background text-foreground flex flex-col">
+				<main className="flex-1 max-w-md w-full mx-auto px-4 py-16 flex flex-col items-center justify-center text-center space-y-4">
+					<ShieldCheck className="size-14 text-primary" />
+					<h1 className="text-2xl font-black tracking-tight">
+						Organizer Access Required
+					</h1>
+					<p className="text-xs text-muted-foreground max-w-xs">
+						You must be logged in as an event organizer to verify tickets and
+						manage gate check-in.
+					</p>
+					<Button asChild className="text-xs font-semibold">
+						<Link href="/login">Login to Verify</Link>
+					</Button>
+				</main>
+			</div>
+		);
+	}
+
 	const params = await searchParams;
 	const token = typeof params.token === "string" ? params.token : "";
 	const ticketCode =
