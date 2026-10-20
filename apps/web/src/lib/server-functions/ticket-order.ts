@@ -83,11 +83,45 @@ export async function createTicketOrder({ data }: { data: any }): Promise<any> {
 
 export async function checkInTicket({ data }: { data: { ticketId: string; eventId: string } }): Promise<any> {
   try {
+    const { getAuthState } = await import("@/lib/auth-guards");
+    const { isPlatformAdmin } = await import("@/lib/admin/admin-auth");
+
+    const auth = await getAuthState();
+    if (!auth) {
+      throw new Error("Authentication required.");
+    }
+
     const ticket = await prisma.ticket.findUnique({
       where: { id: data.ticketId },
+      include: {
+        event: {
+          include: { organization: true },
+        },
+      },
     });
     if (!ticket || ticket.eventId !== data.eventId) {
       throw new Error("Invalid ticket");
+    }
+
+    const isAdmin = await isPlatformAdmin(auth.email);
+    const isEventCreator = ticket.event.creatorId === auth.userId;
+    const isOrgCreator = ticket.event.organization?.createdBy === auth.userId;
+    const membership = (isAdmin || isEventCreator || isOrgCreator)
+      ? true
+      : Boolean(
+          await prisma.teamMember.findUnique({
+            where: {
+              organizationId_userId: {
+                organizationId: ticket.event.organizationId,
+                userId: auth.userId,
+              },
+            },
+            select: { role: true },
+          })
+        );
+
+    if (!membership) {
+      throw new Error("You are not authorized to check in tickets for this event.");
     }
 
     const updated = await prisma.ticket.update({
@@ -95,6 +129,7 @@ export async function checkInTicket({ data }: { data: { ticketId: string; eventI
       data: {
         checkInStatus: "checked_in",
         checkedInAt: new Date(),
+        checkedInBy: auth.userId,
       },
     });
 

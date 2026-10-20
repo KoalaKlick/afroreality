@@ -8,10 +8,10 @@ import {
 	Loader2,
 	LogOut,
 	LogIn,
+	Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { verifyAndCheckInTicket } from "@/lib/server-functions/public-checkout";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/utils";
@@ -23,6 +23,7 @@ interface TicketVerifyClientProps {
 	readonly initialStatus?: string;
 	readonly initialMessage?: string;
 	readonly isValid?: boolean;
+	readonly verifierName?: string;
 }
 
 export function TicketVerifyClient({
@@ -31,6 +32,7 @@ export function TicketVerifyClient({
 	initialStatus = "not_checked_in",
 	initialMessage,
 	isValid = true,
+	verifierName,
 }: TicketVerifyClientProps) {
 	const [ticket, setTicket] = useState<any>(initialTicket);
 	const [status, setStatus] = useState<string>(initialStatus);
@@ -46,13 +48,14 @@ export function TicketVerifyClient({
 
 	async function handleLookupCode(e: React.FormEvent) {
 		e.preventDefault();
-		if (!ticketCodeInput.trim()) return;
+		const code = ticketCodeInput.trim().toUpperCase();
+		if (!code) return;
 
 		startTransition(async () => {
 			try {
 				const result = await verifyAndCheckInTicket({
 					data: {
-						ticketCode: ticketCodeInput.trim().toUpperCase(),
+						ticketCode: code,
 						action: "status",
 					},
 				});
@@ -60,7 +63,7 @@ export function TicketVerifyClient({
 				if (result.status === "login_required" || result.status === "unauthorized") {
 					setAuthState(result.status);
 					setValid(false);
-					setMessage(result.message || "You must be an organizer to verify tickets.");
+					setMessage(result.message || "Organizer authentication required.");
 					setTicket(null);
 					return;
 				}
@@ -75,8 +78,8 @@ export function TicketVerifyClient({
 					setStatus(result.ticket.checkInStatus);
 					setMessage(
 						result.ticket.checkInStatus === "checked_in"
-							? `Already checked in at ${result.ticket.checkedInAt ? formatDate(result.ticket.checkedInAt, true) : "earlier"}`
-							: "Ticket verified! Ready for check-in.",
+							? "Already checked in."
+							: "Valid ticket. Ready for entry.",
 					);
 				}
 			} catch (err: any) {
@@ -107,14 +110,14 @@ export function TicketVerifyClient({
 					setTicket(result.ticket);
 					setStatus("checked_in");
 					if (result.status === "already_checked_in") {
-						setMessage("Attendee is already checked in.");
+						setMessage("Already checked in.");
 						toast.info("Attendee is already checked in.");
 					} else {
-						setMessage(result.message || "Check-in recorded successfully!");
-						toast.success("Attendee checked in!");
+						setMessage("Check-in recorded.");
+						toast.success("Attendee checked in.");
 					}
 				} else {
-					toast.error(result.message);
+					toast.error(result.message || "Check-in failed.");
 				}
 			} catch (err: any) {
 				toast.error(err.message || "Check-in failed.");
@@ -143,8 +146,8 @@ export function TicketVerifyClient({
 				if (result.isValid && result.ticket) {
 					setTicket(result.ticket);
 					setStatus("not_checked_in");
-					setMessage("Checked out successfully.");
-					toast.success("Attendee checked out.");
+					setMessage("Check-in undone.");
+					toast.success("Check-in undone.");
 				}
 			} catch (err: any) {
 				toast.error(err.message || "Check-out failed.");
@@ -152,173 +155,198 @@ export function TicketVerifyClient({
 		});
 	}
 
-		if (authState === "login_required") {
-			return (
-				<div className="max-w-md mx-auto py-12 px-6 text-center space-y-4">
-					<AlertCircle className="size-12 text-primary mx-auto" />
-					<h3 className="text-xl font-black text-foreground">
-						Organizer Access Required
-					</h3>
-					<p className="text-xs text-muted-foreground max-w-xs mx-auto">
-						{message || "You must be logged in to verify tickets."}
-					</p>
-					<Button asChild className="text-xs font-semibold">
-						<Link href="/login">Login to Verify</Link>
-					</Button>
-				</div>
-			);
-		}
-
-		if (authState === "unauthorized") {
-			return (
-				<div className="max-w-md mx-auto py-12 px-6 text-center space-y-4">
-					<XCircle className="size-12 text-destructive mx-auto" />
-					<h3 className="text-xl font-black text-foreground">Unauthorized</h3>
-					<p className="text-xs text-muted-foreground max-w-xs mx-auto">
-						{message || "You must be an organizer of this event to verify tickets."}
-					</p>
-					<Button asChild variant="outline" className="text-xs font-semibold">
-						<Link href="/dashboard">Go to Dashboard</Link>
-					</Button>
-				</div>
-			);
-		}
-
+	if (authState === "login_required") {
 		return (
-		<div className="max-w-xl mx-auto space-y-6">
-			{/* Manual Ticket Code Lookup */}
-			<Card className="border-border/80 shadow-xs">
-				<CardContent className="p-4 sm:p-5">
-					<form onSubmit={handleLookupCode} className="flex gap-2">
-						<Input
-							placeholder="Enter Ticket Code (e.g. TIX-ABC12345)"
-							value={ticketCodeInput}
-							onChange={(e) => setTicketCodeInput(e.target.value.toUpperCase())}
-							className="font-mono text-xs uppercase"
-						/>
-						<Button
-							type="submit"
-							disabled={isPending || !ticketCodeInput.trim()}
-							size="sm"
-							className="text-xs font-semibold shrink-0"
-						>
-							{isPending ? (
-								<Loader2 className="size-3.5 animate-spin" />
-							) : (
-								"Verify Code"
-							)}
-						</Button>
-					</form>
-				</CardContent>
-			</Card>
+			<div className="p-5 border border-border/70 rounded-lg text-center space-y-3 bg-muted/10">
+				<div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground">
+					<AlertCircle className="size-3.5 text-primary" />
+					<span>Sign-In Required</span>
+				</div>
+				<p className="text-xs text-muted-foreground max-w-xs mx-auto">
+					{message || "Organizer authentication required to verify passes."}
+				</p>
+				<Button asChild size="sm" className="h-8 text-xs font-semibold">
+					<Link href="/login">Sign In</Link>
+				</Button>
+			</div>
+		);
+	}
+
+	if (authState === "unauthorized") {
+		return (
+			<div className="p-5 border border-destructive/20 rounded-lg text-center space-y-3 bg-destructive/[0.03]">
+				<div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-destructive">
+					<XCircle className="size-3.5" />
+					<span>Access Restricted</span>
+				</div>
+				<p className="text-xs text-muted-foreground max-w-xs mx-auto">
+					{message || "You are not an organizer for this event."}
+				</p>
+				<Button asChild variant="outline" size="sm" className="h-8 text-xs">
+					<Link href="/dashboard">Back to Dashboard</Link>
+				</Button>
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-4">
+			{/* Code Lookup Bar */}
+			<form onSubmit={handleLookupCode} className="flex gap-2">
+				<Input
+					placeholder="Enter ticket code (e.g. TIX-...)"
+					value={ticketCodeInput}
+					onChange={(e) => setTicketCodeInput(e.target.value.toUpperCase())}
+					className="font-mono text-xs uppercase h-9 bg-card/60 border-border/70"
+				/>
+				<Button
+					type="submit"
+					disabled={isPending || !ticketCodeInput.trim()}
+					size="sm"
+					className="h-9 px-4 text-xs font-semibold shrink-0"
+				>
+					{isPending ? (
+						<Loader2 className="size-3.5 animate-spin" />
+					) : (
+						"Lookup"
+					)}
+				</Button>
+			</form>
 
 			{/* Status Banner */}
 			{!valid ? (
-				<div className="p-6 rounded-2xl bg-destructive/10 border border-destructive/20 text-center space-y-2">
-					<XCircle className="size-12 text-destructive mx-auto" />
-					<h3 className="text-lg font-bold text-foreground">Invalid Ticket</h3>
-					<p className="text-xs text-muted-foreground">{message}</p>
+				<div className="p-4 rounded-lg bg-destructive/[0.04] border border-destructive/20 flex items-start gap-2.5 text-xs">
+					<XCircle className="size-4 text-destructive shrink-0 mt-0.5" />
+					<div>
+						<p className="font-semibold text-foreground">Invalid Ticket</p>
+						<p className="text-muted-foreground mt-0.5">
+							{message || "Ticket signature or code is invalid."}
+						</p>
+					</div>
 				</div>
 			) : ticket ? (
-				<div className="space-y-6">
-					{/* Status Card Header */}
+				<div className="space-y-3">
+					{/* Status Pill */}
 					<div
-						className={`p-6 rounded-2xl border text-center space-y-2 ${
+						className={`px-3.5 py-2.5 rounded-lg border flex items-center justify-between text-xs ${
 							status === "checked_in"
-								? "bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-300"
-								: "bg-green-500/10 border-green-500/30 text-green-900 dark:text-green-300"
+								? "bg-amber-500/[0.08] border-amber-500/30 text-amber-700 dark:text-amber-300"
+								: "bg-emerald-500/[0.08] border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
 						}`}
 					>
-						{status === "checked_in" ? (
-							<AlertCircle className="size-12 text-amber-500 mx-auto" />
-						) : (
-							<CheckCircle2 className="size-12 text-green-500 mx-auto" />
-						)}
-						<h3 className="text-xl font-black text-foreground">
-							{status === "checked_in" ? "Already Checked In" : "Valid Ticket"}
-						</h3>
-						<p className="text-xs text-muted-foreground">{message}</p>
+						<div className="flex items-center gap-2">
+							{status === "checked_in" ? (
+								<Clock className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+							) : (
+								<CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+							)}
+							<span className="font-semibold">
+								{status === "checked_in" ? "Already Checked In" : "Valid Ticket"}
+							</span>
+						</div>
+
+						<span className="text-[11px] opacity-80 font-mono">
+							{status === "checked_in" && ticket.checkedInAt
+								? formatDate(ticket.checkedInAt, true)
+								: "Ready for entry"}
+						</span>
 					</div>
 
-					{/* Attendee and Event Details Card */}
-					<Card className="border-border/80 shadow-xs">
-						<CardContent className="p-6 space-y-4">
-							<div className="flex items-center justify-between border-b pb-3">
+					{/* Attendee Details Card */}
+					<div className="p-4 rounded-lg border border-border/70 bg-card/40 space-y-3">
+						<div className="flex items-center justify-between border-b border-border/50 pb-2.5">
+							<div>
+								<h4 className="font-semibold text-xs text-foreground">
+									{ticket.event?.title}
+								</h4>
+								<p className="text-[11px] text-muted-foreground">
+									{ticket.event?.organization?.name}
+								</p>
+							</div>
+							<span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-muted/60 border border-border/60">
+								{ticket.ticketCode}
+							</span>
+						</div>
+
+						<div className="grid grid-cols-2 gap-3 text-xs">
+							<div>
+								<span className="text-[11px] text-muted-foreground block">Attendee</span>
+								<p className="font-semibold text-foreground truncate">
+									{ticket.attendeeName || ticket.order?.buyerName || "Guest"}
+								</p>
+							</div>
+
+							<div>
+								<span className="text-[11px] text-muted-foreground block">Ticket Tier</span>
+								<p className="font-semibold text-primary">
+									{ticket.ticketType?.name || "General"}
+								</p>
+							</div>
+
+							{(ticket.attendeeEmail || ticket.order?.buyerEmail) && (
 								<div>
-									<h4 className="font-bold text-base text-foreground">
-										{ticket.event?.title}
-									</h4>
-									<p className="text-xs text-muted-foreground">
-										{ticket.event?.organization?.name}
+									<span className="text-[11px] text-muted-foreground block">Email</span>
+									<p className="text-foreground truncate text-[11px]">
+										{ticket.attendeeEmail || ticket.order?.buyerEmail}
 									</p>
 								</div>
-								<span className="font-mono text-xs font-bold px-2.5 py-1 rounded bg-muted border">
-									{ticket.ticketCode}
-								</span>
-							</div>
+							)}
 
-							<div className="grid grid-cols-2 gap-4 text-xs">
-								<div className="space-y-1">
-									<span className="text-muted-foreground">Attendee:</span>
-									<p className="font-bold text-foreground">
-										{ticket.attendeeName || ticket.order?.buyerName || "Guest"}
+							{(ticket.attendeePhone || ticket.order?.buyerPhone) && (
+								<div>
+									<span className="text-[11px] text-muted-foreground block">Contact</span>
+									<p className="text-foreground text-[11px] font-mono">
+										{ticket.attendeePhone || ticket.order?.buyerPhone}
 									</p>
 								</div>
+							)}
+						</div>
 
-								<div className="space-y-1">
-									<span className="text-muted-foreground">Ticket Tier:</span>
-									<p className="font-bold text-primary">
-										{ticket.ticketType?.name}
-									</p>
-								</div>
+						{/* Action: Check-In / Undo */}
+						<div className="pt-2">
+							{status !== "checked_in" ? (
+								<Button
+									onClick={handleCheckIn}
+									disabled={isPending}
+									className="w-full h-9 text-xs font-semibold gap-1.5"
+								>
+									{isPending ? (
+										<Loader2 className="size-3.5 animate-spin" />
+									) : (
+										<>
+											<LogIn className="size-3.5" /> Confirm Check-In
+										</>
+									)}
+								</Button>
+							) : (
+								<Button
+									variant="outline"
+									onClick={handleCheckOut}
+									disabled={isPending}
+									className="w-full h-8 text-xs font-medium border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 gap-1.5"
+								>
+									{isPending ? (
+										<Loader2 className="size-3.5 animate-spin" />
+									) : (
+										<>
+											<LogOut className="size-3.5" /> Undo Check-In
+										</>
+									)}
+								</Button>
+							)}
+						</div>
+					</div>
 
-								{ticket.attendeeEmail && (
-									<div className="space-y-1">
-										<span className="text-muted-foreground">Email:</span>
-										<p className="font-semibold text-foreground truncate">
-											{ticket.attendeeEmail}
-										</p>
-									</div>
-								)}
-
-								{ticket.checkedInAt && (
-									<div className="space-y-1">
-										<span className="text-muted-foreground">Checked In At:</span>
-										<p className="font-semibold text-foreground">
-											{formatDate(ticket.checkedInAt, true)}
-										</p>
-									</div>
-								)}
-							</div>
-
-							{/* Actions: Check In / Check Out */}
-							<div className="flex gap-3 pt-4 border-t">
-								{status !== "checked_in" ? (
-									<Button
-										onClick={handleCheckIn}
-										disabled={isPending}
-										className="flex-1 font-bold text-xs h-10 gap-2"
-									>
-										<LogIn className="size-4" /> Check In Attendee
-									</Button>
-								) : (
-									<Button
-										variant="outline"
-										onClick={handleCheckOut}
-										disabled={isPending}
-										className="flex-1 font-bold text-xs h-10 gap-2 border-amber-500/40 hover:bg-amber-500/10 text-amber-700 dark:text-amber-300"
-									>
-										<LogOut className="size-4" /> Undo / Check Out
-									</Button>
-								)}
-							</div>
-						</CardContent>
-					</Card>
+					{verifierName && (
+						<p className="text-[11px] text-center text-muted-foreground">
+							Verified by <span className="text-foreground font-medium">{verifierName}</span>
+						</p>
+					)}
 				</div>
 			) : (
-				<div className="text-center py-12 text-muted-foreground text-xs">
-					Scan a ticket QR code or enter a ticket code above to verify.
-				</div>
+				<p className="text-center py-8 text-xs text-muted-foreground">
+					Scan a QR ticket or enter a ticket code above.
+				</p>
 			)}
 		</div>
 	);

@@ -31,7 +31,6 @@ import { DataTablePagination } from "@/components/common/data-table-pagination";
 import { StatusBadge } from "@/components/common/status-badge";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useDataTable } from "@/hooks/use-data-table";
-import { StatCard, statIcons } from "@/components/event/core/EventStats";
 import {
 	getEventTicketAttendees,
 	toggleTicketCheckInStatus,
@@ -238,52 +237,65 @@ export function EventVerificationTab({ event }: EventVerificationTabProps) {
 		totalCount > 0 ? Math.round((checkedInCount / totalCount) * 100) : 0;
 
 	return (
-		<div className="space-y-6">
-			{/* Stat Cards - Reusing standard StatCard with 3D icons */}
-			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-				<StatCard
-					label="Total Tickets Issued"
-					value={totalCount}
-					iconSrc={statIcons.ticket}
-					description="Confirmed tickets for this event"
-				/>
+		<div className="space-y-5">
+			{/* Clean Minimal Stat Counters */}
+			<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+				<div className="p-4 rounded-lg border border-border/70 bg-card/50 flex items-center justify-between">
+					<div>
+						<span className="text-[11px] font-medium text-muted-foreground block">
+							Total Issued
+						</span>
+						<p className="text-xl font-bold text-foreground mt-0.5">{totalCount}</p>
+					</div>
+					<div className="size-8 rounded-md bg-muted/60 border border-border/50 flex items-center justify-center text-muted-foreground">
+						<Ticket className="size-4" />
+					</div>
+				</div>
 
-				<StatCard
-					label={`Checked In (${checkInRate}%)`}
-					value={checkedInCount}
-					iconSrc={statIcons.ongoingGreen}
-					variant="success"
-					description="Attendees verified at gate"
-				/>
+				<div className="p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.03] flex items-center justify-between">
+					<div>
+						<span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 block">
+							Checked In ({checkInRate}%)
+						</span>
+						<p className="text-xl font-bold text-foreground mt-0.5">{checkedInCount}</p>
+					</div>
+					<div className="size-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+						<CheckCircle2 className="size-4" />
+					</div>
+				</div>
 
-				<StatCard
-					label="Awaiting Check-in"
-					value={remainingCount}
-					iconSrc={statIcons.search}
-					variant="warning"
-					description="Tickets pending door entry"
-				/>
+				<div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/[0.03] flex items-center justify-between">
+					<div>
+						<span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 block">
+							Pending Entry
+						</span>
+						<p className="text-xl font-bold text-foreground mt-0.5">{remainingCount}</p>
+					</div>
+					<div className="size-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+						<Clock className="size-4" />
+					</div>
+				</div>
 			</div>
 
-			{/* Scanner Launch Bar */}
-			<div className="rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+			{/* Scanner Bar */}
+			<div className="rounded-lg border border-border/70 bg-muted/20 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
 				<div className="flex items-center gap-3">
-					<div className="size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
-						<QrCode className="size-5" />
+					<div className="size-8 rounded-md bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+						<QrCode className="size-4" />
 					</div>
 					<div>
-						<h4 className="font-bold text-sm text-foreground">
-							Live Gate Scanner & Door Verification
+						<h4 className="font-semibold text-xs text-foreground">
+							Gate Verification Scanner
 						</h4>
-						<p className="text-xs text-muted-foreground">
-							Open the high-speed QR and Ticket Code scanner on door tablet or mobile devices.
+						<p className="text-[11px] text-muted-foreground">
+							Scan QR passes or look up ticket numbers at entry points.
 						</p>
 					</div>
 				</div>
 
-				<Button asChild size="sm" className="font-bold text-xs gap-2 shrink-0">
+				<Button asChild size="sm" className="h-8 text-xs font-semibold gap-1.5 shrink-0">
 					<Link href="/ticket/verify" target="_blank">
-						<ExternalLink className="size-3.5" /> Open Gate Scanner
+						<ExternalLink className="size-3.5" /> Launch Gate Scanner
 					</Link>
 				</Button>
 			</div>

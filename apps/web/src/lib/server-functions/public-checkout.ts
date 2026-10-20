@@ -281,12 +281,16 @@ export async function initiatePublicTicketCheckout({
 		const splitChargePesewas = feeCalc.splitChargePesewas;
 
 		// Create Pending Ticket Order
+		const auth = await getAuthState().catch(() => null);
+		const buyerId = auth?.userId || null;
+
 		const order = await prisma.ticketOrder.create({
 			data: {
 				eventId,
 				orderNumber,
 				buyerName,
 				buyerPhone: buyerPhone || null,
+				buyerId,
 				subtotal: baseAmount,
 				discountAmount: 0,
 				fees: paystackFee,
@@ -470,6 +474,7 @@ export async function initiatePublicTicketCheckout({
 				ticketTypeName: ticketType.name,
 				quantity,
 				buyerName,
+				buyerId: buyerId || null,
 				buyerEmail: buyerEmail?.trim() || null,
 				buyerPhone,
 				attendees: (data.attendees || []) as any,
@@ -567,6 +572,7 @@ export async function initiatePublicTicketCheckout({
 				ticketTypeName: ticketType.name,
 				quantity,
 				buyerName,
+				buyerId: buyerId || null,
 				buyerEmail: buyerEmail?.trim() || null,
 				buyerPhone,
 				attendees: (data.attendees || []) as any,
@@ -1405,7 +1411,10 @@ export async function verifyAndCheckInTicket({
 
 	const organizationId = ticket.event?.organizationId ?? ticket.event?.organization?.id;
 	const isAdmin = await isPlatformAdmin(auth.email);
-	const membership = isAdmin
+	const isEventCreator = ticket.event?.creatorId === auth.userId;
+	const isOrgCreator = ticket.event?.organization?.createdBy === auth.userId;
+
+	const membership = (isAdmin || isEventCreator || isOrgCreator)
 		? null
 		: await prisma.teamMember.findUnique({
 				where: {
@@ -1417,7 +1426,7 @@ export async function verifyAndCheckInTicket({
 				select: { role: true },
 			});
 
-	if (!isAdmin && !membership) {
+	if (!isAdmin && !isEventCreator && !isOrgCreator && !membership) {
 		return {
 			isValid: false,
 			status: "unauthorized",
@@ -1430,7 +1439,7 @@ export async function verifyAndCheckInTicket({
 			return {
 				isValid: true,
 				status: "already_checked_in",
-				message: "Attendee is already checked in.",
+				message: "Already checked in.",
 				ticket,
 			};
 		}
@@ -1440,6 +1449,7 @@ export async function verifyAndCheckInTicket({
 			data: {
 				checkInStatus: "checked_in",
 				checkedInAt: new Date(),
+				checkedInBy: auth.userId,
 			},
 			include: {
 				event: { include: { organization: true } },
@@ -1451,7 +1461,7 @@ export async function verifyAndCheckInTicket({
 		return {
 			isValid: true,
 			status: "checked_in",
-			message: "Check-in successful! Access granted.",
+			message: "Check-in recorded successfully.",
 			ticket: updated,
 		};
 	}
@@ -1462,6 +1472,7 @@ export async function verifyAndCheckInTicket({
 			data: {
 				checkInStatus: "not_checked_in",
 				checkedInAt: null,
+				checkedInBy: null,
 			},
 			include: {
 				event: { include: { organization: true } },
@@ -1473,7 +1484,7 @@ export async function verifyAndCheckInTicket({
 		return {
 			isValid: true,
 			status: "not_checked_in",
-			message: "Ticket reset to not checked in.",
+			message: "Check-in undone.",
 			ticket: updated,
 		};
 	}
@@ -1484,7 +1495,7 @@ export async function verifyAndCheckInTicket({
 		status: ticket.checkInStatus,
 		message:
 			ticket.checkInStatus === "checked_in"
-				? `Already checked in at ${ticket.checkedInAt?.toLocaleTimeString()}`
+				? "Already checked in."
 				: "Valid ticket. Ready for entry.",
 		ticket,
 	};
