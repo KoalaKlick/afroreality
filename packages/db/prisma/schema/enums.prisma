@@ -111,6 +111,11 @@ enum PaymentGateway {
   hubtel
 }
 
+enum PaymentChannel {
+  ussd
+  web
+}
+
 enum PaymentPurpose {
   ticket_purchase
   vote_purchase

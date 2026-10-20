@@ -512,7 +512,7 @@ export async function fetchEventByCode(sql: any, code: string) {
 	const unpadded = !Number.isNaN(num) ? num.toString() : trimmed;
 
 	const events = await sql`
-		SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date, payment_gateway
+		SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date, payment_gateway, payment_channel
 		FROM events 
 		WHERE (ussd_code = ${trimmed} OR ussd_code = ${padded} OR ussd_code = ${unpadded}) AND has_ussd = true
 		LIMIT 1
@@ -1326,9 +1326,9 @@ async function processHubtelPayment(
 
 /**
  * Resolve which payment gateway to use for a USSD payment. Routing is
- * super-admin configured: the event's `payment_gateway` override (applies to
- * both surfaces) wins, otherwise the USSD channel default is used, with Paystack
- * as the final fallback.
+ * super-admin configured: the event's `payment_gateway` override wins when its
+ * `payment_channel` is NULL (both) or "ussd"; otherwise the USSD channel default
+ * is used, with Paystack as the final fallback.
  */
 async function resolveUssdGateway(
 	sql: any,
@@ -1351,9 +1351,13 @@ async function resolveUssdGateway(
 
 	let gateway: GatewayName = defaultGateway;
 	const eventGateway = event?.payment_gateway ?? event?.paymentGateway ?? null;
+	const eventChannel = event?.payment_channel ?? event?.paymentChannel ?? null;
 
 	if (isGatewayName(eventGateway)) {
-		gateway = eventGateway;
+		// NULL channel -> both; otherwise only apply when scoped to USSD.
+		if (!eventChannel || eventChannel === "ussd") {
+			gateway = eventGateway;
+		}
 	}
 
 	if (!isGatewayConfigured(env, gateway)) {
@@ -1802,7 +1806,7 @@ export async function handleUssdCore(
 			);
 
 			const listedEvents = await sql`
-				SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date, payment_gateway
+				SELECT id, title, has_ussd, ussd_code, type, organization_id, status, start_date, end_date, payment_gateway, payment_channel
 				FROM events 
 				WHERE has_ussd = true 
 				  AND status IN ('published', 'ongoing')

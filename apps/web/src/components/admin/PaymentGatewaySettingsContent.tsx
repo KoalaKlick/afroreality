@@ -83,8 +83,13 @@ export function PaymentGatewaySettingsContent({
 	});
 
 	const [search, setSearch] = useState("");
-	const [routing, setRouting] = useState<Record<string, string>>(() =>
-		Object.fromEntries(eventRoutings.map((ev) => [ev.id, ev.paymentGateway || "inherit"])),
+	const [routing, setRouting] = useState<Record<string, { gateway: string; channel: string }>>(() =>
+		Object.fromEntries(
+			eventRoutings.map((ev) => [
+				ev.id,
+				{ gateway: ev.paymentGateway || "inherit", channel: ev.paymentChannel || "both" },
+			]),
+		),
 	);
 
 	const saveGatewayFee = (gateway: Gateway) => {
@@ -116,7 +121,8 @@ export function PaymentGatewaySettingsContent({
 		startTransition(async () => {
 			const res = await adminUpdateEventPaymentRouting({
 				eventId,
-				gateway: r === "inherit" ? null : (r as Gateway),
+				gateway: r.gateway === "inherit" ? null : (r.gateway as Gateway),
+				channel: r.channel === "both" ? null : (r.channel as "ussd" | "web"),
 			});
 			if (res.success) toast.success(res.message);
 			else toast.error(res.error || "Failed to update event routing");
@@ -265,7 +271,7 @@ export function PaymentGatewaySettingsContent({
 						Per-Event Payment Routing
 					</CardTitle>
 					<CardDescription className="text-xs">
-						Override the gateway for individual events (applies to both USSD and Web). &ldquo;Default&rdquo; inherits the per-channel default.
+						Override the gateway for an event, optionally scoped to USSD only or Web only. &ldquo;Default&rdquo; inherits the per-channel default.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-4 space-y-4">
@@ -286,11 +292,11 @@ export function PaymentGatewaySettingsContent({
 							</p>
 						) : (
 							filteredEvents.map((ev) => {
-								const r = routing[ev.id] || "inherit";
+								const r = routing[ev.id] || { gateway: "inherit", channel: "both" };
 								return (
 									<div
 										key={ev.id}
-										className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-center rounded-lg border border-border/80 p-3"
+										className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center rounded-lg border border-border/80 p-3"
 									>
 										<div className="min-w-0">
 											<p className="text-sm font-semibold truncate">{ev.title}</p>
@@ -301,12 +307,15 @@ export function PaymentGatewaySettingsContent({
 										</div>
 
 										<Select
-											value={r}
+											value={r.gateway}
 											onValueChange={(v) =>
-												setRouting((prev) => ({ ...prev, [ev.id]: v }))
+												setRouting((prev) => ({
+													...prev,
+													[ev.id]: { ...(prev[ev.id] || { channel: "both" }), gateway: v },
+												}))
 											}
 										>
-											<SelectTrigger className="h-8 w-[140px] text-xs">
+											<SelectTrigger className="h-8 w-[130px] text-xs">
 												<SelectValue placeholder="Gateway" />
 											</SelectTrigger>
 											<SelectContent>
@@ -314,6 +323,25 @@ export function PaymentGatewaySettingsContent({
 												<SelectItem value="paystack">Paystack</SelectItem>
 												<SelectItem value="junipay">JuniPay</SelectItem>
 												<SelectItem value="hubtel">Hubtel</SelectItem>
+											</SelectContent>
+										</Select>
+
+										<Select
+											value={r.channel}
+											onValueChange={(v) =>
+												setRouting((prev) => ({
+													...prev,
+													[ev.id]: { ...(prev[ev.id] || { gateway: "inherit" }), channel: v },
+												}))
+											}
+										>
+											<SelectTrigger className="h-8 w-[110px] text-xs">
+												<SelectValue placeholder="Channel" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="both">Both</SelectItem>
+												<SelectItem value="ussd">USSD only</SelectItem>
+												<SelectItem value="web">Web only</SelectItem>
 											</SelectContent>
 										</Select>
 

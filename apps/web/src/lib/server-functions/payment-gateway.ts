@@ -12,7 +12,10 @@ import { prisma } from "@repo/db";
  * web payment. Both surfaces exist on every event.
  *
  * Resolution order for an event + request channel:
- *   1. Event `paymentGateway` override (applies to both surfaces).
+ *   1. Event `paymentGateway` override, scoped by `paymentChannel`:
+ *      - channel unset  -> override applies to both USSD and Web
+ *      - channel "ussd" -> override applies to USSD only
+ *      - channel "web"  -> override applies to Web only
  *   2. Per-channel default from `payment_routing_default` (ussd | web).
  *   3. Fall back to Paystack if the resolved gateway has no credentials.
  */
@@ -114,24 +117,29 @@ export async function getGatewayFeeConfig(gateway: GatewayName): Promise<Gateway
 /**
  * Resolve the gateway to charge for an event on the given request channel.
  *
- * A per-event `paymentGateway` override applies to both USSD and web. Otherwise
- * the per-channel default (ussd | web) is used. Paystack is the final fallback
- * when the resolved gateway has no credentials.
+ * A per-event `paymentGateway` override is scoped by `paymentChannel`:
+ * when the channel is unset the override applies to both surfaces; when set it
+ * applies only to that surface. Otherwise the per-channel default is used.
+ * Paystack is the final fallback when the resolved gateway has no credentials.
  */
 export async function resolveEventGateway(
 	event:
-		| { paymentGateway?: string | null }
+		| { paymentGateway?: string | null; paymentChannel?: string | null }
 		| null
 		| undefined,
 	contextChannel: ChannelName,
 ): Promise<GatewayName> {
 	const defaults = await getPaymentRoutingDefaults();
 	const eventGateway = event?.paymentGateway ?? null;
+	const eventChannel = event?.paymentChannel ?? null;
 
 	let gateway: GatewayName = defaults[contextChannel];
 
 	if (isGatewayName(eventGateway)) {
-		gateway = eventGateway;
+		// Unset channel -> override both; set channel -> only that surface.
+		if (!isChannelName(eventChannel) || eventChannel === contextChannel) {
+			gateway = eventGateway;
+		}
 	}
 
 	// Never route to a gateway whose credentials are missing.

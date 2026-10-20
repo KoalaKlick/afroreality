@@ -364,6 +364,14 @@ export const PaymentGateway: {
 export type PaymentGateway = (typeof PaymentGateway)[keyof typeof PaymentGateway]
 
 
+export const PaymentChannel: {
+  ussd: 'ussd',
+  web: 'web'
+};
+
+export type PaymentChannel = (typeof PaymentChannel)[keyof typeof PaymentChannel]
+
+
 export const PaymentPurpose: {
   ticket_purchase: 'ticket_purchase',
   vote_purchase: 'vote_purchase',
@@ -535,6 +543,10 @@ export const PaymentProvider: typeof $Enums.PaymentProvider
 export type PaymentGateway = $Enums.PaymentGateway
 
 export const PaymentGateway: typeof $Enums.PaymentGateway
+
+export type PaymentChannel = $Enums.PaymentChannel
+
+export const PaymentChannel: typeof $Enums.PaymentChannel
 
 export type PaymentPurpose = $Enums.PaymentPurpose
 
@@ -6629,6 +6641,7 @@ export namespace Prisma {
     hasUssd: boolean | null
     ussdCode: string | null
     paymentGateway: $Enums.PaymentGateway | null
+    paymentChannel: $Enums.PaymentChannel | null
   }
 
   export type EventMaxAggregateOutputType = {
@@ -6663,6 +6676,7 @@ export namespace Prisma {
     hasUssd: boolean | null
     ussdCode: string | null
     paymentGateway: $Enums.PaymentGateway | null
+    paymentChannel: $Enums.PaymentChannel | null
   }
 
   export type EventCountAggregateOutputType = {
@@ -6698,6 +6712,7 @@ export namespace Prisma {
     hasUssd: number
     ussdCode: number
     paymentGateway: number
+    paymentChannel: number
     galleryImages: number
     _all: number
   }
@@ -6747,6 +6762,7 @@ export namespace Prisma {
     hasUssd?: true
     ussdCode?: true
     paymentGateway?: true
+    paymentChannel?: true
   }
 
   export type EventMaxAggregateInputType = {
@@ -6781,6 +6797,7 @@ export namespace Prisma {
     hasUssd?: true
     ussdCode?: true
     paymentGateway?: true
+    paymentChannel?: true
   }
 
   export type EventCountAggregateInputType = {
@@ -6816,6 +6833,7 @@ export namespace Prisma {
     hasUssd?: true
     ussdCode?: true
     paymentGateway?: true
+    paymentChannel?: true
     galleryImages?: true
     _all?: true
   }
@@ -6939,6 +6957,7 @@ export namespace Prisma {
     hasUssd: boolean
     ussdCode: string | null
     paymentGateway: $Enums.PaymentGateway | null
+    paymentChannel: $Enums.PaymentChannel | null
     galleryImages: string[]
     _count: EventCountAggregateOutputType | null
     _avg: EventAvgAggregateOutputType | null
@@ -6994,6 +7013,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: boolean
     paymentGateway?: boolean
+    paymentChannel?: boolean
     galleryImages?: boolean
     galleryLinks?: boolean | Event$galleryLinksArgs<ExtArgs>
     members?: boolean | Event$membersArgs<ExtArgs>
@@ -7046,6 +7066,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: boolean
     paymentGateway?: boolean
+    paymentChannel?: boolean
     galleryImages?: boolean
     creator?: boolean | Event$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -7084,6 +7105,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: boolean
     paymentGateway?: boolean
+    paymentChannel?: boolean
     galleryImages?: boolean
     creator?: boolean | Event$creatorArgs<ExtArgs>
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -7122,10 +7144,11 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: boolean
     paymentGateway?: boolean
+    paymentChannel?: boolean
     galleryImages?: boolean
   }
 
-  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "category" | "tags" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "latitude" | "longitude" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode" | "paymentGateway" | "galleryImages", ExtArgs["result"]["event"]>
+  export type EventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "creatorId" | "title" | "description" | "slug" | "type" | "status" | "startDate" | "endDate" | "timezone" | "isPublic" | "category" | "tags" | "flierImage" | "bannerImage" | "venueName" | "venueAddress" | "venueCity" | "venueCountry" | "latitude" | "longitude" | "isVirtual" | "virtualLink" | "maxAttendees" | "registrationDeadline" | "createdAt" | "updatedAt" | "publishedAt" | "hasUssd" | "ussdCode" | "paymentGateway" | "paymentChannel" | "galleryImages", ExtArgs["result"]["event"]>
   export type EventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     galleryLinks?: boolean | Event$galleryLinksArgs<ExtArgs>
     members?: boolean | Event$membersArgs<ExtArgs>
@@ -7205,6 +7228,7 @@ export namespace Prisma {
       hasUssd: boolean
       ussdCode: string | null
       paymentGateway: $Enums.PaymentGateway | null
+      paymentChannel: $Enums.PaymentChannel | null
       galleryImages: string[]
     }, ExtArgs["result"]["event"]>
     composites: {}
@@ -7676,6 +7700,7 @@ export namespace Prisma {
     readonly hasUssd: FieldRef<"Event", 'Boolean'>
     readonly ussdCode: FieldRef<"Event", 'String'>
     readonly paymentGateway: FieldRef<"Event", 'PaymentGateway'>
+    readonly paymentChannel: FieldRef<"Event", 'PaymentChannel'>
     readonly galleryImages: FieldRef<"Event", 'String[]'>
   }
     
@@ -52387,6 +52412,7 @@ export namespace Prisma {
     hasUssd: 'hasUssd',
     ussdCode: 'ussdCode',
     paymentGateway: 'paymentGateway',
+    paymentChannel: 'paymentChannel',
     galleryImages: 'galleryImages'
   };
 
@@ -53241,6 +53267,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'PaymentChannel'
+   */
+  export type EnumPaymentChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentChannel'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentChannel[]'
+   */
+  export type ListEnumPaymentChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentChannel[]'>
+    
+
+
+  /**
    * Reference to a field of type 'EventMemberStatus'
    */
   export type EnumEventMemberStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EventMemberStatus'>
@@ -53675,6 +53715,7 @@ export namespace Prisma {
     hasUssd?: BoolFilter<"Event"> | boolean
     ussdCode?: StringNullableFilter<"Event"> | string | null
     paymentGateway?: EnumPaymentGatewayNullableFilter<"Event"> | $Enums.PaymentGateway | null
+    paymentChannel?: EnumPaymentChannelNullableFilter<"Event"> | $Enums.PaymentChannel | null
     galleryImages?: StringNullableListFilter<"Event">
     galleryLinks?: EventGalleryLinkListRelationFilter
     members?: EventMemberListRelationFilter
@@ -53726,6 +53767,7 @@ export namespace Prisma {
     hasUssd?: SortOrder
     ussdCode?: SortOrderInput | SortOrder
     paymentGateway?: SortOrderInput | SortOrder
+    paymentChannel?: SortOrderInput | SortOrder
     galleryImages?: SortOrder
     galleryLinks?: EventGalleryLinkOrderByRelationAggregateInput
     members?: EventMemberOrderByRelationAggregateInput
@@ -53781,6 +53823,7 @@ export namespace Prisma {
     publishedAt?: DateTimeNullableFilter<"Event"> | Date | string | null
     hasUssd?: BoolFilter<"Event"> | boolean
     paymentGateway?: EnumPaymentGatewayNullableFilter<"Event"> | $Enums.PaymentGateway | null
+    paymentChannel?: EnumPaymentChannelNullableFilter<"Event"> | $Enums.PaymentChannel | null
     galleryImages?: StringNullableListFilter<"Event">
     galleryLinks?: EventGalleryLinkListRelationFilter
     members?: EventMemberListRelationFilter
@@ -53832,6 +53875,7 @@ export namespace Prisma {
     hasUssd?: SortOrder
     ussdCode?: SortOrderInput | SortOrder
     paymentGateway?: SortOrderInput | SortOrder
+    paymentChannel?: SortOrderInput | SortOrder
     galleryImages?: SortOrder
     _count?: EventCountOrderByAggregateInput
     _avg?: EventAvgOrderByAggregateInput
@@ -53876,6 +53920,7 @@ export namespace Prisma {
     hasUssd?: BoolWithAggregatesFilter<"Event"> | boolean
     ussdCode?: StringNullableWithAggregatesFilter<"Event"> | string | null
     paymentGateway?: EnumPaymentGatewayNullableWithAggregatesFilter<"Event"> | $Enums.PaymentGateway | null
+    paymentChannel?: EnumPaymentChannelNullableWithAggregatesFilter<"Event"> | $Enums.PaymentChannel | null
     galleryImages?: StringNullableListFilter<"Event">
   }
 
@@ -57588,6 +57633,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -57639,6 +57685,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -57686,6 +57733,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -57737,6 +57785,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -57786,6 +57835,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
   }
 
@@ -57820,6 +57870,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
@@ -57856,6 +57907,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
@@ -62258,6 +62310,13 @@ export namespace Prisma {
     not?: NestedEnumPaymentGatewayNullableFilter<$PrismaModel> | $Enums.PaymentGateway | null
   }
 
+  export type EnumPaymentChannelNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentChannel | EnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPaymentChannelNullableFilter<$PrismaModel> | $Enums.PaymentChannel | null
+  }
+
   export type EventGalleryLinkListRelationFilter = {
     every?: EventGalleryLinkWhereInput
     some?: EventGalleryLinkWhereInput
@@ -62426,6 +62485,7 @@ export namespace Prisma {
     hasUssd?: SortOrder
     ussdCode?: SortOrder
     paymentGateway?: SortOrder
+    paymentChannel?: SortOrder
     galleryImages?: SortOrder
   }
 
@@ -62467,6 +62527,7 @@ export namespace Prisma {
     hasUssd?: SortOrder
     ussdCode?: SortOrder
     paymentGateway?: SortOrder
+    paymentChannel?: SortOrder
   }
 
   export type EventMinOrderByAggregateInput = {
@@ -62501,6 +62562,7 @@ export namespace Prisma {
     hasUssd?: SortOrder
     ussdCode?: SortOrder
     paymentGateway?: SortOrder
+    paymentChannel?: SortOrder
   }
 
   export type EventSumOrderByAggregateInput = {
@@ -62591,6 +62653,16 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumPaymentGatewayNullableFilter<$PrismaModel>
     _max?: NestedEnumPaymentGatewayNullableFilter<$PrismaModel>
+  }
+
+  export type EnumPaymentChannelNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentChannel | EnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPaymentChannelNullableWithAggregatesFilter<$PrismaModel> | $Enums.PaymentChannel | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumPaymentChannelNullableFilter<$PrismaModel>
+    _max?: NestedEnumPaymentChannelNullableFilter<$PrismaModel>
   }
 
   export type EventScalarRelationFilter = {
@@ -65542,6 +65614,10 @@ export namespace Prisma {
 
   export type NullableEnumPaymentGatewayFieldUpdateOperationsInput = {
     set?: $Enums.PaymentGateway | null
+  }
+
+  export type NullableEnumPaymentChannelFieldUpdateOperationsInput = {
+    set?: $Enums.PaymentChannel | null
   }
 
   export type EventUpdategalleryImagesInput = {
@@ -68732,6 +68808,13 @@ export namespace Prisma {
     not?: NestedEnumPaymentGatewayNullableFilter<$PrismaModel> | $Enums.PaymentGateway | null
   }
 
+  export type NestedEnumPaymentChannelNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentChannel | EnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPaymentChannelNullableFilter<$PrismaModel> | $Enums.PaymentChannel | null
+  }
+
   export type NestedEnumEventTypeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.EventType | EnumEventTypeFieldRefInput<$PrismaModel>
     in?: $Enums.EventType[] | ListEnumEventTypeFieldRefInput<$PrismaModel>
@@ -68814,6 +68897,16 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumPaymentGatewayNullableFilter<$PrismaModel>
     _max?: NestedEnumPaymentGatewayNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPaymentChannelNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentChannel | EnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    in?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.PaymentChannel[] | ListEnumPaymentChannelFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumPaymentChannelNullableWithAggregatesFilter<$PrismaModel> | $Enums.PaymentChannel | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumPaymentChannelNullableFilter<$PrismaModel>
+    _max?: NestedEnumPaymentChannelNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumEventMemberStatusFilter<$PrismaModel = never> = {
@@ -70935,6 +71028,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -70985,6 +71079,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -71047,6 +71142,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -71097,6 +71193,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -71143,6 +71240,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     members?: EventMemberCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -71193,6 +71291,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -71255,6 +71354,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     members?: EventMemberUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -71305,6 +71405,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -71351,6 +71452,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -71401,6 +71503,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -71463,6 +71566,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -71513,6 +71617,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -71559,6 +71664,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldCreateNestedManyWithoutEventInput
@@ -71609,6 +71715,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     registrationFields?: EventRegistrationFieldUncheckedCreateNestedManyWithoutEventInput
@@ -71711,6 +71818,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUpdateManyWithoutEventNestedInput
@@ -71761,6 +71869,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     registrationFields?: EventRegistrationFieldUncheckedUpdateManyWithoutEventNestedInput
@@ -71823,6 +71932,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -71873,6 +71983,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -71935,6 +72046,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -71985,6 +72097,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -72286,6 +72399,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -72336,6 +72450,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -72398,6 +72513,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -72448,6 +72564,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -72530,6 +72647,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -72579,6 +72697,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -72973,6 +73092,7 @@ export namespace Prisma {
     hasUssd?: BoolFilter<"Event"> | boolean
     ussdCode?: StringNullableFilter<"Event"> | string | null
     paymentGateway?: EnumPaymentGatewayNullableFilter<"Event"> | $Enums.PaymentGateway | null
+    paymentChannel?: EnumPaymentChannelNullableFilter<"Event"> | $Enums.PaymentChannel | null
     galleryImages?: StringNullableListFilter<"Event">
   }
 
@@ -76827,6 +76947,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -76877,6 +76998,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -76983,6 +77105,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -77033,6 +77156,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -77095,6 +77219,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -77145,6 +77270,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -77373,6 +77499,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -77423,6 +77550,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -77619,6 +77747,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -77669,6 +77798,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -77819,6 +77949,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -77869,6 +78000,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -78051,6 +78183,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -78100,6 +78233,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -79197,6 +79331,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -79247,6 +79382,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -79397,6 +79533,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -79447,6 +79584,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -79632,6 +79770,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -79682,6 +79821,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -79908,6 +80048,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -79958,6 +80099,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -80152,6 +80294,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -80202,6 +80345,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -80337,6 +80481,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -80387,6 +80532,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -80484,6 +80630,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkCreateNestedManyWithoutEventInput
     members?: EventMemberCreateNestedManyWithoutEventInput
@@ -80534,6 +80681,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedCreateNestedManyWithoutEventInput
     members?: EventMemberUncheckedCreateNestedManyWithoutEventInput
@@ -80873,6 +81021,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -80923,6 +81072,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -82109,6 +82259,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
   }
 
@@ -82254,6 +82405,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -82303,6 +82455,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -82351,6 +82504,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
@@ -83509,6 +83663,7 @@ export namespace Prisma {
     hasUssd?: boolean
     ussdCode?: string | null
     paymentGateway?: $Enums.PaymentGateway | null
+    paymentChannel?: $Enums.PaymentChannel | null
     galleryImages?: EventCreategalleryImagesInput | string[]
   }
 
@@ -83784,6 +83939,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUpdateManyWithoutEventNestedInput
     members?: EventMemberUpdateManyWithoutEventNestedInput
@@ -83833,6 +83989,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
     galleryLinks?: EventGalleryLinkUncheckedUpdateManyWithoutEventNestedInput
     members?: EventMemberUncheckedUpdateManyWithoutEventNestedInput
@@ -83881,6 +84038,7 @@ export namespace Prisma {
     hasUssd?: BoolFieldUpdateOperationsInput | boolean
     ussdCode?: NullableStringFieldUpdateOperationsInput | string | null
     paymentGateway?: NullableEnumPaymentGatewayFieldUpdateOperationsInput | $Enums.PaymentGateway | null
+    paymentChannel?: NullableEnumPaymentChannelFieldUpdateOperationsInput | $Enums.PaymentChannel | null
     galleryImages?: EventUpdategalleryImagesInput | string[]
   }
 
