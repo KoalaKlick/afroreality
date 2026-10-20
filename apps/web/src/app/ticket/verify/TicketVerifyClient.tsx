@@ -38,6 +38,11 @@ export function TicketVerifyClient({
 	const [valid, setValid] = useState<boolean>(isValid);
 	const [ticketCodeInput, setTicketCodeInput] = useState<string>("");
 	const [isPending, startTransition] = useTransition();
+	const [authState, setAuthState] = useState<"ok" | "login_required" | "unauthorized">(
+		initialStatus === "login_required" || initialStatus === "unauthorized"
+			? initialStatus
+			: "ok",
+	);
 
 	async function handleLookupCode(e: React.FormEvent) {
 		e.preventDefault();
@@ -51,6 +56,14 @@ export function TicketVerifyClient({
 						action: "status",
 					},
 				});
+
+				if (result.status === "login_required" || result.status === "unauthorized") {
+					setAuthState(result.status);
+					setValid(false);
+					setMessage(result.message || "You must be an organizer to verify tickets.");
+					setTicket(null);
+					return;
+				}
 
 				if (!result.isValid || !result.ticket) {
 					setValid(false);
@@ -85,11 +98,21 @@ export function TicketVerifyClient({
 					},
 				});
 
+				if (result.status === "login_required" || result.status === "unauthorized") {
+					setAuthState(result.status);
+					return;
+				}
+
 				if (result.isValid && result.ticket) {
 					setTicket(result.ticket);
 					setStatus("checked_in");
-					setMessage(result.message || "Check-in recorded successfully!");
-					toast.success("Attendee checked in!");
+					if (result.status === "already_checked_in") {
+						setMessage("Attendee is already checked in.");
+						toast.info("Attendee is already checked in.");
+					} else {
+						setMessage(result.message || "Check-in recorded successfully!");
+						toast.success("Attendee checked in!");
+					}
 				} else {
 					toast.error(result.message);
 				}
@@ -112,6 +135,11 @@ export function TicketVerifyClient({
 					},
 				});
 
+				if (result.status === "login_required" || result.status === "unauthorized") {
+					setAuthState(result.status);
+					return;
+				}
+
 				if (result.isValid && result.ticket) {
 					setTicket(result.ticket);
 					setStatus("not_checked_in");
@@ -124,7 +152,39 @@ export function TicketVerifyClient({
 		});
 	}
 
-	return (
+		if (authState === "login_required") {
+			return (
+				<div className="max-w-md mx-auto py-12 px-6 text-center space-y-4">
+					<AlertCircle className="size-12 text-primary mx-auto" />
+					<h3 className="text-xl font-black text-foreground">
+						Organizer Access Required
+					</h3>
+					<p className="text-xs text-muted-foreground max-w-xs mx-auto">
+						{message || "You must be logged in to verify tickets."}
+					</p>
+					<Button asChild className="text-xs font-semibold">
+						<Link href="/login">Login to Verify</Link>
+					</Button>
+				</div>
+			);
+		}
+
+		if (authState === "unauthorized") {
+			return (
+				<div className="max-w-md mx-auto py-12 px-6 text-center space-y-4">
+					<XCircle className="size-12 text-destructive mx-auto" />
+					<h3 className="text-xl font-black text-foreground">Unauthorized</h3>
+					<p className="text-xs text-muted-foreground max-w-xs mx-auto">
+						{message || "You must be an organizer of this event to verify tickets."}
+					</p>
+					<Button asChild variant="outline" className="text-xs font-semibold">
+						<Link href="/dashboard">Go to Dashboard</Link>
+					</Button>
+				</div>
+			);
+		}
+
+		return (
 		<div className="max-w-xl mx-auto space-y-6">
 			{/* Manual Ticket Code Lookup */}
 			<Card className="border-border/80 shadow-xs">
