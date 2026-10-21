@@ -1397,6 +1397,48 @@ export function OrganizerNotificationCenter({
 												<span>Sender ID: <strong className="text-foreground">Fextiva</strong></span>
 												<span>Estimated SMS cost: ~GH₵0.08 per recipient segment</span>
 											</div>
+
+											{/* Live SMS Contacts List */}
+											<div className="p-3 rounded-lg border border-border bg-muted/20 space-y-2 mt-2">
+												<div className="flex items-center justify-between text-xs">
+													<div className="flex items-center gap-1.5 font-semibold text-foreground">
+														<PhoneCall className="h-3.5 w-3.5 text-primary" />
+														<span>SMS Destination Numbers ({smsRecipientsList.length}):</span>
+													</div>
+													<Badge variant="outline" className="text-[10px] font-mono">
+														{smsRecipientsList.filter((r) => Boolean(r.phone)).length} / {smsRecipientsList.length} ready to receive
+													</Badge>
+												</div>
+
+												<div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 border border-border/60 rounded-md bg-background p-1.5">
+													{smsRecipientsList.length === 0 ? (
+														<p className="text-[11px] text-muted-foreground italic p-1">No organizers selected. Choose an audience above.</p>
+													) : (
+														smsRecipientsList.map((rec, i) => (
+															<div
+																key={`${rec.id}_${i}`}
+																className="flex items-center justify-between p-1.5 rounded bg-muted/40 text-xs gap-2"
+															>
+																<div className="flex items-center gap-1.5 min-w-0">
+																	<span className="font-semibold text-foreground truncate max-w-[140px]">{rec.name}</span>
+																	<span className="text-[11px] text-muted-foreground truncate hidden sm:inline">({rec.orgName})</span>
+																</div>
+																<div className="shrink-0 font-mono text-[11px]">
+																	{rec.phone ? (
+																		<span className="text-amber-600 dark:text-amber-400 font-semibold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+																			{rec.phone}
+																		</span>
+																	) : (
+																		<span className="text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium">
+																			⚠️ No phone number
+																		</span>
+																	)}
+																</div>
+															</div>
+														))
+													)}
+												</div>
+											</div>
 										</CardContent>
 									</Card>
 								)}
@@ -1625,39 +1667,78 @@ export function OrganizerNotificationCenter({
 
 								{/* ── SMS PHONE MOCKUP PREVIEW ─────────────────────────────────── */}
 								{previewChannel === "sms" && (
-									<div className="max-w-[320px] mx-auto rounded-[32px] border-[6px] border-zinc-800 bg-zinc-950 p-3 shadow-2xl text-white">
-										{/* Phone Speaker Notch */}
-										<div className="mx-auto h-4 w-28 rounded-full bg-zinc-800 mb-3 flex items-center justify-center">
-											<div className="h-1.5 w-10 rounded-full bg-zinc-700" />
-										</div>
-
-										{/* Phone Header */}
-										<div className="text-center pb-3 border-b border-zinc-800">
-											<div className="h-9 w-9 rounded-full bg-primary/20 border border-primary/40 text-primary mx-auto flex items-center justify-center font-bold text-xs mb-1">
-												F
+									<div className="space-y-3">
+										{/* Preview Recipient Details Card */}
+										<div className="p-3 bg-muted/40 rounded-xl border border-border text-xs space-y-1.5">
+											<div className="flex items-center justify-between">
+												<span className="text-muted-foreground font-medium">Recipient:</span>
+												<span className="font-semibold text-foreground">
+													{previewOrg?.creator?.fullName || previewOrg?.name}
+												</span>
 											</div>
-											<p className="text-xs font-bold text-zinc-200">Fextiva</p>
-											<p className="text-[10px] text-zinc-500 font-mono">
-												{previewOrg?.phone || previewOrg?.creator?.phone || "+233 24 123 4567"}
-											</p>
+											<div className="flex items-center justify-between">
+												<span className="text-muted-foreground font-medium">Organization:</span>
+												<span className="text-foreground">{previewOrg?.name}</span>
+											</div>
+											<div className="flex items-center justify-between">
+												<span className="text-muted-foreground font-medium">Destination Phone:</span>
+												{previewOrg?.phone || previewOrg?.creator?.phone ? (
+													<span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+														{previewOrg?.phone || previewOrg?.creator?.phone}
+													</span>
+												) : (
+													<span className="text-red-500 font-semibold bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 text-[10px]">
+														No phone number on file
+													</span>
+												)}
+											</div>
 										</div>
 
-										{/* SMS Message Bubble */}
-										<div className="py-6 min-h-[220px] flex flex-col justify-end">
-											<div className="bg-primary/90 text-primary-foreground p-3.5 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm font-sans">
-												<p className="m-0 break-words whitespace-pre-wrap">
-													{evaluatedSms || "(Write SMS draft above...)"}
+										{!(previewOrg?.phone || previewOrg?.creator?.phone) && (
+											<div className="p-2.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+												<AlertCircle className="h-4 w-4 shrink-0" />
+												<span>This organizer does not have a phone number on file. SMS cannot be delivered to them.</span>
+											</div>
+										)}
+
+										<div className="max-w-[320px] mx-auto rounded-[32px] border-[6px] border-zinc-800 bg-zinc-950 p-3 shadow-2xl text-white">
+											{/* Phone Speaker Notch */}
+											<div className="mx-auto h-4 w-28 rounded-full bg-zinc-800 mb-3 flex items-center justify-center">
+												<div className="h-1.5 w-10 rounded-full bg-zinc-700" />
+											</div>
+
+											{/* Phone Header */}
+											<div className="text-center pb-3 border-b border-zinc-800">
+												<div className="h-9 w-9 rounded-full bg-primary/20 border border-primary/40 text-primary mx-auto flex items-center justify-center font-bold text-xs mb-1">
+													F
+												</div>
+												<p className="text-xs font-bold text-zinc-200">Fextiva</p>
+												<p className="text-[10px] font-mono">
+													{previewOrg?.phone || previewOrg?.creator?.phone ? (
+														<span className="text-zinc-400">{previewOrg?.phone || previewOrg?.creator?.phone}</span>
+													) : (
+														<span className="text-red-400 font-sans">No phone registered</span>
+													)}
 												</p>
-												<div className="flex items-center justify-between text-[9px] text-primary-foreground/70 mt-2 font-mono">
-													<span>Sender ID: Fextiva</span>
-													<span>Now</span>
+											</div>
+
+											{/* SMS Message Bubble */}
+											<div className="py-6 min-h-[220px] flex flex-col justify-end">
+												<div className="bg-primary/90 text-primary-foreground p-3.5 rounded-2xl rounded-bl-sm text-xs leading-relaxed shadow-sm font-sans">
+													<p className="m-0 break-words whitespace-pre-wrap">
+														{evaluatedSms || "(Write SMS draft above...)"}
+													</p>
+													<div className="flex items-center justify-between text-[9px] text-primary-foreground/70 mt-2 font-mono">
+														<span>Sender ID: Fextiva</span>
+														<span>Now</span>
+													</div>
 												</div>
 											</div>
-										</div>
 
-										{/* Phone Bottom Home Bar */}
-										<div className="pt-2 pb-1 flex justify-center">
-											<div className="h-1 w-24 rounded-full bg-zinc-700" />
+											{/* Phone Bottom Home Bar */}
+											<div className="pt-2 pb-1 flex justify-center">
+												<div className="h-1 w-24 rounded-full bg-zinc-700" />
+											</div>
 										</div>
 									</div>
 								)}
