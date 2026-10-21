@@ -78,7 +78,7 @@ export async function fulfillSuccessfulPayment({
 		}
 
 		if (payment.purpose === "vote_purchase" || metadata.purpose === "vote_purchase" || metadata.purpose === "voting") {
-			await fulfillVotePurchase({ payment, metadata, reference });
+			await fulfillVotePurchase({ payment, metadata, reference, paystackData });
 		}
 
 		if (payment.purpose === "nomination" || metadata.purpose === "nomination") {

@@ -279,7 +279,18 @@ export async function dispatchPendingNotificationsIfAny({
 
 		// ── Votes ──────────────────────────────────────────────────────────────
 		if (purpose === "voting" || purpose === "vote_purchase") {
-			const voterPhone = metadata.voterPhone || metadata.phone || metadata.phone_number || paystackData?.customer?.phone;
+			const voterPhone =
+				metadata.voterPhone ||
+				metadata.phoneNumber ||
+				metadata.buyerPhone ||
+				metadata.recipientPhone ||
+				metadata.attendeePhone ||
+				metadata.phone ||
+				metadata.phone_number ||
+				paystackData?.customer?.phone ||
+				(payment.email && payment.email.endsWith("@fextiva.com") ? payment.email.split("@")[0] : null) ||
+				null;
+
 			if (voterPhone && !metadata.voteNotificationSent) {
 				const optionId = metadata.optionId || metadata.votingOptionId || metadata.option_id;
 				const eventId = metadata.eventId;
@@ -294,6 +305,21 @@ export async function dispatchPendingNotificationsIfAny({
 				]);
 
 				const voteChannel = messagingConfig?.voteReceiptChannel || "whatsapp";
+				if (voteChannel === "none") return;
+
+				const isUssd =
+					metadata.channel === "ussd" ||
+					metadata.source === "ussd" ||
+					payment.reference?.startsWith("USSD_") ||
+					payment.reference?.startsWith("USSD-") ||
+					payment.reference?.startsWith("JUNIPAY_") ||
+					payment.reference?.startsWith("HUBTEL_");
+
+				const resolvedVoterName =
+					metadata.voterName ||
+					metadata.buyerName ||
+					(await resolvePayerName({ paystackData, phone: voterPhone })) ||
+					undefined;
 
 				try {
 					let sent = false;
@@ -301,7 +327,7 @@ export async function dispatchPendingNotificationsIfAny({
 					if (voteChannel === "whatsapp" || voteChannel === "whatsapp_sms") {
 						const waResult = await sendVoteReceiptWhatsAppNotification({
 							phone: voterPhone,
-							voterName: metadata.voterName || undefined,
+							voterName: resolvedVoterName,
 							nomineeName: option?.optionText || "Nominee",
 							categoryName: option?.category?.name || undefined,
 							votesCount: voteCount,
@@ -310,10 +336,15 @@ export async function dispatchPendingNotificationsIfAny({
 						sent = waResult.success;
 					}
 
-					if (voteChannel === "sms" || (voteChannel === "whatsapp_sms" && !sent)) {
+					const shouldSendSms =
+						voteChannel === "sms" ||
+						(voteChannel === "whatsapp_sms" && !sent) ||
+						(!sent && (isUssd || voteChannel === "whatsapp"));
+
+					if (shouldSendSms) {
 						await sendVoteReceiptSms({
 							phone: voterPhone,
-							voterName: metadata.voterName || undefined,
+							voterName: resolvedVoterName,
 							nomineeName: option?.optionText || "Nominee",
 							votesCount: voteCount,
 							reference: payment.reference,
@@ -323,7 +354,7 @@ export async function dispatchPendingNotificationsIfAny({
 
 					await prisma.payment.update({
 						where: { id: payment.id },
-						data: { metadata: { ...metadata, voteNotificationSent: true } },
+						data: { metadata: { ...metadata, voteNotificationSent: true, voterPhone } },
 					}).catch(() => {});
 				} catch (err) {
 					console.error("[Notify] Vote receipt failed:", err);
