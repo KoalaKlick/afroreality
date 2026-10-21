@@ -34,6 +34,8 @@ import {
 	ArrowUpRight,
 	SlidersHorizontal,
 	PhoneCall,
+	ChevronDown,
+	UserCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -186,6 +188,8 @@ export function OrganizerNotificationCenter({
 	const [selectedOrgIds, setSelectedOrgIds] = useState<string[]>(
 		preselectedOrgId ? [preselectedOrgId] : []
 	);
+	const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+	const [expandedOrgIds, setExpandedOrgIds] = useState<string[]>([]);
 	const [orgSearchQuery, setOrgSearchQuery] = useState("");
 
 	// ── Channel State ────────────────────────────────────────────────────────────
@@ -250,8 +254,23 @@ export function OrganizerNotificationCenter({
 		return organizers;
 	}, [organizers, targetAudience, selectedOrgIds]);
 
-	// Organizers with valid email and phone counts
+	// Organizers with valid email and phone counts, accounting for member-level targeting
 	const audienceStats = useMemo(() => {
+		// When member-level targeting is active, count selected members
+		if (selectedMemberIds.length > 0) {
+			let withEmail = 0;
+			let withPhone = 0;
+			for (const org of targetOrganizers) {
+				for (const member of org.members) {
+					if (selectedMemberIds.includes(member.user.id)) {
+						if (member.user.email?.trim()) withEmail++;
+						if (member.user.phone?.trim()) withPhone++;
+					}
+				}
+			}
+			return { total: selectedMemberIds.length, withEmail, withPhone };
+		}
+		// Default org-level counts
 		const total = targetOrganizers.length;
 		const withEmail = targetOrganizers.filter(
 			(o) => Boolean(o.contactEmail?.trim()) || Boolean(o.creator?.email?.trim())
@@ -260,7 +279,7 @@ export function OrganizerNotificationCenter({
 			(o) => Boolean(o.phone?.trim()) || Boolean(o.creator?.phone?.trim())
 		).length;
 		return { total, withEmail, withPhone };
-	}, [targetOrganizers]);
+	}, [targetOrganizers, selectedMemberIds]);
 
 	// Filtered organizers for the multi-select picker
 	const searchableOrganizers = useMemo(() => {
@@ -442,6 +461,7 @@ export function OrganizerNotificationCenter({
 			const res = await sendAdminOrganizerNotification({
 				targetAudience,
 				selectedOrgIds,
+				selectedMemberIds: selectedMemberIds.length > 0 ? selectedMemberIds : undefined,
 				channels,
 				emailSubject,
 				emailHtml,
@@ -713,54 +733,246 @@ export function OrganizerNotificationCenter({
 													</Button>
 												</div>
 
-												{/* Scrollable list of checkboxes */}
-												<div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-border/60 rounded-md bg-background p-1.5">
+												{/* Member targeting indicator */}
+												{selectedMemberIds.length > 0 && (
+													<div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-primary/10 border border-primary/20 text-xs">
+														<span className="text-[11px] text-foreground font-medium">
+															Targeting <strong className="text-primary font-bold">{selectedMemberIds.length}</strong> specific member{selectedMemberIds.length === 1 ? "" : "s"} across {selectedOrgIds.length} org{selectedOrgIds.length === 1 ? "" : "s"}
+														</span>
+														<button
+															type="button"
+															onClick={() => setSelectedMemberIds([])}
+															className="text-[10px] text-muted-foreground hover:text-foreground underline"
+														>
+															Reset to all org contacts
+														</button>
+													</div>
+												)}
+
+												{/* Scrollable list of organizations with member drill-down */}
+												<div className="max-h-72 overflow-y-auto space-y-1.5 pr-1 border border-border/60 rounded-md bg-background p-1.5">
 													{searchableOrganizers.map((org) => {
-														const isSelected = selectedOrgIds.includes(org.id);
+														const isOrgSelected = selectedOrgIds.includes(org.id);
+														const isExpanded = expandedOrgIds.includes(org.id);
+														const orgMembers = org.members || [];
+														const selectedOrgMemberCount = orgMembers.filter((m) =>
+															selectedMemberIds.includes(m.user.id)
+														).length;
+
 														return (
 															<div
 																key={org.id}
-																onClick={() => {
-																	setSelectedOrgIds((prev) =>
-																		isSelected ? prev.filter((id) => id !== org.id) : [...prev, org.id]
-																	);
-																}}
 																className={cn(
-																	"flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors text-xs",
-																	isSelected ? "bg-primary/10 text-foreground" : "hover:bg-muted/50 text-muted-foreground"
+																	"rounded-md border transition-all text-xs overflow-hidden",
+																	isOrgSelected
+																		? "border-primary/40 bg-primary/5"
+																		: "border-border/60 hover:border-border bg-card/50"
 																)}
 															>
-																<div className="flex items-center gap-2 min-w-0">
+																{/* Organization Header Row */}
+																<div className="flex items-center justify-between p-2 gap-2">
 																	<div
-																		className={cn(
-																			"h-4 w-4 rounded flex items-center justify-center border transition-colors shrink-0",
-																			isSelected
-																				? "bg-primary border-primary text-primary-foreground"
-																				: "border-muted-foreground/40 bg-background"
-																		)}
+																		className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer"
+																		onClick={() => {
+																			if (isOrgSelected) {
+																				setSelectedOrgIds((prev) => prev.filter((id) => id !== org.id));
+																				// Remove any selected members for this org
+																				const memberUserIds = orgMembers.map((m) => m.user.id);
+																				setSelectedMemberIds((prev) =>
+																					prev.filter((id) => !memberUserIds.includes(id))
+																				);
+																			} else {
+																				setSelectedOrgIds((prev) => [...prev, org.id]);
+																			}
+																		}}
 																	>
-																		{isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+																		<div
+																			className={cn(
+																				"h-4 w-4 rounded flex items-center justify-center border transition-colors shrink-0",
+																				isOrgSelected
+																					? "bg-primary border-primary text-primary-foreground"
+																					: "border-muted-foreground/40 bg-background"
+																			)}
+																		>
+																			{isOrgSelected && <Check className="h-3 w-3 stroke-[3]" />}
+																		</div>
+																		<span className="font-semibold text-foreground truncate max-w-[190px]">
+																			{org.name}
+																		</span>
+																		<span className="text-[11px] text-muted-foreground truncate hidden sm:inline">
+																			({org.creator?.fullName || org.contactEmail || "No name"})
+																		</span>
 																	</div>
-																	<span className="font-semibold text-foreground truncate max-w-[200px]">
-																		{org.name}
-																	</span>
-																	<span className="text-[11px] text-muted-foreground truncate hidden sm:inline">
-																		({org.creator?.fullName || org.contactEmail || "No name"})
-																	</span>
+
+																	<div className="flex items-center gap-1.5 shrink-0">
+																		{/* Channels badge */}
+																		<div className="flex items-center gap-1 text-[10px] text-muted-foreground mr-1">
+																			{(org.contactEmail || org.creator?.email) && (
+																				<Mail className="h-3 w-3 text-emerald-500" />
+																			)}
+																			{(org.phone || org.creator?.phone) && (
+																				<Smartphone className="h-3 w-3 text-amber-500" />
+																			)}
+																		</div>
+
+																		{/* Expand Members Button */}
+																		{orgMembers.length > 0 && (
+																			<Button
+																				type="button"
+																				variant="ghost"
+																				size="sm"
+																				onClick={(e) => {
+																					e.stopPropagation();
+																					setExpandedOrgIds((prev) =>
+																						isExpanded
+																							? prev.filter((id) => id !== org.id)
+																							: [...prev, org.id]
+																					);
+																				}}
+																				className={cn(
+																					"h-6 px-1.5 text-[10px] gap-1 rounded hover:bg-muted font-normal",
+																					selectedOrgMemberCount > 0
+																						? "text-primary font-semibold"
+																						: "text-muted-foreground"
+																				)}
+																			>
+																				<UserCircle className="h-3 w-3" />
+																				<span>
+																					{selectedOrgMemberCount > 0
+																						? `${selectedOrgMemberCount}/${orgMembers.length} selected`
+																						: `${orgMembers.length} member${orgMembers.length === 1 ? "" : "s"}`}
+																				</span>
+																				<ChevronDown
+																					className={cn(
+																						"h-3 w-3 transition-transform",
+																						isExpanded ? "rotate-180" : ""
+																					)}
+																				/>
+																			</Button>
+																		)}
+																	</div>
 																</div>
 
-																<div className="flex items-center gap-1.5 shrink-0 text-[10px]">
-																	{(org.contactEmail || org.creator?.email) && (
-																		<span className="text-muted-foreground flex items-center gap-0.5">
-																			<Mail className="h-3 w-3 text-emerald-500" />
-																		</span>
-																	)}
-																	{(org.phone || org.creator?.phone) && (
-																		<span className="text-muted-foreground flex items-center gap-0.5">
-																			<Smartphone className="h-3 w-3 text-amber-500" />
-																		</span>
-																	)}
-																</div>
+																{/* Expanded Members Sub-List */}
+																{isExpanded && orgMembers.length > 0 && (
+																	<div className="border-t border-border/60 bg-muted/30 p-2 space-y-1">
+																		<div className="flex items-center justify-between pb-1 px-1 text-[10px] text-muted-foreground">
+																			<span className="font-medium uppercase tracking-wider">
+																				Select specific team members:
+																			</span>
+																			<div className="flex items-center gap-2">
+																				<button
+																					type="button"
+																					onClick={(e) => {
+																						e.stopPropagation();
+																						const userIds = orgMembers.map((m) => m.user.id);
+																						setSelectedMemberIds((prev) =>
+																							Array.from(new Set([...prev, ...userIds]))
+																						);
+																						if (!isOrgSelected) {
+																							setSelectedOrgIds((prev) => [...prev, org.id]);
+																						}
+																					}}
+																					className="text-primary hover:underline font-medium"
+																				>
+																					Select all members
+																				</button>
+																				<span>•</span>
+																				<button
+																					type="button"
+																					onClick={(e) => {
+																						e.stopPropagation();
+																						const userIds = orgMembers.map((m) => m.user.id);
+																						setSelectedMemberIds((prev) =>
+																							prev.filter((id) => !userIds.includes(id))
+																						);
+																					}}
+																					className="text-muted-foreground hover:text-foreground"
+																				>
+																					Clear members
+																				</button>
+																			</div>
+																		</div>
+
+																		<div className="space-y-1">
+																			{orgMembers.map((member) => {
+																				const isMemberSelected = selectedMemberIds.includes(
+																					member.user.id
+																				);
+																				return (
+																					<div
+																						key={member.id}
+																						onClick={(e) => {
+																							e.stopPropagation();
+																							setSelectedMemberIds((prev) =>
+																								isMemberSelected
+																									? prev.filter((id) => id !== member.user.id)
+																									: [...prev, member.user.id]
+																							);
+																							// Ensure parent org is selected
+																							if (!isOrgSelected) {
+																								setSelectedOrgIds((prev) => [...prev, org.id]);
+																							}
+																						}}
+																						className={cn(
+																							"flex items-center justify-between p-1.5 rounded cursor-pointer transition-colors text-xs",
+																							isMemberSelected
+																								? "bg-primary/15 text-foreground font-medium"
+																								: "hover:bg-muted/60 text-muted-foreground"
+																						)}
+																					>
+																						<div className="flex items-center gap-2 min-w-0">
+																							<div
+																								className={cn(
+																									"h-3.5 w-3.5 rounded flex items-center justify-center border transition-colors shrink-0",
+																									isMemberSelected
+																										? "bg-primary border-primary text-primary-foreground"
+																										: "border-muted-foreground/40 bg-background"
+																								)}
+																							>
+																								{isMemberSelected && (
+																									<Check className="h-2.5 w-2.5 stroke-[3]" />
+																								)}
+																							</div>
+																							<span className="truncate max-w-[150px] text-foreground">
+																								{member.user.fullName || "Unnamed member"}
+																							</span>
+																							<Badge
+																								variant="outline"
+																								className="text-[9px] px-1 py-0 uppercase text-muted-foreground border-border/80"
+																							>
+																								{member.role || "MEMBER"}
+																							</Badge>
+																						</div>
+
+																						<div className="flex items-center gap-1.5 text-[10px] text-muted-foreground shrink-0">
+																							{member.user.email ? (
+																								<span
+																									className="flex items-center gap-0.5 max-w-[120px] truncate"
+																									title={member.user.email}
+																								>
+																									<Mail className="h-3 w-3 text-emerald-500 shrink-0" />
+																									<span className="truncate hidden md:inline">
+																										{member.user.email}
+																									</span>
+																								</span>
+																							) : (
+																								<span className="text-[9px] text-red-400">
+																									No email
+																								</span>
+																							)}
+																							{member.user.phone && (
+																								<span title={member.user.phone}>
+																									<Smartphone className="h-3 w-3 text-amber-500 shrink-0" />
+																								</span>
+																							)}
+																						</div>
+																					</div>
+																				);
+																			})}
+																		</div>
+																	</div>
+																)}
 															</div>
 														);
 													})}

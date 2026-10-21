@@ -233,6 +233,20 @@ export async function sendAdminOrganizerNotification(
 						phone: true,
 					},
 				},
+				team: {
+					select: {
+						id: true,
+						role: true,
+						user: {
+							select: {
+								id: true,
+								fullName: true,
+								email: true,
+								phone: true,
+							},
+						},
+					},
+				},
 				events: {
 					select: {
 						id: true,
@@ -272,34 +286,68 @@ export async function sendAdminOrganizerNotification(
 		let smsFailed = 0;
 		const errors: string[] = [];
 
+		// Determine if member-level targeting is active
+		const hasMemberTargeting = payload.selectedMemberIds && payload.selectedMemberIds.length > 0;
+
+		// Deduplicate sent-to tracking to avoid double-sending to the same user across orgs
+		const sentToEmails = new Set<string>();
+		const sentToPhones = new Set<string>();
+
 		// Process each organizer
 		for (const org of organizers) {
-			const recipientName = org.creator?.fullName || org.name;
-			const recipientEmail = org.contactEmail?.trim() || org.creator?.email?.trim() || null;
-			const recipientPhone = org.phone?.trim() || org.creator?.phone?.trim() || null;
-
 			// Active or latest event
 			const primaryEvent = org.events.find((e) => e.status === "published" || e.status === "ongoing") || org.events[0];
 			const eventName = primaryEvent?.title || `${org.name} Events`;
 			const eventSlug = primaryEvent?.slug || org.slug;
 
-			const ctx: NotificationVariableContext = {
-				organizerName: org.name,
-				recipientName,
-				organizerEmail: recipientEmail || "",
-				organizerPhone: recipientPhone || "",
-				eventName,
-				eventSlug,
-				adminName,
-				adminEmail,
-				dashboardUrl: `${baseUrl}/dashboard`,
-				platformName: "Fextiva",
-				currentDate,
-			};
+			// Build list of recipients for this org
+			type Recipient = { name: string; email: string | null; phone: string | null };
+			const recipients: Recipient[] = [];
+
+			if (hasMemberTargeting) {
+				// Only send to selected members within this org
+				for (const member of org.team) {
+					if (payload.selectedMemberIds!.includes(member.user.id)) {
+						recipients.push({
+							name: member.user.fullName,
+							email: member.user.email?.trim() || null,
+							phone: member.user.phone?.trim() || null,
+						});
+					}
+				}
+			} else {
+				// Default: send to org contact/creator
+				recipients.push({
+					name: org.creator?.fullName || org.name,
+					email: org.contactEmail?.trim() || org.creator?.email?.trim() || null,
+					phone: org.phone?.trim() || org.creator?.phone?.trim() || null,
+				});
+			}
+
+			// Send to each recipient in this org
+			for (const recipient of recipients) {
+				const recipientName = recipient.name;
+				const recipientEmail = recipient.email;
+				const recipientPhone = recipient.phone;
+
+				const ctx: NotificationVariableContext = {
+					organizerName: org.name,
+					recipientName,
+					organizerEmail: recipientEmail || "",
+					organizerPhone: recipientPhone || "",
+					eventName,
+					eventSlug,
+					adminName,
+					adminEmail,
+					dashboardUrl: `${baseUrl}/dashboard`,
+					platformName: "Fextiva",
+					currentDate,
+				};
 
 			// 1. Send Email if applicable
 			if (shouldSendEmail) {
-				if (recipientEmail && transporter && sender) {
+				if (recipientEmail && !sentToEmails.has(recipientEmail) && transporter && sender) {
+					sentToEmails.add(recipientEmail);
 					try {
 						const finalSubject = await replaceNotificationVariables(payload.emailSubject, ctx);
 						const finalBody = await replaceNotificationVariables(payload.emailHtml, ctx);
@@ -343,22 +391,23 @@ export async function sendAdminOrganizerNotification(
 						emailSent++;
 					} catch (mailErr: any) {
 						emailFailed++;
-						console.error(`[AdminNotification] Email error for ${org.name} (${recipientEmail}):`, mailErr);
+						console.error(`[AdminNotification] Email error for ${recipientName} (${recipientEmail}):`, mailErr);
 						if (errors.length < 5) {
-							errors.push(`${org.name}: ${mailErr.message || "Email send failed"}`);
+							errors.push(`${recipientName} (${org.name}): ${mailErr.message || "Email send failed"}`);
 						}
 					}
-				} else {
+				} else if (!recipientEmail) {
 					emailFailed++;
 					if (errors.length < 5) {
-						errors.push(`${org.name}: No valid email on file.`);
+						errors.push(`${recipientName} (${org.name}): No valid email on file.`);
 					}
 				}
 			}
 
 			// 2. Send SMS if applicable
 			if (shouldSendSms) {
-				if (recipientPhone) {
+				if (recipientPhone && !sentToPhones.has(recipientPhone)) {
+					sentToPhones.add(recipientPhone);
 					try {
 						const finalSms = await replaceNotificationVariables(payload.smsMessage, ctx);
 						const smsRes = await sendSmsMessage({
@@ -372,39 +421,45 @@ export async function sendAdminOrganizerNotification(
 						} else {
 							smsFailed++;
 							if (errors.length < 5) {
-								errors.push(`${org.name}: SMS failed (${smsRes.error || "provider error"})`);
+								errors.push(`${recipientName} (${org.name}): SMS failed (${smsRes.error || "provider error"})`);
 							}
 						}
 					} catch (smsErr: any) {
 						smsFailed++;
-						console.error(`[AdminNotification] SMS error for ${org.name} (${recipientPhone}):`, smsErr);
+						console.error(`[AdminNotification] SMS error for ${recipientName} (${recipientPhone}):`, smsErr);
 						if (errors.length < 5) {
-							errors.push(`${org.name}: SMS send exception: ${smsErr.message || String(smsErr)}`);
+							errors.push(`${recipientName} (${org.name}): SMS send exception: ${smsErr.message || String(smsErr)}`);
 						}
 					}
-				} else {
+				} else if (!recipientPhone) {
 					smsFailed++;
 					if (errors.length < 5) {
-						errors.push(`${org.name}: No valid phone number on file.`);
+						errors.push(`${recipientName} (${org.name}): No valid phone number on file.`);
 					}
 				}
 			}
-		}
+			} // end recipient loop
+		} // end organizer loop
 
 		// Log broadcast to ActivityLog for persistence & auditing
+		const actualRecipientCount = Math.max(sentToEmails.size, sentToPhones.size, hasMemberTargeting ? payload.selectedMemberIds!.length : organizers.length);
 		try {
 			await prisma.activityLog.create({
 				data: {
 					userId: adminState.userId,
 					action: "admin.organizer_notification_broadcast",
 					entityType: "organizer_broadcast",
-					description: `Notification broadcast sent to ${organizers.length} organizers. (${emailSent} emails, ${smsSent} SMS).`,
+					description: hasMemberTargeting
+						? `Notification sent to ${actualRecipientCount} member(s) across ${organizers.length} organizer(s). (${emailSent} emails, ${smsSent} SMS).`
+						: `Notification broadcast sent to ${organizers.length} organizers. (${emailSent} emails, ${smsSent} SMS).`,
 					metadata: {
 						adminEmail,
 						adminName,
 						channels: payload.channels,
 						targetAudience: payload.targetAudience,
-						recipientsCount: organizers.length,
+						memberTargeting: hasMemberTargeting || false,
+						selectedMemberCount: hasMemberTargeting ? payload.selectedMemberIds!.length : 0,
+						recipientsCount: actualRecipientCount,
 						emailSubject: payload.emailSubject,
 						emailSnippet: payload.emailHtml.replace(/<[^>]+>/g, "").slice(0, 140),
 						smsSnippet: payload.smsMessage.slice(0, 140),
@@ -427,8 +482,10 @@ export async function sendAdminOrganizerNotification(
 
 		return {
 			success: totalDelivered > 0,
-			message: `Broadcast completed. Sent ${emailSent} email(s) and ${smsSent} SMS message(s) to ${organizers.length} organizers.`,
-			recipientsCount: organizers.length,
+			message: hasMemberTargeting
+				? `Broadcast completed. Sent ${emailSent} email(s) and ${smsSent} SMS to ${actualRecipientCount} member(s) across ${organizers.length} org(s).`
+				: `Broadcast completed. Sent ${emailSent} email(s) and ${smsSent} SMS message(s) to ${organizers.length} organizers.`,
+			recipientsCount: actualRecipientCount,
 			emailSent,
 			emailFailed,
 			smsSent,
