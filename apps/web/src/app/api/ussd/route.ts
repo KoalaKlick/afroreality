@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { prisma } from "@repo/db";
 import { toPesewas } from "@repo/pricing";
 import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
@@ -24,6 +24,20 @@ export const dynamic = "force-dynamic";
 
 const MAX_LISTED_EVENTS = 7;
 const ENTER_CODE_OPTION = "0";
+
+// MTN MoMo push cannot overlay an active ticket USSD session; release the handset first.
+const MOMO_PUSH_AFTER_USSD_MS = 2000;
+
+function scheduleAfterUssdRelease(task: () => Promise<void>): void {
+	after(async () => {
+		await new Promise((resolve) => setTimeout(resolve, MOMO_PUSH_AFTER_USSD_MS));
+		try {
+			await task();
+		} catch (err) {
+			console.error("[USSD-DEFERRED-CHARGE]", err);
+		}
+	});
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -370,64 +384,75 @@ async function processJunipayPayment(
 		},
 	});
 
-	const result = await initiateJunipayCollection(config, {
-		amount: totalAmountGHS,
-		phoneNumber: normalizePhone(phoneNumber),
-		provider,
-		email: `${normalizePhone(phoneNumber)}@fextiva.com`,
-		description: `USSD payment for ${event.title}`,
-		foreignId: reference,
-		callbackUrl: config.callbackUrl,
-	});
-
-	if (result.transId || result.transId2 || result.reqToken) {
-		const payment = await prisma.payment.findUnique({
-			where: { reference },
-			select: { metadata: true },
-		});
-		const metadata =
-			payment?.metadata && typeof payment.metadata === "object"
-				? payment.metadata
-				: {};
-		await prisma.payment
-			.update({
-				where: { reference },
-				data: {
-					providerReference: result.transId || result.reqToken || result.transId2,
-					providerResponse: result.data ?? undefined,
-					metadata: {
-						...metadata,
-						junipayTransId: result.transId,
-						junipayTransId2: result.transId2,
-						junipayReqToken: result.reqToken,
-					},
-				},
-			})
-			.catch(() => {});
-	}
-
-	if (result.success) {
-		await fulfillSuccessfulPayment({
-			reference,
-			paystackData: {
-				id: result.transId || reference,
-				metadata: { gateway: "junipay" },
-			},
-		});
-		const itemLabel =
-			event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
-		return `END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`;
-	}
-
-	if (!result.ok) {
-		return `END Payment initiation failed: ${result.message || "Please try again."}`;
-	}
-
 	const itemStr = event.type === "voting" ? "vote" : "ticket";
 	const targetStr =
 		recipientPhone && recipientPhone !== phoneNumber
 			? ` Ticket will be sent to ${recipientPhone}.`
 			: "";
+
+	// END the USSD session first; JuniPay/MTN push starts after the handset is free.
+	scheduleAfterUssdRelease(async () => {
+		const result = await initiateJunipayCollection(config, {
+			amount: totalAmountGHS,
+			phoneNumber: normalizePhone(phoneNumber),
+			provider,
+			email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+			description: `USSD payment for ${event.title}`,
+			foreignId: reference,
+			callbackUrl: config.callbackUrl,
+		});
+
+		if (result.transId || result.transId2 || result.reqToken) {
+			const payment = await prisma.payment.findUnique({
+				where: { reference },
+				select: { metadata: true },
+			});
+			const metadata =
+				payment?.metadata && typeof payment.metadata === "object"
+					? payment.metadata
+					: {};
+			await prisma.payment
+				.update({
+					where: { reference },
+					data: {
+						providerReference: result.transId || result.reqToken || result.transId2,
+						providerResponse: result.data ?? undefined,
+						metadata: {
+							...metadata,
+							junipayTransId: result.transId,
+							junipayTransId2: result.transId2,
+							junipayReqToken: result.reqToken,
+						},
+					},
+				})
+				.catch(() => {});
+		}
+
+		if (result.success) {
+			await fulfillSuccessfulPayment({
+				reference,
+				paystackData: {
+					id: result.transId || reference,
+					metadata: { gateway: "junipay" },
+				},
+			});
+			return;
+		}
+
+		if (!result.ok) {
+			console.error("[USSD-JUNIPAY-CHARGE] Deferred initiation failed", {
+				reference,
+				message: result.message,
+			});
+			await prisma.payment
+				.update({ where: { reference }, data: { status: "failed" } })
+				.catch(() => {});
+			await prisma.ussdSession
+				.update({ where: { reference }, data: { status: "cancelled" } })
+				.catch(() => {});
+		}
+	});
+
 	return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
 }
 
@@ -514,60 +539,70 @@ async function processHubtelPayment(
 		},
 	});
 
-	const result = await initiateHubtelCollection(config, {
-		amount: totalAmountGHS,
-		phoneNumber: normalizePhone(phoneNumber),
-		channel,
-		email: `${normalizePhone(phoneNumber)}@fextiva.com`,
-		description: `USSD payment for ${event.title}`,
-		clientReference: reference,
-		callbackUrl: config.callbackUrl,
+	const itemStr = event.type === "voting" ? "vote" : "ticket";
+	const targetStr =
+		recipientPhone && recipientPhone !== phoneNumber
+			? ` Ticket will be sent to ${recipientPhone}.`
+			: "";
+
+	scheduleAfterUssdRelease(async () => {
+		const result = await initiateHubtelCollection(config, {
+			amount: totalAmountGHS,
+			phoneNumber: normalizePhone(phoneNumber),
+			channel,
+			email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+			description: `USSD payment for ${event.title}`,
+			clientReference: reference,
+			callbackUrl: config.callbackUrl,
+		});
+
+		if (result.transactionId) {
+			const payment = await prisma.payment.findUnique({
+				where: { reference },
+				select: { metadata: true },
+			});
+			const metadata =
+				payment?.metadata && typeof payment.metadata === "object"
+					? payment.metadata
+					: {};
+			await prisma.payment
+				.update({
+					where: { reference },
+					data: {
+						providerReference: result.transactionId,
+						providerResponse: result.data ?? undefined,
+						metadata: { ...metadata, hubtelTransactionId: result.transactionId },
+					},
+				})
+				.catch(() => {});
+		}
+
+		if (result.success) {
+			await fulfillSuccessfulPayment({
+				reference,
+				paystackData: {
+					id: result.transactionId || reference,
+					metadata: { gateway: "hubtel" },
+				},
+			});
+			return;
+		}
+
+		if (!result.pending) {
+			console.error("[USSD-HUBTEL-CHARGE] Deferred initiation failed", {
+				reference,
+				message: result.message,
+			});
+			await prisma.payment
+				.update({ where: { reference }, data: { status: "failed" } })
+				.catch(() => {});
+			await prisma.ussdSession
+				.update({ where: { reference }, data: { status: "cancelled" } })
+				.catch(() => {});
+		}
 	});
 
-	if (result.transactionId) {
-		const payment = await prisma.payment.findUnique({
-			where: { reference },
-			select: { metadata: true },
-		});
-		const metadata =
-			payment?.metadata && typeof payment.metadata === "object"
-				? payment.metadata
-				: {};
-		await prisma.payment
-			.update({
-				where: { reference },
-				data: {
-					providerReference: result.transactionId,
-					providerResponse: result.data ?? undefined,
-					metadata: { ...metadata, hubtelTransactionId: result.transactionId },
-				},
-			})
-			.catch(() => {});
-	}
-
-	if (result.success) {
-		await fulfillSuccessfulPayment({
-			reference,
-			paystackData: {
-				id: result.transactionId || reference,
-				metadata: { gateway: "hubtel" },
-			},
-		});
-		const itemLabel =
-			event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
-		return `END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`;
-	}
-
-	if (result.pending) {
-		const itemStr = event.type === "voting" ? "vote" : "ticket";
-		const targetStr =
-			recipientPhone && recipientPhone !== phoneNumber
-				? ` Ticket will be sent to ${recipientPhone}.`
-				: "";
-		return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
-	}
-
-	return `END Payment initiation failed: ${result.message || "Please try again."}`;
+	return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
 }
 
 /**
@@ -758,6 +793,103 @@ async function processPayment(
 		const isTestMode = paystackSecret.startsWith("sk_test_");
 		const chargePhone = isTestMode ? "0551234987" : normalizePhone(phoneNumber);
 		const chargeProvider = isTestMode ? "mtn" : provider;
+		// Vodafone often needs in-session OTP (CON). MTN/AT use push PIN — defer so USSD can END first.
+		const deferPushCharge = provider !== "vod";
+		const itemStr = event.type === "voting" ? "vote" : "ticket";
+		const targetStr =
+			recipientPhone && recipientPhone !== phoneNumber
+				? ` Ticket will be sent to ${recipientPhone}.`
+				: "";
+		const chargeBody = {
+			amount: amountPesewas,
+			email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+			currency: "GHS",
+			reference,
+			mobile_money: {
+				phone: chargePhone,
+				provider: chargeProvider,
+			},
+			metadata: {
+				source: "ussd",
+				channel: "ussd",
+				eventId: event.id,
+				optionId,
+				votingOptionId: optionId,
+				ticketTypeId: optionId,
+				quantity,
+				voteCount: quantity,
+				phoneNumber,
+				buyerPhone: recipientPhone || phoneNumber,
+				recipientPhone: recipientPhone || phoneNumber,
+				attendeePhone: recipientPhone || phoneNumber,
+				baseAmount,
+				platformFee: feeCalc.platformFee,
+				organizerReceives: feeCalc.organizerReceives,
+				paystackFee: feeCalc.paystackFee,
+				totalToCharge: totalAmountGHS,
+			},
+		};
+
+		if (deferPushCharge) {
+			scheduleAfterUssdRelease(async () => {
+				const paystackRes = await fetch("https://api.paystack.co/charge", {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${paystackSecret}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(chargeBody),
+				});
+				const paystackData = (await paystackRes.json()) as any;
+				console.info("[USSD-PAYSTACK-CHARGE]", {
+					reference,
+					provider: chargeProvider,
+					phone: chargePhone,
+					statusCode: paystackRes.status,
+					response: paystackData,
+					deferred: true,
+				});
+
+				if (!paystackRes.ok || !paystackData.status) {
+					console.error("Paystack Charge Error:", paystackData);
+					await prisma.payment
+						.update({ where: { reference }, data: { status: "failed" } })
+						.catch(() => {});
+					await prisma.ussdSession
+						.update({ where: { reference }, data: { status: "cancelled" } })
+						.catch(() => {});
+					return;
+				}
+
+				if (paystackData.data?.status === "success") {
+					await fulfillSuccessfulPayment({
+						reference,
+						paystackData: paystackData.data,
+					});
+					return;
+				}
+
+				if (paystackData.data?.status === "send_otp") {
+					const payment = await prisma.payment.findUnique({
+						where: { reference },
+						select: { metadata: true },
+					});
+					const metadata =
+						payment?.metadata && typeof payment.metadata === "object"
+							? payment.metadata
+							: {};
+					await prisma.payment.update({
+						where: { reference },
+						data: { metadata: { ...metadata, awaitingOtp: true } },
+					});
+					console.info(
+						"[USSD-PAYSTACK-CHARGE] OTP required after USSD ended; user can redial to enter OTP",
+						{ reference },
+					);
+				}
+			});
+			return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
+		}
 
 		const paystackRes = await fetch("https://api.paystack.co/charge", {
 			method: "POST",
@@ -765,35 +897,7 @@ async function processPayment(
 				Authorization: `Bearer ${paystackSecret}`,
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({
-				amount: amountPesewas,
-				email: `${normalizePhone(phoneNumber)}@fextiva.com`,
-				currency: "GHS",
-				reference,
-				mobile_money: {
-					phone: chargePhone,
-					provider: chargeProvider,
-				},
-				metadata: {
-					source: "ussd",
-					channel: "ussd",
-					eventId: event.id,
-					optionId,
-					votingOptionId: optionId,
-					ticketTypeId: optionId,
-					quantity,
-					voteCount: quantity,
-					phoneNumber,
-					buyerPhone: recipientPhone || phoneNumber,
-					recipientPhone: recipientPhone || phoneNumber,
-					attendeePhone: recipientPhone || phoneNumber,
-					baseAmount,
-					platformFee: feeCalc.platformFee,
-					organizerReceives: feeCalc.organizerReceives,
-					paystackFee: feeCalc.paystackFee,
-					totalToCharge: totalAmountGHS,
-				},
-			}),
+			body: JSON.stringify(chargeBody),
 		});
 
 		const paystackData = (await paystackRes.json()) as any;
@@ -821,11 +925,6 @@ async function processPayment(
 		}
 
 		if (["pay_offline", "pending", "ongoing", "processing"].includes(paystackData.data?.status)) {
-			const itemStr = event.type === "voting" ? "vote" : "ticket";
-			const targetStr =
-				recipientPhone && recipientPhone !== phoneNumber
-					? ` Ticket will be sent to ${recipientPhone}.`
-					: "";
 			return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
 		}
 

@@ -52,6 +52,28 @@ function isGatewayConfigured(env: Env | undefined, gateway: GatewayName): boolea
 export const MAX_LISTED_EVENTS = 7;
 export const ENTER_CODE_OPTION = "0";
 
+// MTN MoMo push cannot overlay an active ticket USSD session; release the handset first.
+const MOMO_PUSH_AFTER_USSD_MS = 2000;
+
+function scheduleAfterUssdRelease(
+	ctx: ExecutionContext | undefined,
+	task: () => Promise<void>,
+): void {
+	const run = async () => {
+		await new Promise((resolve) => setTimeout(resolve, MOMO_PUSH_AFTER_USSD_MS));
+		try {
+			await task();
+		} catch (err) {
+			console.error("[USSD-DEFERRED-CHARGE]", err);
+		}
+	};
+	if (ctx) {
+		ctx.waitUntil(run());
+	} else {
+		void run();
+	}
+}
+
 // Provider Detection & Helpers
 export function normalizePhone(phone: string): string {
 	let localPhone = phone.replace(/^\+?233/, "0");
@@ -961,6 +983,7 @@ export async function processPayment(
 	otpStr?: string,
 	isSimulation: boolean = false,
 	env?: Env,
+	ctx?: ExecutionContext,
 ): Promise<Response> {
 	if (Number.isNaN(quantity) || quantity <= 0) {
 		return textResponse("END Invalid number. Try again.");
@@ -993,6 +1016,7 @@ export async function processPayment(
 			price,
 			phoneNumber,
 			env,
+			ctx,
 		);
 	}
 	if (gateway === "hubtel" && env) {
@@ -1004,6 +1028,7 @@ export async function processPayment(
 			price,
 			phoneNumber,
 			env,
+			ctx,
 		);
 	}
 
@@ -1028,6 +1053,8 @@ export async function processPayment(
 
 	const provider = getProvider(phoneNumber);
 	const reference = `USSD_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+	// Vodafone often needs in-session OTP (CON). MTN/AT use push PIN — defer so USSD can END first.
+	const deferPushCharge = provider !== "vod";
 
 	try {
 		await sql`
@@ -1073,6 +1100,99 @@ export async function processPayment(
 		const isTestMode = paystackSecret.startsWith("sk_test_");
 		const chargePhone = isTestMode ? "0551234987" : normalizePhone(phoneNumber);
 		const chargeProvider = isTestMode ? "mtn" : provider;
+
+		const runPaystackCharge = async (): Promise<"ok" | "failed" | "otp" | "success"> => {
+			const paystackRes = await fetch("https://api.paystack.co/charge", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${paystackSecret}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					amount: amountPesewas,
+					email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+					currency: "GHS",
+					reference,
+					mobile_money: {
+						phone: chargePhone,
+						provider: chargeProvider,
+					},
+					metadata: {
+						source: "ussd",
+						channel: "ussd",
+						event_id: event.id,
+						eventId: event.id,
+						organization_id: orgId,
+						organizationId: orgId,
+						option_id: optionId,
+						optionId: optionId,
+						votingOptionId: optionId,
+						ticketTypeId: optionId,
+						quantity,
+						voteCount: quantity,
+						phone_number: phoneNumber,
+						phone: phoneNumber,
+						baseAmount,
+						platformFee: feeCalc.platformFee,
+						organizerReceives: feeCalc.organizerReceives,
+						paystackFee: feeCalc.paystackFee,
+						totalToCharge: totalAmountGHS,
+					},
+				}),
+			});
+
+			const paystackData = (await paystackRes.json()) as any;
+			console.info("[USSD-PAYSTACK-CHARGE]", {
+				reference,
+				provider: chargeProvider,
+				phone: chargePhone,
+				statusCode: paystackRes.status,
+				response: paystackData,
+				deferred: deferPushCharge,
+			});
+
+			if (!paystackRes.ok || !paystackData.status) {
+				console.error("Paystack Charge Error:", paystackData);
+				await sql`
+					UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = ${reference}
+				`.catch(() => {});
+				await sql`
+					UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${reference}
+				`.catch(() => {});
+				return "failed";
+			}
+
+			if (paystackData.data?.status === "success") {
+				await fulfillSuccessfulPaymentSql(sql, reference, paystackData.data, env);
+				return "success";
+			}
+
+			if (paystackData.data?.status === "send_otp") {
+				await sql`
+					UPDATE payments
+					SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{awaitingOtp}', 'true')
+					WHERE reference = ${reference}
+				`;
+				return "otp";
+			}
+
+			return "ok";
+		};
+
+		if (deferPushCharge) {
+			scheduleAfterUssdRelease(ctx, async () => {
+				const outcome = await runPaystackCharge();
+				if (outcome === "otp") {
+					console.info(
+						"[USSD-PAYSTACK-CHARGE] OTP required after USSD ended; user can redial to enter OTP",
+						{ reference },
+					);
+				}
+			});
+			return textResponse(
+				"END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.",
+			);
+		}
 
 		const paystackRes = await fetch("https://api.paystack.co/charge", {
 			method: "POST",
@@ -1177,6 +1297,7 @@ async function processJunipayPayment(
 	price: number,
 	phoneNumber: string,
 	env: Env,
+	ctx?: ExecutionContext,
 ): Promise<Response> {
 	const clientId = env.JUNIPAY_CLIENT_ID || "";
 	const privateKey = env.JUNIPAY_PRIVATE_KEY || "";
@@ -1228,49 +1349,68 @@ async function processJunipayPayment(
 		ON CONFLICT (reference) DO NOTHING
 	`;
 
-	const result = await initiateJunipayCollection(clientId, privateKey, env.JUNIPAY_BASE_URL || JUNIPAY_BASE_URL, {
-		amount: totalAmountGHS,
-		phoneNumber: normalizePhone(phoneNumber),
-		provider,
-		email: `${normalizePhone(phoneNumber)}@fextiva.com`,
-		description: `USSD payment for ${event.title}`,
-		foreignId: reference,
-		callbackUrl: env.JUNIPAY_CALLBACK_URL || undefined,
-	});
-
-	if (result.transId || result.transId2 || result.reqToken) {
-		await sql`
-			UPDATE payments
-			SET provider_reference = ${result.transId || result.reqToken || result.transId2},
-				provider_response = ${JSON.stringify(result.data)},
-				metadata = jsonb_set(
-					jsonb_set(
-						jsonb_set(
-							COALESCE(metadata, '{}'::jsonb),
-							'{junipayTransId}', to_jsonb(${result.transId}::text)
-						),
-						'{junipayTransId2}', to_jsonb(${result.transId2}::text)
-					),
-					'{junipayReqToken}', to_jsonb(${result.reqToken}::text)
-				)
-			WHERE reference = ${reference}
-		`.catch(() => {});
-	}
-
-	if (result.success) {
-		await fulfillSuccessfulPaymentSql(sql, reference, {
-			id: result.transId || reference,
-			metadata: { gateway: "junipay" },
-		}, env);
-		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
-		return textResponse(
-			`END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`,
+	// END the USSD session first; JuniPay/MTN push is started after the handset is free.
+	scheduleAfterUssdRelease(ctx, async () => {
+		const result = await initiateJunipayCollection(
+			clientId,
+			privateKey,
+			env.JUNIPAY_BASE_URL || JUNIPAY_BASE_URL,
+			{
+				amount: totalAmountGHS,
+				phoneNumber: normalizePhone(phoneNumber),
+				provider,
+				email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+				description: `USSD payment for ${event.title}`,
+				foreignId: reference,
+				callbackUrl: env.JUNIPAY_CALLBACK_URL || undefined,
+			},
 		);
-	}
 
-	if (!result.ok) {
-		return textResponse(`END Payment initiation failed: ${result.message || "Please try again."}`);
-	}
+		if (result.transId || result.transId2 || result.reqToken) {
+			await sql`
+				UPDATE payments
+				SET provider_reference = ${result.transId || result.reqToken || result.transId2},
+					provider_response = ${JSON.stringify(result.data)},
+					metadata = jsonb_set(
+						jsonb_set(
+							jsonb_set(
+								COALESCE(metadata, '{}'::jsonb),
+								'{junipayTransId}', to_jsonb(${result.transId}::text)
+							),
+							'{junipayTransId2}', to_jsonb(${result.transId2}::text)
+						),
+						'{junipayReqToken}', to_jsonb(${result.reqToken}::text)
+					)
+				WHERE reference = ${reference}
+			`.catch(() => {});
+		}
+
+		if (result.success) {
+			await fulfillSuccessfulPaymentSql(
+				sql,
+				reference,
+				{
+					id: result.transId || reference,
+					metadata: { gateway: "junipay" },
+				},
+				env,
+			);
+			return;
+		}
+
+		if (!result.ok) {
+			console.error("[USSD-JUNIPAY-CHARGE] Deferred initiation failed", {
+				reference,
+				message: result.message,
+			});
+			await sql`
+				UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = ${reference}
+			`.catch(() => {});
+			await sql`
+				UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${reference}
+			`.catch(() => {});
+		}
+	});
 
 	return textResponse(
 		"END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.",
@@ -1289,6 +1429,7 @@ async function processHubtelPayment(
 	price: number,
 	phoneNumber: string,
 	env: Env,
+	ctx?: ExecutionContext,
 ): Promise<Response> {
 	const clientId = env.HUBTEL_CLIENT_ID || "";
 	const clientSecret = env.HUBTEL_CLIENT_SECRET || "";
@@ -1337,53 +1478,66 @@ async function processHubtelPayment(
 		ON CONFLICT (reference) DO NOTHING
 	`;
 
-	const result = await initiateHubtelCollection(
-		clientId,
-		clientSecret,
-		posSalesId,
-		env.HUBTEL_BASE_URL || HUBTEL_BASE_URL,
-		{
-			amount: totalAmountGHS,
-			phoneNumber: normalizePhone(phoneNumber),
-			channel,
-			email: `${normalizePhone(phoneNumber)}@fextiva.com`,
-			description: `USSD payment for ${event.title}`,
-			clientReference: reference,
-			callbackUrl: env.HUBTEL_CALLBACK_URL || undefined,
-		},
+	scheduleAfterUssdRelease(ctx, async () => {
+		const result = await initiateHubtelCollection(
+			clientId,
+			clientSecret,
+			posSalesId,
+			env.HUBTEL_BASE_URL || HUBTEL_BASE_URL,
+			{
+				amount: totalAmountGHS,
+				phoneNumber: normalizePhone(phoneNumber),
+				channel,
+				email: `${normalizePhone(phoneNumber)}@fextiva.com`,
+				description: `USSD payment for ${event.title}`,
+				clientReference: reference,
+				callbackUrl: env.HUBTEL_CALLBACK_URL || undefined,
+			},
+		);
+
+		if (result.transactionId) {
+			await sql`
+				UPDATE payments
+				SET provider_reference = ${result.transactionId},
+					provider_response = ${JSON.stringify(result.data)},
+					metadata = jsonb_set(
+						COALESCE(metadata, '{}'::jsonb),
+						'{hubtelTransactionId}', to_jsonb(${result.transactionId}::text)
+					)
+				WHERE reference = ${reference}
+			`.catch(() => {});
+		}
+
+		if (result.success) {
+			await fulfillSuccessfulPaymentSql(
+				sql,
+				reference,
+				{
+					id: result.transactionId || reference,
+					metadata: { gateway: "hubtel" },
+				},
+				env,
+			);
+			return;
+		}
+
+		if (!result.pending) {
+			console.error("[USSD-HUBTEL-CHARGE] Deferred initiation failed", {
+				reference,
+				message: result.message,
+			});
+			await sql`
+				UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = ${reference}
+			`.catch(() => {});
+			await sql`
+				UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${reference}
+			`.catch(() => {});
+		}
+	});
+
+	return textResponse(
+		"END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.",
 	);
-
-	if (result.transactionId) {
-		await sql`
-			UPDATE payments
-			SET provider_reference = ${result.transactionId},
-				provider_response = ${JSON.stringify(result.data)},
-				metadata = jsonb_set(
-					COALESCE(metadata, '{}'::jsonb),
-					'{hubtelTransactionId}', to_jsonb(${result.transactionId}::text)
-				)
-			WHERE reference = ${reference}
-		`.catch(() => {});
-	}
-
-	if (result.success) {
-		await fulfillSuccessfulPaymentSql(sql, reference, {
-			id: result.transactionId || reference,
-			metadata: { gateway: "hubtel" },
-		}, env);
-		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
-		return textResponse(
-			`END Payment successful! Your ${itemLabel} for "${event.title}" has been confirmed.\nRef: ${reference}`,
-		);
-	}
-
-	if (result.pending) {
-		return textResponse(
-			"END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.",
-		);
-	}
-
-	return textResponse(`END Payment initiation failed: ${result.message || "Please try again."}`);
 }
 
 /**
@@ -1439,6 +1593,7 @@ export async function handleVotingFlow(
 	paystackSecret: string,
 	isSimulation: boolean = false,
 	env?: Env,
+	ctx?: ExecutionContext,
 ): Promise<Response> {
 	const now = new Date();
 	const startDate = event.start_date || event.startDate;
@@ -1554,6 +1709,7 @@ export async function handleVotingFlow(
 		otpStr,
 		isSimulation,
 		env,
+		ctx,
 	);
 }
 
@@ -1566,6 +1722,7 @@ export async function handleTicketFlow(
 	paystackSecret: string,
 	isSimulation: boolean = false,
 	env?: Env,
+	ctx?: ExecutionContext,
 ): Promise<Response> {
 	const now = new Date();
 	const endDate = event.end_date || event.endDate;
@@ -1650,6 +1807,7 @@ export async function handleTicketFlow(
 		otpStr,
 		isSimulation,
 		env,
+		ctx,
 	);
 }
 
@@ -1660,6 +1818,7 @@ export async function handleUssdCore(
 	env: Env,
 	isSimulation: boolean = false,
 	isNewSession: boolean = false,
+	ctx?: ExecutionContext,
 ): Promise<Response> {
 	const dbUrl = env.DATABASE_URL;
 	const paystackSecret = env.PAYSTACK_SECRET_KEY || "";
@@ -1843,6 +2002,7 @@ export async function handleUssdCore(
 					otpStr,
 					isSimulation,
 					env,
+					ctx,
 				);
 			}
 		}
@@ -1915,6 +2075,7 @@ export async function handleUssdCore(
 			paystackSecret,
 			isSimulation,
 			env,
+			ctx,
 		);
 	}
 	if (eventType === "ticketed") {
@@ -1927,6 +2088,7 @@ export async function handleUssdCore(
 			paystackSecret,
 			isSimulation,
 			env,
+			ctx,
 		);
 	}
 	if (eventType === "standard" || eventType === "hybrid") {
@@ -1944,6 +2106,7 @@ export async function handleUssdCore(
 				paystackSecret,
 				isSimulation,
 				env,
+				ctx,
 			);
 		}
 		if (modeStr === "2") {
@@ -1956,6 +2119,7 @@ export async function handleUssdCore(
 				paystackSecret,
 				isSimulation,
 				env,
+				ctx,
 			);
 		}
 		return textResponse("END Invalid selection.");
@@ -2018,7 +2182,7 @@ function normalizeArkeselInput(userData: string, newSession: boolean, envRootCod
 
 // Cloudflare Worker Fetch Entrypoint (Africa's Talking & Arkesel)
 export default {
-	async fetch(request: Request, env: Env): Promise<Response> {
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		if (request.method === "OPTIONS") {
 			return new Response(null, {
 				headers: {
@@ -2131,6 +2295,7 @@ export default {
 					env,
 					isSimulation,
 					isNewSession,
+					ctx,
 				);
 				return await toArkeselResponse(
 					atResponse,
@@ -2144,7 +2309,14 @@ export default {
 			const isAtSimulation =
 				sessionId.startsWith("SIM_") ||
 				url.searchParams.get("simulation") === "true";
-			return await handleUssdCore(phoneNumber, rawText, env, isAtSimulation);
+			return await handleUssdCore(
+				phoneNumber,
+				rawText,
+				env,
+				isAtSimulation,
+				false,
+				ctx,
+			);
 		} catch (error: any) {
 			console.error("USSD Worker Error:", error);
 			if (isArkeselRoute || bodyData.sessionID || bodyData.msisdn) {
