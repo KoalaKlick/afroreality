@@ -1,30 +1,13 @@
 import * as crypto from "crypto";
 
-const DEFAULT_FALLBACK_SECRETS = [
-	"fextiva_ticket_secret_key_default_2026",
-	"afroreality_ticket_secret_key_default_2026",
-];
+const DEFAULT_FALLBACK_SECRET = "fextiva_ticket_secret_key_default_2026";
 
-function getTicketSecret(): string {
-	const secret =
-		process.env.TICKET_SECRET_KEY ||
-		process.env.TICKET_SIGNING_SECRET ||
-		process.env.NEXTAUTH_SECRET ||
-		process.env.JWT_SECRET ||
-		DEFAULT_FALLBACK_SECRETS[0]!;
-	return secret;
-}
-
-function getCandidateSecrets(): string[] {
-	const candidates = [
-		process.env.TICKET_SECRET_KEY,
-		process.env.TICKET_SIGNING_SECRET,
-		process.env.NEXTAUTH_SECRET,
-		process.env.JWT_SECRET,
-		...DEFAULT_FALLBACK_SECRETS,
-	].filter((s): s is string => typeof s === "string" && s.length > 0);
-
-	return Array.from(new Set(candidates));
+/**
+ * Single canonical source of truth for ticket encryption & signing.
+ * Configured via TICKET_SECRET_KEY in environment variables.
+ */
+export function getTicketSecret(): string {
+	return process.env.TICKET_SECRET_KEY || DEFAULT_FALLBACK_SECRET;
 }
 
 /**
@@ -36,13 +19,20 @@ export function generateTicketSignature(payload: string, secretOverride?: string
 }
 
 /**
- * Verifies if the provided signature matches the payload across candidate secrets (constant-time).
+ * Verifies if the provided signature matches the payload (constant-time).
+ * Checks the configured TICKET_SECRET_KEY, with legacy fallback to preserve
+ * verification of previously purchased tickets.
  */
 export function verifyTicketSignature(payload: string, signature: string): boolean {
 	if (!signature || typeof signature !== "string") return false;
-	const candidates = getCandidateSecrets();
 
-	for (const secret of candidates) {
+	const primarySecret = getTicketSecret();
+	const secretsToCheck =
+		primarySecret === DEFAULT_FALLBACK_SECRET
+			? [primarySecret]
+			: [primarySecret, DEFAULT_FALLBACK_SECRET];
+
+	for (const secret of secretsToCheck) {
 		try {
 			const expected = generateTicketSignature(payload, secret);
 			const a = Buffer.from(expected, "utf8");
@@ -51,7 +41,7 @@ export function verifyTicketSignature(payload: string, signature: string): boole
 				return true;
 			}
 		} catch {
-			// continue checking candidate secrets
+			// continue
 		}
 	}
 	return false;
