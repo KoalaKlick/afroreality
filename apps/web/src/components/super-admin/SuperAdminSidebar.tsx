@@ -14,6 +14,7 @@ import {
 	ArrowLeft,
 	Percent,
 	MessageSquare,
+	Send,
 } from "lucide-react";
 import {
 	Sidebar,
@@ -50,6 +51,7 @@ const navGroups = [
 		label: "Oversight",
 		items: [
 			{ title: "Organizers", href: "/super/organizers", icon: Building2 },
+			{ title: "Notifications", href: "/super/notifications", icon: Send },
 			{ title: "Events", href: "/super/events", icon: CalendarCheck },
 			{ title: "Messaging", href: "/super/reports", icon: MessageSquare },
 			{ title: "Wallets", href: "/super/wallets", icon: Wallet },

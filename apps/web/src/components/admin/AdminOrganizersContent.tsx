@@ -16,6 +16,7 @@ import {
 	SlidersHorizontal,
 	TrendingUp,
 	Percent,
+	Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -135,11 +136,24 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 					/>
 				</div>
 
-				<div className="flex items-center gap-3 text-xs text-muted-foreground">
-					<span className="font-semibold text-foreground">
-						{filteredOrganizers.length} of {organizers.length}
-					</span>
-					<span>organizers on platform</span>
+				<div className="flex items-center gap-3">
+					<div className="flex items-center gap-1.5 text-xs text-muted-foreground hidden sm:flex">
+						<span className="font-semibold text-foreground">
+							{filteredOrganizers.length} of {organizers.length}
+						</span>
+						<span>organizers</span>
+					</div>
+
+					<Button
+						asChild
+						size="sm"
+						className="h-9 text-xs font-semibold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm gap-1.5"
+					>
+						<Link href="/super/notifications">
+							<Send className="h-3.5 w-3.5" />
+							<span>Notify Organizers</span>
+						</Link>
+					</Button>
 				</div>
 			</div>
 
@@ -309,21 +323,35 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 					{selectedOrg && (
 						<>
 							<SheetHeader className="p-6 border-b border-border bg-muted/20 rounded-lg">
-								<div className="flex items-center gap-3">
-									<Avatar className="h-12 w-12 rounded-lg border border-border">
-										<AvatarImage src={selectedOrg.logoUrl || ""} alt={selectedOrg.name} />
-										<AvatarFallback className="bg-primary/10 text-primary font-bold rounded-lg">
-											{selectedOrg.name.slice(0, 2).toUpperCase()}
-										</AvatarFallback>
-									</Avatar>
-									<div>
-										<SheetTitle className="text-base font-bold text-foreground">
-											{selectedOrg.name}
-										</SheetTitle>
-										<SheetDescription className="text-xs font-mono">
-											ID: {selectedOrg.id} • Created {new Date(selectedOrg.createdAt).toLocaleDateString()}
-										</SheetDescription>
+								<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+									<div className="flex items-center gap-3">
+										<Avatar className="h-12 w-12 rounded-lg border border-border">
+											<AvatarImage src={selectedOrg.logoUrl || ""} alt={selectedOrg.name} />
+											<AvatarFallback className="bg-primary/10 text-primary font-bold rounded-lg">
+												{selectedOrg.name.slice(0, 2).toUpperCase()}
+											</AvatarFallback>
+										</Avatar>
+										<div>
+											<SheetTitle className="text-base font-bold text-foreground">
+												{selectedOrg.name}
+											</SheetTitle>
+											<SheetDescription className="text-xs font-mono">
+												ID: {selectedOrg.id} • Created {new Date(selectedOrg.createdAt).toLocaleDateString()}
+											</SheetDescription>
+										</div>
 									</div>
+
+									<Button
+										asChild
+										variant="outline"
+										size="sm"
+										className="text-xs h-8 font-semibold rounded-lg shrink-0 gap-1.5 border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
+									>
+										<Link href={`/super/notifications?orgId=${selectedOrg.id}`}>
+											<Send className="h-3.5 w-3.5" />
+											<span>Send Notification</span>
+										</Link>
+									</Button>
 								</div>
 							</SheetHeader>
 

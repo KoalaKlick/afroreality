@@ -372,6 +372,7 @@ export interface AdminOrganizerItem {
 		id: string;
 		fullName: string;
 		email: string;
+		phone: string | null;
 		avatarUrl: string | null;
 	} | null;
 	members: Array<{
@@ -438,6 +439,7 @@ export async function getAdminOrganizersList(): Promise<AdminOrganizerItem[]> {
 						id: true,
 						fullName: true,
 						email: true,
+						phone: true,
 						avatarUrl: true,
 					},
 				},
