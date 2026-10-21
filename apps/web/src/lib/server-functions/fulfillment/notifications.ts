@@ -31,6 +31,7 @@ async function dispatchTicketWhatsApp({
 	bannerImageUrl,
 	attendeeNames,
 	eventId,
+	isBuyerReceipt = false,
 }: {
 	ticketIds: string[];
 	phone: string;
@@ -41,13 +42,16 @@ async function dispatchTicketWhatsApp({
 	bannerImageUrl?: string;
 	attendeeNames?: string[];
 	eventId?: string;
+	isBuyerReceipt?: boolean;
 }): Promise<boolean> {
 	try {
-		const claimed = await prisma.ticket.updateMany({
-			where: { id: { in: ticketIds }, whatsappSent: false },
-			data: { whatsappSent: true },
-		});
-		if (claimed.count === 0) return false; // already sent
+		if (!isBuyerReceipt) {
+			const claimed = await prisma.ticket.updateMany({
+				where: { id: { in: ticketIds }, whatsappSent: false },
+				data: { whatsappSent: true },
+			});
+			if (claimed.count === 0) return false; // already sent
+		}
 
 		const result = await sendTicketWhatsAppNotification({
 			phone,
@@ -77,6 +81,7 @@ async function dispatchTicketSms({
 	ticketCode,
 	ticketToken,
 	eventId,
+	isBuyerReceipt = false,
 }: {
 	ticketIds: string[];
 	phone: string;
@@ -85,13 +90,16 @@ async function dispatchTicketSms({
 	ticketCode: string;
 	ticketToken?: string;
 	eventId?: string;
+	isBuyerReceipt?: boolean;
 }): Promise<boolean> {
 	try {
-		const claimed = await prisma.ticket.updateMany({
-			where: { id: { in: ticketIds }, smsSent: false },
-			data: { smsSent: true },
-		});
-		if (claimed.count === 0) return false;
+		if (!isBuyerReceipt) {
+			const claimed = await prisma.ticket.updateMany({
+				where: { id: { in: ticketIds }, smsSent: false },
+				data: { smsSent: true },
+			});
+			if (claimed.count === 0) return false;
+		}
 
 		const result = await sendTicketSmsConfirmation({
 			phone,
@@ -127,6 +135,7 @@ export async function dispatchTicketChannelNotification({
 	attendeeNames,
 	eventId,
 	channel,
+	isBuyerReceipt = false,
 }: {
 	ticketIds: string[];
 	phone: string;
@@ -138,24 +147,25 @@ export async function dispatchTicketChannelNotification({
 	attendeeNames?: string[];
 	eventId?: string;
 	channel: string;
+	isBuyerReceipt?: boolean;
 }): Promise<void> {
 	if (channel === "none") return;
 
 	if (channel === "whatsapp") {
-		await dispatchTicketWhatsApp({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, bannerImageUrl, attendeeNames, eventId });
+		await dispatchTicketWhatsApp({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, bannerImageUrl, attendeeNames, eventId, isBuyerReceipt });
 		return;
 	}
 
 	if (channel === "sms") {
-		await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId });
+		await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId, isBuyerReceipt });
 		return;
 	}
 
 	if (channel === "whatsapp_sms") {
 		// Try WA first — if success, done. If fail, fallback to SMS.
-		const waSent = await dispatchTicketWhatsApp({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, bannerImageUrl, attendeeNames, eventId });
+		const waSent = await dispatchTicketWhatsApp({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, bannerImageUrl, attendeeNames, eventId, isBuyerReceipt });
 		if (!waSent) {
-			await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId });
+			await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId, isBuyerReceipt });
 		}
 		return;
 	}

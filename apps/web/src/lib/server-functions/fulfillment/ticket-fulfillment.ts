@@ -244,6 +244,7 @@ export async function sendTicketNotifications({
 				attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 				eventId,
 				channel: ticketChannel,
+				isBuyerReceipt: true,
 			}).catch((err) => console.error("[Notify] Buyer receipt dispatch failed:", err));
 		}
 	}

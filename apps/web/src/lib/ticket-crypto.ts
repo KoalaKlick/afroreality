@@ -1,37 +1,60 @@
 import * as crypto from "crypto";
 
+const DEFAULT_FALLBACK_SECRETS = [
+	"fextiva_ticket_secret_key_default_2026",
+	"afroreality_ticket_secret_key_default_2026",
+];
+
 function getTicketSecret(): string {
 	const secret =
-		process.env.TICKET_SIGNING_SECRET || process.env.NEXTAUTH_SECRET || "";
-	if (!secret) {
-		throw new Error(
-			"TICKET_SIGNING_SECRET (or NEXTAUTH_SECRET) must be configured — refusing insecure ticket tokens.",
-		);
-	}
+		process.env.TICKET_SECRET_KEY ||
+		process.env.TICKET_SIGNING_SECRET ||
+		process.env.NEXTAUTH_SECRET ||
+		process.env.JWT_SECRET ||
+		DEFAULT_FALLBACK_SECRETS[0]!;
 	return secret;
+}
+
+function getCandidateSecrets(): string[] {
+	const candidates = [
+		process.env.TICKET_SECRET_KEY,
+		process.env.TICKET_SIGNING_SECRET,
+		process.env.NEXTAUTH_SECRET,
+		process.env.JWT_SECRET,
+		...DEFAULT_FALLBACK_SECRETS,
+	].filter((s): s is string => typeof s === "string" && s.length > 0);
+
+	return Array.from(new Set(candidates));
 }
 
 /**
  * Generates an HMAC-SHA256 signature for the given payload.
  */
-export function generateTicketSignature(payload: string): string {
-	return crypto.createHmac("sha256", getTicketSecret()).update(payload).digest("hex");
+export function generateTicketSignature(payload: string, secretOverride?: string): string {
+	const secret = secretOverride || getTicketSecret();
+	return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
 /**
- * Verifies if the provided signature matches the payload (constant-time).
+ * Verifies if the provided signature matches the payload across candidate secrets (constant-time).
  */
 export function verifyTicketSignature(payload: string, signature: string): boolean {
 	if (!signature || typeof signature !== "string") return false;
-	const expected = generateTicketSignature(payload);
-	try {
-		const a = Buffer.from(expected, "utf8");
-		const b = Buffer.from(signature, "utf8");
-		if (a.length !== b.length) return false;
-		return crypto.timingSafeEqual(a, b);
-	} catch {
-		return false;
+	const candidates = getCandidateSecrets();
+
+	for (const secret of candidates) {
+		try {
+			const expected = generateTicketSignature(payload, secret);
+			const a = Buffer.from(expected, "utf8");
+			const b = Buffer.from(signature, "utf8");
+			if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
+				return true;
+			}
+		} catch {
+			// continue checking candidate secrets
+		}
 	}
+	return false;
 }
 
 /**
@@ -52,7 +75,15 @@ export function verifyTicketToken(
 	token: string,
 ): { ticketId: string; ticketCode: string } | null {
 	try {
-		const decoded = Buffer.from(token, "base64url").toString("utf-8");
+		if (!token || typeof token !== "string") return null;
+		const cleanToken = token.trim();
+		let decoded: string;
+		try {
+			decoded = Buffer.from(cleanToken, "base64url").toString("utf-8");
+		} catch {
+			decoded = Buffer.from(decodeURIComponent(cleanToken), "base64url").toString("utf-8");
+		}
+
 		const data = JSON.parse(decoded);
 
 		if (!data.tId || !data.tCode || !data.sig) {

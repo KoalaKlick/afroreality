@@ -20,18 +20,37 @@ export async function generateMetadata({
 	searchParams,
 }: TicketViewPageProps): Promise<Metadata> {
 	const params = await searchParams;
-	const token = typeof params.token === "string" ? params.token : "";
-	if (!token) return { title: "Ticket | fextiva" };
+	const token = typeof params.token === "string" ? params.token.trim() : "";
+	const ticketCode =
+		typeof params.code === "string"
+			? params.code.trim()
+			: typeof params.ticketCode === "string"
+				? params.ticketCode.trim()
+				: "";
 
-	const { verifyTicketToken } = await import("@/lib/ticket-crypto");
-	const verified = verifyTicketToken(token);
-	if (!verified) return { title: "Ticket | fextiva" };
+	if (!token && !ticketCode) return { title: "Ticket | fextiva" };
 
 	const { prisma } = await import("@repo/db");
-	const ticket = await prisma.ticket.findUnique({
-		where: { id: verified.ticketId },
-		include: { event: { include: { organization: true } }, ticketType: true },
-	});
+	let ticket: any = null;
+
+	if (token) {
+		const { verifyTicketToken } = await import("@/lib/ticket-crypto");
+		const verified = verifyTicketToken(token);
+		if (verified) {
+			ticket = await prisma.ticket.findFirst({
+				where: { id: verified.ticketId, ticketCode: verified.ticketCode },
+				include: { event: { include: { organization: true } }, ticketType: true },
+			});
+		}
+	}
+
+	if (!ticket && ticketCode) {
+		ticket = await prisma.ticket.findFirst({
+			where: { ticketCode },
+			include: { event: { include: { organization: true } }, ticketType: true },
+		});
+	}
+
 	if (!ticket) return { title: "Ticket | fextiva" };
 
 	const { event } = ticket;
@@ -67,16 +86,22 @@ export default async function TicketViewPage({
 	searchParams,
 }: TicketViewPageProps) {
 	const params = await searchParams;
-	const token = typeof params.token === "string" ? params.token : "";
+	const token = typeof params.token === "string" ? params.token.trim() : "";
+	const ticketCode =
+		typeof params.code === "string"
+			? params.code.trim()
+			: typeof params.ticketCode === "string"
+				? params.ticketCode.trim()
+				: "";
 
-	if (!token) {
+	if (!token && !ticketCode) {
 		return (
 			<div className="min-h-[70vh] flex items-center justify-center p-6">
 				<div className="w-full max-w-md rounded-xl border border-border/70 bg-card">
 					<EmptyState
 						variant="tickets"
 						title="Missing ticket link"
-						description="Open this page from the link in your email or WhatsApp receipt."
+						description="Open this page from the link in your email, SMS, or WhatsApp receipt."
 						className="py-12"
 					/>
 				</div>
@@ -84,36 +109,56 @@ export default async function TicketViewPage({
 		);
 	}
 
-	const verified = verifyTicketToken(token);
+	let ticket: any = null;
 
-	if (!verified) {
+	if (token) {
+		const verified = verifyTicketToken(token);
+		if (verified) {
+			ticket = await prisma.ticket.findFirst({
+				where: {
+					id: verified.ticketId,
+					ticketCode: verified.ticketCode,
+				},
+				include: {
+					event: {
+						include: { organization: true },
+					},
+					ticketType: true,
+					order: true,
+				},
+			});
+		}
+	}
+
+	if (!ticket && ticketCode) {
+		ticket = await prisma.ticket.findFirst({
+			where: {
+				ticketCode,
+			},
+			include: {
+				event: {
+					include: { organization: true },
+				},
+				ticketType: true,
+				order: true,
+			},
+		});
+	}
+
+	if (!ticket) {
 		return (
 			<div className="min-h-[70vh] flex items-center justify-center p-6">
 				<div className="w-full max-w-md rounded-xl border border-border/70 bg-card">
 					<EmptyState
 						variant="invalid"
 						title="Invalid ticket link"
-						description="This ticket link could not be verified. Use the original receipt link from email or WhatsApp."
+						description="This ticket link could not be verified. Use the original receipt link from email, SMS, or WhatsApp."
 						className="py-12"
 					/>
 				</div>
 			</div>
 		);
 	}
-
-	const ticket = await prisma.ticket.findFirst({
-		where: {
-			id: verified.ticketId,
-			ticketCode: verified.ticketCode,
-		},
-		include: {
-			event: {
-				include: { organization: true },
-			},
-			ticketType: true,
-			order: true,
-		},
-	});
 
 	if (!ticket) {
 		return notFound();

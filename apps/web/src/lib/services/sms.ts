@@ -199,18 +199,15 @@ export async function sendTicketSmsConfirmation({
 	const event = truncate(eventTitle, 30);
 	const code = ticketCode;
 
-	let message: string;
-	if (ticketToken) {
-		// Short token URL — assume /t/TOKEN short-link exists or use full path
-		const shortUrl = `fextiva.com/ticket/view?token=${ticketToken.slice(0, 20)}`;
-		message = `Hi ${name}, ticket for ${event} confirmed!\nCode: ${code}\nView: ${shortUrl}\n-Fextiva`;
-	} else {
-		message = `Hi ${name}, ur ticket for ${event} is confirmed!\nTicket Code: ${code}\nThank you! -Fextiva`;
-	}
+	const viewUrl = `fextiva.com/ticket/view?code=${encodeURIComponent(code)}`;
+	let message = `Hi ${name}, ticket for ${event} confirmed!\nCode: ${code}\nView: ${viewUrl}\n-Fextiva`;
 
 	// Ensure under limit
 	if (message.length > SMS_CHAR_LIMIT) {
-		message = `Ticket confirmed for ${event}!\nCode: ${code}\n-Fextiva`;
+		message = `Ticket confirmed for ${event}!\nCode: ${code}\nView: ${viewUrl}`;
+		if (message.length > SMS_CHAR_LIMIT) {
+			message = `Ticket confirmed: ${code}\nView: ${viewUrl}`;
+		}
 	}
 
 	return sendSmsMessage({ to: phone, message, purpose: "ticket_confirmation", eventId });

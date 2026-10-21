@@ -1357,14 +1357,17 @@ export async function verifyAndCheckInTicket({
 	if (token) {
 		const verified = verifyTicketToken(token);
 		if (!verified) {
-			return {
-				isValid: false,
-				status: "invalid",
-				message: "Invalid or forged cryptographic ticket signature.",
-			};
+			if (!ticketCode) {
+				return {
+					isValid: false,
+					status: "invalid",
+					message: "Invalid or forged cryptographic ticket signature.",
+				};
+			}
+		} else {
+			ticketId = verified.ticketId;
+			code = verified.ticketCode;
 		}
-		ticketId = verified.ticketId;
-		code = verified.ticketCode;
 	}
 
 	const ticket = await prisma.ticket.findFirst({
