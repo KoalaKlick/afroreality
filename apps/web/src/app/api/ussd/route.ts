@@ -1061,8 +1061,11 @@ async function handleTicketFlow(
 		return "END No tickets available.";
 	}
 
+	const isSingleTier = tickets.length === 1;
 	const tktSelection = getPaginatedSelection(tokens);
-	if (tktSelection.selectedIndex === null) {
+	const selectedTicketIndex = isSingleTier ? 0 : tktSelection.selectedIndex;
+
+	if (!isSingleTier && selectedTicketIndex === null) {
 		return buildPaginatedMenu(
 			`${event.title}\nSelect Ticket:`,
 			tickets,
@@ -1071,35 +1074,45 @@ async function handleTicketFlow(
 		);
 	}
 
-	const selectedTicket = tickets[tktSelection.selectedIndex];
+	if (selectedTicketIndex === null) return "END Invalid ticket.";
+
+	const selectedTicket = tickets[selectedTicketIndex];
 	if (!selectedTicket) return "END Invalid ticket.";
 
-	tokens = tktSelection.remainingTokens;
+	tokens = isSingleTier ? tokens : tktSelection.remainingTokens;
 
 	const ticketPrice = Number(selectedTicket.price) || 0;
+	const isSingleQuantity = selectedTicket.maxPerOrder === 1;
 
-	const quantityStr = tokens.shift();
-	if (!quantityStr) {
-		return `CON Enter quantity for ${selectedTicket.name}:\nPrice: GHS ${ticketPrice.toFixed(2)} each\n0. Back`;
-	}
+	let quantity = 1;
+	if (!isSingleQuantity) {
+		const quantityStr = tokens.shift();
+		if (!quantityStr) {
+			return `CON Enter quantity for ${selectedTicket.name}:\nPrice: GHS ${ticketPrice.toFixed(2)} each\n0. Back`;
+		}
 
-	const quantity = Number.parseInt(quantityStr, 10);
-	if (Number.isNaN(quantity) || quantity <= 0) {
-		return "END Invalid ticket quantity. Try again.";
-	}
+		quantity = Number.parseInt(quantityStr, 10);
+		if (Number.isNaN(quantity) || quantity <= 0) {
+			return "END Invalid ticket quantity. Try again.";
+		}
 
-	if (selectedTicket.minPerOrder && quantity < selectedTicket.minPerOrder) {
-		return `END Minimum quantity for this ticket is ${selectedTicket.minPerOrder}.`;
-	}
+		if (selectedTicket.minPerOrder && quantity < selectedTicket.minPerOrder) {
+			return `END Minimum quantity for this ticket is ${selectedTicket.minPerOrder}.`;
+		}
 
-	if (selectedTicket.maxPerOrder && quantity > selectedTicket.maxPerOrder) {
-		return `END Maximum quantity for this ticket is ${selectedTicket.maxPerOrder}.`;
+		if (selectedTicket.maxPerOrder && quantity > selectedTicket.maxPerOrder) {
+			return `END Maximum quantity for this ticket is ${selectedTicket.maxPerOrder}.`;
+		}
 	}
 
 	// ── Recipient Selection: Buy for self or someone else ──
 	const recipientChoice = tokens.shift();
 	if (!recipientChoice) {
-		return `CON Buy ticket for:\n1. Myself\n2. Someone else\n0. Back`;
+		const headerPrefix =
+			isSingleTier && isSingleQuantity
+				? `${selectedTicket.name} (GHS ${ticketPrice.toFixed(2)})\n`
+				: "";
+		return `CON ${headerPrefix}Buy ticket for:\n1. Myself\n2. Someone else\n0. Back`;
 	}
 
 	let recipientPhone = phoneNumber;
