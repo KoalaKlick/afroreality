@@ -1617,18 +1617,6 @@ export function OrganizerNotificationCenter({
 											</div>
 										</div>
 
-										{/* Email Subject Title */}
-										<div className="p-4 pb-2 border-b border-zinc-100">
-											<h2 className="text-base font-bold text-zinc-900 leading-snug">
-												{evaluatedSubject || "(No subject provided)"}
-											</h2>
-											{emailPreviewText && (
-												<p className="text-xs text-zinc-400 mt-1 italic truncate">
-													{emailPreviewText}
-												</p>
-											)}
-										</div>
-
 										{/* Email Body Content */}
 										<div className="p-5 space-y-4 text-xs sm:text-sm text-zinc-700 leading-relaxed font-sans min-h-[180px]">
 											<div
@@ -1650,12 +1638,6 @@ export function OrganizerNotificationCenter({
 													</a>
 												</div>
 											)}
-
-											<div className="pt-4 border-t border-zinc-200 text-xs text-zinc-500">
-												<p className="m-0">Best regards,</p>
-												<p className="m-0 font-bold text-zinc-900">{adminUser.name}</p>
-												<p className="m-0 text-[11px] text-zinc-400">Fextiva Platform Governance</p>
-											</div>
 										</div>
 
 										{/* Email Footer */}
