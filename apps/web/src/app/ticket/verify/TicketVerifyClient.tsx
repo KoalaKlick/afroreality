@@ -424,24 +424,6 @@ export function TicketVerifyClient({
 								</p>
 							</div>
 
-							{(ticket.attendeeEmail || ticket.order?.buyerEmail) && (
-								<div>
-									<p className="text-xs text-muted-foreground">Email</p>
-									<p className="text-sm text-foreground truncate mt-0.5">
-										{ticket.attendeeEmail || ticket.order?.buyerEmail}
-									</p>
-								</div>
-							)}
-
-							{(ticket.attendeePhone || ticket.order?.buyerPhone) && (
-								<div>
-									<p className="text-xs text-muted-foreground">Phone</p>
-									<p className="text-sm text-foreground font-mono mt-0.5">
-										{ticket.attendeePhone || ticket.order?.buyerPhone}
-									</p>
-								</div>
-							)}
-
 							{ticket.checkedInAt && (
 								<div className="col-span-2">
 									<p className="text-xs text-muted-foreground">Check-in Time</p>

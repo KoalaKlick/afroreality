@@ -294,6 +294,7 @@ async function processJunipayPayment(
 	quantity: number,
 	price: number,
 	phoneNumber: string,
+	recipientPhone?: string,
 ): Promise<string> {
 	const config = getJunipayConfig();
 	if (!config) {
@@ -354,6 +355,9 @@ async function processJunipayPayment(
 				quantity,
 				voteCount: quantity,
 				phoneNumber,
+				buyerPhone: recipientPhone || phoneNumber,
+				recipientPhone: recipientPhone || phoneNumber,
+				attendeePhone: recipientPhone || phoneNumber,
 				baseAmount,
 				platformFee: feeCalc.platformFee,
 				organizerReceives: feeCalc.organizerReceives,
@@ -415,7 +419,12 @@ async function processJunipayPayment(
 		return `END Payment initiation failed: ${result.message || "Please try again."}`;
 	}
 
-	return "END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.";
+	const itemStr = event.type === "voting" ? "vote" : "ticket";
+	const targetStr =
+		recipientPhone && recipientPhone !== phoneNumber
+			? ` Ticket will be sent to ${recipientPhone}.`
+			: "";
+	return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
 }
 
 /**
@@ -428,6 +437,7 @@ async function processHubtelPayment(
 	quantity: number,
 	price: number,
 	phoneNumber: string,
+	recipientPhone?: string,
 ): Promise<string> {
 	const config = getHubtelConfig();
 	if (!config) {
@@ -485,6 +495,9 @@ async function processHubtelPayment(
 				quantity,
 				voteCount: quantity,
 				phoneNumber,
+				buyerPhone: recipientPhone || phoneNumber,
+				recipientPhone: recipientPhone || phoneNumber,
+				attendeePhone: recipientPhone || phoneNumber,
 				baseAmount,
 				platformFee: feeCalc.platformFee,
 				organizerReceives: feeCalc.organizerReceives,
@@ -538,7 +551,12 @@ async function processHubtelPayment(
 	}
 
 	if (result.pending) {
-		return "END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.";
+		const itemStr = event.type === "voting" ? "vote" : "ticket";
+		const targetStr =
+			recipientPhone && recipientPhone !== phoneNumber
+				? ` Ticket will be sent to ${recipientPhone}.`
+				: "";
+		return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
 	}
 
 	return `END Payment initiation failed: ${result.message || "Please try again."}`;
@@ -599,6 +617,7 @@ async function processPayment(
 	phoneNumber: string,
 	otpStr?: string,
 	isSimulation: boolean = false,
+	recipientPhone?: string,
 ): Promise<string> {
 	if (Number.isNaN(quantity) || quantity <= 0) {
 		return "END Invalid number. Try again.";
@@ -623,14 +642,32 @@ async function processPayment(
 	// In simulator preview mode, do not call Paystack or create real financial records
 	if (isSimulation) {
 		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
-		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${baseAmount.toFixed(2)} for ${itemLabel}. Preview mode - no real payment charged.`;
+		const recipientStr =
+			recipientPhone && recipientPhone !== phoneNumber
+				? ` (for ${recipientPhone})`
+				: "";
+		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${baseAmount.toFixed(2)} for ${itemLabel}${recipientStr}. Preview mode - no real payment charged.`;
 	}
 
 	if (gateway === "junipay") {
-		return await processJunipayPayment(event, optionId, quantity, price, phoneNumber);
+		return await processJunipayPayment(
+			event,
+			optionId,
+			quantity,
+			price,
+			phoneNumber,
+			recipientPhone,
+		);
 	}
 	if (gateway === "hubtel") {
-		return await processHubtelPayment(event, optionId, quantity, price, phoneNumber);
+		return await processHubtelPayment(
+			event,
+			optionId,
+			quantity,
+			price,
+			phoneNumber,
+			recipientPhone,
+		);
 	}
 
 	const paystackSecret = process.env.PAYSTACK_SECRET_KEY || "";
@@ -688,6 +725,9 @@ async function processPayment(
 					quantity,
 					voteCount: quantity,
 					phoneNumber,
+					buyerPhone: recipientPhone || phoneNumber,
+					recipientPhone: recipientPhone || phoneNumber,
+					attendeePhone: recipientPhone || phoneNumber,
 					baseAmount,
 					platformFee: feeCalc.platformFee,
 					organizerReceives: feeCalc.organizerReceives,
@@ -732,6 +772,9 @@ async function processPayment(
 					quantity,
 					voteCount: quantity,
 					phoneNumber,
+					buyerPhone: recipientPhone || phoneNumber,
+					recipientPhone: recipientPhone || phoneNumber,
+					attendeePhone: recipientPhone || phoneNumber,
 					baseAmount,
 					platformFee: feeCalc.platformFee,
 					organizerReceives: feeCalc.organizerReceives,
@@ -766,7 +809,12 @@ async function processPayment(
 		}
 
 		if (["pay_offline", "pending", "ongoing", "processing"].includes(paystackData.data?.status)) {
-			return "END Payment request sent. Approve it on your phone. Your vote will be confirmed automatically.";
+			const itemStr = event.type === "voting" ? "vote" : "ticket";
+			const targetStr =
+				recipientPhone && recipientPhone !== phoneNumber
+					? ` Ticket will be sent to ${recipientPhone}.`
+					: "";
+			return `END Payment request sent. Approve it on your phone. Your ${itemStr} will be confirmed automatically.${targetStr}`;
 		}
 
 		if (paystackData.data?.status === "send_otp") {
@@ -1048,11 +1096,35 @@ async function handleTicketFlow(
 		return `END Maximum quantity for this ticket is ${selectedTicket.maxPerOrder}.`;
 	}
 
+	// ── Recipient Selection: Buy for self or someone else ──
+	const recipientChoice = tokens.shift();
+	if (!recipientChoice) {
+		return `CON Buy ticket for:\n1. Myself\n2. Someone else\n0. Back`;
+	}
+
+	let recipientPhone = phoneNumber;
+	if (recipientChoice === "1") {
+		recipientPhone = phoneNumber;
+	} else if (recipientChoice === "2") {
+		const enteredPhone = tokens.shift();
+		if (!enteredPhone) {
+			return `CON Enter recipient phone number:\n(Ticket pass will be sent here)\n0. Back`;
+		}
+		const cleaned = enteredPhone.replace(/[\s\-\+]/g, "");
+		if (cleaned.length < 9 || cleaned.length > 15 || !/^\d+$/.test(cleaned)) {
+			return `CON Invalid phone number.\nEnter 10-digit phone number:\n0. Back`;
+		}
+		recipientPhone = cleaned.startsWith("233") ? `0${cleaned.slice(3)}` : cleaned;
+	} else {
+		return "CON Invalid choice.\n1. Myself\n2. Someone else\n0. Back";
+	}
+
 	// Order Summary & Confirmation Screen
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = ticketPrice * quantity;
-		return `CON Confirm Ticket Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
+		const recipientLabel = recipientPhone === phoneNumber ? "Myself" : recipientPhone;
+		return `CON Confirm Ticket Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nFor: ${recipientLabel}\nTotal: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
 	}
 
 	if (confirmToken !== "1") {
@@ -1069,6 +1141,7 @@ async function handleTicketFlow(
 		phoneNumber,
 		otpStr,
 		isSimulation,
+		recipientPhone,
 	);
 }
 

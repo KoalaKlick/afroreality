@@ -105,14 +105,22 @@ export async function fulfillTicketPurchase({
 			const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
 			const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
 			const attendee = attendees[i];
+			const isOtherRecipient =
+				metadata.recipientPhone &&
+				metadata.phoneNumber &&
+				metadata.recipientPhone !== metadata.phoneNumber;
 			const attendeeName =
-				(attendee && typeof attendee.name === "string" && attendee.name.trim()) || buyerName;
+				(attendee && typeof attendee.name === "string" && attendee.name.trim()) ||
+				(isOtherRecipient ? `Attendee (${metadata.recipientPhone})` : buyerName);
 			const attendeeEmail =
 				(attendee && typeof attendee.email === "string" && attendee.email.trim()) ||
 				buyerEmail ||
 				null;
 			const attendeePhone =
-				(attendee && typeof attendee.phone === "string" && attendee.phone.trim()) || null;
+				(attendee && typeof attendee.phone === "string" && attendee.phone.trim()) ||
+				metadata.recipientPhone ||
+				payerPhone ||
+				null;
 
 			const ticket = await prisma.ticket.create({
 				data: {
@@ -167,13 +175,15 @@ export async function sendTicketNotifications({
 		metadata.attendeeName ||
 		order?.buyerName ||
 		`Attendee (${metadata.phoneNumber || payment.email})`;
-	const buyerPhone =
+	const recipientPhone =
+		metadata.recipientPhone ||
 		metadata.buyerPhone ||
 		metadata.phone ||
 		metadata.phone_number ||
 		metadata.attendeePhone ||
 		order?.buyerPhone ||
 		null;
+	const payerPhone = metadata.phoneNumber;
 	const buyerEmail = metadata.buyerEmail || metadata.attendeeEmail || payment.email;
 	const totalAmount = Number(metadata.baseAmount || metadata.totalToCharge || payment.amount || 0);
 	const unitPrice = generatedTickets.length > 0 ? totalAmount / generatedTickets.length : 0;
@@ -200,9 +210,9 @@ export async function sendTicketNotifications({
 		}
 	}
 
-	// Channel-aware buyer notification (WA / SMS / fallback)
-	if (buyerPhone) {
-		const phone = normalizePhoneNumber(buyerPhone);
+	// 1. Channel-aware ticket pass delivery to recipient
+	if (recipientPhone) {
+		const phone = normalizePhoneNumber(recipientPhone);
 		if (phone) {
 			await dispatchTicketChannelNotification({
 				ticketIds: generatedTickets.map((t) => t.id),
@@ -215,7 +225,26 @@ export async function sendTicketNotifications({
 				attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 				eventId,
 				channel: ticketChannel,
-			}).catch((err) => console.error("[Notify] Buyer ticket dispatch failed:", err));
+			}).catch((err) => console.error("[Notify] Recipient ticket dispatch failed:", err));
+		}
+	}
+
+	// 2. If bought for someone else, also notify the payer
+	if (payerPhone && recipientPhone && payerPhone !== recipientPhone) {
+		const payerNormalized = normalizePhoneNumber(payerPhone);
+		if (payerNormalized) {
+			await dispatchTicketChannelNotification({
+				ticketIds: generatedTickets.map((t) => t.id),
+				phone: payerNormalized,
+				attendeeName: `Buyer (${payerPhone})`,
+				eventTitle: notifEvent.title,
+				ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
+				ticketToken: generatedTickets[0]?.token,
+				bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
+				attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
+				eventId,
+				channel: ticketChannel,
+			}).catch((err) => console.error("[Notify] Buyer receipt dispatch failed:", err));
 		}
 	}
 
@@ -291,7 +320,7 @@ export async function sendTicketNotifications({
 
 		const attendeePhone = ticketRecord?.attendeePhone;
 		const attendeeNotSent = !ticketRecord?.whatsappSent && !ticketRecord?.smsSent;
-		if (attendeePhone && attendeePhone !== buyerPhone && attendeeNotSent) {
+		if (attendeePhone && attendeePhone !== recipientPhone && attendeeNotSent) {
 			const phone = normalizePhoneNumber(attendeePhone);
 			if (phone) {
 				dispatchTicketChannelNotification({

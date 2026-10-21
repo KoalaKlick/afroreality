@@ -1434,13 +1434,30 @@ export async function verifyAndCheckInTicket({
 		};
 	}
 
+	function sanitizeTicketForVerifier(t: any) {
+		if (!t) return null;
+		return {
+			id: t.id,
+			ticketCode: t.ticketCode,
+			checkInStatus: t.checkInStatus,
+			checkedInAt: t.checkedInAt,
+			attendeeName: t.attendeeName || t.order?.buyerName || "Guest",
+			ticketType: t.ticketType ? { id: t.ticketType.id, name: t.ticketType.name } : null,
+			event: t.event ? {
+				id: t.event.id,
+				title: t.event.title,
+				organization: t.event.organization ? { name: t.event.organization.name } : null,
+			} : null,
+		};
+	}
+
 	if (action === "check_in") {
 		if (ticket.checkInStatus === "checked_in") {
 			return {
 				isValid: true,
 				status: "already_checked_in",
 				message: "Already checked in.",
-				ticket,
+				ticket: sanitizeTicketForVerifier(ticket),
 			};
 		}
 
@@ -1462,7 +1479,7 @@ export async function verifyAndCheckInTicket({
 			isValid: true,
 			status: "checked_in",
 			message: "Check-in recorded successfully.",
-			ticket: updated,
+			ticket: sanitizeTicketForVerifier(updated),
 		};
 	}
 
@@ -1485,7 +1502,7 @@ export async function verifyAndCheckInTicket({
 			isValid: true,
 			status: "not_checked_in",
 			message: "Check-in undone.",
-			ticket: updated,
+			ticket: sanitizeTicketForVerifier(updated),
 		};
 	}
 
@@ -1497,7 +1514,7 @@ export async function verifyAndCheckInTicket({
 			ticket.checkInStatus === "checked_in"
 				? "Already checked in."
 				: "Valid ticket. Ready for entry.",
-		ticket,
+		ticket: sanitizeTicketForVerifier(ticket),
 	};
 }
 
