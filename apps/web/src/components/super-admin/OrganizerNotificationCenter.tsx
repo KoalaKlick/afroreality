@@ -199,14 +199,14 @@ export function OrganizerNotificationCenter({
 	const [emailSubject, setEmailSubject] = useState("Important Platform Update for {{identity}}");
 	const [emailPreviewText, setEmailPreviewText] = useState("");
 	const [emailHtml, setEmailHtml] = useState(
-		`<h2>Hello {{identity}},</h2><p>We are reaching out with an important administrative update regarding your event <strong>{{event_name}}</strong> and organizer account on Fextiva.</p><p>Please take a moment to review the upcoming schedules, payout settlements, and attendee communication channels.</p><blockquote>Our team is available 24/7 to support your ticket onsales and voting operations.</blockquote><p>Best regards,<br/><strong>{{admin_name}}</strong></p>`
+		`<p>We are reaching out with an update regarding your event <strong>{{event_name}}</strong> and organizer account on Fextiva.</p><p>Please take a moment to review the upcoming schedules, payout settlements, and attendee communication channels.</p>`
 	);
 	const [includeCta, setIncludeCta] = useState(true);
 	const [ctaLabel, setCtaLabel] = useState("Open Organizer Portal");
 	const [ctaUrl, setCtaUrl] = useState("{{dashboard_url}}");
 
 	const [smsMessage, setSmsMessage] = useState(
-		`Notice for {{identity}}: Important updates for your event {{event_name}} are now live in your Fextiva portal. Review details at {{dashboard_url}} - {{admin_name}}`
+		`Notice for {{identity}}: Important updates for your event {{event_name}} are now live in your Fextiva portal. Review details at {{dashboard_url}}`
 	);
 
 	// ── Last Focused Field for Intuitive Prefix Insertion ────────────────────────
