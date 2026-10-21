@@ -19,6 +19,8 @@ export interface NotificationVariableContext {
 export interface SendAdminNotificationPayload {
 	targetAudience: "all" | "active_events" | "selected";
 	selectedOrgIds?: string[];
+	/** When provided, only these specific member user IDs within the selected orgs receive the notification */
+	selectedMemberIds?: string[];
 	channels: "email" | "sms" | "both";
 	emailSubject: string;
 	emailHtml: string;
