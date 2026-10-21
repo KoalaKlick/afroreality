@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="280" viewBox="0 0 320 280" role="img">
+  <defs>
+    <style>
+      :root, svg {
+        --color-primary-600: #059669;
+        --color-primary-500: #10b981;
+        --color-primary-400: #34d399;
+        --color-primary-300: #6ee7b7;
+        --color-primary-200: #a7f3d0;
+        --color-primary-100: #d1fae5;
+        --color-secondary-500: #eab308;
+        --color-secondary-300: #fde047;
+        --color-neutral-200: #e5e7eb;
+        --color-neutral-400: #9ca3af;
+        --color-foreground: #1f2937;
+      }
+    </style>
+  </defs>
+  <ellipse cx="160" cy="248" rx="88" ry="12" fill="var(--color-neutral-200)" opacity="0.7"/>
+  <rect x="68" y="72" width="184" height="120" rx="16" fill="var(--color-primary-600)"/>
+  <rect x="68" y="72" width="184" height="36" rx="16" fill="var(--color-primary-500)"/>
+  <rect x="68" y="92" width="184" height="16" fill="var(--color-primary-500)"/>
+  <circle cx="100" cy="128" r="14" fill="var(--color-secondary-500)"/>
+  <rect x="128" y="118" width="88" height="8" rx="4" fill="var(--color-primary-200)"/>
+  <rect x="128" y="134" width="64" height="8" rx="4" fill="var(--color-primary-300)"/>
+  <rect x="88" y="158" width="40" height="18" rx="4" fill="var(--color-primary-100)"/>
+  <rect x="136" y="158" width="40" height="18" rx="4" fill="var(--color-primary-100)"/>
+  <rect x="184" y="158" width="40" height="18" rx="4" fill="var(--color-primary-100)"/>
+  <circle cx="232" cy="84" r="34" fill="var(--color-primary-100)"/>
+  <circle cx="232" cy="84" r="26" fill="var(--color-primary-500)"/>
+  <path d="M220 84.5l8 8 16-16" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

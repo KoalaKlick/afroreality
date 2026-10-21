@@ -4,149 +4,12 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { StatusIllustration } from "@/components/shared/StatusIllustration";
 import { verifyAndCheckInTicket } from "@/lib/server-functions/public-checkout";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import Link from "next/link";
-
-/** Clean, professional custom SVG emblems */
-function ValidTicketSvg({ className = "size-16" }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 64 64"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			className={className}
-		>
-			<circle cx="32" cy="32" r="30" fill="url(#valid-grad)" />
-			<circle cx="32" cy="32" r="26" fill="#10B981" />
-			<path
-				d="M21 32.5L28.5 40L43 25"
-				stroke="white"
-				strokeWidth="4"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-			<defs>
-				<linearGradient
-					id="valid-grad"
-					x1="6"
-					y1="6"
-					x2="58"
-					y2="58"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#34D399" />
-					<stop offset="1" stopColor="#059669" />
-				</linearGradient>
-			</defs>
-		</svg>
-	);
-}
-
-function AlreadyCheckedInSvg({ className = "size-16" }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 64 64"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			className={className}
-		>
-			<circle cx="32" cy="32" r="30" fill="url(#checked-grad)" />
-			<circle cx="32" cy="32" r="26" fill="#F59E0B" />
-			<path
-				d="M32 19V32.5L41 37"
-				stroke="white"
-				strokeWidth="3.5"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-			<circle cx="32" cy="32" r="14" stroke="white" strokeWidth="2" strokeOpacity="0.35" />
-			<defs>
-				<linearGradient
-					id="checked-grad"
-					x1="6"
-					y1="6"
-					x2="58"
-					y2="58"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#FBBF24" />
-					<stop offset="1" stopColor="#D97706" />
-				</linearGradient>
-			</defs>
-		</svg>
-	);
-}
-
-function InvalidTicketSvg({ className = "size-16" }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 64 64"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			className={className}
-		>
-			<circle cx="32" cy="32" r="30" fill="url(#invalid-grad)" />
-			<circle cx="32" cy="32" r="26" fill="#EF4444" />
-			<path
-				d="M23 23L41 41M41 23L23 41"
-				stroke="white"
-				strokeWidth="4"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-			<defs>
-				<linearGradient
-					id="invalid-grad"
-					x1="6"
-					y1="6"
-					x2="58"
-					y2="58"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#F87171" />
-					<stop offset="1" stopColor="#DC2626" />
-				</linearGradient>
-			</defs>
-		</svg>
-	);
-}
-
-function UnauthorizedSvg({ className = "size-16" }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 64 64"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			className={className}
-		>
-			<circle cx="32" cy="32" r="30" fill="url(#unauth-grad)" />
-			<circle cx="32" cy="32" r="26" fill="#64748B" />
-			<path
-				d="M25 29V24C25 20.134 28.134 17 32 17C35.866 17 39 20.134 39 24V29"
-				stroke="white"
-				strokeWidth="3.5"
-				strokeLinecap="round"
-			/>
-			<rect x="22" y="29" width="20" height="17" rx="3.5" fill="white" />
-			<circle cx="32" cy="37" r="2" fill="#475569" />
-			<defs>
-				<linearGradient
-					id="unauth-grad"
-					x1="6"
-					y1="6"
-					x2="58"
-					y2="58"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#94A3B8" />
-					<stop offset="1" stopColor="#475569" />
-				</linearGradient>
-			</defs>
-		</svg>
-	);
-}
 
 interface TicketVerifyClientProps {
 	readonly initialToken?: string;
@@ -288,195 +151,181 @@ export function TicketVerifyClient({
 
 	if (authState === "login_required") {
 		return (
-			<div className="py-12 text-center space-y-4">
-				<UnauthorizedSvg className="size-16 mx-auto" />
-				<div className="space-y-1.5">
-					<h2 className="text-2xl font-bold tracking-tight text-foreground">
-						Organizer Sign-In Required
-					</h2>
-					<p className="text-sm text-muted-foreground max-w-sm mx-auto">
-						{message || "You must be logged in as an event organizer to verify tickets."}
-					</p>
-				</div>
-				<Button asChild size="lg" className="h-11 px-8 font-semibold text-sm">
-					<Link href="/login">Sign In to Verify</Link>
-				</Button>
+			<div className="rounded-xl border border-border/70 bg-card">
+				<EmptyState
+					variant="locked"
+					title="Organizer sign-in required"
+					description={
+						message ||
+						"Sign in with an event organizer account to verify tickets at the gate."
+					}
+					action={
+						<Button asChild size="sm" className="h-9 px-5 text-xs font-semibold">
+							<Link href="/login">Sign in to verify</Link>
+						</Button>
+					}
+					className="py-12"
+				/>
 			</div>
 		);
 	}
 
 	if (authState === "unauthorized") {
 		return (
-			<div className="py-12 text-center space-y-4">
-				<UnauthorizedSvg className="size-16 mx-auto" />
-				<div className="space-y-1.5">
-					<h2 className="text-2xl font-bold tracking-tight text-foreground">
-						Access Restricted
-					</h2>
-					<p className="text-sm text-muted-foreground max-w-sm mx-auto">
-						{message || "You are not an authorized organizer for this event."}
-					</p>
-				</div>
-				<Button asChild variant="outline" size="lg" className="h-11 px-8 font-semibold text-sm">
-					<Link href="/dashboard">Back to Dashboard</Link>
-				</Button>
+			<div className="rounded-xl border border-border/70 bg-card">
+				<EmptyState
+					variant="locked"
+					title="Access restricted"
+					description={
+						message || "You are not an authorized organizer for this event."
+					}
+					action={
+						<Button asChild variant="outline" size="sm" className="h-9 px-5 text-xs font-semibold">
+							<Link href="/dashboard">Back to dashboard</Link>
+						</Button>
+					}
+					className="py-12"
+				/>
 			</div>
 		);
 	}
 
+	const checkedIn = status === "checked_in";
+
 	return (
-		<div className="space-y-8">
-			{/* Code Lookup Bar */}
+		<div className="flex flex-col gap-6">
 			<form onSubmit={handleLookupCode} className="flex gap-2">
 				<Input
-					placeholder="Enter ticket code (e.g. TIX-...)"
+					placeholder="Ticket code (e.g. TIX-…)"
 					value={ticketCodeInput}
 					onChange={(e) => setTicketCodeInput(e.target.value.toUpperCase())}
-					className="font-mono text-sm uppercase h-11 bg-muted/20"
+					className="font-mono text-sm uppercase h-10 bg-card border-border/70"
+					aria-label="Ticket code"
 				/>
 				<Button
 					type="submit"
 					disabled={isPending || !ticketCodeInput.trim()}
-					size="lg"
-					className="h-11 px-6 text-sm font-semibold shrink-0"
+					size="sm"
+					className="h-10 px-5 text-xs font-semibold shrink-0"
 				>
-					{isPending ? (
-						<Loader2 className="size-4 animate-spin" />
-					) : (
-						"Lookup"
-					)}
+					{isPending ? <Loader2 className="size-4 animate-spin" /> : "Lookup"}
 				</Button>
 			</form>
 
-			{/* Status Banner - Clean, Spacious, NO borders around status */}
 			{!valid ? (
-				<div className="py-10 text-center space-y-3">
-					<InvalidTicketSvg className="size-20 mx-auto" />
+				<div className="rounded-xl border border-border/70 bg-card px-6 py-10 text-center space-y-3">
+					<StatusIllustration variant="invalid" alt="Invalid ticket" />
 					<div className="space-y-1">
-						<h2 className="text-2xl font-bold tracking-tight text-destructive">
-							Invalid Ticket
-						</h2>
-						<p className="text-sm text-muted-foreground max-w-sm mx-auto">
-							{message || "This ticket signature is invalid or forged. Do not grant entry."}
+						<h2 className="text-base font-semibold text-destructive">Invalid ticket</h2>
+						<p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+							{message || "This ticket could not be verified. Do not grant entry."}
 						</p>
 					</div>
 				</div>
 			) : ticket ? (
-				<div className="space-y-8">
-					{/* Status Header - Clean, Bold, Spacious */}
-					<div className="text-center space-y-3 py-4">
-						{status === "checked_in" ? (
-							<>
-								<AlreadyCheckedInSvg className="size-20 mx-auto" />
-								<div className="space-y-1">
-									<h2 className="text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">
-										Already Checked In
-									</h2>
-									<p className="text-sm text-muted-foreground">
-										This ticket has already been used
-										{ticket.checkedInAt && ` · ${formatDate(ticket.checkedInAt, true)}`}
-									</p>
-								</div>
-							</>
-						) : (
-							<>
-								<ValidTicketSvg className="size-20 mx-auto" />
-								<div className="space-y-1">
-									<h2 className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-										Valid Ticket
-									</h2>
-									<p className="text-sm text-muted-foreground">
-										Ready for entry check-in.
-									</p>
-								</div>
-							</>
-						)}
+				<div className="rounded-xl border border-border/70 bg-card overflow-hidden">
+					<div className="px-5 py-8 text-center space-y-3 border-b border-border/60">
+						<StatusIllustration
+							variant={checkedIn ? "checked_in" : "valid"}
+							alt={checkedIn ? "Already checked in" : "Valid ticket"}
+						/>
+						<div className="space-y-1">
+							<h2
+								className={cn(
+									"text-base font-semibold tracking-tight",
+									checkedIn
+										? "text-amber-700 dark:text-amber-400"
+										: "text-emerald-700 dark:text-emerald-400",
+								)}
+							>
+								{checkedIn ? "Already checked in" : "Valid ticket"}
+							</h2>
+							<p className="text-xs text-muted-foreground">
+								{checkedIn
+									? ticket.checkedInAt
+										? `Checked in ${formatDate(ticket.checkedInAt, true)}`
+										: "This pass has already been used"
+									: "Ready for entry"}
+							</p>
+						</div>
 					</div>
 
-					{/* Ticket & Attendee Details - Clean & Spacious, NO nested inner border box */}
-					<div className="space-y-6">
-						<div className="flex items-center justify-between border-b pb-3">
-							<div>
-								<h3 className="text-lg font-bold text-foreground">
+					<div className="px-5 py-5 space-y-5">
+						<div className="flex items-start justify-between gap-3">
+							<div className="min-w-0">
+								<p className="text-sm font-semibold text-foreground truncate">
 									{ticket.event?.title}
-								</h3>
-								<p className="text-xs text-muted-foreground">
+								</p>
+								<p className="text-[11px] text-muted-foreground mt-0.5 truncate">
 									{ticket.event?.organization?.name}
 								</p>
 							</div>
-							<span className="font-mono text-xs font-bold px-3 py-1 rounded bg-muted/60 text-foreground">
+							<span className="font-mono text-[11px] font-semibold px-2.5 py-1 rounded-md bg-muted/60 text-foreground shrink-0">
 								{ticket.ticketCode}
 							</span>
 						</div>
 
-						<div className="grid grid-cols-2 gap-y-5 gap-x-6">
+						<div className="grid grid-cols-2 gap-4">
 							<div>
-								<p className="text-xs text-muted-foreground">Attendee Name</p>
-								<p className="text-base font-bold text-foreground mt-0.5">
+								<p className="text-[11px] text-muted-foreground">Attendee</p>
+								<p className="text-sm font-semibold text-foreground mt-0.5">
 									{ticket.attendeeName || ticket.order?.buyerName || "Guest"}
 								</p>
 							</div>
-
 							<div>
-								<p className="text-xs text-muted-foreground">Ticket Tier</p>
-								<p className="text-base font-bold text-primary mt-0.5">
+								<p className="text-[11px] text-muted-foreground">Tier</p>
+								<p className="text-sm font-semibold text-foreground mt-0.5">
 									{ticket.ticketType?.name || "General"}
 								</p>
 							</div>
-
-							{ticket.checkedInAt && (
-								<div className="col-span-2">
-									<p className="text-xs text-muted-foreground">Check-in Time</p>
-									<p className="text-sm font-semibold text-foreground mt-0.5">
-										{formatDate(ticket.checkedInAt, true)}
-									</p>
-								</div>
-							)}
 						</div>
 
-						{/* Action: Confirm Check-In or Undo */}
-						<div className="pt-4">
-							{status !== "checked_in" ? (
-								<Button
-									size="lg"
-									onClick={handleCheckIn}
-									disabled={isPending}
-									className="w-full h-14 text-base font-bold shadow-none"
-								>
-									{isPending ? (
-										<Loader2 className="size-5 animate-spin" />
-									) : (
-										"Confirm Check-In"
-									)}
-								</Button>
-							) : (
-								<Button
-									size="lg"
-									variant="outline"
-									onClick={handleCheckOut}
-									disabled={isPending}
-									className="w-full h-12 text-sm font-semibold border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 shadow-none"
-								>
-									{isPending ? (
-										<Loader2 className="size-4 animate-spin" />
-									) : (
-										"Undo Check-In"
-									)}
-								</Button>
-							)}
-						</div>
+						{checkedIn ? (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={handleCheckOut}
+								disabled={isPending}
+								className="w-full h-10 text-xs font-semibold border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 shadow-none"
+							>
+								{isPending ? (
+									<Loader2 className="size-4 animate-spin" />
+								) : (
+									"Undo check-in"
+								)}
+							</Button>
+						) : (
+							<Button
+								size="sm"
+								onClick={handleCheckIn}
+								disabled={isPending}
+								className="w-full h-10 text-xs font-semibold shadow-none"
+							>
+								{isPending ? (
+									<Loader2 className="size-4 animate-spin" />
+								) : (
+									"Confirm check-in"
+								)}
+							</Button>
+						)}
 
 						{verifierName && (
-							<p className="text-xs text-center text-muted-foreground pt-2">
-								Verified by <span className="text-foreground font-medium">{verifierName}</span>
+							<p className="text-[11px] text-center text-muted-foreground">
+								Verified by{" "}
+								<span className="text-foreground font-medium">{verifierName}</span>
 							</p>
 						)}
 					</div>
 				</div>
 			) : (
-				<p className="text-center py-12 text-sm text-muted-foreground">
-					Scan attendee QR code or enter ticket code above.
-				</p>
+				<div className="rounded-xl border border-border/70 bg-card">
+					<EmptyState
+						variant="tickets"
+						title="Ready to scan"
+						description="Scan an attendee QR code or enter a ticket code above."
+						className="py-12"
+					/>
+				</div>
 			)}
 		</div>
 	);

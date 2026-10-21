@@ -13,7 +13,6 @@ export const metadata = {
 	description: "Company platform governance and oversight dashboard",
 };
 
-
 export default async function SuperAdminLayout({
 	children,
 }: {
@@ -29,12 +28,12 @@ export default async function SuperAdminLayout({
 	};
 
 	return (
-		<SidebarProvider className="h-svh max-h-svh overflow-hidden rounded-none shadow-none">
+		<SidebarProvider className="h-svh max-h-svh overflow-hidden">
 			<SuperAdminSidebar user={serializeJsonSafe(adminUser)} />
-			<SidebarInset className="font-sans h-svh max-h-svh flex flex-1 flex-col bg-background min-w-0 max-w-full overflow-hidden rounded-none shadow-none">
+			<SidebarInset className="font-sans h-svh max-h-svh flex flex-1 flex-col bg-background min-w-0 max-w-full overflow-hidden">
 				<SuperAdminHeader />
-				<main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-slate-50 dark:bg-slate-950 min-w-0 max-w-full rounded-none shadow-none">
-					<div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 min-w-0 rounded-none shadow-none">
+				<main className="flex-1 overflow-y-auto p-4 sm:p-6 min-w-0 max-w-full">
+					<div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 min-w-0">
 						{children}
 					</div>
 				</main>

@@ -530,13 +530,7 @@ export async function initiatePublicTicketCheckout({
 					.catch(() => {});
 			}
 
-			if (collection.success) {
-				await fulfillSuccessfulPayment({
-					reference,
-					paystackData: { id: collection.providerReference || reference, metadata: { gateway } },
-				});
-			}
-
+			// Never fulfill on initiate "success" — only webhooks/status confirm paid MoMo.
 			if (!collection.ok) {
 				return {
 					success: false,
@@ -548,7 +542,7 @@ export async function initiatePublicTicketCheckout({
 				success: true,
 				isFree: false,
 				gateway,
-				pending: collection.pending,
+				pending: true,
 				orderId: order.id,
 				orderNumber,
 				reference,
@@ -1374,18 +1368,20 @@ export async function verifyAndCheckInTicket({
 	}
 
 	const ticket = await prisma.ticket.findFirst({
-		where: {
-			OR: [
-				ticketId ? { id: ticketId } : undefined,
-				code ? { ticketCode: code } : undefined,
-			].filter(Boolean) as any,
-		},
+		where:
+			ticketId && code
+				? { id: ticketId, ticketCode: code }
+				: ticketId
+					? { id: ticketId }
+					: { ticketCode: code || "" },
 		include: {
 			event: {
 				include: { organization: true },
 			},
 			ticketType: true,
-			order: true,
+			order: {
+				include: { payment: { select: { status: true } } },
+			},
 		},
 	});
 
@@ -1394,6 +1390,32 @@ export async function verifyAndCheckInTicket({
 			isValid: false,
 			status: "not_found",
 			message: "Ticket not found in event registry.",
+		};
+	}
+
+	if (ticketId && code && ticket.ticketCode !== code) {
+		return {
+			isValid: false,
+			status: "invalid",
+			message: "Ticket signature does not match this pass.",
+		};
+	}
+
+	const orderStatus = ticket.order?.status;
+	const paymentStatus = ticket.order?.payment?.status;
+	if (orderStatus && orderStatus !== "completed") {
+		return {
+			isValid: false,
+			status: "invalid",
+			message: "This ticket order is not paid. Do not grant entry.",
+		};
+	}
+	// Paid orders must have a completed payment when a payment row exists.
+	if (ticket.order?.paymentId && paymentStatus && paymentStatus !== "completed") {
+		return {
+			isValid: false,
+			status: "invalid",
+			message: "Payment for this ticket is not completed. Do not grant entry.",
 		};
 	}
 
@@ -1461,13 +1483,34 @@ export async function verifyAndCheckInTicket({
 			};
 		}
 
-		const updated = await prisma.ticket.update({
-			where: { id: ticket.id },
+		const claimed = await prisma.ticket.updateMany({
+			where: { id: ticket.id, checkInStatus: "not_checked_in" },
 			data: {
 				checkInStatus: "checked_in",
 				checkedInAt: new Date(),
 				checkedInBy: auth.userId,
 			},
+		});
+
+		if (claimed.count === 0) {
+			const current = await prisma.ticket.findUnique({
+				where: { id: ticket.id },
+				include: {
+					event: { include: { organization: true } },
+					ticketType: true,
+					order: true,
+				},
+			});
+			return {
+				isValid: true,
+				status: "already_checked_in",
+				message: "Already checked in.",
+				ticket: sanitizeTicketForVerifier(current),
+			};
+		}
+
+		const updated = await prisma.ticket.findUnique({
+			where: { id: ticket.id },
 			include: {
 				event: { include: { organization: true } },
 				ticketType: true,

@@ -14,8 +14,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Loader2,
-    Banknote,
 } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { formatAmount, formatDate } from "@/lib/utils";
 import type { EventRevenuePayment } from "@/lib/server-functions/event-revenue";
 
@@ -198,17 +198,15 @@ export function RevenueBreakdownTable({
                     table={table}
                     columnsCount={columns.length}
                     emptyState={
-                        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground gap-2">
-                            <Banknote className="size-8 text-muted-foreground/50 stroke-1" />
-                            <span className="text-sm font-medium text-foreground">
-                                No revenue payments found
-                            </span>
-                            <span className="text-xs max-w-xs">
-                                {searchQuery
+                        <EmptyState
+                            variant="money"
+                            title="No revenue payments found"
+                            description={
+                                searchQuery
                                     ? "No payments matched your search query."
-                                    : "Completed payments for this event will appear here."}
-                            </span>
-                        </div>
+                                    : "Completed payments for this event will appear here."
+                            }
+                        />
                     }
                 />
             </div>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="280" viewBox="0 0 320 280" role="img">
+  <defs>
+    <style>
+      :root, svg {
+        --color-primary-600: #059669;
+        --color-primary-500: #10b981;
+        --color-primary-300: #6ee7b7;
+        --color-primary-100: #d1fae5;
+        --color-secondary-500: #eab308;
+        --color-neutral-200: #e5e7eb;
+        --color-neutral-400: #9ca3af;
+        --color-neutral-600: #4b5563;
+        --color-foreground: #1f2937;
+      }
+    </style>
+  </defs>
+  <ellipse cx="160" cy="248" rx="88" ry="12" fill="var(--color-neutral-200)" opacity="0.7"/>
+  <rect x="108" y="118" width="104" height="86" rx="14" fill="var(--color-primary-600)"/>
+  <path d="M128 118V96a32 32 0 0 1 64 0v22" fill="none" stroke="var(--color-neutral-600)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M128 118V96a32 32 0 0 1 64 0v22" fill="none" stroke="var(--color-neutral-400)" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="160" cy="152" r="10" fill="var(--color-primary-100)"/>
+  <rect x="156" y="158" width="8" height="22" rx="4" fill="var(--color-primary-100)"/>
+  <circle cx="230" cy="96" r="28" fill="var(--color-primary-100)"/>
+  <circle cx="230" cy="96" r="20" fill="var(--color-secondary-500)"/>
+  <path d="M230 88v10" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="230" cy="106" r="2.5" fill="#fff"/>
+</svg>

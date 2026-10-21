@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="280" viewBox="0 0 320 280" role="img">
+  <defs>
+    <style>
+      :root, svg {
+        --color-primary-300: #6ee7b7;
+        --color-tertiary-600: #b91c1c;
+        --color-tertiary-500: #dc2626;
+        --color-tertiary-400: #ef4444;
+        --color-tertiary-200: #fecaca;
+        --color-tertiary-100: #fee2e2;
+        --color-neutral-200: #e5e7eb;
+        --color-neutral-400: #9ca3af;
+      }
+    </style>
+  </defs>
+  <ellipse cx="160" cy="248" rx="88" ry="12" fill="var(--color-neutral-200)" opacity="0.7"/>
+  <rect x="68" y="72" width="184" height="120" rx="16" fill="var(--color-neutral-400)"/>
+  <rect x="68" y="72" width="184" height="36" rx="16" fill="var(--color-neutral-200)"/>
+  <rect x="68" y="92" width="184" height="16" fill="var(--color-neutral-200)"/>
+  <rect x="92" y="118" width="96" height="8" rx="4" fill="#fff" opacity="0.55"/>
+  <rect x="92" y="134" width="64" height="8" rx="4" fill="#fff" opacity="0.4"/>
+  <rect x="92" y="158" width="48" height="16" rx="4" fill="#fff" opacity="0.35"/>
+  <circle cx="232" cy="84" r="34" fill="var(--color-tertiary-100)"/>
+  <circle cx="232" cy="84" r="26" fill="var(--color-tertiary-500)"/>
+  <path d="M222 74l20 20M242 74l-20 20" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+</svg>

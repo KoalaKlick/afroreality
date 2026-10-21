@@ -2,15 +2,10 @@ import { notFound } from "next/navigation";
 import { verifyTicketToken, createTicketToken } from "@/lib/ticket-crypto";
 import { prisma } from "@repo/db";
 import { getFrontendBaseUrl } from "@/lib/utils";
-import {
-	AlertCircle,
-	ArrowLeft,
-	ShieldAlert,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { PanAfricanDivider } from "@/components/shared/PanAficDivider";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
-import { StatusBadge } from "@/components/common/status-badge";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiTicketPassbook } from "./MultiTicketPassbook";
 import { getEventImageUrl } from "@/lib/image-url-utils";
 
@@ -76,17 +71,15 @@ export default async function TicketViewPage({
 
 	if (!token) {
 		return (
-			<div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto space-y-4">
-				<div className="size-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center dark:bg-amber-950/50">
-					<AlertCircle className="size-8" />
+			<div className="min-h-[70vh] flex items-center justify-center p-6">
+				<div className="w-full max-w-md rounded-xl border border-border/70 bg-card">
+					<EmptyState
+						variant="tickets"
+						title="Missing ticket link"
+						description="Open this page from the link in your email or WhatsApp receipt."
+						className="py-12"
+					/>
 				</div>
-				<h1 className="text-2xl font-black text-foreground">
-					Missing Ticket Link
-				</h1>
-				<p className="text-xs text-muted-foreground leading-relaxed">
-					No valid ticket token was found. Please access this page using the link
-					sent to your email or WhatsApp receipt.
-				</p>
 			</div>
 		);
 	}
@@ -95,23 +88,24 @@ export default async function TicketViewPage({
 
 	if (!verified) {
 		return (
-			<div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto space-y-4">
-				<div className="size-16 rounded-full bg-red-100 text-destructive flex items-center justify-center dark:bg-red-950/50">
-					<AlertCircle className="size-8" />
+			<div className="min-h-[70vh] flex items-center justify-center p-6">
+				<div className="w-full max-w-md rounded-xl border border-border/70 bg-card">
+					<EmptyState
+						variant="invalid"
+						title="Invalid ticket link"
+						description="This ticket link could not be verified. Use the original receipt link from email or WhatsApp."
+						className="py-12"
+					/>
 				</div>
-				<h1 className="text-2xl font-black text-foreground">
-					Invalid Ticket Token
-				</h1>
-				<p className="text-xs text-muted-foreground leading-relaxed">
-					This ticket token could not be verified or has been tampered with.
-					Please check your email or WhatsApp message for the original receipt link.
-				</p>
 			</div>
 		);
 	}
 
-	const ticket = await prisma.ticket.findUnique({
-		where: { id: verified.ticketId },
+	const ticket = await prisma.ticket.findFirst({
+		where: {
+			id: verified.ticketId,
+			ticketCode: verified.ticketCode,
+		},
 		include: {
 			event: {
 				include: { organization: true },
@@ -203,48 +197,30 @@ export default async function TicketViewPage({
 
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col">
-			{/* Top Bar */}
-			<header className="border-b border-border/80 bg-card/60 backdrop-blur-md sticky top-0 z-40 print:hidden">
+			<header className="border-b border-border/60 bg-card/40 backdrop-blur-sm sticky top-0 z-40 print:hidden">
 				<div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between text-xs">
 					<Link
 						href={`/${organization.slug}/event/${event.slug}`}
-						className="font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+						className="font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
 					>
-						<ArrowLeft className="size-3.5" /> Back to Event
+						<ArrowLeft className="size-3.5" /> Back to event
 					</Link>
-
-					<StatusBadge
-						variant="approved"
-						text={
-							passes.length > 1
-								? `Order Passes (${passes.length})`
-								: "Official Ticket Pass"
-						}
-					/>
+					<span className="text-muted-foreground">
+						{passes.length > 1 ? `${passes.length} passes` : "Your ticket"}
+					</span>
 				</div>
 			</header>
 
-			{/* Main Ticket Display Container */}
-			<main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 flex flex-col items-center justify-center space-y-8">
-				<div className="text-center space-y-1.5 print:hidden">
-					<h1 className="text-2xl sm:text-3xl font-millik font-black text-foreground tracking-tight">
+			<main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-10 flex flex-col items-center gap-6">
+				<div className="text-center print:hidden space-y-1">
+					<h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
 						{event.title}
 					</h1>
 					<p className="text-xs text-muted-foreground">
-						{passes.length > 1
-							? "View, assign, and download each pass in your booking. Click any card to flip front/back."
-							: "Click the card to flip front/back. Download for high-resolution offline access."}
+						Tap the card to flip · download for offline entry
 					</p>
 				</div>
-				{/* <button
-					type="button"
-					onClick={handleShare}
-					title="Share pass"
-					className="size-9 rounded-xl border border-border/80 bg-card text-muted-foreground flex items-center justify-center hover:bg-accent hover:text-foreground transition-colors cursor-pointer shadow-sm"
-				>
-					<Share2 className="size-4" />
-				</button> */}
-				{/* Multi-Ticket Passbook Wallet Component */}
+
 				<MultiTicketPassbook
 					passes={passes}
 					initialSelectedTicketId={ticket.id}
@@ -263,28 +239,14 @@ export default async function TicketViewPage({
 					}}
 				/>
 
-				{/* Security Notice - Reverted to no border, precise & simple */}
-				<div className="w-full max-w-xl bg-amber-500/5 dark:bg-amber-950/20 p-3.5 rounded-xl print:hidden">
-					<div className="flex items-start gap-2.5">
-						<div className="size-7 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-							<ShieldAlert className="size-3.5" />
-						</div>
-						<div className="space-y-0.5 text-xs text-left">
-							<p className="font-bold text-amber-900 dark:text-amber-300">
-								Keep Your Pass Private
-							</p>
-							<p className="text-muted-foreground leading-relaxed text-[11px]">
-								Each QR code admits one entry at the gate. Do not publish or share your pass link publicly.
-							</p>
-						</div>
-					</div>
-				</div>
+				<p className="text-[11px] text-muted-foreground text-center max-w-sm print:hidden">
+					Keep this pass private — each QR admits one entry.
+				</p>
 			</main>
 
-			<PanAfricanDivider className="my-10 print:hidden" />
-			<div className="print:hidden">
+			<footer className="py-6 border-t border-border/40 print:hidden mt-auto">
 				<PoweredByFooter />
-			</div>
+			</footer>
 		</div>
 	);
 }

@@ -9,13 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-	CheckCircle2,
 	Loader2,
-	XCircle,
-	Sparkles,
 	Ticket,
 } from "lucide-react";
 import Link from "next/link";
+import { StatusIllustration } from "@/components/shared/StatusIllustration";
 import { getPaymentStatusByReference } from "@/lib/server-functions/public-checkout";
 import { VoteSuccessAnimation } from "@/components/voting/VoteSuccessAnimation";
 
@@ -163,120 +161,72 @@ function PaymentConfirmationModalContent() {
 				<DialogTitle className="sr-only">Payment Confirmation</DialogTitle>
 
 				<div className="flex flex-col items-center text-center">
-					{/* ── 1. Verifying State ── */}
 					{state === "verifying" && (
-						<div className="py-6 space-y-4">
-							<div className="relative w-16 h-16 mx-auto">
-								<div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-								<div className="relative w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
-									<Loader2 className="w-8 h-8 text-primary animate-spin" />
-								</div>
+						<div className="py-6 space-y-3">
+							<div className="flex items-center justify-center">
+								<Loader2 className="size-8 text-primary animate-spin" />
 							</div>
-							<h3 className="text-xl font-black uppercase tracking-tight">
-								Verifying Payment
+							<h3 className="text-base font-semibold tracking-tight">
+								Confirming payment
 							</h3>
 							<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mx-auto">
-								Please wait while we confirm your payment with the network...
+								This usually takes a few seconds.
 							</p>
 						</div>
 					)}
 
-					{/* ── 2. Success State ── */}
 					{state === "success" && (
 						<div className="py-2 space-y-4 w-full">
 							{isVotePayment ? (
 								<VoteSuccessAnimation size="md" />
 							) : (
-								<div
-									className="relative w-16 h-16 rounded-full border flex items-center justify-center mx-auto shadow-sm"
-									style={{
-										backgroundColor: "color-mix(in srgb, var(--color-brand-primary, #009A44) 15%, transparent)",
-										borderColor: "color-mix(in srgb, var(--color-brand-primary, #009A44) 30%, transparent)",
-									}}
-								>
-									<CheckCircle2
-										className="w-9 h-9"
-										style={{ color: "var(--color-brand-primary, #009A44)" }}
-									/>
-									<div
-										className="absolute -top-1 -right-1 text-black p-1 rounded-full shadow-xs"
-										style={{ backgroundColor: "var(--color-brand-secondary, #FFD100)" }}
-									>
-										<Sparkles className="size-3" />
-									</div>
-								</div>
+								<StatusIllustration variant="valid" alt="Payment successful" />
 							)}
 
 							<div>
-								<h3 className="text-xl font-black uppercase tracking-tight">
+								<h3 className="text-base font-semibold tracking-tight">
 									{isTicketPayment
-										? "Tickets Confirmed!"
+										? "Ticket confirmed"
 										: isVotePayment
-											? "Vote Confirmed!"
+											? "Vote confirmed"
 											: isNominationPayment
-												? "Nomination Confirmed!"
-												: "Payment Successful!"}
+												? "Nomination confirmed"
+												: "Payment successful"}
 								</h3>
 
-								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mx-auto mt-1.5">
+								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mx-auto mt-1">
 									{isTicketPayment
-										? `${meta.quantity || 1} ticket pass${
+										? `${meta.quantity || 1} pass${
 												Number(meta.quantity || 1) > 1 ? "es" : ""
-											} for "${meta.ticketTypeName || "your event"}" confirmed.`
+											} for ${meta.ticketTypeName || "your event"} are ready.`
 										: isVotePayment
 											? `${meta.voteCount || 1} vote${
 													Number(meta.voteCount || 1) > 1 ? "s" : ""
-												} for "${meta.nomineeName || "your nominee"}" recorded successfully.`
+												} for ${meta.nomineeName || "your nominee"} recorded.`
 											: isNominationPayment
-												? `Nomination for "${meta.nomineeName || "your nominee"}" submitted successfully.`
-												: "Your payment has been verified successfully."}
+												? `Nomination for ${meta.nomineeName || "your nominee"} submitted.`
+												: "Your payment has been verified."}
 								</p>
 							</div>
 
-							{/* Clean details: amount paid and votes only (no reference) */}
 							{payment?.amount !== undefined && (
-								<div className="w-full rounded-xl bg-muted/40 border border-border/70 p-3 text-left space-y-2">
-									<div className="flex justify-between items-center text-xs">
-										<span className="text-muted-foreground font-medium">
-											Amount Paid
-										</span>
-										<span
-											className="font-bold text-sm"
-											style={{ color: "var(--color-brand-primary, #009A44)" }}
-										>
-											{payment.currency || "GHS"}{" "}
-											{Number(payment.amount).toFixed(2)}
-										</span>
-									</div>
-									{isVotePayment && meta.voteCount && (
-										<div className="flex justify-between items-center text-xs pt-1.5 border-t border-border/40">
-											<span className="text-muted-foreground font-medium">
-												Votes Recorded
-											</span>
-											<span className="font-bold text-foreground">
-												{meta.voteCount} {Number(meta.voteCount) === 1 ? "Vote" : "Votes"}
-											</span>
-										</div>
-									)}
-									{isTicketPayment && meta.quantity && (
-										<div className="flex justify-between items-center text-xs pt-1.5 border-t border-border/40">
-											<span className="text-muted-foreground font-medium">
-												Tickets
-											</span>
-											<span className="font-bold text-foreground">
-												{meta.quantity} Pass{Number(meta.quantity) > 1 ? "es" : ""}
-											</span>
-										</div>
-									)}
-								</div>
+								<p className="text-sm font-semibold text-foreground">
+									{payment.currency || "GHS"} {Number(payment.amount).toFixed(2)}
+									{isTicketPayment && meta.quantity
+										? ` · ${meta.quantity} pass${Number(meta.quantity) > 1 ? "es" : ""}`
+										: ""}
+									{isVotePayment && meta.voteCount
+										? ` · ${meta.voteCount} vote${Number(meta.voteCount) > 1 ? "s" : ""}`
+										: ""}
+								</p>
 							)}
 
-							<div className="flex items-center justify-center gap-2 pt-2">
+							<div className="flex items-center justify-center gap-2 pt-1">
 								{isTicketPayment && ticketViewUrl && (
-									<Button asChild size="sm" className="h-8 px-4 text-xs font-semibold">
+									<Button asChild size="sm" className="h-9 px-4 text-xs font-semibold">
 										<Link href={ticketViewUrl}>
 											<Ticket className="size-3.5 mr-1.5" />
-											View Ticket
+											View ticket
 										</Link>
 									</Button>
 								)}
@@ -284,33 +234,31 @@ function PaymentConfirmationModalContent() {
 									type="button"
 									variant={isTicketPayment && ticketViewUrl ? "outline" : "default"}
 									size="sm"
-									className="h-8 px-5 text-xs font-semibold"
+									className="h-9 px-5 text-xs font-semibold"
 									onClick={handleClose}
 								>
-									Close
+									Done
 								</Button>
 							</div>
 						</div>
 					)}
 
-					{/* ── 3. Failed State ── */}
 					{state === "failed" && (
-						<div className="py-4 space-y-4">
-							<div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto">
-								<XCircle className="w-8 h-8 text-red-500" />
-							</div>
-							<h3 className="text-xl font-black uppercase tracking-tight">
-								Payment Pending or Unconfirmed
+						<div className="py-4 space-y-3">
+							<StatusIllustration variant="invalid" alt="Payment not confirmed" />
+							<h3 className="text-base font-semibold tracking-tight">
+								Payment not confirmed
 							</h3>
 							<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mx-auto">
-								We haven't received confirmation for this transaction yet. If your account was debited, it will update automatically once processed.
+								If you were charged, your order will update once the network finishes
+								processing.
 							</p>
 							<div className="pt-2">
 								<Button
 									type="button"
 									variant="outline"
 									size="sm"
-									className="h-8 px-4 text-xs font-semibold"
+									className="h-9 px-4 text-xs font-semibold"
 									onClick={handleClose}
 								>
 									Close

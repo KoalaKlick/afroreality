@@ -105,7 +105,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 	const getEventTimelineBadge = (ev: AdminEventItem) => {
 		if (ev.status === "cancelled") {
 			return (
-				<Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-500/30 text-[9px] font-bold uppercase rounded-none shadow-none">
+				<Badge variant="outline" className="bg-rose-500/10 text-rose-600 border-rose-500/30 text-[9px] font-bold uppercase rounded-lg">
 					Cancelled / Delisted
 				</Badge>
 			);
@@ -113,7 +113,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 
 		if (ev.status === "ended") {
 			return (
-				<Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[9px] font-semibold rounded-none shadow-none">
+				<Badge variant="outline" className="bg-muted text-muted-foreground border-border text-[9px] font-semibold rounded-lg">
 					Ended
 				</Badge>
 			);
@@ -125,7 +125,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 
 			if (start <= now && (!end || end >= now)) {
 				return (
-					<Badge variant="outline" className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px] font-bold uppercase flex items-center gap-1 rounded-none shadow-none">
+					<Badge variant="outline" className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px] font-bold uppercase flex items-center gap-1 rounded-lg">
 						<span className="h-1.5 w-1.5 bg-emerald-500 animate-pulse" />
 						Ongoing Now
 					</Badge>
@@ -135,7 +135,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 			if (start > now) {
 				const diffDays = Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 				return (
-					<Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[9px] font-semibold rounded-none shadow-none">
+					<Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[9px] font-semibold rounded-lg">
 						Starts in {diffDays} {diffDays === 1 ? "day" : "days"}
 					</Badge>
 				);
@@ -143,7 +143,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 		}
 
 		return (
-			<Badge variant="outline" className="text-[9px] capitalize font-medium rounded-none shadow-none border-border">
+			<Badge variant="outline" className="text-[9px] capitalize font-medium rounded-lg border-border">
 				{ev.status}
 			</Badge>
 		);
@@ -178,9 +178,9 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 	};
 
 	return (
-		<div className="flex flex-col gap-6 rounded-none shadow-none">
+		<div className="flex flex-col gap-6 rounded-lg">
 			{/* Filters & Search */}
-			<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-none shadow-none">
+			<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-lg">
 				<div className="flex flex-1 flex-wrap items-center gap-2">
 					<div className="relative flex-1 min-w-[220px] max-w-sm">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -188,7 +188,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 							placeholder="Search by event title, host, or city..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-9 bg-background text-xs rounded-none shadow-none border-border"
+							className="pl-9 bg-background text-xs rounded-lg border-border"
 						/>
 					</div>
 
@@ -199,7 +199,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								key={st}
 								type="button"
 								onClick={() => setStatusFilter(st)}
-								className={`px-2.5 py-1.5 text-xs font-semibold capitalize transition-all whitespace-nowrap rounded-none shadow-none border ${
+								className={`px-2.5 py-1.5 text-xs font-semibold capitalize transition-all whitespace-nowrap rounded-lg border ${
 									statusFilter === st
 										? "bg-primary text-primary-foreground border-primary font-bold"
 										: "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted border-border"
@@ -220,7 +220,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 
 			{/* Events Grid - Flat & Sharp */}
 			{filteredEvents.length === 0 ? (
-				<Card className="border border-border rounded-none shadow-none">
+				<Card className="border border-border rounded-lg">
 					<CardContent className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
 						<Calendar className="h-10 w-10 mb-3 opacity-40" />
 						<h3 className="text-base font-semibold text-foreground">No events match filters</h3>
@@ -230,19 +230,19 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 					</CardContent>
 				</Card>
 			) : (
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 rounded-none shadow-none">
+				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 rounded-lg">
 					{filteredEvents.map((ev) => (
 						<Card
 							key={ev.id}
-							className="border border-border bg-card rounded-none shadow-none flex flex-col justify-between"
+							className="border border-border bg-card rounded-lg flex flex-col justify-between"
 						>
-							<CardHeader className="pb-3 border-b border-border rounded-none shadow-none">
+							<CardHeader className="pb-3 border-b border-border rounded-lg">
 								<div className="flex items-start justify-between gap-2">
 									<div className="min-w-0 flex-1">
 										<div className="flex items-center gap-2 mb-1">
 											<Badge
 												variant="outline"
-												className="text-[9px] uppercase font-bold text-muted-foreground rounded-none shadow-none border-border"
+												className="text-[9px] uppercase font-bold text-muted-foreground rounded-lg border-border"
 											>
 												{ev.type}
 											</Badge>
@@ -259,9 +259,9 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 							</CardHeader>
 
-							<CardContent className="space-y-3 pt-3 rounded-none shadow-none">
+							<CardContent className="space-y-3 pt-3 rounded-lg">
 								{/* Dates & Location */}
-								<div className="bg-muted/30 p-2.5 border border-border text-xs space-y-1 rounded-none shadow-none">
+								<div className="bg-muted/30 p-2.5 border border-border text-xs space-y-1 rounded-lg">
 									<div className="flex items-center justify-between text-muted-foreground">
 										<span className="flex items-center gap-1">
 											<Clock className="h-3 w-3" />
@@ -296,7 +296,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 
 								{/* USSD Mobile Gateway Feature Toggle */}
-								<div className="flex items-center justify-between p-2 bg-muted/30 border border-border text-xs rounded-none shadow-none">
+								<div className="flex items-center justify-between p-2 bg-muted/30 border border-border text-xs rounded-lg">
 									<div className="flex items-center gap-1.5 min-w-0 pr-2">
 										<PhoneCall className={`h-3.5 w-3.5 shrink-0 ${ev.hasUssd ? "text-emerald-500" : "text-muted-foreground"}`} />
 										<div className="min-w-0">
@@ -311,7 +311,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 									<div className="flex items-center gap-2 shrink-0">
 										<Badge
 											variant="outline"
-											className={`text-[9px] font-bold uppercase rounded-none shadow-none px-1.5 py-0 ${
+											className={`text-[9px] font-bold uppercase rounded-lg px-1.5 py-0 ${
 												ev.hasUssd
 													? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
 													: "bg-muted text-muted-foreground border-border"
@@ -328,7 +328,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 
 								{/* Amount & Share Performance Strip */}
-								<div className="p-2.5 bg-muted/20 border border-border space-y-1 rounded-none shadow-none text-xs">
+								<div className="p-2.5 bg-muted/20 border border-border space-y-1 rounded-lg text-xs">
 									<div className="flex items-center justify-between">
 										<span className="text-muted-foreground">Gross Inflow:</span>
 										<span className="font-bold text-foreground font-mono">
@@ -359,7 +359,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 									<Button
 										variant="outline"
 										size="sm"
-										className="w-full text-xs font-semibold rounded-none shadow-none border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
+										className="w-full text-xs font-semibold rounded-lg border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
 										onClick={() => handleOpenAudit(ev)}
 									>
 										<Eye className="h-3.5 w-3.5 mr-1.5" />
@@ -374,13 +374,13 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 
 			{/* View-Only Event Audit Sheet - Flat & Square */}
 			<Sheet open={isAuditSheetOpen} onOpenChange={setIsAuditSheetOpen}>
-				<SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl overflow-y-auto p-0 flex flex-col bg-background border-l border-border rounded-none shadow-none">
+				<SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl overflow-y-auto p-0 flex flex-col bg-background border-l border-border rounded-lg">
 					{selectedEvent && (
 						<>
-							<SheetHeader className="p-6 border-b border-border bg-muted/20 rounded-none shadow-none">
+							<SheetHeader className="p-6 border-b border-border bg-muted/20 rounded-lg">
 								<div>
 									<div className="flex items-center gap-2 mb-1.5">
-										<Badge variant="outline" className="text-[9px] uppercase font-bold rounded-none shadow-none">
+										<Badge variant="outline" className="text-[9px] uppercase font-bold rounded-lg">
 											{selectedEvent.type}
 										</Badge>
 										{getEventTimelineBadge(selectedEvent)}
@@ -396,7 +396,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 
 							<div className="p-6 space-y-6 flex-1 text-xs">
 								{/* Read-Only Governance Notice */}
-								<div className="flex items-center gap-2.5 p-3 bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 rounded-none shadow-none">
+								<div className="flex items-center gap-2.5 p-3 bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 rounded-lg">
 									<ShieldCheck className="h-4 w-4 shrink-0" />
 									<span>
 										<strong>Platform Policy:</strong> Core event configurations (contestant ballots, ticket inventory, private agenda) belong to the organizer and are protected in read-only audit mode.
@@ -404,13 +404,13 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 
 								{/* Financial Share Split Breakdown */}
-								<div className="p-4 border border-border bg-card space-y-3 rounded-none shadow-none">
+								<div className="p-4 border border-border bg-card space-y-3 rounded-lg">
 									<h4 className="font-bold text-foreground uppercase tracking-wider text-[11px] flex items-center gap-2 text-primary">
 										<Coins className="h-3.5 w-3.5" />
 										Revenue Inflow & Platform Share Split
 									</h4>
 									<div className="grid grid-cols-3 gap-2">
-										<div className="p-3 bg-muted/40 border border-border rounded-none shadow-none">
+										<div className="p-3 bg-muted/40 border border-border rounded-lg">
 											<span className="text-[10px] uppercase font-bold text-muted-foreground block">
 												Gross Total
 											</span>
@@ -418,7 +418,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 												{formatAmount(selectedEvent.totalGrossRevenue, "GHS")}
 											</span>
 										</div>
-										<div className="p-3 bg-primary/10 border border-primary/30 rounded-none shadow-none">
+										<div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
 											<span className="text-[10px] uppercase font-bold text-primary block">
 												Our Share (Fee)
 											</span>
@@ -426,7 +426,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 												{formatAmount(selectedEvent.ourPlatformShare, "GHS")}
 											</span>
 										</div>
-										<div className="p-3 bg-muted/40 border border-border rounded-none shadow-none">
+										<div className="p-3 bg-muted/40 border border-border rounded-lg">
 											<span className="text-[10px] uppercase font-bold text-muted-foreground block">
 												Organizer Net
 											</span>
@@ -456,7 +456,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 
 								{/* Timing & Schedule */}
-								<div className="p-4 border border-border bg-card space-y-3 rounded-none shadow-none">
+								<div className="p-4 border border-border bg-card space-y-3 rounded-lg">
 									<h4 className="font-bold text-foreground uppercase tracking-wider text-[11px] flex items-center gap-2">
 										<Clock className="h-3.5 w-3.5 text-primary" />
 										Schedule & Dates
@@ -494,7 +494,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 
 								{/* Venue & Organizer Details */}
-								<div className="p-4 border border-border bg-card space-y-3 rounded-none shadow-none">
+								<div className="p-4 border border-border bg-card space-y-3 rounded-lg">
 									<h4 className="font-bold text-foreground uppercase tracking-wider text-[11px] flex items-center gap-2">
 										<Building2 className="h-3.5 w-3.5 text-primary" />
 										Host & Location
@@ -528,7 +528,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 
 								{/* USSD Gateway Detailed Configuration Box */}
-								<div className="p-4 border border-border bg-card space-y-3 rounded-none shadow-none">
+								<div className="p-4 border border-border bg-card space-y-3 rounded-lg">
 									<div className="flex items-center justify-between">
 										<h4 className="font-bold text-foreground uppercase tracking-wider text-[11px] flex items-center gap-2">
 											<PhoneCall className="h-3.5 w-3.5 text-primary" />
@@ -560,7 +560,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 								</div>
 
 								{/* Platform Governance Actions */}
-								<div className="p-4 border border-rose-500/30 bg-rose-500/5 space-y-3 rounded-none shadow-none">
+								<div className="p-4 border border-rose-500/30 bg-rose-500/5 space-y-3 rounded-lg">
 									<h4 className="font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider text-[11px] flex items-center gap-2">
 										<ShieldAlert className="h-3.5 w-3.5" />
 										Platform Moderation Controls
@@ -579,7 +579,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 													setStatusDialogEvent(selectedEvent);
 													setTargetStatus("published");
 												}}
-												className="text-xs rounded-none shadow-none border-border"
+												className="text-xs rounded-lg border-border"
 											>
 												<CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
 												Reactivate Event
@@ -593,7 +593,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 													setStatusDialogEvent(selectedEvent);
 													setTargetStatus("cancelled");
 												}}
-												className="text-xs font-semibold rounded-none shadow-none"
+												className="text-xs font-semibold rounded-lg"
 											>
 												<Ban className="h-3.5 w-3.5 mr-1.5" />
 												Delist / Cancel Event
@@ -609,7 +609,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 
 			{/* Status Moderation Confirmation Dialog */}
 			<Dialog open={!!statusDialogEvent} onOpenChange={(open) => !open && setStatusDialogEvent(null)}>
-				<DialogContent className="sm:max-w-md rounded-none shadow-none border border-border">
+				<DialogContent className="sm:max-w-md rounded-lg border border-border">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2 text-rose-600">
 							<ShieldAlert className="h-5 w-5" />
@@ -630,7 +630,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 							placeholder="e.g. Terms violation, requested by organizer, fraud suspicion..."
 							value={statusReason}
 							onChange={(e) => setStatusReason(e.target.value)}
-							className="text-xs rounded-none shadow-none border-border"
+							className="text-xs rounded-lg border-border"
 						/>
 					</div>
 
@@ -640,7 +640,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 							size="sm"
 							onClick={() => setStatusDialogEvent(null)}
 							disabled={isPending}
-							className="text-xs rounded-none shadow-none"
+							className="text-xs rounded-lg"
 						>
 							Cancel
 						</Button>
@@ -649,7 +649,7 @@ export function AdminEventsContent({ events, initialStatus = "all" }: AdminEvent
 							size="sm"
 							onClick={handleConfirmStatusChange}
 							disabled={isPending}
-							className="text-xs font-semibold rounded-none shadow-none"
+							className="text-xs font-semibold rounded-lg"
 						>
 							{isPending ? "Applying..." : "Confirm Action"}
 						</Button>

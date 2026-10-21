@@ -11,7 +11,15 @@ export type EmptyStateVariant =
 	| "orders"
 	| "order"
 	| "payment"
-	| "data";
+	| "data"
+	| "tickets"
+	| "events"
+	| "categories"
+	| "nominees"
+	| "locked"
+	| "valid"
+	| "checked_in"
+	| "invalid";
 
 export interface EmptyStateProps {
 	readonly variant?: EmptyStateVariant;
@@ -33,6 +41,14 @@ const SVG_MAP: Record<EmptyStateVariant, string> = {
 	order: "/svg/no-order.svg",
 	payment: "/svg/no-payment-card.svg",
 	data: "/svg/no-data.svg",
+	tickets: "/svg/no-order.svg",
+	events: "/svg/no-data.svg",
+	categories: "/svg/no-data.svg",
+	nominees: "/svg/no-users.svg",
+	locked: "/svg/status-locked.svg",
+	valid: "/svg/status-valid.svg",
+	checked_in: "/svg/status-checked-in.svg",
+	invalid: "/svg/status-invalid.svg",
 };
 
 export function EmptyState({

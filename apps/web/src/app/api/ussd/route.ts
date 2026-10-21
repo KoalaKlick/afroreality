@@ -428,17 +428,7 @@ async function processJunipayPayment(
 				.catch(() => {});
 		}
 
-		if (result.success) {
-			await fulfillSuccessfulPayment({
-				reference,
-				paystackData: {
-					id: result.transId || reference,
-					metadata: { gateway: "junipay" },
-				},
-			});
-			return;
-		}
-
+		// Fulfillment only via JuniPay webhook after MoMo PIN — never on initiate.
 		if (!result.ok) {
 			console.error("[USSD-JUNIPAY-CHARGE] Deferred initiation failed", {
 				reference,
@@ -577,18 +567,8 @@ async function processHubtelPayment(
 				.catch(() => {});
 		}
 
-		if (result.success) {
-			await fulfillSuccessfulPayment({
-				reference,
-				paystackData: {
-					id: result.transactionId || reference,
-					metadata: { gateway: "hubtel" },
-				},
-			});
-			return;
-		}
-
-		if (!result.pending) {
+		// Fulfillment only via Hubtel webhook after MoMo PIN — never on initiate.
+		if (!result.pending && !result.success) {
 			console.error("[USSD-HUBTEL-CHARGE] Deferred initiation failed", {
 				reference,
 				message: result.message,
@@ -1536,6 +1516,14 @@ async function handleUssdCore(
 
 export async function POST(req: NextRequest) {
 	try {
+		const providerSecret = (process.env.USSD_PROVIDER_SECRET || "").trim();
+		if (providerSecret) {
+			const provided = req.headers.get("x-ussd-secret") || "";
+			if (provided !== providerSecret) {
+				return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+			}
+		}
+
 		const contentType = req.headers.get("content-type") || "";
 		const providerParam = req.nextUrl.searchParams.get("provider") || "";
 

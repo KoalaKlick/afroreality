@@ -9,7 +9,8 @@ import { DataTableColumnHeader } from "@/components/common/data-table-column-hea
 import { StatusBadge } from "@/components/common/status-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ChevronLeft, ChevronRight, Loader2, Ticket, Mail } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2, Mail } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { formatAmount, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -198,13 +199,15 @@ export function TicketTransactionsTable({
 					table={table}
 					columnsCount={columns.length}
 					emptyState={
-						<div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground gap-2">
-							<Ticket className="size-8 text-muted-foreground/50 stroke-1" />
-							<span className="text-sm font-medium text-foreground">No ticket orders found</span>
-							<span className="text-xs max-w-xs">
-								{searchQuery ? "No records matched your search query." : "Ticket orders will appear here as attendees complete purchases."}
-							</span>
-						</div>
+						<EmptyState
+							variant="tickets"
+							title="No ticket orders found"
+							description={
+								searchQuery
+									? "No records matched your search query."
+									: "Ticket orders will appear here as attendees complete purchases."
+							}
+						/>
 					}
 				/>
 			</div>

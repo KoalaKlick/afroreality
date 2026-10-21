@@ -8,12 +8,10 @@ import {
 	ChevronRight,
 	Copy,
 	Check,
-	Layers,
-	CheckCircle2,
-	Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export interface TicketPassItem {
 	id: string;
@@ -82,69 +80,52 @@ export function MultiTicketPassbook({
 		try {
 			await navigator.clipboard.writeText(activePass.directUrl);
 			setCopied(true);
-			toast.success("Pass link copied!");
+			toast.success("Pass link copied");
 			setTimeout(() => setCopied(false), 2500);
 		} catch {
 			toast.error("Failed to copy link");
 		}
 	};
 
-
 	return (
-		<div className="w-full flex flex-col items-center space-y-5 min-w-0">
-			{/* Multi-Pass Wallet Selector (shown if > 1 pass) */}
+		<div className="w-full flex flex-col items-center gap-6 min-w-0">
 			{isMultiPass && (
-				<div className="w-full max-w-xl bg-tertiary-50 rounded-lg p-3 sm:p-4 shadow-none print:hidden space-y-3 min-w-0">
+				<div className="w-full max-w-xl rounded-xl border border-border/70 bg-card p-3 print:hidden min-w-0 space-y-3">
 					<div className="flex items-center justify-between gap-2 min-w-0">
-						<div className="flex items-center gap-2 min-w-0">
-							<div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-								<Layers className="size-4" />
-							</div>
-							<div className="min-w-0">
-								<p className="text-xs font-bold text-foreground flex items-center gap-1.5 truncate">
-									Order ID
-									{orderNumber && (
-										<span className="font-mono font-medium text-[11px] text-muted-foreground shrink-0">
-											#{orderNumber}
-										</span>
-									)}
-								</p>
-								<p className="text-[10px] text-muted-foreground">
-									Pass {activeIdx + 1} of {passes.length}
-								</p>
-							</div>
+						<div className="min-w-0">
+							<p className="text-xs font-semibold text-foreground truncate">
+								{orderNumber ? `Order #${orderNumber}` : "Your passes"}
+							</p>
+							<p className="text-[11px] text-muted-foreground">
+								Pass {activeIdx + 1} of {passes.length}
+							</p>
 						</div>
 
-						{/* Prev / Next Arrows */}
 						<div className="flex items-center gap-1 shrink-0">
 							<Button
 								variant="outline"
 								size="icon"
 								onClick={handlePrev}
 								disabled={activeIdx === 0}
-								className="size-8 rounded-lg border-border/80 shadow-none cursor-pointer"
-								title="Previous Pass"
+								className="size-8 rounded-lg border-border/70 shadow-none"
+								aria-label="Previous pass"
 							>
 								<ChevronLeft className="size-4" />
 							</Button>
-							<span className="text-xs font-mono font-bold px-1 text-muted-foreground">
-								{activeIdx + 1}/{passes.length}
-							</span>
 							<Button
 								variant="outline"
 								size="icon"
 								onClick={handleNext}
 								disabled={activeIdx === passes.length - 1}
-								className="size-8 rounded-lg border-border/80 shadow-none cursor-pointer"
-								title="Next Pass"
+								className="size-8 rounded-lg border-border/70 shadow-none"
+								aria-label="Next pass"
 							>
 								<ChevronRight className="size-4" />
 							</Button>
 						</div>
 					</div>
 
-					{/* Scrollable Pass Pills */}
-					<div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
+					<div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
 						{passes.map((pass, idx) => {
 							const isSelected = idx === activeIdx;
 							return (
@@ -152,35 +133,24 @@ export function MultiTicketPassbook({
 									key={pass.id}
 									type="button"
 									onClick={() => setActiveIdx(idx)}
-									className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all flex items-center gap-1.5 border cursor-pointer ${isSelected
-											? "bg-emerald-600 text-white border-emerald-600 scale-[1.02]"
-											: "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border/60"
-										}`}
+									className={cn(
+										"px-2.5 py-1.5 rounded-lg text-[11px] font-medium shrink-0 transition-colors border cursor-pointer",
+										isSelected
+											? "bg-primary text-primary-foreground border-primary"
+											: "bg-muted/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted",
+									)}
 								>
-									<span className="font-mono text-[10px] opacity-80">
-										#{idx + 1}
-									</span>
-									<span className="truncate max-w-20">
-										{pass.attendeeName}
-									</span>
-									{isSelected && <CheckCircle2 className="size-3 shrink-0" />}
+									<span className="truncate max-w-24">{pass.attendeeName}</span>
 								</button>
 							);
 						})}
 					</div>
-
-					{/* Privacy footnote */}
-					<p className="text-[10px] text-muted-foreground/60 flex items-center gap-1 pt-0.5">
-						<span>🔒</span>
-						Attendee names are abbreviated to initials for privacy
-					</p>
 				</div>
 			)}
 
-			{/* Interactive 3D Ticket Card */}
 			<div
 				id="ticket-render-card"
-				className="w-full max-w-2xl flex justify-center transition-all duration-300 min-w-0 overflow-hidden"
+				className="w-full max-w-2xl flex justify-center min-w-0 overflow-hidden"
 			>
 				<TicketRenderer
 					key={activePass.id}
@@ -201,34 +171,27 @@ export function MultiTicketPassbook({
 				/>
 			</div>
 
-			{/* Action row — Share, Copy Link, Print, and Download */}
-			<div className="w-full max-w-xl flex flex-col items-center gap-3 print:hidden min-w-0">
-				<div className="flex flex-wrap items-center justify-center gap-2">
+			<div className="w-full max-w-xl flex flex-wrap items-center justify-center gap-2 print:hidden">
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={handleCopyLink}
+					className="text-xs gap-1.5 h-9 border-border/70 shadow-none"
+				>
+					{copied ? (
+						<Check className="size-3.5 text-emerald-600" />
+					) : (
+						<Copy className="size-3.5" />
+					)}
+					{copied ? "Copied" : "Copy link"}
+				</Button>
 
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleCopyLink}
-						className="text-xs gap-1.5 h-9 border-border/80 hover:bg-accent cursor-pointer"
-						title="Copy Pass Link"
-					>
-						{copied ? (
-							<Check className="size-3.5 text-emerald-600" />
-						) : (
-							<Copy className="size-3.5" />
-						)}
-						{copied ? "Link Copied" : "Copy Link"}
-					</Button>
-
-					{/* Download / Print actions */}
-					<TicketDownloadButton
-						ticketCode={activePass.ticketCode}
-						eventTitle={event.title}
-					/>
-				</div>
+				<TicketDownloadButton
+					ticketCode={activePass.ticketCode}
+					eventTitle={event.title}
+				/>
 			</div>
 
-			{/* Hidden Offscreen Export Containers */}
 			<div
 				className="absolute top-[-9999px] left-[-9999px] pointer-events-none"
 				aria-hidden="true"

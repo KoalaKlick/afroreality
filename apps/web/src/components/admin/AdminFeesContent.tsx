@@ -91,6 +91,8 @@ export interface AdminFeesContentProps {
 		name: string;
 		slug: string;
 	}>;
+	/** Hide page-level title when rendered inside config tabs. */
+	embedded?: boolean;
 }
 
 export function AdminFeesContent({
@@ -100,6 +102,7 @@ export function AdminFeesContent({
 	withdrawalRules,
 	depositRules,
 	organizations,
+	embedded = false,
 }: AdminFeesContentProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isPending, startTransition] = useTransition();
@@ -350,46 +353,50 @@ export function AdminFeesContent({
 	};
 
 	return (
-		<div className="space-y-6">
-			{/* Top Bar Header */}
-			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-				<div>
-					<h1 className="text-xl md:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-						<Percent className="h-5 w-5 text-primary" />
-						Platform Fees & Rates
-					</h1>
-					<p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-						Configure baseline platform take rates, Paystack payment gateway surcharge rules, and per-organization fee overrides.
+		<div className="flex flex-col gap-5">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+				{!embedded ? (
+					<div>
+						<h2 className="text-base font-semibold text-foreground tracking-tight">
+							Platform fees
+						</h2>
+						<p className="text-xs text-muted-foreground mt-0.5">
+							Take rates, withdrawal rules, and organization overrides.
+						</p>
+					</div>
+				) : (
+					<p className="text-xs text-muted-foreground">
+						Take rates, withdrawal rules, and organization overrides.
 					</p>
-				</div>
-				<div className="flex items-center gap-2">
+				)}
+				<div className="flex flex-wrap items-center gap-2">
 					<Button
 						variant="outline"
 						size="sm"
 						onClick={() => setIsGatewayDialogOpen(true)}
-						className="text-xs font-semibold h-9 rounded-lg"
+						className="text-xs font-medium h-8 shadow-none"
 					>
-						<CreditCard className="h-3.5 w-3.5 mr-1.5 text-primary" />
-						Gateway Surcharge ({gatewayForm.feeRate}%)
+						<CreditCard className="size-3.5 mr-1.5" />
+						Paystack surcharge
 					</Button>
 					<Button
 						variant="outline"
 						size="sm"
 						onClick={() => setIsWithdrawalDialogOpen(true)}
-						className="text-xs font-semibold h-9 rounded-lg"
+						className="text-xs font-medium h-8 shadow-none"
 					>
-						<ArrowDownToLine className="h-3.5 w-3.5 mr-1.5 text-primary" />
-						Withdrawal Rules (Min: GHS {withdrawalForm.minAmount})
+						<ArrowDownToLine className="size-3.5 mr-1.5" />
+						Withdrawals
 					</Button>
 					<Button
 						variant="outline"
 						size="sm"
 						asChild
-						className="text-xs font-semibold h-9 rounded-lg"
+						className="text-xs font-medium h-8 shadow-none"
 					>
 						<Link href="/super/deposits">
-							<ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-primary" />
-							Security Deposits (GHS {depositRules?.amount ?? 100})
+							<ShieldCheck className="size-3.5 mr-1.5" />
+							Deposits
 						</Link>
 					</Button>
 					<Button

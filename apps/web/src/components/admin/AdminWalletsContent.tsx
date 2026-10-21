@@ -225,10 +225,10 @@ export function AdminWalletsContent({
 	};
 
 	return (
-		<div className="flex flex-col gap-6 rounded-none shadow-none">
+		<div className="flex flex-col gap-6 rounded-lg">
 			{/* Float Summary Cards - Flat & Sharp */}
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 rounded-none shadow-none">
-				<Card className="border border-border bg-card rounded-none shadow-none">
+			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 rounded-lg">
+				<Card className="border border-border bg-card rounded-lg">
 					<CardHeader className="pb-2">
 						<CardTitle className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 							Active Escrow Float
@@ -244,7 +244,7 @@ export function AdminWalletsContent({
 					</CardContent>
 				</Card>
 
-				<Card className="border border-border bg-card rounded-none shadow-none">
+				<Card className="border border-border bg-card rounded-lg">
 					<CardHeader className="pb-2">
 						<CardTitle className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 							Frozen Float (Compliance)
@@ -260,7 +260,7 @@ export function AdminWalletsContent({
 					</CardContent>
 				</Card>
 
-				<Card className="border border-border bg-card rounded-none shadow-none">
+				<Card className="border border-border bg-card rounded-lg">
 					<CardHeader className="pb-2">
 						<CardTitle className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 							Pending Clearing Credits
@@ -276,7 +276,7 @@ export function AdminWalletsContent({
 					</CardContent>
 				</Card>
 
-				<Card className="border border-border bg-card rounded-none shadow-none">
+				<Card className="border border-border bg-card rounded-lg">
 					<CardHeader className="pb-2">
 						<CardTitle className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 							Pending Outbound Debits
@@ -294,13 +294,13 @@ export function AdminWalletsContent({
 			</div>
 
 			{/* Tabs: Wallets vs Approval Queue vs Payouts */}
-			<Tabs defaultValue={pendingApprovals.length > 0 ? "approvals" : "wallets"} className="w-full rounded-none shadow-none">
-				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 rounded-none shadow-none">
-					<TabsList className="bg-muted/50 border border-border rounded-none shadow-none p-0">
-						<TabsTrigger value="wallets" className="text-xs font-semibold rounded-none shadow-none">
+			<Tabs defaultValue={pendingApprovals.length > 0 ? "approvals" : "wallets"} className="w-full rounded-lg">
+				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 rounded-lg">
+					<TabsList className="bg-muted/50 border border-border rounded-lg p-0">
+						<TabsTrigger value="wallets" className="text-xs font-semibold rounded-lg">
 							Organizer Wallets ({wallets.length})
 						</TabsTrigger>
-						<TabsTrigger value="approvals" className="text-xs font-semibold rounded-none shadow-none relative">
+						<TabsTrigger value="approvals" className="text-xs font-semibold rounded-lg relative">
 							Approval Queue
 							{pendingApprovals.length > 0 && (
 								<span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-5 px-1 text-[10px] font-bold bg-rose-500 text-white rounded-full">
@@ -308,7 +308,7 @@ export function AdminWalletsContent({
 								</span>
 							)}
 						</TabsTrigger>
-						<TabsTrigger value="payouts" className="text-xs font-semibold rounded-none shadow-none">
+						<TabsTrigger value="payouts" className="text-xs font-semibold rounded-lg">
 							Payouts Audit ({recentPayouts.length})
 						</TabsTrigger>
 					</TabsList>
@@ -319,7 +319,7 @@ export function AdminWalletsContent({
 							placeholder="Search by organizer or account..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-9 bg-background text-xs rounded-none shadow-none border-border"
+							className="pl-9 bg-background text-xs rounded-lg border-border"
 						/>
 					</div>
 				</div>
@@ -327,22 +327,22 @@ export function AdminWalletsContent({
 				{/* 1. Wallets Tab */}
 				<TabsContent value="wallets" className="space-y-4">
 					{filteredWallets.length === 0 ? (
-						<Card className="border border-border rounded-none shadow-none">
+						<Card className="border border-border rounded-lg">
 							<CardContent className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
 								<Wallet className="h-10 w-10 mb-3 opacity-40" />
 								<h3 className="text-base font-semibold text-foreground">No wallets found</h3>
 							</CardContent>
 						</Card>
 					) : (
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 rounded-none shadow-none">
+						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 rounded-lg">
 							{filteredWallets.map((w) => (
-								<Card key={w.id} className="border border-border bg-card rounded-none shadow-none">
-									<CardHeader className="pb-3 border-b border-border rounded-none shadow-none">
+								<Card key={w.id} className="border border-border bg-card rounded-lg">
+									<CardHeader className="pb-3 border-b border-border rounded-lg">
 										<div className="flex items-start justify-between gap-3">
 											<div className="flex items-center gap-2.5 min-w-0">
-												<Avatar className="h-8 w-8 rounded-none shadow-none border border-border shrink-0">
+												<Avatar className="h-8 w-8 rounded-lg border border-border shrink-0">
 													<AvatarImage src={w.organizationLogo || ""} />
-													<AvatarFallback className="bg-primary/10 text-primary font-bold text-xs rounded-none">
+													<AvatarFallback className="bg-primary/10 text-primary font-bold text-xs rounded-lg">
 														{w.organizationName.slice(0, 2).toUpperCase()}
 													</AvatarFallback>
 												</Avatar>
@@ -357,19 +357,19 @@ export function AdminWalletsContent({
 											</div>
 
 											{w.isLocked ? (
-												<Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 text-[9px] font-bold uppercase rounded-none shadow-none">
+												<Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 text-[9px] font-bold uppercase rounded-lg">
 													Locked
 												</Badge>
 											) : (
-												<Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 text-[9px] font-bold uppercase rounded-none shadow-none">
+												<Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 text-[9px] font-bold uppercase rounded-lg">
 													Active
 												</Badge>
 											)}
 										</div>
 									</CardHeader>
 
-									<CardContent className="space-y-3 pt-3 text-xs rounded-none shadow-none">
-										<div className="p-3 bg-muted/30 border border-border space-y-2 rounded-none shadow-none">
+									<CardContent className="space-y-3 pt-3 text-xs rounded-lg">
+										<div className="p-3 bg-muted/30 border border-border space-y-2 rounded-lg">
 											<div className="flex items-center justify-between">
 												<span className="text-muted-foreground">Available Balance:</span>
 												<span className="text-base font-bold text-foreground font-mono">
@@ -393,7 +393,7 @@ export function AdminWalletsContent({
 										</div>
 
 										{w.lockReason && (
-											<div className="p-2 bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 rounded-none shadow-none">
+											<div className="p-2 bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 rounded-lg">
 												<strong>Lock Reason:</strong> {w.lockReason}
 											</div>
 										)}
@@ -404,7 +404,7 @@ export function AdminWalletsContent({
 												size="sm"
 												disabled={isPending}
 												onClick={() => handleToggleAutoPayout(w)}
-												className="flex-1 text-xs rounded-none shadow-none border-border"
+												className="flex-1 text-xs rounded-lg border-border"
 											>
 												<SlidersHorizontal className="h-3 w-3 mr-1" />
 												{w.autoPayout ? "Disable Auto" : "Enable Auto"}
@@ -418,7 +418,7 @@ export function AdminWalletsContent({
 													setLockDialogWallet(w);
 													setLockReason(w.lockReason || "");
 												}}
-												className="flex-1 text-xs font-semibold rounded-none shadow-none"
+												className="flex-1 text-xs font-semibold rounded-lg"
 											>
 												{w.isLocked ? (
 													<>
@@ -442,7 +442,7 @@ export function AdminWalletsContent({
 
 				{/* 2. Approval Queue Tab */}
 				<TabsContent value="approvals">
-					<Card className="border border-border rounded-none shadow-none">
+					<Card className="border border-border rounded-lg">
 						<CardHeader className="pb-3 border-b border-border">
 							<div className="flex items-center gap-2">
 								<Shield className="h-4 w-4 text-primary" />
@@ -474,21 +474,21 @@ export function AdminWalletsContent({
 														{requiresOtp ? (
 															<Badge
 																variant="outline"
-																className="bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
+																className="bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px] uppercase font-bold rounded-lg"
 															>
 																Awaiting OTP
 															</Badge>
 														) : isProcessing ? (
 															<Badge
 																variant="outline"
-																className="bg-sky-500/10 text-sky-600 border-sky-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
+																className="bg-sky-500/10 text-sky-600 border-sky-500/30 text-[9px] uppercase font-bold rounded-lg"
 															>
 																Processing on Paystack
 															</Badge>
 														) : (
 															<Badge
 																variant="outline"
-																className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[9px] uppercase font-bold rounded-none shadow-none"
+																className="bg-blue-500/10 text-blue-600 border-blue-500/30 text-[9px] uppercase font-bold rounded-lg"
 															>
 																Pending Approval
 															</Badge>
@@ -544,7 +544,7 @@ export function AdminWalletsContent({
 																	setOtpTarget({ payout: p, transferCode: p.providerReference || "" });
 																	setOtpValue("");
 																}}
-																className="text-xs font-semibold rounded-none shadow-none bg-amber-600 hover:bg-amber-700 text-white"
+																className="text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white"
 															>
 																<KeyRound className="h-3.5 w-3.5 mr-1" />
 																Enter OTP
@@ -555,7 +555,7 @@ export function AdminWalletsContent({
 																size="sm"
 																disabled={isPending || syncingId === p.id}
 																onClick={() => handleSyncPayout(p)}
-																className="text-xs font-semibold rounded-none shadow-none"
+																className="text-xs font-semibold rounded-lg"
 																title="Check Paystack status"
 															>
 																<RotateCw className={`h-3.5 w-3.5 mr-1 ${syncingId === p.id ? "animate-spin" : ""}`} />
@@ -569,7 +569,7 @@ export function AdminWalletsContent({
 																size="sm"
 																disabled={isPending || syncingId === p.id}
 																onClick={() => handleSyncPayout(p)}
-																className="text-xs font-semibold rounded-none shadow-none border-border hover:bg-muted"
+																className="text-xs font-semibold rounded-lg border-border hover:bg-muted"
 																title="Check Paystack transfer status"
 															>
 																<RotateCw className={`h-3.5 w-3.5 mr-1 ${syncingId === p.id ? "animate-spin" : ""}`} />
@@ -584,7 +584,7 @@ export function AdminWalletsContent({
 																	setRejectTarget(p);
 																	setRejectReason("");
 																}}
-																className="text-xs font-semibold rounded-none shadow-none"
+																className="text-xs font-semibold rounded-lg"
 															>
 																<XCircle className="h-3.5 w-3.5 mr-1" />
 																Reject
@@ -597,7 +597,7 @@ export function AdminWalletsContent({
 																size="sm"
 																disabled={isPending || isApproving}
 																onClick={() => setApproveTarget(p)}
-																className="text-xs font-semibold rounded-none shadow-none bg-emerald-600 hover:bg-emerald-700 text-white"
+																className="text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
 															>
 																<CheckCircle2 className="h-3.5 w-3.5 mr-1" />
 																Approve
@@ -611,7 +611,7 @@ export function AdminWalletsContent({
 																	setRejectTarget(p);
 																	setRejectReason("");
 																}}
-																className="text-xs font-semibold rounded-none shadow-none"
+																className="text-xs font-semibold rounded-lg"
 															>
 																<XCircle className="h-3.5 w-3.5 mr-1" />
 																Reject
@@ -630,7 +630,7 @@ export function AdminWalletsContent({
 
 				{/* 3. Payouts Audit Tab */}
 				<TabsContent value="payouts">
-					<Card className="border border-border rounded-none shadow-none">
+					<Card className="border border-border rounded-lg">
 						<CardContent className="p-0">
 							{recentPayouts.length === 0 ? (
 								<div className="py-16 text-center text-muted-foreground text-xs">
@@ -644,7 +644,7 @@ export function AdminWalletsContent({
 												<div className="flex items-center gap-2">
 													<Badge
 														variant="outline"
-														className={`text-[9px] uppercase font-bold rounded-none shadow-none ${
+														className={`text-[9px] uppercase font-bold rounded-lg ${
 															p.status === "completed"
 																? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
 																: p.status === "failed"
@@ -696,7 +696,7 @@ export function AdminWalletsContent({
 																	setOtpTarget({ payout: p, transferCode: p.providerReference || "" });
 																	setOtpValue("");
 																}}
-																className="text-[11px] h-7 px-2 font-semibold rounded-none shadow-none text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
+																className="text-[11px] h-7 px-2 font-semibold rounded-lg text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
 															>
 																<KeyRound className="h-3 w-3 mr-1" />
 																OTP
@@ -707,7 +707,7 @@ export function AdminWalletsContent({
 															size="sm"
 															disabled={isPending || syncingId === p.id}
 															onClick={() => handleSyncPayout(p)}
-															className="text-[11px] h-7 px-2 font-semibold rounded-none shadow-none text-muted-foreground hover:text-foreground"
+															className="text-[11px] h-7 px-2 font-semibold rounded-lg text-muted-foreground hover:text-foreground"
 															title="Sync status"
 														>
 															<RotateCw className={`h-3 w-3 ${syncingId === p.id ? "animate-spin" : ""}`} />
@@ -726,7 +726,7 @@ export function AdminWalletsContent({
 
 			{/* Lock / Unlock Dialog */}
 			<Dialog open={!!lockDialogWallet} onOpenChange={(open) => !open && setLockDialogWallet(null)}>
-				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
+				<DialogContent className="sm:max-w-md border border-border rounded-lg">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							{lockDialogWallet?.isLocked ? (
@@ -757,7 +757,7 @@ export function AdminWalletsContent({
 								placeholder="e.g. KYC document verification, chargeback check..."
 								value={lockReason}
 								onChange={(e) => setLockReason(e.target.value)}
-								className="text-xs rounded-none shadow-none border-border"
+								className="text-xs rounded-lg border-border"
 							/>
 						</div>
 					)}
@@ -768,7 +768,7 @@ export function AdminWalletsContent({
 							size="sm"
 							onClick={() => setLockDialogWallet(null)}
 							disabled={isPending}
-							className="text-xs rounded-none shadow-none"
+							className="text-xs rounded-lg"
 						>
 							Cancel
 						</Button>
@@ -777,7 +777,7 @@ export function AdminWalletsContent({
 							size="sm"
 							onClick={handleConfirmLock}
 							disabled={isPending}
-							className="text-xs font-semibold rounded-none shadow-none"
+							className="text-xs font-semibold rounded-lg"
 						>
 							{isPending
 								? "Updating..."
@@ -791,7 +791,7 @@ export function AdminWalletsContent({
 
 			{/* Approve Confirmation Dialog */}
 			<Dialog open={!!approveTarget} onOpenChange={(open) => !open && setApproveTarget(null)}>
-				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
+				<DialogContent className="sm:max-w-md border border-border rounded-lg">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<CheckCircle2 className="h-5 w-5 text-emerald-500" />
@@ -804,7 +804,7 @@ export function AdminWalletsContent({
 
 					{approveTarget && (
 						<div className="space-y-3 py-2">
-							<div className="p-3 bg-muted/30 border border-border space-y-2 text-xs rounded-none">
+							<div className="p-3 bg-muted/30 border border-border space-y-2 text-xs rounded-lg">
 								<div className="flex justify-between">
 									<span className="text-muted-foreground">Organizer:</span>
 									<span className="font-semibold text-foreground">
@@ -837,7 +837,7 @@ export function AdminWalletsContent({
 							size="sm"
 							onClick={() => setApproveTarget(null)}
 							disabled={isPending || isApproving}
-							className="text-xs rounded-none shadow-none"
+							className="text-xs rounded-lg"
 						>
 							Cancel
 						</Button>
@@ -845,7 +845,7 @@ export function AdminWalletsContent({
 							size="sm"
 							onClick={handleApprovePayout}
 							disabled={isPending || isApproving}
-							className="text-xs font-semibold rounded-none shadow-none bg-emerald-600 hover:bg-emerald-700 text-white"
+							className="text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
 						>
 							{isPending || isApproving ? "Processing..." : "Confirm & Transfer"}
 						</Button>
@@ -855,7 +855,7 @@ export function AdminWalletsContent({
 
 			{/* OTP Finalization Dialog */}
 			<Dialog open={!!otpTarget} onOpenChange={(open) => !open && setOtpTarget(null)}>
-				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
+				<DialogContent className="sm:max-w-md border border-border rounded-lg">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<KeyRound className="h-5 w-5 text-primary" />
@@ -875,7 +875,7 @@ export function AdminWalletsContent({
 							placeholder="Enter OTP code"
 							value={otpValue}
 							onChange={(e) => setOtpValue(e.target.value)}
-							className="text-center text-lg font-mono tracking-[0.3em] rounded-none shadow-none border-border"
+							className="text-center text-lg font-mono tracking-[0.3em] rounded-lg border-border"
 							maxLength={10}
 							autoFocus
 						/>
@@ -890,7 +890,7 @@ export function AdminWalletsContent({
 								setOtpValue("");
 							}}
 							disabled={isPending}
-							className="text-xs rounded-none shadow-none"
+							className="text-xs rounded-lg"
 						>
 							Cancel
 						</Button>
@@ -898,7 +898,7 @@ export function AdminWalletsContent({
 							size="sm"
 							onClick={handleFinalizeOtp}
 							disabled={isPending || !otpValue.trim()}
-							className="text-xs font-semibold rounded-none shadow-none"
+							className="text-xs font-semibold rounded-lg"
 						>
 							{isPending ? "Verifying..." : "Authorize Transfer"}
 						</Button>
@@ -908,7 +908,7 @@ export function AdminWalletsContent({
 
 			{/* Reject Dialog */}
 			<Dialog open={!!rejectTarget} onOpenChange={(open) => !open && setRejectTarget(null)}>
-				<DialogContent className="sm:max-w-md border border-border rounded-none shadow-none">
+				<DialogContent className="sm:max-w-md border border-border rounded-lg">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<XCircle className="h-5 w-5 text-destructive" />
@@ -928,7 +928,7 @@ export function AdminWalletsContent({
 							placeholder="e.g. Incorrect bank details, suspicious activity, KYC incomplete..."
 							value={rejectReason}
 							onChange={(e) => setRejectReason(e.target.value)}
-							className="text-xs rounded-none shadow-none border-border min-h-[80px]"
+							className="text-xs rounded-lg border-border min-h-[80px]"
 						/>
 					</div>
 
@@ -938,7 +938,7 @@ export function AdminWalletsContent({
 							size="sm"
 							onClick={() => setRejectTarget(null)}
 							disabled={isPending}
-							className="text-xs rounded-none shadow-none"
+							className="text-xs rounded-lg"
 						>
 							Cancel
 						</Button>
@@ -947,7 +947,7 @@ export function AdminWalletsContent({
 							size="sm"
 							onClick={handleRejectPayout}
 							disabled={isPending}
-							className="text-xs font-semibold rounded-none shadow-none"
+							className="text-xs font-semibold rounded-lg"
 						>
 							{isPending ? "Processing..." : "Confirm Reject"}
 						</Button>

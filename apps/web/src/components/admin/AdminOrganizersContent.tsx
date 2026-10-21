@@ -122,16 +122,16 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 	};
 
 	return (
-		<div className="flex flex-col gap-6 rounded-none shadow-none">
+		<div className="flex flex-col gap-6 rounded-lg">
 			{/* Top Bar: Search & Counts */}
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-none shadow-none">
+			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-lg">
 				<div className="relative flex-1 max-w-md">
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 					<Input
 						placeholder="Search by organization name, slug, email, or owner..."
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
-						className="pl-9 bg-background text-xs rounded-none shadow-none border-border"
+						className="pl-9 bg-background text-xs rounded-lg border-border"
 					/>
 				</div>
 
@@ -145,7 +145,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 
 			{/* Organizers Table / Cards */}
 			{filteredOrganizers.length === 0 ? (
-				<Card className="border border-border rounded-none shadow-none">
+				<Card className="border border-border rounded-lg">
 					<CardContent className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
 						<Building2 className="h-10 w-10 mb-3 opacity-40" />
 						<h3 className="text-base font-semibold text-foreground">No organizers found</h3>
@@ -155,7 +155,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 					</CardContent>
 				</Card>
 			) : (
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 rounded-none shadow-none">
+				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 rounded-lg">
 					{filteredOrganizers.map((org) => {
 						const isWalletLocked = org.wallet?.isLocked ?? false;
 						const totalBalance = org.wallet?.balance ?? 0;
@@ -164,14 +164,14 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 						return (
 							<Card
 								key={org.id}
-								className="border border-border bg-card rounded-none shadow-none flex flex-col justify-between"
+								className="border border-border bg-card rounded-lg flex flex-col justify-between"
 							>
-								<CardHeader className="pb-3 border-b border-border rounded-none shadow-none">
+								<CardHeader className="pb-3 border-b border-border rounded-lg">
 									<div className="flex items-start justify-between gap-3">
 										<div className="flex items-center gap-2.5 min-w-0">
-											<Avatar className="h-9 w-9 rounded-none shadow-none border border-border shrink-0">
+											<Avatar className="h-9 w-9 rounded-lg border border-border shrink-0">
 												<AvatarImage src={org.logoUrl || ""} alt={org.name} />
-												<AvatarFallback className="bg-primary/10 text-primary font-bold text-xs rounded-none">
+												<AvatarFallback className="bg-primary/10 text-primary font-bold text-xs rounded-lg">
 													{org.name.slice(0, 2).toUpperCase()}
 												</AvatarFallback>
 											</Avatar>
@@ -186,20 +186,20 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 										</div>
 
 										{isWalletLocked ? (
-											<Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 text-[9px] shrink-0 font-bold uppercase rounded-none shadow-none">
+											<Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 text-[9px] shrink-0 font-bold uppercase rounded-lg">
 												Locked Wallet
 											</Badge>
 										) : (
-											<Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 text-[9px] shrink-0 font-bold uppercase rounded-none shadow-none">
+											<Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 text-[9px] shrink-0 font-bold uppercase rounded-lg">
 												Active
 											</Badge>
 										)}
 									</div>
 								</CardHeader>
 
-								<CardContent className="space-y-3 pt-3 rounded-none shadow-none">
+								<CardContent className="space-y-3 pt-3 rounded-lg">
 									{/* Info Rows */}
-									<div className="grid grid-cols-2 gap-2 text-xs bg-muted/30 p-2.5 border border-border rounded-none shadow-none">
+									<div className="grid grid-cols-2 gap-2 text-xs bg-muted/30 p-2.5 border border-border rounded-lg">
 										<div>
 											<span className="text-[10px] uppercase font-bold text-muted-foreground block">
 												Members
@@ -221,7 +221,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 									</div>
 
 									{/* Financial Breakdown: Gross, Our Share & Net */}
-									<div className="border border-border p-2.5 bg-muted/20 space-y-1.5 rounded-none shadow-none text-xs">
+									<div className="border border-border p-2.5 bg-muted/20 space-y-1.5 rounded-lg text-xs">
 										<div className="flex items-center justify-between">
 											<span className="text-muted-foreground">Gross Inflow:</span>
 											<span className="font-bold text-foreground font-mono">
@@ -289,7 +289,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 										<Button
 											variant="outline"
 											size="sm"
-											className="w-full text-xs font-semibold rounded-none shadow-none border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
+											className="w-full text-xs font-semibold rounded-lg border-border hover:bg-primary hover:text-primary-foreground hover:border-primary"
 											onClick={() => handleOpenOrg(org)}
 										>
 											<Eye className="h-3.5 w-3.5 mr-1.5" />
@@ -305,14 +305,14 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 
 			{/* Detail Drawer - Flat & Square */}
 			<Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-				<SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl overflow-y-auto p-0 flex flex-col bg-background rounded-none shadow-none border-l border-border">
+				<SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl overflow-y-auto p-0 flex flex-col bg-background rounded-lg border-l border-border">
 					{selectedOrg && (
 						<>
-							<SheetHeader className="p-6 border-b border-border bg-muted/20 rounded-none shadow-none">
+							<SheetHeader className="p-6 border-b border-border bg-muted/20 rounded-lg">
 								<div className="flex items-center gap-3">
-									<Avatar className="h-12 w-12 rounded-none shadow-none border border-border">
+									<Avatar className="h-12 w-12 rounded-lg border border-border">
 										<AvatarImage src={selectedOrg.logoUrl || ""} alt={selectedOrg.name} />
-										<AvatarFallback className="bg-primary/10 text-primary font-bold rounded-none">
+										<AvatarFallback className="bg-primary/10 text-primary font-bold rounded-lg">
 											{selectedOrg.name.slice(0, 2).toUpperCase()}
 										</AvatarFallback>
 									</Avatar>
@@ -327,7 +327,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 								</div>
 							</SheetHeader>
 
-							<Tabs defaultValue="members" className="w-full flex-1 flex flex-col min-h-0 rounded-none shadow-none">
+							<Tabs defaultValue="members" className="w-full flex-1 flex flex-col min-h-0 rounded-lg">
 								<div className="px-6 py-3 border-b bg-background/50 shrink-0">
 									<TabsList className="h-9 w-full sm:w-auto p-1 bg-muted/60">
 										<TabsTrigger value="members" className="text-xs font-semibold px-3 flex-1 sm:flex-initial">
@@ -355,13 +355,13 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 											</span>
 										</div>
 
-										<div className="divide-y divide-border border border-border bg-card rounded-none shadow-none">
+										<div className="divide-y divide-border border border-border bg-card rounded-lg">
 											{selectedOrg.members.map((member) => (
 												<div key={member.id} className="p-3.5 flex items-center justify-between gap-3">
 													<div className="flex items-center gap-3 min-w-0">
-														<Avatar className="h-8 w-8 rounded-none shadow-none border border-border">
+														<Avatar className="h-8 w-8 rounded-lg border border-border">
 															<AvatarImage src={member.user.avatarUrl || ""} />
-															<AvatarFallback className="bg-primary/10 text-primary text-xs font-bold rounded-none">
+															<AvatarFallback className="bg-primary/10 text-primary text-xs font-bold rounded-lg">
 																{member.user.fullName.slice(0, 2).toUpperCase()}
 															</AvatarFallback>
 														</Avatar>
@@ -383,7 +383,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 													<div className="text-right shrink-0">
 														<Badge
 															variant="outline"
-															className={`text-[9px] font-bold uppercase rounded-none shadow-none ${
+															className={`text-[9px] font-bold uppercase rounded-lg ${
 																member.role === "owner"
 																	? "bg-amber-500/10 text-amber-600 border-amber-500/30"
 																	: member.role === "admin"
@@ -414,16 +414,16 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 										</div>
 
 										{selectedOrg.eventsSummary.eventsList.length === 0 ? (
-											<div className="text-center py-10 text-muted-foreground text-xs border border-border rounded-none shadow-none">
+											<div className="text-center py-10 text-muted-foreground text-xs border border-border rounded-lg">
 												No events created by this organizer yet
 											</div>
 										) : (
-											<div className="divide-y divide-border border border-border bg-card rounded-none shadow-none">
+											<div className="divide-y divide-border border border-border bg-card rounded-lg">
 												{selectedOrg.eventsSummary.eventsList.map((ev) => (
 													<div key={ev.id} className="p-3.5 flex items-center justify-between gap-3">
 														<div className="min-w-0">
 															<div className="flex items-center gap-2">
-																<Badge variant="outline" className="text-[9px] uppercase font-bold rounded-none shadow-none">
+																<Badge variant="outline" className="text-[9px] uppercase font-bold rounded-lg">
 																	{ev.status}
 																</Badge>
 																<span className="text-[10px] uppercase font-semibold text-muted-foreground">
@@ -460,13 +460,13 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 									{/* 3. Share & Wallet Tab */}
 									<TabsContent value="wallet" className="space-y-4">
 										{/* Revenue Split Card */}
-										<div className="p-4 border border-border bg-card space-y-3 rounded-none shadow-none text-xs">
+										<div className="p-4 border border-border bg-card space-y-3 rounded-lg text-xs">
 											<h4 className="font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-primary">
 												<Coins className="h-4 w-4" />
 												Financial Revenue Split
 											</h4>
 											<div className="grid grid-cols-3 gap-2">
-												<div className="p-2.5 bg-muted/40 border border-border rounded-none shadow-none">
+												<div className="p-2.5 bg-muted/40 border border-border rounded-lg">
 													<span className="text-[10px] uppercase font-bold text-muted-foreground block">
 														Gross Volume
 													</span>
@@ -474,7 +474,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 														{formatAmount(selectedOrg.financials.grossRevenue, selectedOrg.wallet?.currency || "GHS")}
 													</span>
 												</div>
-												<div className="p-2.5 bg-primary/10 border border-primary/30 rounded-none shadow-none">
+												<div className="p-2.5 bg-primary/10 border border-primary/30 rounded-lg">
 													<span className="text-[10px] uppercase font-bold text-primary block">
 														Our Platform Share
 													</span>
@@ -482,7 +482,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 														{formatAmount(selectedOrg.financials.ourPlatformShare, selectedOrg.wallet?.currency || "GHS")}
 													</span>
 												</div>
-												<div className="p-2.5 bg-muted/40 border border-border rounded-none shadow-none">
+												<div className="p-2.5 bg-muted/40 border border-border rounded-lg">
 													<span className="text-[10px] uppercase font-bold text-muted-foreground block">
 														Organizer Share
 													</span>
@@ -494,7 +494,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 										</div>
 
 										{/* Platform Fee Configuration Banner */}
-										<div className="p-3 bg-muted/40 border border-border flex items-center justify-between text-xs rounded-none shadow-none">
+										<div className="p-3 bg-muted/40 border border-border flex items-center justify-between text-xs rounded-lg">
 											<div>
 												<span className="font-bold text-foreground block">Platform Fee Rates</span>
 												<span className="text-[11px] text-muted-foreground">Manage custom rate overrides or view global baseline fees</span>
@@ -503,7 +503,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 												variant="outline"
 												size="sm"
 												asChild
-												className="text-xs font-semibold h-7 rounded-none hover:bg-primary hover:text-primary-foreground border-border"
+												className="text-xs font-semibold h-7 rounded-lg hover:bg-primary hover:text-primary-foreground border-border"
 											>
 												<Link href="/super/fees">
 													<Percent className="h-3 w-3 mr-1 text-primary" />
@@ -515,7 +515,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 										{selectedOrg.wallet ? (
 											<div className="space-y-4">
 												{/* Balance Card */}
-												<div className="p-4 border border-border bg-card space-y-2 rounded-none shadow-none">
+												<div className="p-4 border border-border bg-card space-y-2 rounded-lg">
 													<span className="text-[10px] font-bold uppercase text-muted-foreground block">
 														Current Escrow / Wallet Balance
 													</span>
@@ -524,26 +524,26 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 															{formatAmount(selectedOrg.wallet.balance, selectedOrg.wallet.currency)}
 														</span>
 														{selectedOrg.wallet.isLocked ? (
-															<Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 text-xs font-semibold rounded-none shadow-none">
+															<Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 text-xs font-semibold rounded-lg">
 																<ShieldAlert className="h-3 w-3 mr-1" />
 																Wallet Locked
 															</Badge>
 														) : (
-															<Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 text-xs font-semibold rounded-none shadow-none">
+															<Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-600 text-xs font-semibold rounded-lg">
 																Wallet Active
 															</Badge>
 														)}
 													</div>
 
 													{selectedOrg.wallet.lockReason && (
-														<div className="p-2.5 bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 rounded-none shadow-none">
+														<div className="p-2.5 bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 rounded-lg">
 															<strong>Lock Reason:</strong> {selectedOrg.wallet.lockReason}
 														</div>
 													)}
 												</div>
 
 												{/* Payout & Subaccount Info */}
-												<div className="p-4 border border-border bg-card space-y-3 text-xs rounded-none shadow-none">
+												<div className="p-4 border border-border bg-card space-y-3 text-xs rounded-lg">
 													<h4 className="font-bold text-foreground flex items-center gap-2 uppercase tracking-wider text-[11px]">
 														<Wallet className="h-4 w-4 text-primary" />
 														Payout Configuration & Subaccount
@@ -590,7 +590,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 															size="sm"
 															disabled={isPending}
 															onClick={() => handleToggleAutoPayout(selectedOrg)}
-															className="text-xs rounded-none shadow-none border-border"
+															className="text-xs rounded-lg border-border"
 														>
 															<SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
 															{selectedOrg.autoPayout ? "Disable Auto-Payout" : "Enable Auto-Payout"}
@@ -604,7 +604,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 																setLockDialogOrg(selectedOrg);
 																setLockReason(selectedOrg.wallet?.lockReason || "");
 															}}
-															className="text-xs font-semibold rounded-none shadow-none"
+															className="text-xs font-semibold rounded-lg"
 														>
 															{selectedOrg.wallet.isLocked ? (
 																<>
@@ -622,7 +622,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 												</div>
 											</div>
 										) : (
-											<div className="text-center py-8 text-xs text-muted-foreground border border-border rounded-none shadow-none">
+											<div className="text-center py-8 text-xs text-muted-foreground border border-border rounded-lg">
 												No wallet created for this organization.
 											</div>
 										)}
@@ -636,7 +636,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 
 			{/* Lock / Unlock Wallet Confirmation Dialog */}
 			<Dialog open={!!lockDialogOrg} onOpenChange={(open) => !open && setLockDialogOrg(null)}>
-				<DialogContent className="sm:max-w-md rounded-none shadow-none border border-border">
+				<DialogContent className="sm:max-w-md rounded-lg border border-border">
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							{lockDialogOrg?.wallet?.isLocked ? (
@@ -667,7 +667,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 								placeholder="e.g. Identity verification pending, chargeback review..."
 								value={lockReason}
 								onChange={(e) => setLockReason(e.target.value)}
-								className="text-xs rounded-none shadow-none border-border"
+								className="text-xs rounded-lg border-border"
 							/>
 						</div>
 					)}
@@ -678,7 +678,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 							size="sm"
 							onClick={() => setLockDialogOrg(null)}
 							disabled={isPending}
-							className="text-xs rounded-none shadow-none"
+							className="text-xs rounded-lg"
 						>
 							Cancel
 						</Button>
@@ -687,7 +687,7 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 							size="sm"
 							onClick={handleConfirmWalletLock}
 							disabled={isPending}
-							className="text-xs font-semibold rounded-none shadow-none"
+							className="text-xs font-semibold rounded-lg"
 						>
 							{isPending
 								? "Updating..."

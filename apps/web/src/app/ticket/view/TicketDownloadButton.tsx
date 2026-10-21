@@ -6,7 +6,7 @@ import {
 	Printer,
 	Loader2,
 	QrCode,
-	Sparkles,
+	ImageIcon,
 	ChevronDown,
 	Layers,
 } from "lucide-react";
@@ -138,26 +138,25 @@ export function TicketDownloadButton({
 				variant="outline"
 				size="sm"
 				onClick={handlePrint}
-				className="text-xs gap-1.5 h-9 border-border/80 hover:bg-accent"
+				className="text-xs gap-1.5 h-9 border-border/70 shadow-none"
 			>
 				<Printer className="size-3.5" />
 				Print
 			</Button>
 
-			{/* Primary Dropdown / Split Action */}
-			<div className="inline-flex rounded-lg shadow-xs">
+			<div className="inline-flex rounded-lg">
 				<Button
 					size="sm"
 					onClick={() => handleDownload("both")}
 					disabled={isDownloading}
-					className="text-xs gap-1.5 h-9 font-semibold rounded-r-none bg-emerald-600 hover:bg-emerald-700 text-white"
+					className="text-xs gap-1.5 h-9 font-semibold rounded-r-none shadow-none"
 				>
 					{activeExport === "both" ? (
 						<Loader2 className="size-3.5 animate-spin" />
 					) : (
 						<Download className="size-3.5" />
 					)}
-					Download Full Ticket
+					Download
 				</Button>
 
 				<DropdownMenu>
@@ -165,60 +164,42 @@ export function TicketDownloadButton({
 						<Button
 							size="sm"
 							disabled={isDownloading}
-							className="px-2 h-9 rounded-l-none border-l border-emerald-700/50 bg-emerald-600 hover:bg-emerald-700 text-white"
+							className="px-2 h-9 rounded-l-none border-l border-primary-foreground/20 shadow-none"
+							aria-label="More download options"
 						>
 							<ChevronDown className="size-3.5" />
 						</Button>
 					</DropdownMenuTrigger>
 
-					<DropdownMenuContent align="end" className="w-56">
+					<DropdownMenuContent align="end" className="w-48">
 						<DropdownMenuItem
 							onClick={() => handleDownload("both")}
 							disabled={isDownloading}
-							className="text-xs cursor-pointer py-2 gap-2"
+							className="text-xs cursor-pointer gap-2"
 						>
-							<Layers className="size-4 text-emerald-500" />
-							<div className="flex flex-col">
-								<span className="font-semibold">Full Ticket (Both Sides)</span>
-								<span className="text-[10px] text-muted-foreground">
-									High-res stacked PNG
-								</span>
-							</div>
+							<Layers className="size-3.5 text-muted-foreground" />
+							Full ticket
 						</DropdownMenuItem>
-
 						<DropdownMenuSeparator />
-
 						<DropdownMenuItem
 							onClick={() => handleDownload("back")}
 							disabled={isDownloading}
-							className="text-xs cursor-pointer py-2 gap-2"
+							className="text-xs cursor-pointer gap-2"
 						>
-							<QrCode className="size-4 text-primary" />
-							<div className="flex flex-col">
-								<span className="font-semibold">QR Code Gate Pass</span>
-								<span className="text-[10px] text-muted-foreground">
-									Back side for entrance scanning
-								</span>
-							</div>
+							<QrCode className="size-3.5 text-muted-foreground" />
+							QR gate pass
 						</DropdownMenuItem>
-
 						<DropdownMenuItem
 							onClick={() => handleDownload("front")}
 							disabled={isDownloading}
-							className="text-xs cursor-pointer py-2 gap-2"
+							className="text-xs cursor-pointer gap-2"
 						>
-							<Sparkles className="size-4 text-amber-500" />
-							<div className="flex flex-col">
-								<span className="font-semibold">Front Badge / Banner</span>
-								<span className="text-[10px] text-muted-foreground">
-									Event souvenir artwork
-								</span>
-							</div>
+							<ImageIcon className="size-3.5 text-muted-foreground" />
+							Front only
 						</DropdownMenuItem>
-						</DropdownMenuContent>
+					</DropdownMenuContent>
 				</DropdownMenu>
-				</div>
-
+			</div>
 		</div>
 	);
 }

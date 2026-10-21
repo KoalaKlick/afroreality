@@ -139,16 +139,19 @@ export function PaymentGatewaySettingsContent({
 	});
 
 	return (
-		<div className="space-y-6">
-			{/* Gateway fees */}
-			<Card className="rounded-xl border border-border/80 shadow-sm bg-card/60 backdrop-blur-sm">
+		<div className="flex flex-col gap-5">
+			<p className="text-xs text-muted-foreground -mt-1">
+				Processing rates, default routing, and per-event overrides.
+			</p>
+
+			<Card className="border-border/70 shadow-none">
 				<CardHeader className="p-4 pb-2">
-					<CardTitle className="text-base font-bold flex items-center gap-2">
-						<CreditCard className="size-4 text-primary" />
-						Gateway Processing Fees
+					<CardTitle className="text-sm font-semibold flex items-center gap-2">
+						<CreditCard className="size-4 text-muted-foreground" />
+						Gateway processing fees
 					</CardTitle>
 					<CardDescription className="text-xs">
-						Each gateway charges differently. Set the processing rate (absorbed by the buyer) and cap per gateway.
+						Buyer-absorbed processing rate and fee cap for each gateway.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-4 grid gap-4 sm:grid-cols-3">
@@ -205,15 +208,14 @@ export function PaymentGatewaySettingsContent({
 				</CardContent>
 			</Card>
 
-			{/* Routing defaults */}
-			<Card className="rounded-xl border border-border/80 shadow-sm bg-card/60 backdrop-blur-sm">
+			<Card className="border-border/70 shadow-none">
 				<CardHeader className="p-4 pb-2">
-					<CardTitle className="text-base font-bold flex items-center gap-2">
-						<Route className="size-4 text-primary" />
-						Default Payment Routing
+					<CardTitle className="text-sm font-semibold flex items-center gap-2">
+						<Route className="size-4 text-muted-foreground" />
+						Default payment routing
 					</CardTitle>
 					<CardDescription className="text-xs">
-						Every event can be paid via USSD and Web. Set the default gateway for each surface.
+						Default gateway for USSD and web checkout.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-4 grid gap-4 sm:grid-cols-2">
@@ -263,15 +265,14 @@ export function PaymentGatewaySettingsContent({
 				</CardContent>
 			</Card>
 
-			{/* Per-event routing */}
-			<Card className="rounded-xl border border-border/80 shadow-sm bg-card/60 backdrop-blur-sm">
+			<Card className="border-border/70 shadow-none">
 				<CardHeader className="p-4 pb-2">
-					<CardTitle className="text-base font-bold flex items-center gap-2">
-						<ArrowLeftRight className="size-4 text-primary" />
-						Per-Event Payment Routing
+					<CardTitle className="text-sm font-semibold flex items-center gap-2">
+						<ArrowLeftRight className="size-4 text-muted-foreground" />
+						Per-event routing
 					</CardTitle>
 					<CardDescription className="text-xs">
-						Override the gateway for an event, optionally scoped to USSD only or Web only. &ldquo;Default&rdquo; inherits the per-channel default.
+						Optional overrides. &ldquo;Default&rdquo; inherits the channel default above.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-4 space-y-4">

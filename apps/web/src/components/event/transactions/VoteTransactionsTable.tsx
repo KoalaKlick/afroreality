@@ -9,7 +9,8 @@ import { DataTableColumnHeader } from "@/components/common/data-table-column-hea
 import { StatusBadge } from "@/components/common/status-badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ChevronLeft, ChevronRight, Loader2, Vote } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { formatAmount, formatDate } from "@/lib/utils";
 
 export interface VoteTransaction {
@@ -194,13 +195,15 @@ export function VoteTransactionsTable({
 					table={table}
 					columnsCount={columns.length}
 					emptyState={
-						<div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground gap-2">
-							<Vote className="size-8 text-muted-foreground/50 stroke-1" />
-							<span className="text-sm font-medium text-foreground">No vote transactions found</span>
-							<span className="text-xs max-w-xs">
-								{searchQuery ? "No records matched your search query." : "Votes cast by attendees will appear here."}
-							</span>
-						</div>
+						<EmptyState
+							variant="orders"
+							title="No vote transactions found"
+							description={
+								searchQuery
+									? "No records matched your search query."
+									: "Votes cast by attendees will appear here."
+							}
+						/>
 					}
 				/>
 			</div>

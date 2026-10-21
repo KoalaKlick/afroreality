@@ -19,6 +19,8 @@ export interface Env {
 	HUBTEL_BASE_URL?: string;
 	MAX_LISTED_EVENTS?: string;
 	NEXT_PUBLIC_USSD_ROOT_CODE?: string;
+	/** When set, USSD provider requests must send matching x-ussd-secret. */
+	USSD_PROVIDER_SECRET?: string;
 }
 
 const JUNIPAY_BASE_URL = "https://api.junipayments.com";
@@ -294,7 +296,7 @@ async function initiateJunipayCollection(
 		foreignId: request.foreignId,
 		provider: request.provider,
 		statusCode: response.status,
-		response: data,
+		status: data?.status ?? data?.data?.status,
 	});
 
 	// JuniPay returns a flat response body, e.g.
@@ -407,7 +409,7 @@ async function initiateHubtelCollection(
 		clientReference: request.clientReference,
 		channel: request.channel,
 		statusCode: response.status,
-		response: data,
+		responseCode: data?.ResponseCode ?? data?.responseCode,
 	});
 
 	const responseCode = String(
@@ -542,6 +544,19 @@ export async function fetchEventByCode(sql: any, code: string) {
 	return events[0] || null;
 }
 
+type FeeSettingsCache = {
+	expiresAt: number;
+	feePct: number;
+	fixedFee: number;
+	minFee?: number;
+	maxFee?: number;
+	gatewayRate: number;
+	gatewayCap: number;
+};
+
+const feeSettingsCache = new Map<string, FeeSettingsCache>();
+const FEE_CACHE_TTL_MS = 60_000;
+
 export async function getWorkerFeeCalculation(
 	sql: any,
 	baseAmount: number,
@@ -549,11 +564,23 @@ export async function getWorkerFeeCalculation(
 	organizationId?: string,
 	gateway: GatewayName = "paystack",
 ) {
+	const cacheKey = `${organizationId || "global"}:${feeType}:${gateway}`;
+	const cached = feeSettingsCache.get(cacheKey);
 	let feePct = 0.065;
 	let fixedFee = 0;
 	let minFee: number | undefined;
 	let maxFee: number | undefined;
+	let paystackRate = gateway === "junipay" || gateway === "hubtel" ? 0 : 0.0195;
+	let paystackCap = gateway === "junipay" || gateway === "hubtel" ? 0 : 100;
 
+	if (cached && cached.expiresAt > Date.now()) {
+		feePct = cached.feePct;
+		fixedFee = cached.fixedFee;
+		minFee = cached.minFee;
+		maxFee = cached.maxFee;
+		paystackRate = cached.gatewayRate;
+		paystackCap = cached.gatewayCap;
+	} else {
 	try {
 		let feeRows: any[] = [];
 		if (organizationId) {
@@ -596,13 +623,6 @@ export async function getWorkerFeeCalculation(
 		console.warn("[USSD-WORKER-FEE-ERROR] Fee query error:", err);
 	}
 
-	let paystackRate = 0.0195;
-	let paystackCap = 100;
-	if (gateway === "junipay" || gateway === "hubtel") {
-		paystackRate = 0;
-		paystackCap = 0;
-	}
-
 	try {
 		const gatewayRows = await sql`
 			SELECT value FROM platform_settings WHERE key = ${`payment_gateway_${gateway}`} LIMIT 1
@@ -620,7 +640,17 @@ export async function getWorkerFeeCalculation(
 		console.warn("[USSD-WORKER-GATEWAY-ERROR] Gateway setting error:", err);
 	}
 
-	// 1. Calculate platform fee
+		feeSettingsCache.set(cacheKey, {
+			expiresAt: Date.now() + FEE_CACHE_TTL_MS,
+			feePct,
+			fixedFee,
+			minFee,
+			maxFee,
+			gatewayRate: paystackRate,
+			gatewayCap: paystackCap,
+		});
+	}
+
 	const percentageFee = Math.round(baseAmount * feePct * 100) / 100;
 	let platformFee = Math.round((percentageFee + fixedFee) * 100) / 100;
 	if (minFee !== undefined && platformFee < minFee) platformFee = minFee;
@@ -628,7 +658,6 @@ export async function getWorkerFeeCalculation(
 
 	const organizerReceives = Math.max(0, Math.round((baseAmount - platformFee) * 100) / 100);
 
-	// 2. Calculate Paystack surcharge absorbed by buyer
 	const uncappedCharge = baseAmount / (1 - paystackRate);
 	const uncappedFee = Math.round(uncappedCharge * paystackRate * 100) / 100;
 
@@ -736,28 +765,32 @@ export async function fulfillSuccessfulPaymentSql(
 			LIMIT 1
 		`;
 		const payment = payments[0] || null;
-		if (payment && payment.status === "completed") {
+		if (!payment) return;
+		if (payment.status === "completed") {
 			return;
 		}
 
-		const paymentId = payment?.id || null;
-		const metadata = payment?.metadata || paystackData?.metadata || {};
+		const paymentId = payment.id;
+		const metadata = payment.metadata || paystackData?.metadata || {};
 		const purpose =
-			payment?.purpose ||
+			payment.purpose ||
 			metadata.purpose ||
 			(metadata.voteCount ? "vote_purchase" : "ticket_purchase");
 		const paystackTransactionId = String(paystackData?.id || "");
 
-		// 1. Update Payment record
-		if (paymentId) {
-			await sql`
-				UPDATE payments 
-				SET status = 'completed', 
-					verified_at = NOW(), 
-					paystack_transaction_id = ${paystackTransactionId},
-					updated_at = NOW() 
-				WHERE id = ${paymentId}
-			`;
+		// Atomic claim — only one concurrent fulfill path wins.
+		const claimed = await sql`
+			UPDATE payments 
+			SET status = 'completed', 
+				verified_at = NOW(), 
+				paystack_transaction_id = ${paystackTransactionId},
+				updated_at = NOW() 
+			WHERE id = ${paymentId}
+			  AND status IN ('pending', 'processing')
+			RETURNING id
+		`;
+		if (!claimed.length) {
+			return;
 		}
 
 		// 2. Mark USSD Session completed
@@ -1090,9 +1123,13 @@ export async function processPayment(
 		`;
 
 		if (!paystackSecret) {
-			return textResponse(
-				`END Payment of GHS ${totalAmountGHS.toFixed(2)} recorded. Reference: ${reference}`,
+			await sql`UPDATE payments SET status = 'failed', updated_at = NOW() WHERE reference = ${reference}`.catch(
+				() => {},
 			);
+			await sql`UPDATE ussd_sessions SET status = 'cancelled' WHERE reference = ${reference}`.catch(
+				() => {},
+			);
+			return textResponse("END Payment unavailable. Try again later.");
 		}
 
 		// When testing in Paystack test mode (sk_test_...), Paystack requires using test mobile money number 0551234987.
@@ -1385,19 +1422,7 @@ async function processJunipayPayment(
 			`.catch(() => {});
 		}
 
-		if (result.success) {
-			await fulfillSuccessfulPaymentSql(
-				sql,
-				reference,
-				{
-					id: result.transId || reference,
-					metadata: { gateway: "junipay" },
-				},
-				env,
-			);
-			return;
-		}
-
+		// Fulfillment only via JuniPay webhook after MoMo PIN — never on initiate.
 		if (!result.ok) {
 			console.error("[USSD-JUNIPAY-CHARGE] Deferred initiation failed", {
 				reference,
@@ -1508,20 +1533,8 @@ async function processHubtelPayment(
 			`.catch(() => {});
 		}
 
-		if (result.success) {
-			await fulfillSuccessfulPaymentSql(
-				sql,
-				reference,
-				{
-					id: result.transactionId || reference,
-					metadata: { gateway: "hubtel" },
-				},
-				env,
-			);
-			return;
-		}
-
-		if (!result.pending) {
+		// Fulfillment only via Hubtel webhook after MoMo PIN — never on initiate.
+		if (!result.pending && !result.success) {
 			console.error("[USSD-HUBTEL-CHARGE] Deferred initiation failed", {
 				reference,
 				message: result.message,
@@ -2188,9 +2201,17 @@ export default {
 				headers: {
 					"Access-Control-Allow-Origin": "*",
 					"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-					"Access-Control-Allow-Headers": "Content-Type",
+					"Access-Control-Allow-Headers": "Content-Type, x-ussd-secret",
 				},
 			});
+		}
+
+		const providerSecret = (env.USSD_PROVIDER_SECRET || "").trim();
+		if (providerSecret) {
+			const provided = request.headers.get("x-ussd-secret") || "";
+			if (provided !== providerSecret) {
+				return new Response("Unauthorized", { status: 401 });
+			}
 		}
 
 		let isArkeselRoute = false;

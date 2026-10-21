@@ -5,15 +5,12 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
 	ArrowLeft,
-	CheckCircle2,
 	Home,
 	Loader2,
 	Ticket,
-	Vote,
-	XCircle,
-	Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { StatusIllustration } from "@/components/shared/StatusIllustration";
 import { getPaymentStatusByReference } from "@/lib/server-functions/public-checkout";
 import { VoteSuccessAnimation } from "@/components/voting/VoteSuccessAnimation";
 
@@ -119,116 +116,82 @@ function PaymentCallbackContent() {
 			? `/ticket/view?token=${payment.tickets[0].token}`
 			: null);
 
+	const successTitle = isTicketPayment
+		? "Ticket confirmed"
+		: isVotePayment
+			? "Vote confirmed"
+			: isNominationPayment
+				? "Nomination confirmed"
+				: "Payment successful";
+
+	const successDescription = isTicketPayment
+		? `${meta.quantity || 1} pass${Number(meta.quantity || 1) > 1 ? "es" : ""} for ${meta.ticketTypeName || "your event"} are ready.`
+		: isVotePayment
+			? `${meta.voteCount || 1} vote${Number(meta.voteCount || 1) > 1 ? "s" : ""} for ${meta.nomineeName || "your nominee"} recorded.`
+			: isNominationPayment
+				? `Nomination for ${meta.nomineeName || "your nominee"} submitted.`
+				: "Your payment has been completed.";
+
 	return (
 		<main className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
 			<div className="w-full max-w-md">
-				<div className="bg-card text-card-foreground rounded-2xl shadow-2xl border border-border overflow-hidden backdrop-blur-md">
+				<div className="bg-card text-card-foreground rounded-xl border border-border/70 overflow-hidden">
 					<div className="p-8 flex flex-col items-center text-center">
-						{/* ── 1. Verifying State ── */}
 						{state === "verifying" && (
 							<>
-								<div className="relative w-20 h-20 mb-6">
-									<div className="absolute inset-0 rounded-full bg-[#009A44]/20 animate-ping" />
-									<div className="relative w-20 h-20 rounded-full bg-[#009A44]/10 border border-[#009A44]/30 flex items-center justify-center">
-										<Loader2 className="w-10 h-10 text-[#009A44] animate-spin" />
-									</div>
+								<div className="mb-5 flex items-center justify-center">
+									<Loader2 className="size-8 text-primary animate-spin" />
 								</div>
-								<h1 className="text-2xl font-black uppercase tracking-tight mb-2">
-									Verifying Payment
+								<h1 className="text-base font-semibold tracking-tight mb-1">
+									Confirming payment
 								</h1>
 								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs">
-									Please wait while we confirm your payment with the network.
 									This usually takes a few seconds.
 								</p>
-								<div className="mt-6 flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
-									<div className="w-2 h-2 rounded-full bg-[#009A44] animate-pulse" />
-									Listening for network confirmation...
-								</div>
 							</>
 						)}
 
-						{/* ── 2. Success State ── */}
 						{state === "success" && (
 							<>
 								{isVotePayment ? (
 									<VoteSuccessAnimation size="lg" className="mb-4" />
 								) : (
-									<div className="relative w-20 h-20 rounded-full bg-[#009A44]/15 border border-[#009A44]/40 flex items-center justify-center mb-6 shadow-lg shadow-[#009A44]/10">
-										<CheckCircle2 className="w-11 h-11 text-[#009A44]" />
-										<div className="absolute -top-1 -right-1 bg-[#FFD100] text-black p-1 rounded-full shadow-xs">
-											<Sparkles className="size-3.5" />
-										</div>
-									</div>
+									<StatusIllustration
+										variant="valid"
+										alt="Payment successful"
+										className="mb-4"
+									/>
 								)}
 
-								<h1 className="text-2xl font-black uppercase tracking-tight mb-2">
-									{isTicketPayment
-										? "Ticket Confirmed!"
-										: isVotePayment
-											? "Vote Confirmed!"
-											: isNominationPayment
-												? "Nomination Confirmed!"
-												: "Payment Successful!"}
+								<h1 className="text-base font-semibold tracking-tight mb-1">
+									{successTitle}
 								</h1>
-
-								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mb-6">
-									{isTicketPayment
-										? `${meta.quantity || 1} ticket pass${
-												Number(meta.quantity || 1) > 1 ? "es" : ""
-											} for "${meta.ticketTypeName || "your event"}" confirmed successfully.`
-										: isVotePayment
-											? `${meta.voteCount || 1} vote${
-													Number(meta.voteCount || 1) > 1 ? "s" : ""
-												} for "${meta.nomineeName || "your nominee"}" recorded successfully.`
-											: isNominationPayment
-												? `Nomination for "${meta.nomineeName || "your nominee"}" submitted successfully.`
-												: "Your payment has been completed and verified successfully."}
+								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mb-5">
+									{successDescription}
 								</p>
 
 								{payment?.amount !== undefined && (
-									<div className="w-full rounded-xl bg-muted/40 border border-border/70 p-4 mb-6 text-left space-y-2">
-										<div className="flex justify-between items-center text-xs">
-											<span className="text-muted-foreground font-medium">
-												Amount Paid
-											</span>
-											<span className="font-bold text-[#009A44] text-sm">
-												{payment.currency || "GHS"}{" "}
-												{Number(payment.amount).toFixed(2)}
-											</span>
-										</div>
-										{isVotePayment && meta.voteCount && (
-											<div className="flex justify-between items-center text-xs pt-1.5 border-t border-border/40">
-												<span className="text-muted-foreground font-medium">
-													Votes Recorded
-												</span>
-												<span className="font-bold text-foreground">
-													{meta.voteCount} {Number(meta.voteCount) === 1 ? "Vote" : "Votes"}
-												</span>
-											</div>
-										)}
-										{isTicketPayment && meta.quantity && (
-											<div className="flex justify-between items-center text-xs pt-1.5 border-t border-border/40">
-												<span className="text-muted-foreground font-medium">
-													Tickets
-												</span>
-												<span className="font-bold text-foreground">
-													{meta.quantity} Pass{Number(meta.quantity) > 1 ? "es" : ""}
-												</span>
-											</div>
-										)}
-									</div>
+									<p className="text-sm font-semibold text-foreground mb-6">
+										{payment.currency || "GHS"} {Number(payment.amount).toFixed(2)}
+										{isTicketPayment && meta.quantity
+											? ` · ${meta.quantity} pass${Number(meta.quantity) > 1 ? "es" : ""}`
+											: ""}
+										{isVotePayment && meta.voteCount
+											? ` · ${meta.voteCount} vote${Number(meta.voteCount) > 1 ? "s" : ""}`
+											: ""}
+									</p>
 								)}
 
-								<div className="flex items-center justify-center gap-2 pt-2">
+								<div className="flex items-center justify-center gap-2">
 									{isTicketPayment && ticketViewUrl && (
 										<Button
 											asChild
 											size="sm"
-											className="h-8 px-4 text-xs font-semibold"
+											className="h-9 px-4 text-xs font-semibold"
 										>
 											<Link href={ticketViewUrl}>
-												<Ticket className="w-3.5 h-3.5 mr-1.5" />
-												View Ticket
+												<Ticket className="size-3.5 mr-1.5" />
+												View ticket
 											</Link>
 										</Button>
 									)}
@@ -237,69 +200,66 @@ function PaymentCallbackContent() {
 										asChild
 										size="sm"
 										variant={isTicketPayment && ticketViewUrl ? "outline" : "default"}
-										className="h-8 px-5 text-xs font-semibold"
+										className="h-9 px-5 text-xs font-semibold"
 									>
-										<Link href={destinationUrl}>Close</Link>
+										<Link href={destinationUrl}>Done</Link>
 									</Button>
 								</div>
 							</>
 						)}
 
-						{/* ── 3. Failed State ── */}
 						{state === "failed" && (
 							<>
-								<div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-6">
-									<XCircle className="w-10 h-10 text-red-500" />
-								</div>
-								<h1 className="text-2xl font-black uppercase tracking-tight mb-2">
-									Payment Pending or Failed
+								<StatusIllustration
+									variant="invalid"
+									alt="Payment not confirmed"
+									className="mb-4"
+								/>
+								<h1 className="text-base font-semibold tracking-tight mb-1">
+									Payment not confirmed
 								</h1>
 								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mb-6">
-									We haven't received confirmation for this transaction yet. If
-									your account was debited, your order will update automatically
-									once the network processes it.
+									If you were charged, your order will update once the network
+									finishes processing.
 								</p>
-								<div className="flex gap-2.5 w-full">
-									<Button asChild variant="outline" className="flex-1 h-11">
+								<div className="flex gap-2 w-full">
+									<Button asChild variant="outline" size="sm" className="flex-1 h-9 text-xs">
 										<Link href={destinationUrl}>
-											<ArrowLeft className="w-4 h-4 mr-1.5" />
-											Go Back
+											<ArrowLeft className="size-3.5 mr-1.5" />
+											Go back
 										</Link>
 									</Button>
-									<Button asChild variant="brand-cta" className="flex-1 h-11">
-										<Link href={destinationUrl}>Try Again</Link>
+									<Button asChild size="sm" className="flex-1 h-9 text-xs font-semibold">
+										<Link href={destinationUrl}>Try again</Link>
 									</Button>
 								</div>
 							</>
 						)}
 
-						{/* ── 4. Unknown Reference ── */}
 						{state === "unknown" && (
 							<>
-								<div className="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-6">
-									<XCircle className="w-10 h-10 text-amber-500" />
-								</div>
-								<h1 className="text-2xl font-black uppercase tracking-tight mb-2">
-									Payment Reference Missing
+								<StatusIllustration
+									variant="locked"
+									alt="Reference missing"
+									className="mb-4"
+								/>
+								<h1 className="text-base font-semibold tracking-tight mb-1">
+									Reference missing
 								</h1>
 								<p className="text-muted-foreground text-xs leading-relaxed max-w-xs mb-6">
-									No valid transaction reference was detected. Please check your
-									email or return to the main event page.
+									No payment reference was found. Return to the event page or check
+									your receipt email.
 								</p>
-								<Button asChild variant="brand-cta" className="w-full h-11">
+								<Button asChild size="sm" className="h-9 px-5 text-xs font-semibold">
 									<Link href="/">
-										<Home className="w-4 h-4 mr-2" />
-										Return Home
+										<Home className="size-3.5 mr-1.5" />
+										Return home
 									</Link>
 								</Button>
 							</>
 						)}
 					</div>
 				</div>
-
-				<p className="text-center text-[10px] text-muted-foreground mt-4">
-					Payments secured by Paystack & fextiva Platform.
-				</p>
 			</div>
 		</main>
 	);
