@@ -12,7 +12,7 @@ import {
 	sendNominationSms,
 } from "@/lib/services/sms";
 import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
-import { resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
+import { isPlaceholderName, resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
 import { getFrontendBaseUrl } from "@/lib/utils";
 
 // ─── Channel Routing Helpers ──────────────────────────────────────────────────
@@ -208,7 +208,12 @@ export async function dispatchPendingNotificationsIfAny({
 				const eventId = metadata.eventId || order?.eventId;
 				const buyerPhone = metadata.buyerPhone || metadata.phone || metadata.phone_number || metadata.attendeePhone || order?.buyerPhone || null;
 				const resolvedPayerName = await resolvePayerName({ paystackData, phone: buyerPhone });
-				const buyerName = metadata.buyerName || metadata.attendeeName || resolvedPayerName || order?.buyerName || `Attendee (${payment.email})`;
+				const rawBuyer = metadata.buyerName || metadata.attendeeName;
+				const buyerName =
+					(!isPlaceholderName(rawBuyer) ? rawBuyer : null) ||
+					resolvedPayerName ||
+					(!isPlaceholderName(order?.buyerName) ? order.buyerName : null) ||
+					`Attendee (${payment.email})`;
 				const buyerEmail = metadata.buyerEmail || metadata.attendeeEmail || payment.email;
 
 				const [notifEvent, messagingConfig] = await Promise.all([

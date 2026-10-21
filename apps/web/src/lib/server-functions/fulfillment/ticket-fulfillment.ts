@@ -4,7 +4,8 @@ import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
 import { normalizePhoneNumber } from "@/lib/services/whatsapp";
 import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
 import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfillment/notifications";
-import { resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
+import { isPlaceholderName, resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
+import { isSamePhoneNumber } from "@/lib/utils/phone";
 import { getFrontendBaseUrl } from "@/lib/utils";
 
 function buildOrgColors(org: any) {
@@ -59,9 +60,11 @@ export async function fulfillTicketPurchase({
 		paystackData,
 		phone: payerPhone,
 	});
-	const buyerName =
+	const rawCandidateBuyerName =
 		metadata.buyerName ||
-		metadata.attendeeName ||
+		metadata.attendeeName;
+	const buyerName =
+		(!isPlaceholderName(rawCandidateBuyerName) ? rawCandidateBuyerName : null) ||
 		resolvedPayerName ||
 		`USSD Attendee (${payerPhone || payment.email})`;
 	const buyerEmail = metadata.buyerEmail || metadata.attendeeEmail || payment.email;
@@ -94,24 +97,56 @@ export async function fulfillTicketPurchase({
 	});
 	if (!order) return { generatedTickets };
 
+	const orderNeedsBuyerNameUpdate =
+		isPlaceholderName(order.buyerName) && !isPlaceholderName(buyerName);
 	await prisma.ticketOrder.update({
 		where: { id: ticketOrderId },
-		data: { status: "completed" },
+		data: {
+			status: "completed",
+			...(orderNeedsBuyerNameUpdate ? { buyerName } : {}),
+		},
 	});
 
 	if (order.tickets.length === 0 && ticketTypeId) {
 		const attendees = Array.isArray(metadata.attendees) ? metadata.attendees : [];
+		const isOtherRecipient = Boolean(
+			metadata.recipientPhone &&
+			payerPhone &&
+			!isSamePhoneNumber(metadata.recipientPhone, payerPhone)
+		);
+
+		let resolvedRecipientName: string | null = null;
+		if (isOtherRecipient && metadata.recipientPhone) {
+			const candidateRecipientName = metadata.recipientName;
+			if (!isPlaceholderName(candidateRecipientName)) {
+				resolvedRecipientName = candidateRecipientName;
+			} else {
+				resolvedRecipientName = await resolvePayerName({ phone: metadata.recipientPhone });
+			}
+		}
+
 		for (let i = 0; i < quantity; i++) {
 			const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
 			const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
 			const attendee = attendees[i];
-			const isOtherRecipient =
-				metadata.recipientPhone &&
-				metadata.phoneNumber &&
-				metadata.recipientPhone !== metadata.phoneNumber;
-			const attendeeName =
-				(attendee && typeof attendee.name === "string" && attendee.name.trim()) ||
-				(isOtherRecipient ? `Attendee (${metadata.recipientPhone})` : buyerName);
+			const explicitAttendeeName =
+				attendee && typeof attendee.name === "string" && attendee.name.trim();
+
+			let attendeeName: string;
+			if (explicitAttendeeName && !isPlaceholderName(explicitAttendeeName)) {
+				attendeeName = explicitAttendeeName;
+			} else if (isOtherRecipient) {
+				attendeeName =
+					resolvedRecipientName ||
+					(!isPlaceholderName(buyerName) ? buyerName : null) ||
+					`Attendee (${metadata.recipientPhone})`;
+			} else {
+				attendeeName =
+					(!isPlaceholderName(buyerName) ? buyerName : null) ||
+					resolvedPayerName ||
+					`Attendee (${payerPhone || metadata.recipientPhone || payment.email})`;
+			}
+
 			const attendeeEmail =
 				(attendee && typeof attendee.email === "string" && attendee.email.trim()) ||
 				buyerEmail ||
@@ -144,6 +179,18 @@ export async function fulfillTicketPurchase({
 			data: { quantitySold: { increment: quantity } },
 		});
 	} else {
+		// If tickets already exist with placeholder attendeeName, heal them with buyerName
+		if (!isPlaceholderName(buyerName)) {
+			for (const t of order.tickets) {
+				if (isPlaceholderName(t.attendeeName)) {
+					await prisma.ticket.update({
+						where: { id: t.id },
+						data: { attendeeName: buyerName },
+					}).catch((err) => console.warn("[TICKET] Failed to heal attendeeName:", err));
+					t.attendeeName = buyerName;
+				}
+			}
+		}
 		generatedTickets = order.tickets.map((t) => ({
 			id: t.id,
 			ticketCode: t.ticketCode,
@@ -170,10 +217,10 @@ export async function sendTicketNotifications({
 }) {
 	const eventId = metadata.eventId;
 	const buyerName =
-		resolvedBuyerName ||
-		metadata.buyerName ||
-		metadata.attendeeName ||
-		order?.buyerName ||
+		(!isPlaceholderName(resolvedBuyerName) ? resolvedBuyerName : null) ||
+		(!isPlaceholderName(metadata.buyerName) ? metadata.buyerName : null) ||
+		(!isPlaceholderName(metadata.attendeeName) ? metadata.attendeeName : null) ||
+		(!isPlaceholderName(order?.buyerName) ? order.buyerName : null) ||
 		`Attendee (${metadata.phoneNumber || payment.email})`;
 	const recipientPhone =
 		metadata.recipientPhone ||
@@ -206,9 +253,21 @@ export async function sendTicketNotifications({
 				where: { id: tkt.id },
 				select: { attendeeName: true },
 			});
-			allAttendeeNames.push(rec?.attendeeName || "Attendee");
+			allAttendeeNames.push(rec?.attendeeName || buyerName || "Attendee");
 		}
 	}
+
+	const primaryTicketAttendee = generatedTickets[0]
+		? (
+				await prisma.ticket.findUnique({
+					where: { id: generatedTickets[0].id },
+					select: { attendeeName: true },
+				})
+			)?.attendeeName
+		: null;
+	const recipientDisplayName =
+		(!isPlaceholderName(primaryTicketAttendee) ? primaryTicketAttendee : null) ||
+		buyerName;
 
 	// 1. Channel-aware ticket pass delivery to recipient
 	if (recipientPhone) {
@@ -217,7 +276,7 @@ export async function sendTicketNotifications({
 			await dispatchTicketChannelNotification({
 				ticketIds: generatedTickets.map((t) => t.id),
 				phone,
-				attendeeName: buyerName,
+				attendeeName: recipientDisplayName,
 				eventTitle: notifEvent.title,
 				ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
 				ticketToken: generatedTickets[0]?.token,
@@ -230,13 +289,13 @@ export async function sendTicketNotifications({
 	}
 
 	// 2. If bought for someone else, also notify the payer
-	if (payerPhone && recipientPhone && payerPhone !== recipientPhone) {
+	if (payerPhone && recipientPhone && !isSamePhoneNumber(payerPhone, recipientPhone)) {
 		const payerNormalized = normalizePhoneNumber(payerPhone);
 		if (payerNormalized) {
 			await dispatchTicketChannelNotification({
 				ticketIds: generatedTickets.map((t) => t.id),
 				phone: payerNormalized,
-				attendeeName: `Buyer (${payerPhone})`,
+				attendeeName: buyerName,
 				eventTitle: notifEvent.title,
 				ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
 				ticketToken: generatedTickets[0]?.token,

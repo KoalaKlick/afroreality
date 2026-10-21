@@ -13,6 +13,13 @@ import {
 
 const PAYSTACK_SECRET = () => (process.env.PAYSTACK_SECRET_KEY || "").trim();
 
+export function isPlaceholderName(name?: string | null): boolean {
+	if (!name || typeof name !== "string") return true;
+	const trimmed = name.trim();
+	if (!trimmed) return true;
+	return /^(\(?(USSD\s+)?Attendee\b|\(?Guest\b|\(?Buyer\b)/i.test(trimmed);
+}
+
 export function extractPayerName(paystackData: any): string | null {
 	if (!paystackData || typeof paystackData !== "object") return null;
 

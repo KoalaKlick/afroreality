@@ -4,6 +4,7 @@ import { prisma } from "@repo/db";
 import { serializeJsonSafe } from "../utils";
 import { getAuthState } from "@/lib/auth-guards";
 import { isPlatformAdmin } from "@/lib/admin/admin-auth";
+import { isPlaceholderName } from "@/lib/server-functions/fulfillment/payer-name";
 
 async function verifyEventOrganizerAccess(
 	userId: string,
@@ -88,8 +89,19 @@ export async function getEventTicketAttendees({
 		}),
 	]);
 
+	const sanitizedTickets = tickets.map((t: any) => {
+		const name =
+			(!isPlaceholderName(t.attendeeName) ? t.attendeeName : null) ||
+			(!isPlaceholderName(t.order?.buyerName) ? t.order.buyerName : null) ||
+			t.attendeeName;
+		return {
+			...t,
+			attendeeName: name,
+		};
+	});
+
 	return {
-		tickets: serializeJsonSafe(tickets),
+		tickets: serializeJsonSafe(sanitizedTickets),
 		totalCount,
 		checkedInCount,
 		remainingCount: Math.max(0, totalCount - checkedInCount),
@@ -139,8 +151,16 @@ export async function toggleTicketCheckInStatus({
 		},
 	});
 
+	const resolvedName =
+		(!isPlaceholderName(updated.attendeeName) ? updated.attendeeName : null) ||
+		(!isPlaceholderName(updated.order?.buyerName) ? updated.order.buyerName : null) ||
+		updated.attendeeName;
+
 	return {
 		success: true,
-		ticket: serializeJsonSafe(updated),
+		ticket: serializeJsonSafe({
+			...updated,
+			attendeeName: resolvedName,
+		}),
 	};
 }

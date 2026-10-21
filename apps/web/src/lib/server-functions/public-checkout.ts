@@ -31,6 +31,7 @@ import {
 } from "@/lib/utils/phone";
 import { getAuthState } from "@/lib/auth-guards";
 import { isPlatformAdmin } from "@/lib/admin/admin-auth";
+import { isPlaceholderName, resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
 
 export interface AttendeeInput {
 	name: string;
@@ -1459,14 +1460,55 @@ export async function verifyAndCheckInTicket({
 		};
 	}
 
+	// Self-heal placeholder attendee names on existing tickets
+	if (isPlaceholderName(ticket.attendeeName)) {
+		let healedName: string | null = null;
+		if (!isPlaceholderName(ticket.order?.buyerName)) {
+			healedName = ticket.order.buyerName;
+		} else {
+			const phoneCandidate =
+				ticket.attendeePhone ||
+				ticket.order?.buyerPhone ||
+				ticket.attendeeName?.match(/\(([^)]+)\)/)?.[1];
+			if (phoneCandidate) {
+				try {
+					healedName = await resolvePayerName({ phone: phoneCandidate });
+				} catch (err) {
+					console.warn("[VERIFY] Could not resolve attendee name from phone:", err);
+				}
+			}
+		}
+
+		if (healedName && !isPlaceholderName(healedName)) {
+			ticket.attendeeName = healedName;
+			if (ticket.order && isPlaceholderName(ticket.order.buyerName)) {
+				ticket.order.buyerName = healedName;
+				prisma.ticketOrder.update({
+					where: { id: ticket.order.id },
+					data: { buyerName: healedName },
+				}).catch(() => {});
+			}
+			prisma.ticket.update({
+				where: { id: ticket.id },
+				data: { attendeeName: healedName },
+			}).catch(() => {});
+		}
+	}
+
 	function sanitizeTicketForVerifier(t: any) {
 		if (!t) return null;
+		const name =
+			(!isPlaceholderName(t.attendeeName) ? t.attendeeName : null) ||
+			(!isPlaceholderName(t.order?.buyerName) ? t.order.buyerName : null) ||
+			t.attendeeName ||
+			t.order?.buyerName ||
+			"Guest";
 		return {
 			id: t.id,
 			ticketCode: t.ticketCode,
 			checkInStatus: t.checkInStatus,
 			checkedInAt: t.checkedInAt,
-			attendeeName: t.attendeeName || t.order?.buyerName || "Guest",
+			attendeeName: name,
 			ticketType: t.ticketType ? { id: t.ticketType.id, name: t.ticketType.name } : null,
 			event: t.event ? {
 				id: t.event.id,

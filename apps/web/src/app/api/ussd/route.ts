@@ -19,6 +19,7 @@ import {
 	type GatewayName,
 } from "@/lib/server-functions/payment-gateway";
 import { resolvePayerNameFromPaystack } from "@/lib/server-functions/fulfillment/payer-name";
+import { isSamePhoneNumber } from "@/lib/utils/phone";
 import { getUssdBaseCode } from "@/lib/utils/ussd";
 
 export const dynamic = "force-dynamic";
@@ -387,7 +388,7 @@ async function processJunipayPayment(
 
 	const itemStr = event.type === "voting" ? "vote" : "ticket";
 	const targetStr =
-		recipientPhone && recipientPhone !== phoneNumber
+		recipientPhone && !isSamePhoneNumber(recipientPhone, phoneNumber)
 			? ` Ticket will be sent to ${recipientPhone}.`
 			: "";
 
@@ -532,7 +533,7 @@ async function processHubtelPayment(
 
 	const itemStr = event.type === "voting" ? "vote" : "ticket";
 	const targetStr =
-		recipientPhone && recipientPhone !== phoneNumber
+		recipientPhone && !isSamePhoneNumber(recipientPhone, phoneNumber)
 			? ` Ticket will be sent to ${recipientPhone}.`
 			: "";
 
@@ -667,7 +668,7 @@ async function processPayment(
 	if (isSimulation) {
 		const itemLabel = event.type === "voting" ? `${quantity} vote(s)` : `${quantity} ticket(s)`;
 		const recipientStr =
-			recipientPhone && recipientPhone !== phoneNumber
+			recipientPhone && !isSamePhoneNumber(recipientPhone, phoneNumber)
 				? ` (for ${recipientPhone})`
 				: "";
 		return `END Request received. Please check your phone for the prompt to enter your MoMo PIN.\n\n[SIMULATOR]: GHS ${baseAmount.toFixed(2)} for ${itemLabel}${recipientStr}. Preview mode - no real payment charged.`;
@@ -778,7 +779,7 @@ async function processPayment(
 		const deferPushCharge = provider !== "vod";
 		const itemStr = event.type === "voting" ? "vote" : "ticket";
 		const targetStr =
-			recipientPhone && recipientPhone !== phoneNumber
+			recipientPhone && !isSamePhoneNumber(recipientPhone, phoneNumber)
 				? ` Ticket will be sent to ${recipientPhone}.`
 				: "";
 		const chargeBody = {
@@ -1223,6 +1224,9 @@ async function handleTicketFlow(
 		if (recipientPhone.length === 9) {
 			recipientPhone = `0${recipientPhone}`;
 		}
+		if (isSamePhoneNumber(recipientPhone, phoneNumber)) {
+			recipientPhone = phoneNumber;
+		}
 	} else {
 		return "CON Invalid choice.\n1. Myself\n2. Someone else\n0. Back";
 	}
@@ -1232,7 +1236,7 @@ async function handleTicketFlow(
 	if (!confirmToken) {
 		const baseAmount = ticketPrice * quantity;
 		let recipientLabel = "Myself";
-		if (recipientPhone !== phoneNumber) {
+		if (recipientPhone !== phoneNumber && !isSamePhoneNumber(recipientPhone, phoneNumber)) {
 			let resolvedName: string | null = null;
 			try {
 				resolvedName = await resolvePayerNameFromPaystack(recipientPhone);
