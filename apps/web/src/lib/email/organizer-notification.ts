@@ -175,35 +175,14 @@ export function renderOrganizerNotificationEmailHtml({
               </td>
             </tr>
 
-            <!-- Subject Title -->
-            <tr>
-              <td style="padding:24px 32px 8px;">
-                <h1 style="margin:0;font-size:21px;font-weight:700;color:${TEXT_PRIMARY};line-height:1.35;">
-                  ${escapeHtml(subject)}
-                </h1>
-              </td>
-            </tr>
-
             <!-- Body Content -->
             <tr>
-              <td style="padding:16px 32px 28px;">
-                <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${TEXT_BODY};font-weight:600;">
-                  ${greeting}
-                </p>
-
+              <td style="padding:28px 32px 32px;">
                 <div style="font-size:15px;line-height:1.65;color:${TEXT_BODY};">
                   ${styledBody}
                 </div>
 
                 ${buttonHtml}
-
-                <div style="margin-top:28px;padding-top:16px;border-top:1px solid ${DIVIDER};">
-                  <p style="margin:0;font-size:13px;color:${TEXT_MUTED};line-height:1.5;">
-                    Best regards,<br />
-                    <strong style="color:${TEXT_PRIMARY};font-size:14px;">${escapeHtml(adminName)}</strong>
-                    ${adminEmail ? `<br /><span style="font-size:12px;color:${TEXT_MUTED};">${escapeHtml(adminEmail)}</span>` : ""}
-                  </p>
-                </div>
               </td>
             </tr>
 
@@ -239,8 +218,6 @@ export function renderOrganizerNotificationEmailText({
 	adminName = "Fextiva Administration",
 	platformName = "Fextiva",
 }: RenderOrganizerNotificationEmailParams): string {
-	const greeting = recipientName ? `Hello ${recipientName},` : `Hello ${organizerName},`;
-
 	// Convert breaks, paragraphs, list items to newlines
 	let plain = contentHtml
 		.replace(/<br\s*[\/]?>/gi, "\n")
@@ -253,12 +230,11 @@ export function renderOrganizerNotificationEmailText({
 		.replace(/\n{3,}/g, "\n\n")
 		.trim();
 
-	let text = `${subject.toUpperCase()}\n\n${greeting}\n\n${plain}\n\n`;
+	let text = `${plain}\n\n`;
 
 	if (actionButton && actionButton.url) {
 		text += `${actionButton.label}: ${actionButton.url}\n\n`;
 	}
 
-	text += `---\nBest regards,\n${adminName}\n${platformName}\n`;
 	return text;
 }
