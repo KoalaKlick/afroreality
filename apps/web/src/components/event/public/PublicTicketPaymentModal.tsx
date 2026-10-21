@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
 	CheckCircle2,
@@ -29,6 +29,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { initiatePublicTicketCheckout } from "@/lib/server-functions/public-checkout";
+import { verifyRecipientPhone } from "@/lib/server-functions/paystack";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -93,6 +94,10 @@ export function PublicTicketPaymentModal({
 	const [createdTickets, setCreatedTickets] = useState<any[]>([]);
 	const [viewUrl, setViewUrl] = useState<string>("");
 
+	const [buyerPhoneInfo, setBuyerPhoneInfo] = useState<{ loading: boolean; name?: string | null } | null>(null);
+	const [attendeePhoneInfo, setAttendeePhoneInfo] = useState<Record<number, { loading: boolean; name?: string | null }>>({});
+	const attendeeTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
 	const resetModal = useCallback(() => {
 		setStep("checkout");
 		setQuantity(1);
@@ -104,7 +109,82 @@ export function PublicTicketPaymentModal({
 		setErrorMsg("");
 		setCreatedTickets([]);
 		setViewUrl("");
+		setBuyerPhoneInfo(null);
+		setAttendeePhoneInfo({});
 	}, []);
+
+	// Verify buyer phone on change (debounced)
+	useEffect(() => {
+		const cleaned = phone.replace(/[^0-9]/g, "");
+		if (cleaned.length < 9) {
+			setBuyerPhoneInfo(null);
+			return;
+		}
+
+		setBuyerPhoneInfo({ loading: true });
+		const timer = setTimeout(async () => {
+			try {
+				const res = await verifyRecipientPhone(phone);
+				if (res.accountName) {
+					setBuyerPhoneInfo({ loading: false, name: res.accountName });
+					setBuyerName((prev) => (!prev.trim() ? res.accountName! : prev));
+				} else {
+					setBuyerPhoneInfo({ loading: false, name: null });
+				}
+			} catch {
+				setBuyerPhoneInfo({ loading: false, name: null });
+			}
+		}, 600);
+
+		return () => clearTimeout(timer);
+	}, [phone]);
+
+	// Handler for additional attendee phone input with debounced MoMo resolution
+	const handleAttendeePhoneChange = (idx: number, val: string) => {
+		setAttendees((prev) => {
+			const copy = [...prev];
+			while (copy.length < quantity) copy.push({ name: "", email: "", phone: "" });
+			const existing = copy[idx] ?? { name: "", email: "", phone: "" };
+			copy[idx] = { ...existing, phone: val };
+			return copy;
+		});
+
+		if (attendeeTimers.current[idx]) {
+			clearTimeout(attendeeTimers.current[idx]);
+		}
+
+		const cleaned = val.replace(/[^0-9]/g, "");
+		if (cleaned.length < 9) {
+			setAttendeePhoneInfo((prev) => {
+				const next = { ...prev };
+				delete next[idx];
+				return next;
+			});
+			return;
+		}
+
+		setAttendeePhoneInfo((prev) => ({ ...prev, [idx]: { loading: true } }));
+
+		attendeeTimers.current[idx] = setTimeout(async () => {
+			try {
+				const res = await verifyRecipientPhone(val);
+				if (res.accountName) {
+					setAttendeePhoneInfo((prev) => ({ ...prev, [idx]: { loading: false, name: res.accountName } }));
+					setAttendees((prev) => {
+						const copy = [...prev];
+						if (copy[idx] && !copy[idx].name.trim()) {
+							copy[idx] = { ...copy[idx], name: res.accountName! };
+						}
+						return copy;
+					});
+				} else {
+					setAttendeePhoneInfo((prev) => ({ ...prev, [idx]: { loading: false, name: null } }));
+				}
+			} catch {
+				setAttendeePhoneInfo((prev) => ({ ...prev, [idx]: { loading: false, name: null } }));
+			}
+		}, 600);
+	};
 
 	const handleClose = useCallback(
 		(nextOpen: boolean) => {
@@ -373,9 +453,19 @@ export function PublicTicketPaymentModal({
 											disabled={loading}
 										/>
 									</div>
-									<p className="text-[10px] text-muted-foreground">
-										Used to send your ticket pass via WhatsApp. Not used for payment.
-									</p>
+									{buyerPhoneInfo?.loading ? (
+										<p className="text-[10px] text-muted-foreground animate-pulse">
+											Checking number...
+										</p>
+									) : buyerPhoneInfo?.name ? (
+										<p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+											Name on MoMo: {buyerPhoneInfo.name}
+										</p>
+									) : (
+										<p className="text-[10px] text-muted-foreground">
+											Used to send your ticket pass via WhatsApp. Not used for payment.
+										</p>
+									)}
 								</div>
 
 								<div className="space-y-1.5">
@@ -480,23 +570,24 @@ export function PublicTicketPaymentModal({
 																type="tel"
 																placeholder="024 123 4567 (optional)"
 																value={current.phone}
-																onChange={(e) => {
-																	const val = e.target.value;
-																	setAttendees((prev) => {
-																		const copy = [...prev];
-																		while (copy.length < quantity) copy.push({ name: "", email: "", phone: "" });
-																		const existing = copy[passNum - 1] ?? { name: "", email: "", phone: "" };
-																		copy[passNum - 1] = { ...existing, phone: val };
-																		return copy;
-																	});
-																}}
+																onChange={(e) => handleAttendeePhoneChange(passNum - 1, e.target.value)}
 																className="pl-9 h-9 text-xs border-border/80 bg-background"
 																disabled={loading}
 															/>
 														</div>
-														<p className="text-[10px] text-muted-foreground">
-															Their pass will be sent directly to this number via WhatsApp.
-														</p>
+														{attendeePhoneInfo[passNum - 1]?.loading ? (
+															<p className="text-[10px] text-muted-foreground animate-pulse">
+																Checking number...
+															</p>
+														) : attendeePhoneInfo[passNum - 1]?.name ? (
+															<p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+																Name on MoMo: {attendeePhoneInfo[passNum - 1]?.name}
+															</p>
+														) : (
+															<p className="text-[10px] text-muted-foreground">
+																Their pass will be sent directly to this number via WhatsApp.
+															</p>
+														)}
 													</div>
 
 													{/* Email */}

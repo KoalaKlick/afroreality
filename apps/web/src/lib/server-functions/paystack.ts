@@ -4,6 +4,10 @@ import { prisma } from "@repo/db";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "../session";
 import { notifyPayoutAccountChange } from "./whatsapp-otp";
+import {
+	detectMomoNetworkFromPhone,
+	formatToLocalMomoNumber,
+} from "@/lib/utils/phone";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 
@@ -951,5 +955,63 @@ export async function createPaystackRefund({
 		console.error("[PAYSTACK-REFUND-ERROR]", error);
 		return { success: false, error: error?.message || "Paystack refund network error." };
 	}
+}
+
+export interface PhoneVerificationResult {
+	isValidFormat: boolean;
+	network?: { code: string; name: string } | null;
+	accountName?: string | null;
+	formattedPhone?: string;
+}
+
+/**
+ * Validates a recipient's phone number format and attempts to resolve their registered
+ * Mobile Money account name via Paystack. If the line is not on MoMo or Paystack fails,
+ * it safely returns accountName: null without failing validation.
+ */
+export async function verifyRecipientPhone(phone: string): Promise<PhoneVerificationResult> {
+	if (!phone || typeof phone !== "string") {
+		return { isValidFormat: false };
+	}
+
+	const cleaned = phone.replace(/[^0-9]/g, "");
+	if (cleaned.length < 9 || cleaned.length > 15) {
+		return { isValidFormat: false };
+	}
+
+	const localPhone = formatToLocalMomoNumber(phone);
+	const network = detectMomoNetworkFromPhone(phone);
+
+	// If not a recognized Ghanaian MoMo prefix (e.g. international line):
+	if (!network) {
+		return {
+			isValidFormat: true,
+			network: null,
+			accountName: null,
+			formattedPhone: localPhone || cleaned,
+		};
+	}
+
+	let accountName: string | null = null;
+	try {
+		const res = await verifyPaystackAccount({
+			data: {
+				accountNumber: localPhone,
+				bankCode: network.code,
+			},
+		});
+		if (res.success && res.accountName) {
+			accountName = res.accountName;
+		}
+	} catch (err) {
+		console.warn("[PHONE-VERIFY] Safe fallback on Paystack resolve:", err);
+	}
+
+	return {
+		isValidFormat: true,
+		network,
+		accountName,
+		formattedPhone: localPhone,
+	};
 }
 

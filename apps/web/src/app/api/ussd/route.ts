@@ -18,6 +18,7 @@ import {
 	resolveEventGateway,
 	type GatewayName,
 } from "@/lib/server-functions/payment-gateway";
+import { resolvePayerNameFromPaystack } from "@/lib/server-functions/fulfillment/payer-name";
 import { getUssdBaseCode } from "@/lib/utils/ussd";
 
 export const dynamic = "force-dynamic";
@@ -1219,6 +1220,9 @@ async function handleTicketFlow(
 			return `CON Invalid phone number.\nEnter 10-digit phone number:\n0. Back`;
 		}
 		recipientPhone = cleaned.startsWith("233") ? `0${cleaned.slice(3)}` : cleaned;
+		if (recipientPhone.length === 9) {
+			recipientPhone = `0${recipientPhone}`;
+		}
 	} else {
 		return "CON Invalid choice.\n1. Myself\n2. Someone else\n0. Back";
 	}
@@ -1227,7 +1231,16 @@ async function handleTicketFlow(
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = ticketPrice * quantity;
-		const recipientLabel = recipientPhone === phoneNumber ? "Myself" : recipientPhone;
+		let recipientLabel = "Myself";
+		if (recipientPhone !== phoneNumber) {
+			let resolvedName: string | null = null;
+			try {
+				resolvedName = await resolvePayerNameFromPaystack(recipientPhone);
+			} catch (err) {
+				console.warn("[USSD-RECIPIENT-NAME] Failed to resolve recipient name:", err);
+			}
+			recipientLabel = resolvedName ? `${resolvedName} (${recipientPhone})` : recipientPhone;
+		}
 		return `CON Confirm Ticket Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nFor: ${recipientLabel}\nTotal: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
 	}
 
