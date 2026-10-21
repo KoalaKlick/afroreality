@@ -12,6 +12,10 @@ const PAGE_META: Record<string, { title: string; description?: string }> = {
 		title: "Organizers",
 		description: "Organizations and member directory",
 	},
+	"/super/notifications": {
+		title: "Organizer Notifications",
+		description: "Broadcast rich emails and SMS alerts with dynamic merge tags",
+	},
 	"/super/events": {
 		title: "Events",
 		description: "Schedule and financial oversight",

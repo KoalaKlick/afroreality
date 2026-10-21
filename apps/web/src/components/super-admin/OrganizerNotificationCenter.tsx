@@ -71,10 +71,12 @@ import {
 	sendAdminOrganizerNotification,
 	getAdminNotificationTemplates,
 	saveAdminNotificationTemplate,
+} from "@/lib/server-functions/admin-organizer-notifications";
+import {
 	DEFAULT_NOTIFICATION_TEMPLATES,
 	type BroadcastHistoryItem,
 	type NotificationTemplate,
-} from "@/lib/server-functions/admin-organizer-notifications";
+} from "@/types/admin-notifications";
 import { cn } from "@/lib/utils";
 
 interface OrganizerNotificationCenterProps {
