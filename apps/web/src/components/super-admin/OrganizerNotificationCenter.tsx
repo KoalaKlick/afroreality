@@ -294,6 +294,37 @@ export function OrganizerNotificationCenter({
 		);
 	}, [organizers, orgSearchQuery]);
 
+	// List of actual targeted recipients with phone & email for live display
+	const smsRecipientsList = useMemo(() => {
+		const list: Array<{ id: string; name: string; orgName: string; phone: string | null; email: string | null }> = [];
+		if (selectedMemberIds.length > 0) {
+			for (const org of targetOrganizers) {
+				for (const member of org.members || []) {
+					if (selectedMemberIds.includes(member.user.id)) {
+						list.push({
+							id: member.user.id,
+							name: member.user.fullName || "Member",
+							orgName: org.name,
+							phone: member.user.phone?.trim() || null,
+							email: member.user.email?.trim() || null,
+						});
+					}
+				}
+			}
+		} else {
+			for (const org of targetOrganizers) {
+				list.push({
+					id: org.id,
+					name: org.creator?.fullName || org.name,
+					orgName: org.name,
+					phone: org.phone?.trim() || org.creator?.phone?.trim() || null,
+					email: org.contactEmail?.trim() || org.creator?.email?.trim() || null,
+				});
+			}
+		}
+		return list;
+	}, [targetOrganizers, selectedMemberIds]);
+
 	// Evaluate variables against the selected preview organizer
 	const evaluateVariables = (text: string, org: AdminOrganizerItem | null): string => {
 		if (!text) return "";
@@ -805,13 +836,25 @@ export function OrganizerNotificationCenter({
 																	</div>
 
 																	<div className="flex items-center gap-1.5 shrink-0">
-																		{/* Channels badge */}
-																		<div className="flex items-center gap-1 text-[10px] text-muted-foreground mr-1">
-																			{(org.contactEmail || org.creator?.email) && (
-																				<Mail className="h-3 w-3 text-emerald-500" />
+																		{/* Contact chips */}
+																		<div className="flex items-center gap-1.5 text-[10px] mr-1">
+																			{channels !== "sms" && (org.contactEmail || org.creator?.email) && (
+																				<span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 max-w-[150px] truncate" title={org.contactEmail || org.creator?.email || ""}>
+																					<Mail className="h-3 w-3 shrink-0" />
+																					<span className="truncate hidden sm:inline">{org.contactEmail || org.creator?.email}</span>
+																				</span>
 																			)}
-																			{(org.phone || org.creator?.phone) && (
-																				<Smartphone className="h-3 w-3 text-amber-500" />
+																			{(org.phone || org.creator?.phone) ? (
+																				<span className="flex items-center gap-1 font-mono text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+																					<Smartphone className="h-3 w-3 shrink-0" />
+																					<span>{org.phone || org.creator?.phone}</span>
+																				</span>
+																			) : (
+																				(channels === "sms" || channels === "both") && (
+																					<span className="text-[10px] text-red-500 dark:text-red-400 font-medium bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">
+																						No phone
+																					</span>
+																				)
 																			)}
 																		</div>
 
@@ -945,26 +988,38 @@ export function OrganizerNotificationCenter({
 																							</Badge>
 																						</div>
 
-																						<div className="flex items-center gap-1.5 text-[10px] text-muted-foreground shrink-0">
-																							{member.user.email ? (
-																								<span
-																									className="flex items-center gap-0.5 max-w-[120px] truncate"
-																									title={member.user.email}
-																								>
-																									<Mail className="h-3 w-3 text-emerald-500 shrink-0" />
-																									<span className="truncate hidden md:inline">
-																										{member.user.email}
+																						<div className="flex items-center gap-1.5 text-[10px] shrink-0">
+																							{channels !== "sms" && (
+																								member.user.email ? (
+																									<span
+																										className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded max-w-[130px] truncate"
+																										title={member.user.email}
+																									>
+																										<Mail className="h-3 w-3 text-emerald-500 shrink-0" />
+																										<span className="truncate hidden sm:inline">
+																											{member.user.email}
+																										</span>
 																									</span>
+																								) : (
+																									<span className="text-[9px] text-red-400">
+																										No email
+																									</span>
+																								)
+																							)}
+																							{member.user.phone ? (
+																								<span
+																									className="flex items-center gap-1 font-mono text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20"
+																									title={member.user.phone}
+																								>
+																									<Smartphone className="h-3 w-3 text-amber-500 shrink-0" />
+																									<span>{member.user.phone}</span>
 																								</span>
 																							) : (
-																								<span className="text-[9px] text-red-400">
-																									No email
-																								</span>
-																							)}
-																							{member.user.phone && (
-																								<span title={member.user.phone}>
-																									<Smartphone className="h-3 w-3 text-amber-500 shrink-0" />
-																								</span>
+																								(channels === "sms" || channels === "both") && (
+																									<span className="text-[9px] text-red-400 bg-red-500/10 px-1 py-0.5 rounded">
+																										No phone
+																									</span>
+																								)
 																							)}
 																						</div>
 																					</div>
