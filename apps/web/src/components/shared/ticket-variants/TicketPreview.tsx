@@ -4,6 +4,7 @@ import { useState, useId } from "react";
 import Image from "next/image";
 import { QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
+import { cn } from "@/lib/utils";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades } from "@/utils/theme/color-generator";
 
@@ -135,12 +136,12 @@ function Stub({
 }) {
   return (
     <div
-      className="w-8 sm:w-[72px] shrink-0 flex items-center justify-center relative overflow-hidden"
+      className="w-[12.857%] shrink-0 flex items-center justify-center relative overflow-hidden"
       style={{ background: backgroundColor }}
     >
       <StubDash side={side} borderColor={borderColor} />
       <span
-        className="text-[8px] sm:text-[10px] font-black tracking-[0.15em] sm:tracking-[0.22em] uppercase opacity-70 truncate max-h-[85%]"
+        className="text-[7px] sm:text-[10px] font-black tracking-[0.12em] sm:tracking-[0.22em] uppercase opacity-70 truncate max-h-[85%]"
         style={{
           fontFamily: "'Courier New', monospace",
           color: primaryColor,
@@ -190,12 +191,12 @@ function GhostTicket({
       <TicketOutline color={outlineColor} />
       {/* Left stub strip */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-[72px]"
+        className="absolute left-0 top-0 bottom-0 w-[12.857%]"
         style={{ background: stubColor }}
       />
       {/* Right stub strip */}
       <div
-        className="absolute right-0 top-0 bottom-0 w-[72px]"
+        className="absolute right-0 top-0 bottom-0 w-[12.857%]"
         style={{ background: stubColor }}
       />
     </div>
@@ -214,9 +215,9 @@ function TicketShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full min-w-0">
       <div
-        className="flex flex-row bg-background items-stretch w-full h-full relative"
+        className="flex flex-row bg-background items-stretch w-full h-full relative min-w-0 overflow-hidden"
         style={{
           clipPath: `url(#${clipId})`,
           backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
@@ -395,13 +396,16 @@ export function TicketCard({
         label={buyerName.slice(0, 12)} 
       />
 
-      <div className="flex-1 flex items-center gap-6 px-5 py-2.5">
-        <div className="flex flex-col items-center gap-1 shrink-0">
+      <div className="flex-1 flex items-center justify-around gap-1.5 sm:gap-4 md:gap-6 px-1.5 sm:px-4 md:px-5 py-1 sm:py-2.5 min-w-0 overflow-hidden">
+        <div className="flex flex-col items-center gap-0.5 sm:gap-1 shrink-0">
           <div
-            className="rounded-md flex items-center justify-center bg-white p-2 shadow-xs border"
+            className={cn(
+              "rounded-md flex items-center justify-center bg-white shadow-xs border shrink-0",
+              exportMode
+                ? "w-[132px] h-[132px] p-2"
+                : "w-[72px] h-[72px] xs:w-[84px] xs:h-[84px] sm:w-[124px] sm:h-[124px] p-1 sm:p-2"
+            )}
             style={{ 
-              width: exportMode ? 132 : 124,
-              height: exportMode ? 132 : 124,
               backgroundColor: "#ffffff",
               borderColor: primaryShades[200] || primaryColor,
               imageRendering: "pixelated"
@@ -417,11 +421,11 @@ export function TicketCard({
                 level="M"
               />
             ) : (
-              <QrCode className="size-16" style={{ color: primaryColor }} />
+              <QrCode className="size-10 sm:size-16" style={{ color: primaryColor }} />
             )}
           </div>
           <div
-            className="text-[8px] font-black tracking-[0.12em] uppercase opacity-70 text-center mt-0.5"
+            className="text-[7px] sm:text-[8px] font-black tracking-[0.08em] sm:tracking-[0.12em] uppercase opacity-70 text-center"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             Scan to verify
@@ -429,34 +433,38 @@ export function TicketCard({
         </div>
 
         <div
-          className="self-stretch w-px shrink-0"
+          className="self-stretch w-px shrink-0 my-1 sm:my-2"
           style={{ background: primaryShades[200] || primaryColor }}
         />
 
-        <div className="flex flex-col items-center gap-2 flex-1">
+        <div className="flex flex-col items-center gap-0.5 sm:gap-1.5 md:gap-2 flex-1 min-w-0 overflow-hidden">
           <div
-            className="text-[9px] font-black tracking-[0.3em] uppercase opacity-60"
+            className="text-[7px] sm:text-[9px] font-black tracking-[0.15em] sm:tracking-[0.3em] uppercase opacity-60"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             Ticket No.
           </div>
           <div
-            className="text-base font-black tracking-[0.15em]"
+            className="text-[10px] xs:text-xs sm:text-base font-black tracking-normal xs:tracking-wider sm:tracking-[0.15em] truncate max-w-full text-center"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             {ticketCode}
           </div>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center justify-center gap-[1px] sm:gap-0.5 max-w-full overflow-hidden">
             {barWidths.map((w, i) => (
               <div
                 key={i}
-                className="rounded-[1px] opacity-70"
-                style={{ width: w, height: (barHeights[i] ?? 26) * 0.7, background: primaryColor }}
+                className="rounded-[1px] opacity-70 shrink-0"
+                style={{
+                  width: exportMode ? w : Math.max(1, w * 0.7),
+                  height: (barHeights[i] ?? 26) * (exportMode ? 0.7 : 0.45),
+                  background: primaryColor,
+                }}
               />
             ))}
           </div>
           <div
-            className="text-[8px] opacity-60"
+            className="text-[7px] sm:text-[8px] opacity-60 truncate max-w-full text-center"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             {organizationName}
