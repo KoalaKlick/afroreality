@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo, useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import QRCode from "react-qr-code";
 import { QrCode, Calendar, MapPin, User, Tag } from "lucide-react";
@@ -23,6 +23,149 @@ export interface PortraitReceiptTicketProps {
 	readonly buyerName?: string;
 	readonly orderNumber?: string;
 	readonly className?: string;
+}
+
+interface TicketDimensions {
+	w: number;
+	h: number;
+	y1: number;
+	y2: number;
+}
+
+/**
+ * Builds the exact ticket silhouette SVG path in normalized [0, 1] coordinates.
+ * Side notches are placed PRECISELY at y1 and y2 (the two cutting/perforation lines).
+ * Top and bottom edges are clean (no center notches).
+ * No notches in the middle of the QR code.
+ */
+function buildTicketPath(
+	variant: string,
+	dim: TicketDimensions,
+): string {
+	const { w, h, y1, y2 } = dim;
+	const isGeo = variant === "geo" || variant === "geometric";
+	const isModern = variant === "modern" || variant === "pass";
+
+	// Guard against unmeasured or edge-case coordinates
+	const y1n = Math.max(0.08, Math.min(0.45, y1 / h));
+	const y2n = Math.max(0.55, Math.min(0.96, y2 / h));
+
+	if (isGeo) {
+		const crx = 14 / w;
+		const cry = 14 / h;
+		const nrx = 12 / w;
+		const nry = 12 / h;
+
+		return [
+			`M ${crx} 0`,
+			`L ${1 - crx} 0`,
+			`L 1 ${cry}`,
+			// Right edge to notch 1
+			`L 1 ${y1n - nry}`,
+			`L ${1 - nrx} ${y1n}`,
+			`L 1 ${y1n + nry}`,
+			// Right edge to notch 2
+			`L 1 ${y2n - nry}`,
+			`L ${1 - nrx} ${y2n}`,
+			`L 1 ${y2n + nry}`,
+			// Bottom-right corner
+			`L 1 ${1 - cry}`,
+			`L ${1 - crx} 1`,
+			// Bottom edge
+			`L ${crx} 1`,
+			`L 0 ${1 - cry}`,
+			// Left edge up to notch 2
+			`L 0 ${y2n + nry}`,
+			`L ${nrx} ${y2n}`,
+			`L 0 ${y2n - nry}`,
+			// Left edge up to notch 1
+			`L 0 ${y1n + nry}`,
+			`L ${nrx} ${y1n}`,
+			`L 0 ${y1n - nry}`,
+			// Top-left corner
+			`L 0 ${cry}`,
+			`Z`,
+		].join(" ");
+	}
+
+	const cornerR = isModern ? 22 : 16;
+	const notchR = 12; // 24px wide notch, 12px depth into ticket
+
+	const crx = cornerR / w;
+	const cry = cornerR / h;
+	const nrx = notchR / w;
+	const nry = notchR / h;
+
+	return [
+		// Start top edge after top-left corner
+		`M ${crx} 0`,
+		// Straight across top edge to top-right corner
+		`L ${1 - crx} 0`,
+		// Top-right corner
+		`Q 1 0 1 ${cry}`,
+		// Down right edge to notch 1 (at cutting line 1)
+		`L 1 ${y1n - nry}`,
+		// Semicircular notch curving inward (to left)
+		`A ${nrx} ${nry} 0 0 0 1 ${y1n + nry}`,
+		// Down right edge to notch 2 (at cutting line 2)
+		`L 1 ${y2n - nry}`,
+		// Semicircular notch curving inward (to left)
+		`A ${nrx} ${nry} 0 0 0 1 ${y2n + nry}`,
+		// Down right edge to bottom-right corner
+		`L 1 ${1 - cry}`,
+		// Bottom-right corner
+		`Q 1 1 ${1 - crx} 1`,
+		// Straight across bottom edge to bottom-left corner
+		`L ${crx} 1`,
+		// Bottom-left corner
+		`Q 0 1 0 ${1 - cry}`,
+		// Up left edge to notch 2 (at cutting line 2)
+		`L 0 ${y2n + nry}`,
+		// Semicircular notch curving inward (to right)
+		`A ${nrx} ${nry} 0 0 0 0 ${y2n - nry}`,
+		// Up left edge to notch 1 (at cutting line 1)
+		`L 0 ${y1n + nry}`,
+		// Semicircular notch curving inward (to right)
+		`A ${nrx} ${nry} 0 0 0 0 ${y1n - nry}`,
+		// Up left edge to top-left corner
+		`L 0 ${cry}`,
+		// Top-left corner
+		`Q 0 0 ${crx} 0`,
+		`Z`,
+	].join(" ");
+}
+
+function TicketClipPath({ id, path }: { id: string; path: string }) {
+	return (
+		<svg
+			style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
+			aria-hidden="true"
+		>
+			<defs>
+				<clipPath id={id} clipPathUnits="objectBoundingBox">
+					<path d={path} />
+				</clipPath>
+			</defs>
+		</svg>
+	);
+}
+
+function TicketOutline({ color, path }: { color: string; path: string }) {
+	return (
+		<svg
+			className="absolute inset-0 w-full h-full pointer-events-none z-20"
+			viewBox="0 0 1 1"
+			preserveAspectRatio="none"
+		>
+			<path
+				d={path}
+				fill="none"
+				stroke={color}
+				strokeWidth="1.75"
+				vectorEffect="non-scaling-stroke"
+			/>
+		</svg>
+	);
 }
 
 /**
@@ -57,74 +200,6 @@ function ReceiptSawtoothBottom({ className }: { className?: string }) {
 				fill="currentColor"
 			/>
 		</svg>
-	);
-}
-
-/**
- * Circular perforated divider notch (Classic, Receipt & Retro)
- */
-function CircularPerforatedDivider({ className }: { className?: string }) {
-	return (
-		<div
-			className={cn(
-				"relative -mx-5 sm:-mx-6 w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] my-2.5 sm:my-3 flex items-center h-4 select-none pointer-events-none",
-				className,
-			)}
-		>
-			<svg
-				className="w-3 h-4 block text-white shrink-0 -mr-px"
-				viewBox="0 0 12 16"
-				fill="currentColor"
-				aria-hidden="true"
-			>
-				<path d="M 0 0 L 12 0 L 12 16 L 0 16 L 0 13 A 5 5 0 0 1 0 3 L 0 0 Z" />
-			</svg>
-			<div className="flex-1 h-4 bg-white flex items-center px-0.5">
-				<div className="w-full border-b border-dashed border-slate-300" />
-			</div>
-			<svg
-				className="w-3 h-4 block text-white shrink-0 -ml-px"
-				viewBox="0 0 12 16"
-				fill="currentColor"
-				aria-hidden="true"
-			>
-				<path d="M 0 0 L 12 0 L 12 3 A 5 5 0 0 0 12 13 L 12 16 L 0 16 Z" />
-			</svg>
-		</div>
-	);
-}
-
-/**
- * Geometric triangular notch divider (Geo Variant)
- */
-function GeoPerforatedDivider({ className }: { className?: string }) {
-	return (
-		<div
-			className={cn(
-				"relative -mx-5 sm:-mx-6 w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] my-2.5 sm:my-3 flex items-center h-4 select-none pointer-events-none",
-				className,
-			)}
-		>
-			<svg
-				className="w-3 h-4 block text-white shrink-0 -mr-px"
-				viewBox="0 0 12 16"
-				fill="currentColor"
-				aria-hidden="true"
-			>
-				<path d="M 0 0 L 12 0 L 12 16 L 0 16 L 0 13 L 6 8 L 0 3 Z" />
-			</svg>
-			<div className="flex-1 h-4 bg-white flex items-center px-0.5">
-				<div className="w-full border-b border-dashed border-slate-300" />
-			</div>
-			<svg
-				className="w-3 h-4 block text-white shrink-0 -ml-px"
-				viewBox="0 0 12 16"
-				fill="currentColor"
-				aria-hidden="true"
-			>
-				<path d="M 0 0 L 12 0 L 12 3 L 6 8 L 12 13 L 12 16 L 0 16 Z" />
-			</svg>
-		</div>
 	);
 }
 
@@ -168,6 +243,7 @@ export function PortraitReceiptTicket({
 	orderNumber,
 	className,
 }: PortraitReceiptTicketProps) {
+	const clipId = useId().replace(/:/g, "_");
 	const primaryShades = useMemo(
 		() => generateColorShades(primaryColor),
 		[primaryColor],
@@ -176,54 +252,106 @@ export function PortraitReceiptTicket({
 	const formattedDate = useMemo(() => formatPassDateTime(dateTime), [dateTime]);
 
 	const normalizedVariant = (variant || "classic").toLowerCase().trim();
-	const isRetro = normalizedVariant === "retro" || normalizedVariant === "vintage" || normalizedVariant === "roteract";
-	const isGeo = normalizedVariant === "geo" || normalizedVariant === "geometric";
-	const isModern = normalizedVariant === "modern" || normalizedVariant === "pass";
-	const isClassicOrReceipt = !isRetro && !isGeo && !isModern;
+	const isRetro =
+		normalizedVariant === "retro" ||
+		normalizedVariant === "vintage" ||
+		normalizedVariant === "roteract";
+	const isGeo =
+		normalizedVariant === "geo" || normalizedVariant === "geometric";
+	const isModern =
+		normalizedVariant === "modern" || normalizedVariant === "pass";
+	const isReceipt = normalizedVariant === "receipt";
 
-	// Badge label
-	const badgeText = isRetro
-		? "RETRO PASS"
-		: isGeo
-			? "GEO PASS"
-			: isModern
-				? "MODERN PASS"
-				: "RECEIPT PASS";
+	// Refs to measure EXACT Y position of the two cutting lines
+	const containerRef = useRef<HTMLDivElement>(null);
+	const topCutRef = useRef<HTMLDivElement>(null);
+	const bottomCutRef = useRef<HTMLDivElement>(null);
 
-	// Outer card silhouette styling
-	const containerSilhouette = isGeo
-		? "[clip-path:polygon(16px_0,calc(100%-16px)_0,100%_16px,100%_calc(100%-16px),calc(100%-16px)_100%,16px_100%,0_calc(100%-16px),0_16px)]"
-		: isRetro
-			? "rounded-3xl border-2 border-dashed border-slate-300 overflow-hidden shadow-2xl"
-			: isModern
-				? "rounded-3xl border border-slate-200 overflow-hidden shadow-2xl"
-				: ""; // classic uses sawteeth top/bottom
+	// Default fallback dimensions before measurement
+	const [dimensions, setDimensions] = useState<TicketDimensions>({
+		w: 360,
+		h: 700,
+		y1: 145,
+		y2: 590,
+	});
+
+	// Measure and update exact cutting line Y coordinates
+	useEffect(() => {
+		const measure = () => {
+			const c = containerRef.current;
+			const t = topCutRef.current;
+			const b = bottomCutRef.current;
+			if (!c || !t || !b) return;
+
+			const cRect = c.getBoundingClientRect();
+			const tRect = t.getBoundingClientRect();
+			const bRect = b.getBoundingClientRect();
+
+			if (cRect.width === 0 || cRect.height === 0) return;
+
+			// Exact center of the cutting lines relative to container top
+			const y1 = tRect.top + tRect.height / 2 - cRect.top;
+			const y2 = bRect.top + bRect.height / 2 - cRect.top;
+
+			setDimensions({
+				w: Math.round(cRect.width),
+				h: Math.round(cRect.height),
+				y1: Math.round(y1),
+				y2: Math.round(y2),
+			});
+		};
+
+		measure();
+
+		const ro = new ResizeObserver(() => {
+			measure();
+		});
+
+		if (containerRef.current) {
+			ro.observe(containerRef.current);
+		}
+
+		window.addEventListener("resize", measure);
+		return () => {
+			ro.disconnect();
+			window.removeEventListener("resize", measure);
+		};
+	}, []);
+
+	// Generate dynamic path with notches centered precisely at the cutting lines
+	const activePath = useMemo(() => {
+		if (isReceipt) return null;
+		return buildTicketPath(normalizedVariant, dimensions);
+	}, [isReceipt, normalizedVariant, dimensions]);
 
 	return (
 		<div
 			className={cn(
-				"w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[390px] mx-auto filter drop-shadow-2xl transition-all select-none",
+				"relative w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[390px] mx-auto filter drop-shadow-2xl transition-all select-none",
 				className,
 			)}
 		>
-			{/* Top Edge: Sawtooth for Classic/Receipt, rounded for others */}
-			{isClassicOrReceipt ? (
-				<ReceiptSawtoothTop className="text-white" />
-			) : null}
+			{/* SVG Clip Path Definition with exact cutting line notches */}
+			{activePath ? <TicketClipPath id={clipId} path={activePath} /> : null}
+
+			{/* Top Sawtooth Edge for Receipt Pass */}
+			{isReceipt ? <ReceiptSawtoothTop className="text-white" /> : null}
 
 			{/* Main Ticket Body */}
 			<div
+				ref={containerRef}
 				className={cn(
-					"bg-white text-slate-900 px-5 sm:px-6 pt-3 pb-5 flex flex-col items-center relative overflow-hidden",
-					containerSilhouette,
+					"text-slate-900 px-6 sm:px-7 pt-5 pb-6 flex flex-col items-center relative overflow-hidden",
+					isRetro ? "bg-[#fcfaf7]" : "bg-white",
 				)}
+				style={activePath ? { clipPath: `url(#${clipId})` } : undefined}
 			>
 				{/* Top Lanyard Slot for Modern Pass */}
 				{isModern ? (
 					<div className="w-12 h-1.5 rounded-full bg-slate-900/15 mb-2 -mt-1 mx-auto" />
 				) : null}
 
-				{/* Subtle thermal paper texture */}
+				{/* Subtle paper texture overlay */}
 				<div
 					className="absolute inset-0 opacity-[0.025] pointer-events-none"
 					style={{
@@ -232,8 +360,8 @@ export function PortraitReceiptTicket({
 					}}
 				/>
 
-				{/* Header: Organization & Receipt Type */}
-				<div className="w-full flex items-center justify-between gap-2 pt-1 pb-2">
+				{/* Header: Organization Logo & Name */}
+				<div className="w-full flex items-center justify-center gap-2 pt-1 pb-2">
 					<div className="flex items-center gap-1.5 min-w-0">
 						{logoDisplayUrl ? (
 							<div className="relative size-5 rounded-full overflow-hidden shrink-0 border border-slate-200">
@@ -250,17 +378,6 @@ export function PortraitReceiptTicket({
 							{organizationName}
 						</span>
 					</div>
-
-					<span
-						className="text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-sm"
-						style={{
-							backgroundColor: primaryShades[50] || "#fef2f2",
-							color: primaryColor,
-							fontFamily: "'Courier New', Courier, monospace",
-						}}
-					>
-						{badgeText}
-					</span>
 				</div>
 
 				{/* Event Title */}
@@ -282,8 +399,11 @@ export function PortraitReceiptTicket({
 					</span>
 				</div>
 
-				{/* Perforated Divider 1 */}
-				{isGeo ? <GeoPerforatedDivider /> : <CircularPerforatedDivider />}
+				{/* Cutting Line 1 (Upper Perforation): Dashed line extending edge-to-edge into side notches */}
+				<div
+					ref={topCutRef}
+					className="-mx-6 sm:-mx-7 w-[calc(100%+3rem)] sm:w-[calc(100%+3.5rem)] my-3 border-b border-dashed border-slate-300 relative z-10"
+				/>
 
 				{/* Details Table */}
 				<div className="w-full space-y-2.5 text-xs px-1">
@@ -363,8 +483,8 @@ export function PortraitReceiptTicket({
 					) : null}
 				</div>
 
-				{/* Perforated Divider 2 */}
-				{isGeo ? <GeoPerforatedDivider /> : <CircularPerforatedDivider />}
+				{/* Subtle separator between Details and QR code */}
+				<div className="w-full my-2.5 border-b border-slate-100" />
 
 				{/* BIG Prominent QR Code */}
 				<div className="flex flex-col items-center justify-center my-1.5">
@@ -397,10 +517,13 @@ export function PortraitReceiptTicket({
 					</p>
 				</div>
 
-				{/* Divider */}
-				<div className="w-full border-b border-dashed border-slate-300 my-3" />
+				{/* Cutting Line 2 (Lower Perforation): Dashed line extending edge-to-edge into side notches */}
+				<div
+					ref={bottomCutRef}
+					className="-mx-6 sm:-mx-7 w-[calc(100%+3rem)] sm:w-[calc(100%+3.5rem)] my-3 border-b border-dashed border-slate-300 relative z-10"
+				/>
 
-				{/* Ticket Code */}
+				{/* Ticket Code Stub */}
 				<div className="w-full flex flex-col items-center gap-1.5 pt-1">
 					<span
 						className="text-xs sm:text-sm font-black tracking-[0.2em] text-slate-900 font-mono"
@@ -418,10 +541,13 @@ export function PortraitReceiptTicket({
 				</div>
 			</div>
 
-			{/* Bottom Edge: Sawtooth for Classic/Receipt */}
-			{isClassicOrReceipt ? (
-				<ReceiptSawtoothBottom className="text-white" />
+			{/* SVG Outline following the exact path silhouette */}
+			{activePath ? (
+				<TicketOutline color={primaryColor} path={activePath} />
 			) : null}
+
+			{/* Bottom Sawtooth Edge for Receipt Pass */}
+			{isReceipt ? <ReceiptSawtoothBottom className="text-white" /> : null}
 		</div>
 	);
 }

@@ -4,7 +4,7 @@ import { TicketCard } from "./TicketPreview";
 import { TicketCard2 } from "./TicketPreview2";
 import { TicketCardGeo } from "./TicketPreviewGeo";
 import { TicketCardRetro } from "./TicketPreviewRetro";
-import { PortraitReceiptTicket } from "./PortraitReceiptTicket";
+import { TicketCardReceipt } from "./TicketPreviewReceipt";
 
 interface TicketRendererProps {
   readonly variant?: "classic" | "modern" | "geo" | "retro" | "receipt" | string | null;
@@ -37,7 +37,7 @@ export function TicketRenderer({
   const normalizedVariant = (variant || "classic").toLowerCase().trim();
   switch (normalizedVariant) {
     case "receipt":
-      return <PortraitReceiptTicket variant="receipt" {...props} />;
+      return <TicketCardReceipt {...props} />;
     case "geo":
     case "geometric":
       return <TicketCardGeo {...props} />;
