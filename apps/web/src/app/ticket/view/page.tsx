@@ -262,9 +262,9 @@ export default async function TicketViewPage({
 			</header>
 
 			{/* Content Area with Ambient Flier Backdrop */}
-			<div className="flex-1 relative flex flex-col items-center justify-center min-w-0">
+			<div className="flex-1 relative flex flex-col items-center justify-center min-w-0 print:block">
 				{bgImageUrl ? (
-					<div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+					<div className="absolute inset-0 pointer-events-none z-0 overflow-hidden print:hidden">
 						<Image
 							src={bgImageUrl}
 							alt={event.title}
@@ -276,10 +276,10 @@ export default async function TicketViewPage({
 						<div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]" />
 					</div>
 				) : (
-					<div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950" />
+					<div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 print:hidden" />
 				)}
 
-				<main className="max-w-4xl w-full mx-auto px-4 py-8 sm:py-10 flex flex-col items-center gap-6 relative z-10">
+				<main className="max-w-4xl w-full mx-auto px-4 py-8 sm:py-10 flex flex-col items-center gap-6 relative z-10 print:py-0 print:px-0 print:m-0">
 					<MultiTicketPassbook
 						passes={passes}
 						initialSelectedTicketId={ticket.id}

@@ -89,21 +89,40 @@ function buildTicketClipPath(
 	const nry = notchR / h;
 
 	if (hasSawtooth) {
-		// When top & bottom have sawtooth teeth, top and bottom edges are flat so the sawtooth connects seamlessly
+		const numTeeth = 20;
+		const toothW = 1 / numTeeth;
+		// 9px tooth height in normalized units
+		const toothH = Math.max(0.008, Math.min(0.025, 9 / h));
+
+		// Top edge with sawtooth teeth: peaks at y = 0, valleys at y = toothH
+		const topCommands: string[] = [`M 0 ${toothH.toFixed(5)}`];
+		for (let i = 0; i < numTeeth; i++) {
+			const peakX = ((i + 0.5) * toothW).toFixed(5);
+			const valleyX = ((i + 1) * toothW).toFixed(5);
+			topCommands.push(`L ${peakX} 0 L ${valleyX} ${toothH.toFixed(5)}`);
+		}
+
+		// Bottom edge with sawtooth teeth: peaks at y = 1, valleys at y = 1 - toothH
+		const bottomCommands: string[] = [];
+		for (let i = numTeeth - 1; i >= 0; i--) {
+			const peakX = ((i + 0.5) * toothW).toFixed(5);
+			const valleyX = (i * toothW).toFixed(5);
+			bottomCommands.push(`L ${peakX} 1 L ${valleyX} ${(1 - toothH).toFixed(5)}`);
+		}
+
 		return [
-			`M 0 0`,
-			`L 1 0`,
-			`L 1 ${y1n - nry}`,
-			`A ${nrx} ${nry} 0 0 0 1 ${y1n + nry}`,
-			`L 1 ${y2n - nry}`,
-			`A ${nrx} ${nry} 0 0 0 1 ${y2n + nry}`,
-			`L 1 1`,
-			`L 0 1`,
-			`L 0 ${y2n + nry}`,
-			`A ${nrx} ${nry} 0 0 0 0 ${y2n - nry}`,
-			`L 0 ${y1n + nry}`,
-			`A ${nrx} ${nry} 0 0 0 0 ${y1n - nry}`,
-			`L 0 0`,
+			...topCommands,
+			`L 1 ${(y1n - nry).toFixed(5)}`,
+			`A ${nrx.toFixed(5)} ${nry.toFixed(5)} 0 0 0 1 ${(y1n + nry).toFixed(5)}`,
+			`L 1 ${(y2n - nry).toFixed(5)}`,
+			`A ${nrx.toFixed(5)} ${nry.toFixed(5)} 0 0 0 1 ${(y2n + nry).toFixed(5)}`,
+			`L 1 ${(1 - toothH).toFixed(5)}`,
+			...bottomCommands,
+			`L 0 ${(y2n + nry).toFixed(5)}`,
+			`A ${nrx.toFixed(5)} ${nry.toFixed(5)} 0 0 0 0 ${(y2n - nry).toFixed(5)}`,
+			`L 0 ${(y1n + nry).toFixed(5)}`,
+			`A ${nrx.toFixed(5)} ${nry.toFixed(5)} 0 0 0 0 ${(y1n - nry).toFixed(5)}`,
+			`L 0 ${toothH.toFixed(5)}`,
 			`Z`,
 		].join(" ");
 	}
@@ -133,7 +152,14 @@ function buildTicketClipPath(
 function TicketClipPath({ id, path }: { id: string; path: string }) {
 	return (
 		<svg
-			style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}
+			style={{
+				position: "absolute",
+				width: "1px",
+				height: "1px",
+				overflow: "hidden",
+				opacity: 0,
+				pointerEvents: "none",
+			}}
 			aria-hidden="true"
 		>
 			<defs>
@@ -141,41 +167,6 @@ function TicketClipPath({ id, path }: { id: string; path: string }) {
 					<path d={path} />
 				</clipPath>
 			</defs>
-		</svg>
-	);
-}
-
-/**
- * Sawtooth / Serrated jagged tear edge for receipt top and bottom
- */
-function ReceiptSawtoothTop({ className }: { className?: string }) {
-	return (
-		<svg
-			className={cn("w-full h-2.5 block -mb-px shrink-0 select-none", className)}
-			viewBox="0 0 120 8"
-			preserveAspectRatio="none"
-			aria-hidden="true"
-		>
-			<path
-				d="M0 8 L3 0 L6 8 L9 0 L12 8 L15 0 L18 8 L21 0 L24 8 L27 0 L30 8 L33 0 L36 8 L39 0 L42 8 L45 0 L48 8 L51 0 L54 8 L57 0 L60 8 L63 0 L66 8 L69 0 L72 8 L75 0 L78 8 L81 0 L84 8 L87 0 L90 8 L93 0 L96 8 L99 0 L102 8 L105 0 L108 8 L111 0 L114 8 L117 0 L120 8 Z"
-				fill="currentColor"
-			/>
-		</svg>
-	);
-}
-
-function ReceiptSawtoothBottom({ className }: { className?: string }) {
-	return (
-		<svg
-			className={cn("w-full h-2.5 block -mt-px shrink-0 select-none", className)}
-			viewBox="0 0 120 8"
-			preserveAspectRatio="none"
-			aria-hidden="true"
-		>
-			<path
-				d="M0 0 L3 8 L6 0 L9 8 L12 0 L15 8 L18 0 L21 8 L24 0 L27 8 L30 0 L33 8 L36 0 L39 8 L42 0 L45 8 L48 0 L51 8 L54 0 L57 8 L60 0 L63 8 L66 0 L69 8 L72 0 L75 8 L78 0 L81 8 L84 0 L87 8 L90 0 L93 8 L96 0 L99 8 L102 0 L105 8 L108 0 L111 8 L114 0 L117 8 L120 0 Z"
-				fill="currentColor"
-			/>
 		</svg>
 	);
 }
@@ -305,25 +296,14 @@ export function PortraitReceiptTicket({
 	return (
 		<div
 			className={cn(
-				"relative w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[390px] mx-auto filter drop-shadow-2xl transition-all select-none",
+				"relative w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[390px] mx-auto filter drop-shadow-2xl transition-all select-none print:drop-shadow-none",
 				className,
 			)}
 		>
 			{/* SVG Clip Path Definition with exact cutting line notches */}
 			<TicketClipPath id={clipId} path={activeClipPath} />
 
-			{/* Top Sawtooth Edge for Classic, Modern, and Receipt */}
-			{hasSawtoothEnds ? (
-				<ReceiptSawtoothTop
-					className={
-						flierDisplayUrl
-							? "text-black"
-							: isRetro
-								? "text-[#fcfaf7]"
-								: "text-white"
-					}
-				/>
-			) : null}
+
 
 			{/* Main Ticket Body */}
 			<div
@@ -332,7 +312,11 @@ export function PortraitReceiptTicket({
 					"text-slate-900 px-6 sm:px-7 pt-4 pb-6 flex flex-col items-center relative overflow-hidden",
 					isRetro ? "bg-[#fcfaf7]" : "bg-white",
 				)}
-				style={{ clipPath: `url(#${clipId})` }}
+				style={{
+					clipPath: `url(#${clipId})`,
+					WebkitPrintColorAdjust: "exact",
+					printColorAdjust: "exact",
+				}}
 			>
 				{/* Top Lanyard Slot for Modern Pass */}
 				{isModern && !hasSawtoothEnds ? (
@@ -341,7 +325,7 @@ export function PortraitReceiptTicket({
 
 				{/* Subtle paper texture overlay */}
 				<div
-					className="absolute inset-0 opacity-[0.025] pointer-events-none"
+					className="absolute inset-0 opacity-[0.025] pointer-events-none print:hidden"
 					style={{
 						backgroundImage:
 							"repeating-linear-gradient(0deg, #000, #000 1px, transparent 1px, transparent 4px)",
@@ -350,55 +334,61 @@ export function PortraitReceiptTicket({
 
 				{/* ─── Header: Full-bleed Event Flyer Header ─── */}
 				{flierDisplayUrl ? (
-					<div className="relative -mx-6 sm:-mx-7 -mt-4 w-[calc(100%+3rem)] sm:w-[calc(100%+3.5rem)] min-h-[140px] sm:min-h-[155px] flex flex-col justify-between items-center p-2.5 sm:p-3 overflow-hidden">
+					<div
+						className="relative -mx-6 sm:-mx-7 -mt-4 w-[calc(100%+3rem)] sm:w-[calc(100%+3.5rem)] h-[145px] sm:h-[160px] min-h-[145px] sm:min-h-[160px] flex flex-col justify-between items-center p-2.5 sm:p-3 overflow-hidden"
+						style={{
+							WebkitPrintColorAdjust: "exact",
+							printColorAdjust: "exact",
+						}}
+					>
 						{/* Background Flyer Image */}
 						<Image
 							src={flierDisplayUrl}
 							alt={eventName}
 							fill
-							className="object-cover"
 							priority
 							unoptimized
+							className="object-cover"
 						/>
 
-						{/* Glassy Frosted Blur Layer */}
-						<div className="absolute inset-0 bg-black/35 backdrop-blur-[3px]" />
+						{/* Dark Glassy Overlay (No backdrop-blur in print mode so the image is not blanked out in PDF) */}
+						<div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] print:backdrop-blur-none print:bg-black/45 pointer-events-none" />
 
 						{/* Glass Sheen Gradient */}
-						<div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/60 pointer-events-none" />
+						<div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/60 pointer-events-none print:hidden" />
 
 						{/* Top: Organizer Logo ONLY (No Name) */}
-						<div className="relative z-10 flex items-center justify-center pt-0.5">
+						<div className="relative z-10 flex items-center justify-center pt-1.5 sm:pt-2">
 							{logoDisplayUrl ? (
 								<div className="relative size-7 sm:size-8 rounded-full overflow-hidden shrink-0 shadow-md">
 									<Image
 										src={logoDisplayUrl}
 										alt={organizationName}
 										fill
-										className="object-cover"
 										unoptimized
+										className="object-cover"
 									/>
 								</div>
 							) : null}
 						</div>
 
-						{/* Middle: Event Name directly on the glassy background with white text border (no container border/box) */}
+						{/* Middle: Event Name directly on the glassy background: White text with black border */}
 						<div className="relative z-10 my-auto flex flex-col items-center gap-1.5 text-center max-w-[92%] px-2">
 							<h2
 								className="text-base sm:text-lg font-black uppercase tracking-tight text-center leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
 								style={{
 									fontFamily: "'Courier New', Courier, monospace",
-									color: "#0f172a",
-									WebkitTextStroke: "1.25px #ffffff",
+									color: "#ffffff",
+									WebkitTextStroke: "1.5px #000000",
 									paintOrder: "stroke fill",
-									textShadow: "0 2px 10px rgba(0,0,0,0.9)",
+									textShadow: "0 2px 8px rgba(0,0,0,0.9)",
 								}}
 							>
 								{eventName}
 							</h2>
 
 							{/* Ticket Type Tag */}
-							<div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-md border border-white/40 text-white shadow-sm">
+							<div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-md print:backdrop-blur-none print:bg-black/60 border border-white/40 text-white shadow-sm">
 								<Tag className="size-2.5 text-white/90" />
 								<span
 									className="text-[9px] font-bold uppercase tracking-wider text-white"
@@ -586,12 +576,7 @@ export function PortraitReceiptTicket({
 				</div>
 			</div>
 
-			{/* Bottom Sawtooth Edge for Classic, Modern, and Receipt */}
-			{hasSawtoothEnds ? (
-				<ReceiptSawtoothBottom
-					className={isRetro ? "text-[#fcfaf7]" : "text-white"}
-				/>
-			) : null}
+
 		</div>
 	);
 }
