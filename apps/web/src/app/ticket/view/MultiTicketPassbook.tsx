@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TicketRenderer } from "@/components/shared/ticket-variants/TicketRenderer";
+import { PortraitReceiptTicket } from "@/components/shared/ticket-variants/PortraitReceiptTicket";
 import { TicketDownloadButton } from "./TicketDownloadButton";
 import {
 	ChevronLeft,
@@ -150,11 +151,10 @@ export function MultiTicketPassbook({
 
 			<div
 				id="ticket-render-card"
-				className="w-full max-w-2xl flex justify-center min-w-0 overflow-visible"
+				className="w-full flex justify-center min-w-0"
 			>
-				<TicketRenderer
+				<PortraitReceiptTicket
 					key={activePass.id}
-					variant={activePass.designVariant}
 					primaryColor={activePass.primaryColor}
 					secondaryColor={activePass.secondaryColor}
 					ticketCode={activePass.ticketCode}
@@ -163,12 +163,10 @@ export function MultiTicketPassbook({
 					eventName={event.title}
 					organizationName={organization.name}
 					logoUrl={organization.logoUrl}
-					flierImage={event.flierImage}
-					bannerImage={event.bannerImage}
 					dateTime={event.startDate ? String(event.startDate) : undefined}
 					venue={event.venue || "Venue TBA"}
 					qrPayload={activePass.verifyUrl}
-					defaultFlipped={true}
+					orderNumber={orderNumber}
 				/>
 			</div>
 
@@ -199,10 +197,9 @@ export function MultiTicketPassbook({
 			>
 				<div
 					id="ticket-export-front"
-					className="bg-transparent p-0 w-140 min-w-140"
+					className="bg-transparent p-4 w-[390px] min-w-[390px]"
 				>
-					<TicketRenderer
-						variant={activePass.designVariant}
+					<PortraitReceiptTicket
 						primaryColor={activePass.primaryColor}
 						secondaryColor={activePass.secondaryColor}
 						ticketCode={activePass.ticketCode}
@@ -211,22 +208,18 @@ export function MultiTicketPassbook({
 						eventName={event.title}
 						organizationName={organization.name}
 						logoUrl={organization.logoUrl}
-						flierImage={event.flierImage}
-						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
 						qrPayload={activePass.verifyUrl}
-						exportMode={true}
-						exportSide="front"
+						orderNumber={orderNumber}
 					/>
 				</div>
 
 				<div
 					id="ticket-export-back"
-					className="bg-transparent p-0 w-140 min-w-140"
+					className="bg-transparent p-4 w-[390px] min-w-[390px]"
 				>
-					<TicketRenderer
-						variant={activePass.designVariant}
+					<PortraitReceiptTicket
 						primaryColor={activePass.primaryColor}
 						secondaryColor={activePass.secondaryColor}
 						ticketCode={activePass.ticketCode}
@@ -235,21 +228,17 @@ export function MultiTicketPassbook({
 						eventName={event.title}
 						organizationName={organization.name}
 						logoUrl={organization.logoUrl}
-						flierImage={event.flierImage}
-						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
 						qrPayload={activePass.verifyUrl}
-						exportMode={true}
-						exportSide="back"
+						orderNumber={orderNumber}
 					/>
 				</div>
 				<div
 					id="ticket-export-both"
-					className="bg-transparent p-0 w-140 min-w-140"
+					className="bg-transparent p-4 w-[390px] min-w-[390px]"
 				>
-					<TicketRenderer
-						variant={activePass.designVariant}
+					<PortraitReceiptTicket
 						primaryColor={activePass.primaryColor}
 						secondaryColor={activePass.secondaryColor}
 						ticketCode={activePass.ticketCode}
@@ -258,13 +247,10 @@ export function MultiTicketPassbook({
 						eventName={event.title}
 						organizationName={organization.name}
 						logoUrl={organization.logoUrl}
-						flierImage={event.flierImage}
-						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
 						qrPayload={activePass.verifyUrl}
-						exportMode={true}
-						exportSide="both"
+						orderNumber={orderNumber}
 					/>
 				</div>
 			</div>
