@@ -168,6 +168,7 @@ export function MultiTicketPassbook({
 					dateTime={event.startDate ? String(event.startDate) : undefined}
 					venue={event.venue || "Venue TBA"}
 					qrPayload={activePass.verifyUrl}
+					defaultFlipped={true}
 				/>
 			</div>
 

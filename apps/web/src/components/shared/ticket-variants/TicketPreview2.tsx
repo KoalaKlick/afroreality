@@ -28,6 +28,7 @@ interface TicketCardProps {
   readonly exportSide?: "front" | "back" | "both";
   readonly buyerName?: string;
   readonly disableFlip?: boolean;
+  readonly defaultFlipped?: boolean;
 }
 
 // ─── Ticket silhouette: same notch positions as original for consistency ──────
@@ -542,8 +543,9 @@ export function TicketCard2({
   exportSide = "both",
   buyerName = "Valued Guest",
   disableFlip = false,
+  defaultFlipped = false,
 }: TicketCardProps) {
-  const [flipped, setFlipped] = useState(false);
+  const [flipped, setFlipped] = useState(defaultFlipped);
   const uid = useId().replace(/:/g, "");
   const clipId = `ticket-alt-clip-${uid}`;
   const ghostClipId = `ticket-alt-ghost-clip-${uid}`;

@@ -26,6 +26,7 @@ interface TicketRendererProps {
   readonly exportSide?: "front" | "back" | "both";
   readonly buyerName?: string;
   readonly disableFlip?: boolean;
+  readonly defaultFlipped?: boolean;
 }
 
 export function TicketRenderer({

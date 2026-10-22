@@ -28,6 +28,7 @@ interface TicketCardProps {
   readonly exportSide?: "front" | "back" | "both";
   readonly buyerName?: string;
   readonly disableFlip?: boolean;
+  readonly defaultFlipped?: boolean;
 }
 
 const TICKET_PATH_RELATIVE = [
@@ -531,8 +532,9 @@ export function TicketCardGeo({
   exportSide = "both",
   buyerName = "Valued Guest",
   disableFlip = false,
+  defaultFlipped = false,
 }: TicketCardProps) {
-  const [flipped, setFlipped] = useState(false);
+  const [flipped, setFlipped] = useState(defaultFlipped);
 
   const primaryShades = generateColorShades(primaryColor);
   const secondaryShades = generateColorShades(secondaryColor);
