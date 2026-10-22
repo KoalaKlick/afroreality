@@ -120,7 +120,7 @@ export function TicketCardReceipt({
 					<div className="flex items-center justify-between gap-2">
 						<div className="flex items-center gap-1.5 min-w-0">
 							{logoDisplayUrl ? (
-								<div className="relative size-4 rounded-full overflow-hidden shrink-0 border border-slate-200">
+								<div className="relative size-4 rounded-full overflow-hidden shrink-0">
 									<Image src={logoDisplayUrl} alt={organizationName} fill className="object-cover" unoptimized />
 								</div>
 							) : null}

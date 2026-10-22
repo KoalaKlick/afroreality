@@ -5,7 +5,7 @@ import Image from "next/image";
 import QRCode from "react-qr-code";
 import { QrCode, Calendar, MapPin, User, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getOrgImageUrl } from "@/lib/image-url-utils";
+import { getOrgImageUrl, getEventImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades } from "@/utils/theme/color-generator";
 
 export interface PortraitReceiptTicketProps {
@@ -13,6 +13,8 @@ export interface PortraitReceiptTicketProps {
 	readonly primaryColor?: string;
 	readonly secondaryColor?: string;
 	readonly logoUrl?: string | null;
+	readonly flierImage?: string | null;
+	readonly bannerImage?: string | null;
 	readonly organizationName?: string;
 	readonly eventName?: string;
 	readonly ticketType?: string;
@@ -33,21 +35,18 @@ interface TicketDimensions {
 }
 
 /**
- * Builds the exact ticket silhouette SVG path in normalized [0, 1] coordinates.
- * Side notches are placed PRECISELY at y1 and y2 (the two cutting/perforation lines).
- * Top and bottom edges are clean (no center notches).
- * No notches in the middle of the QR code.
+ * Builds the ticket silhouette SVG clip path in normalized [0, 1] coordinates.
+ * Side notches are placed PRECISELY at y1 and y2 (the two cutting lines).
  */
-function buildTicketPath(
+function buildTicketClipPath(
 	variant: string,
 	dim: TicketDimensions,
+	hasSawtooth: boolean,
 ): string {
 	const { w, h, y1, y2 } = dim;
 	const isGeo = variant === "geo" || variant === "geometric";
-	const isModern = variant === "modern" || variant === "pass";
 
-	// Guard against unmeasured or edge-case coordinates
-	const y1n = Math.max(0.08, Math.min(0.45, y1 / h));
+	const y1n = Math.max(0.08, Math.min(0.48, y1 / h));
 	const y2n = Math.max(0.55, Math.min(0.96, y2 / h));
 
 	if (isGeo) {
@@ -60,76 +59,72 @@ function buildTicketPath(
 			`M ${crx} 0`,
 			`L ${1 - crx} 0`,
 			`L 1 ${cry}`,
-			// Right edge to notch 1
 			`L 1 ${y1n - nry}`,
 			`L ${1 - nrx} ${y1n}`,
 			`L 1 ${y1n + nry}`,
-			// Right edge to notch 2
 			`L 1 ${y2n - nry}`,
 			`L ${1 - nrx} ${y2n}`,
 			`L 1 ${y2n + nry}`,
-			// Bottom-right corner
 			`L 1 ${1 - cry}`,
 			`L ${1 - crx} 1`,
-			// Bottom edge
 			`L ${crx} 1`,
 			`L 0 ${1 - cry}`,
-			// Left edge up to notch 2
 			`L 0 ${y2n + nry}`,
 			`L ${nrx} ${y2n}`,
 			`L 0 ${y2n - nry}`,
-			// Left edge up to notch 1
 			`L 0 ${y1n + nry}`,
 			`L ${nrx} ${y1n}`,
 			`L 0 ${y1n - nry}`,
-			// Top-left corner
 			`L 0 ${cry}`,
 			`Z`,
 		].join(" ");
 	}
 
-	const cornerR = isModern ? 22 : 16;
-	const notchR = 12; // 24px wide notch, 12px depth into ticket
+	const cornerR = hasSawtooth ? 0 : 16;
+	const notchR = 12;
 
 	const crx = cornerR / w;
 	const cry = cornerR / h;
 	const nrx = notchR / w;
 	const nry = notchR / h;
 
+	if (hasSawtooth) {
+		// When top & bottom have sawtooth teeth, top and bottom edges are flat so the sawtooth connects seamlessly
+		return [
+			`M 0 0`,
+			`L 1 0`,
+			`L 1 ${y1n - nry}`,
+			`A ${nrx} ${nry} 0 0 0 1 ${y1n + nry}`,
+			`L 1 ${y2n - nry}`,
+			`A ${nrx} ${nry} 0 0 0 1 ${y2n + nry}`,
+			`L 1 1`,
+			`L 0 1`,
+			`L 0 ${y2n + nry}`,
+			`A ${nrx} ${nry} 0 0 0 0 ${y2n - nry}`,
+			`L 0 ${y1n + nry}`,
+			`A ${nrx} ${nry} 0 0 0 0 ${y1n - nry}`,
+			`L 0 0`,
+			`Z`,
+		].join(" ");
+	}
+
 	return [
-		// Start top edge after top-left corner
 		`M ${crx} 0`,
-		// Straight across top edge to top-right corner
 		`L ${1 - crx} 0`,
-		// Top-right corner
 		`Q 1 0 1 ${cry}`,
-		// Down right edge to notch 1 (at cutting line 1)
 		`L 1 ${y1n - nry}`,
-		// Semicircular notch curving inward (to left)
 		`A ${nrx} ${nry} 0 0 0 1 ${y1n + nry}`,
-		// Down right edge to notch 2 (at cutting line 2)
 		`L 1 ${y2n - nry}`,
-		// Semicircular notch curving inward (to left)
 		`A ${nrx} ${nry} 0 0 0 1 ${y2n + nry}`,
-		// Down right edge to bottom-right corner
 		`L 1 ${1 - cry}`,
-		// Bottom-right corner
 		`Q 1 1 ${1 - crx} 1`,
-		// Straight across bottom edge to bottom-left corner
 		`L ${crx} 1`,
-		// Bottom-left corner
 		`Q 0 1 0 ${1 - cry}`,
-		// Up left edge to notch 2 (at cutting line 2)
 		`L 0 ${y2n + nry}`,
-		// Semicircular notch curving inward (to right)
 		`A ${nrx} ${nry} 0 0 0 0 ${y2n - nry}`,
-		// Up left edge to notch 1 (at cutting line 1)
 		`L 0 ${y1n + nry}`,
-		// Semicircular notch curving inward (to right)
 		`A ${nrx} ${nry} 0 0 0 0 ${y1n - nry}`,
-		// Up left edge to top-left corner
 		`L 0 ${cry}`,
-		// Top-left corner
 		`Q 0 0 ${crx} 0`,
 		`Z`,
 	].join(" ");
@@ -150,31 +145,13 @@ function TicketClipPath({ id, path }: { id: string; path: string }) {
 	);
 }
 
-function TicketOutline({ color, path }: { color: string; path: string }) {
-	return (
-		<svg
-			className="absolute inset-0 w-full h-full pointer-events-none z-20"
-			viewBox="0 0 1 1"
-			preserveAspectRatio="none"
-		>
-			<path
-				d={path}
-				fill="none"
-				stroke={color}
-				strokeWidth="1.75"
-				vectorEffect="non-scaling-stroke"
-			/>
-		</svg>
-	);
-}
-
 /**
  * Sawtooth / Serrated jagged tear edge for receipt top and bottom
  */
 function ReceiptSawtoothTop({ className }: { className?: string }) {
 	return (
 		<svg
-			className={cn("w-full h-2.5 block text-white -mb-px shrink-0", className)}
+			className={cn("w-full h-2.5 block -mb-px shrink-0 select-none", className)}
 			viewBox="0 0 120 8"
 			preserveAspectRatio="none"
 			aria-hidden="true"
@@ -190,7 +167,7 @@ function ReceiptSawtoothTop({ className }: { className?: string }) {
 function ReceiptSawtoothBottom({ className }: { className?: string }) {
 	return (
 		<svg
-			className={cn("w-full h-2.5 block text-white -mt-px shrink-0", className)}
+			className={cn("w-full h-2.5 block -mt-px shrink-0 select-none", className)}
 			viewBox="0 0 120 8"
 			preserveAspectRatio="none"
 			aria-hidden="true"
@@ -232,6 +209,8 @@ export function PortraitReceiptTicket({
 	primaryColor = "#CE1126",
 	secondaryColor = "#009A44",
 	logoUrl,
+	flierImage,
+	bannerImage,
 	organizationName = "Organizer",
 	eventName = "Event Name",
 	ticketType = "General Admission",
@@ -244,11 +223,8 @@ export function PortraitReceiptTicket({
 	className,
 }: PortraitReceiptTicketProps) {
 	const clipId = useId().replace(/:/g, "_");
-	const primaryShades = useMemo(
-		() => generateColorShades(primaryColor),
-		[primaryColor],
-	);
 	const logoDisplayUrl = getOrgImageUrl(logoUrl);
+	const flierDisplayUrl = getEventImageUrl(flierImage || bannerImage);
 	const formattedDate = useMemo(() => formatPassDateTime(dateTime), [dateTime]);
 
 	const normalizedVariant = (variant || "classic").toLowerCase().trim();
@@ -261,6 +237,10 @@ export function PortraitReceiptTicket({
 	const isModern =
 		normalizedVariant === "modern" || normalizedVariant === "pass";
 	const isReceipt = normalizedVariant === "receipt";
+	const isClassic = !isRetro && !isGeo && !isModern && !isReceipt;
+
+	// Classic, Modern, and Receipt all get the zigzag sawtooth ends
+	const hasSawtoothEnds = isReceipt || isClassic || isModern;
 
 	// Refs to measure EXACT Y position of the two cutting lines
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -270,9 +250,9 @@ export function PortraitReceiptTicket({
 	// Default fallback dimensions before measurement
 	const [dimensions, setDimensions] = useState<TicketDimensions>({
 		w: 360,
-		h: 700,
-		y1: 145,
-		y2: 590,
+		h: 750,
+		y1: 240,
+		y2: 640,
 	});
 
 	// Measure and update exact cutting line Y coordinates
@@ -289,7 +269,6 @@ export function PortraitReceiptTicket({
 
 			if (cRect.width === 0 || cRect.height === 0) return;
 
-			// Exact center of the cutting lines relative to container top
 			const y1 = tRect.top + tRect.height / 2 - cRect.top;
 			const y2 = bRect.top + bRect.height / 2 - cRect.top;
 
@@ -319,10 +298,9 @@ export function PortraitReceiptTicket({
 	}, []);
 
 	// Generate dynamic path with notches centered precisely at the cutting lines
-	const activePath = useMemo(() => {
-		if (isReceipt) return null;
-		return buildTicketPath(normalizedVariant, dimensions);
-	}, [isReceipt, normalizedVariant, dimensions]);
+	const activeClipPath = useMemo(() => {
+		return buildTicketClipPath(normalizedVariant, dimensions, hasSawtoothEnds);
+	}, [normalizedVariant, dimensions, hasSawtoothEnds]);
 
 	return (
 		<div
@@ -332,22 +310,32 @@ export function PortraitReceiptTicket({
 			)}
 		>
 			{/* SVG Clip Path Definition with exact cutting line notches */}
-			{activePath ? <TicketClipPath id={clipId} path={activePath} /> : null}
+			<TicketClipPath id={clipId} path={activeClipPath} />
 
-			{/* Top Sawtooth Edge for Receipt Pass */}
-			{isReceipt ? <ReceiptSawtoothTop className="text-white" /> : null}
+			{/* Top Sawtooth Edge for Classic, Modern, and Receipt */}
+			{hasSawtoothEnds ? (
+				<ReceiptSawtoothTop
+					className={
+						flierDisplayUrl
+							? "text-black"
+							: isRetro
+								? "text-[#fcfaf7]"
+								: "text-white"
+					}
+				/>
+			) : null}
 
 			{/* Main Ticket Body */}
 			<div
 				ref={containerRef}
 				className={cn(
-					"text-slate-900 px-6 sm:px-7 pt-5 pb-6 flex flex-col items-center relative overflow-hidden",
+					"text-slate-900 px-6 sm:px-7 pt-4 pb-6 flex flex-col items-center relative overflow-hidden",
 					isRetro ? "bg-[#fcfaf7]" : "bg-white",
 				)}
-				style={activePath ? { clipPath: `url(#${clipId})` } : undefined}
+				style={{ clipPath: `url(#${clipId})` }}
 			>
 				{/* Top Lanyard Slot for Modern Pass */}
-				{isModern ? (
+				{isModern && !hasSawtoothEnds ? (
 					<div className="w-12 h-1.5 rounded-full bg-slate-900/15 mb-2 -mt-1 mx-auto" />
 				) : null}
 
@@ -360,11 +348,73 @@ export function PortraitReceiptTicket({
 					}}
 				/>
 
-				{/* Header: Organization Logo & Name */}
-				<div className="w-full flex items-center justify-center gap-2 pt-1 pb-2">
-					<div className="flex items-center gap-1.5 min-w-0">
+				{/* ─── Header: Full-bleed Event Flyer Header ─── */}
+				{flierDisplayUrl ? (
+					<div className="relative -mx-6 sm:-mx-7 -mt-4 w-[calc(100%+3rem)] sm:w-[calc(100%+3.5rem)] min-h-[140px] sm:min-h-[155px] flex flex-col justify-between items-center p-2.5 sm:p-3 overflow-hidden">
+						{/* Background Flyer Image */}
+						<Image
+							src={flierDisplayUrl}
+							alt={eventName}
+							fill
+							className="object-cover"
+							priority
+							unoptimized
+						/>
+
+						{/* Glassy Frosted Blur Layer */}
+						<div className="absolute inset-0 bg-black/35 backdrop-blur-[3px]" />
+
+						{/* Glass Sheen Gradient */}
+						<div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/60 pointer-events-none" />
+
+						{/* Top: Organizer Logo ONLY (No Name) */}
+						<div className="relative z-10 flex items-center justify-center pt-0.5">
+							{logoDisplayUrl ? (
+								<div className="relative size-7 sm:size-8 rounded-full overflow-hidden shrink-0 shadow-md">
+									<Image
+										src={logoDisplayUrl}
+										alt={organizationName}
+										fill
+										className="object-cover"
+										unoptimized
+									/>
+								</div>
+							) : null}
+						</div>
+
+						{/* Middle: Event Name directly on the glassy background with white text border (no container border/box) */}
+						<div className="relative z-10 my-auto flex flex-col items-center gap-1.5 text-center max-w-[92%] px-2">
+							<h2
+								className="text-base sm:text-lg font-black uppercase tracking-tight text-center leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+								style={{
+									fontFamily: "'Courier New', Courier, monospace",
+									color: "#0f172a",
+									WebkitTextStroke: "1.25px #ffffff",
+									paintOrder: "stroke fill",
+									textShadow: "0 2px 10px rgba(0,0,0,0.9)",
+								}}
+							>
+								{eventName}
+							</h2>
+
+							{/* Ticket Type Tag */}
+							<div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-md border border-white/40 text-white shadow-sm">
+								<Tag className="size-2.5 text-white/90" />
+								<span
+									className="text-[9px] font-bold uppercase tracking-wider text-white"
+									style={{ fontFamily: "'Courier New', Courier, monospace" }}
+								>
+									01 × {ticketType}
+								</span>
+							</div>
+						</div>
+					</div>
+				) : (
+					/* Clean Fallback Header when no flyer image is uploaded */
+					<div className="w-full flex flex-col items-center pt-1 pb-1">
+						{/* Organizer Logo Only */}
 						{logoDisplayUrl ? (
-							<div className="relative size-5 rounded-full overflow-hidden shrink-0 border border-slate-200">
+							<div className="relative size-8 rounded-full overflow-hidden shrink-0 mb-2">
 								<Image
 									src={logoDisplayUrl}
 									alt={organizationName}
@@ -374,30 +424,25 @@ export function PortraitReceiptTicket({
 								/>
 							</div>
 						) : null}
-						<span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 truncate">
-							{organizationName}
-						</span>
+
+						<h2
+							className="text-lg sm:text-xl font-black uppercase tracking-tight text-center leading-snug mt-1 mb-2 text-slate-950 px-1"
+							style={{ fontFamily: "'Courier New', Courier, monospace" }}
+						>
+							{eventName}
+						</h2>
+
+						<div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/80 mb-1">
+							<Tag className="size-3 text-slate-500" />
+							<span
+								className="text-[11px] font-bold uppercase tracking-wider text-slate-800"
+								style={{ fontFamily: "'Courier New', Courier, monospace" }}
+							>
+								01 × {ticketType}
+							</span>
+						</div>
 					</div>
-				</div>
-
-				{/* Event Title */}
-				<h2
-					className="text-lg sm:text-xl font-black uppercase tracking-tight text-center leading-snug mt-1 mb-2 text-slate-950 px-1"
-					style={{ fontFamily: "'Courier New', Courier, monospace" }}
-				>
-					{eventName}
-				</h2>
-
-				{/* Ticket Type Tag */}
-				<div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/80 mb-1">
-					<Tag className="size-3 text-slate-500" />
-					<span
-						className="text-[11px] font-bold uppercase tracking-wider text-slate-800"
-						style={{ fontFamily: "'Courier New', Courier, monospace" }}
-					>
-						01 × {ticketType}
-					</span>
-				</div>
+				)}
 
 				{/* Cutting Line 1 (Upper Perforation): Dashed line extending edge-to-edge into side notches */}
 				<div
@@ -541,13 +586,12 @@ export function PortraitReceiptTicket({
 				</div>
 			</div>
 
-			{/* SVG Outline following the exact path silhouette */}
-			{activePath ? (
-				<TicketOutline color={primaryColor} path={activePath} />
+			{/* Bottom Sawtooth Edge for Classic, Modern, and Receipt */}
+			{hasSawtoothEnds ? (
+				<ReceiptSawtoothBottom
+					className={isRetro ? "text-[#fcfaf7]" : "text-white"}
+				/>
 			) : null}
-
-			{/* Bottom Sawtooth Edge for Receipt Pass */}
-			{isReceipt ? <ReceiptSawtoothBottom className="text-white" /> : null}
 		</div>
 	);
 }

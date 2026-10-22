@@ -204,29 +204,69 @@ function GhostTicket({
   );
 }
 
+function SawtoothLeft({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg
+      className={cn("h-full w-2.5 block -mr-px shrink-0 select-none", className)}
+      viewBox="0 0 8 120"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      style={style}
+    >
+      <path
+        d="M8,0 L0,3 L8,6 L0,9 L8,12 L0,15 L8,18 L0,21 L8,24 L0,27 L8,30 L0,33 L8,36 L0,39 L8,42 L0,45 L8,48 L0,51 L8,54 L0,57 L8,60 L0,63 L8,66 L0,69 L8,72 L0,75 L8,78 L0,81 L8,84 L0,87 L8,90 L0,93 L8,96 L0,99 L8,102 L0,105 L8,108 L0,111 L8,114 L0,117 L8,120 Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function SawtoothRight({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg
+      className={cn("h-full w-2.5 block -ml-px shrink-0 select-none", className)}
+      viewBox="0 0 8 120"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      style={style}
+    >
+      <path
+        d="M0,0 L8,3 L0,6 L8,9 L0,12 L8,15 L0,18 L8,21 L0,24 L8,27 L0,30 L8,33 L0,36 L8,39 L0,42 L8,45 L0,48 L8,51 L0,54 L8,57 L0,60 L8,63 L0,66 L8,69 L0,72 L8,75 L0,78 L8,81 L0,84 L8,87 L0,90 L8,93 L0,96 L8,99 L0,102 L8,105 L0,108 L8,111 L0,114 L8,117 L0,120 Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 function TicketShell({
   backgroundColor,
   outlineColor,
   clipId,
   children,
+  sawtoothColor,
 }: {
   backgroundColor: string;
   outlineColor: string;
   clipId: string;
   children: React.ReactNode;
+  sawtoothColor?: string;
 }) {
   return (
-    <div className="relative w-full h-full min-w-0">
-      <div
-        className="flex flex-row bg-background items-stretch w-full h-full relative min-w-0 overflow-hidden"
-        style={{
-          clipPath: `url(#${clipId})`,
-          backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
-        }}
-      >
-        {children}
+    <div className="flex flex-row items-stretch w-full h-full relative select-none">
+      <SawtoothLeft style={{ color: sawtoothColor || backgroundColor }} />
+      <div className="flex-1 min-w-0 h-full relative">
+        <div
+          className="flex flex-row bg-background items-stretch w-full h-full relative min-w-0 overflow-hidden"
+          style={{
+            clipPath: `url(#${clipId})`,
+            backgroundImage: `linear-gradient(${backgroundColor}, ${backgroundColor}), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(0,0,0,0.025) 24px)`,
+          }}
+        >
+          {children}
+        </div>
+        <TicketOutline color={outlineColor} />
       </div>
-      <TicketOutline color={outlineColor} />
+      <SawtoothRight style={{ color: sawtoothColor || backgroundColor }} />
     </div>
   );
 }
@@ -357,7 +397,7 @@ export function TicketCard({
             <img
               src={logoDisplayUrl}
               alt={organizationName}
-              className="size-6 sm:size-8 rounded-full object-cover border"
+              className="size-6 sm:size-8 rounded-full object-cover "
             />
           ) : null}
           <div

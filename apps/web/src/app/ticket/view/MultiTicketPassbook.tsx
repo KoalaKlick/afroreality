@@ -164,6 +164,8 @@ export function MultiTicketPassbook({
 					eventName={event.title}
 					organizationName={organization.name}
 					logoUrl={organization.logoUrl}
+					flierImage={event.flierImage || event.bannerImage}
+					bannerImage={event.bannerImage}
 					dateTime={event.startDate ? String(event.startDate) : undefined}
 					venue={event.venue || "Venue TBA"}
 					qrPayload={activePass.verifyUrl}
@@ -210,6 +212,8 @@ export function MultiTicketPassbook({
 						eventName={event.title}
 						organizationName={organization.name}
 						logoUrl={organization.logoUrl}
+						flierImage={event.flierImage || event.bannerImage}
+						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
 						qrPayload={activePass.verifyUrl}
@@ -231,6 +235,8 @@ export function MultiTicketPassbook({
 						eventName={event.title}
 						organizationName={organization.name}
 						logoUrl={organization.logoUrl}
+						flierImage={event.flierImage || event.bannerImage}
+						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
 						qrPayload={activePass.verifyUrl}
@@ -251,6 +257,8 @@ export function MultiTicketPassbook({
 						eventName={event.title}
 						organizationName={organization.name}
 						logoUrl={organization.logoUrl}
+						flierImage={event.flierImage || event.bannerImage}
+						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
 						qrPayload={activePass.verifyUrl}
