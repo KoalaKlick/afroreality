@@ -297,10 +297,6 @@ export default async function TicketViewPage({
 							logoUrl: organization.logoUrl,
 						}}
 					/>
-
-					<p className="text-[11px] text-muted-foreground text-center max-w-sm print:hidden">
-						Keep this pass private — each QR admits one entry.
-					</p>
 				</main>
 			</div>
 
