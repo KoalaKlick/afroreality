@@ -150,7 +150,7 @@ export function MultiTicketPassbook({
 
 			<div
 				id="ticket-render-card"
-				className="w-full max-w-2xl flex justify-center min-w-0 overflow-hidden"
+				className="w-full max-w-2xl flex justify-center min-w-0 overflow-visible"
 			>
 				<TicketRenderer
 					key={activePass.id}

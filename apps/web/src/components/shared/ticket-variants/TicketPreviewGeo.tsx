@@ -4,6 +4,7 @@ import { useState, useId } from "react";
 import Image from "next/image";
 import { QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
+import { cn } from "@/lib/utils";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades, type ColorShades } from "@/utils/theme/color-generator";
 
@@ -108,7 +109,7 @@ function Stub({
 }) {
   return (
     <div
-      className="w-[72px] shrink-0 flex items-center justify-center relative overflow-hidden"
+      className="w-[12.857%] shrink-0 flex items-center justify-center relative overflow-hidden"
       style={{ background: primaryShades[700] || "#1e293b" }}
     >
       <div className="absolute top-0 left-0 w-2.5 h-2.5" style={{ background: primaryShades[500] }} />
@@ -238,11 +239,11 @@ function GhostTicketGeo({
     >
       <TicketOutline color={primaryShades[200]} />
       <div
-        className="absolute left-0 top-0 bottom-0 w-[72px] rounded-l-xl"
+        className="absolute left-0 top-0 bottom-0 w-[12.857%] rounded-l-xl"
         style={{ background: primaryShades[700] }}
       />
       <div
-        className="absolute right-0 top-0 bottom-0 w-[72px] rounded-r-xl"
+        className="absolute right-0 top-0 bottom-0 w-[12.857%] rounded-r-xl"
         style={{ background: primaryShades[700] }}
       />
     </div>
@@ -416,18 +417,21 @@ function BackSide({
     >
       <Stub side="left" primaryShades={primaryShades} label={buyerName.slice(0, 12)} />
 
-      <div className="flex-1 flex items-center gap-6 px-5 py-2.5 relative">
+      <div className="flex-1 flex items-center justify-around gap-1.5 sm:gap-4 md:gap-6 px-1.5 sm:px-4 md:px-5 py-1 sm:py-2.5 relative min-w-0 overflow-hidden">
         <CornerOrnament corner="tl" color={primaryShades[500]} />
         <CornerOrnament corner="bl" color={primaryShades[500]} />
         <CornerOrnament corner="tr" color={primaryShades[500]} />
         <CornerOrnament corner="br" color={primaryShades[500]} />
 
-        <div className="flex flex-col items-center gap-1 shrink-0 relative z-10">
+        <div className="flex flex-col items-center gap-0.5 sm:gap-1 shrink-0 relative z-10">
           <div
-            className="flex items-center justify-center p-2 bg-white shadow-xs border"
+            className={cn(
+              "flex items-center justify-center bg-white shadow-xs border shrink-0",
+              exportMode
+                ? "w-[132px] h-[132px] p-2"
+                : "w-[72px] h-[72px] xs:w-[84px] xs:h-[84px] sm:w-[124px] sm:h-[124px] p-1 sm:p-2"
+            )}
             style={{
-              width: exportMode ? 132 : 124,
-              height: exportMode ? 132 : 124,
               backgroundColor: "#ffffff",
               borderColor: primaryShades[200] || primaryColor,
               imageRendering: "pixelated",
@@ -445,13 +449,13 @@ function BackSide({
               />
             ) : (
               <QrCode
-                className="size-16"
+                className="size-10 sm:size-16"
                 style={{ color: primaryShades[600] }}
               />
             )}
           </div>
           <div
-            className="text-[8px] font-black tracking-[0.12em] uppercase opacity-70 text-center mt-0.5"
+            className="text-[7px] sm:text-[8px] font-black tracking-[0.08em] sm:tracking-[0.12em] uppercase opacity-70 text-center"
             style={{ fontFamily: "'Courier New', monospace", color: primaryShades[600] }}
           >
             Scan to verify
@@ -459,34 +463,38 @@ function BackSide({
         </div>
 
         <div
-          className="self-stretch w-px shrink-0 relative z-10"
+          className="self-stretch w-px shrink-0 relative z-10 my-1 sm:my-2"
           style={{ background: primaryShades[200] }}
         />
 
-        <div className="flex flex-col items-center gap-2 flex-1 relative z-10">
+        <div className="flex flex-col items-center gap-0.5 sm:gap-1.5 md:gap-2 flex-1 relative z-10 min-w-0 overflow-hidden">
           <div
-            className="text-[9px] font-black tracking-[0.3em] uppercase opacity-60"
+            className="text-[7px] sm:text-[9px] font-black tracking-[0.15em] sm:tracking-[0.3em] uppercase opacity-60"
             style={{ fontFamily: "'Courier New', monospace", color: primaryShades[600] }}
           >
             Ticket No.
           </div>
           <div
-            className="text-base font-black tracking-[0.15em]"
+            className="text-[10px] xs:text-xs sm:text-base font-black tracking-normal xs:tracking-wider sm:tracking-[0.15em] truncate max-w-full text-center"
             style={{ fontFamily: "'Courier New', monospace", color: primaryShades[800] }}
           >
             {ticketCode}
           </div>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center justify-center gap-[1px] sm:gap-0.5 max-w-full overflow-hidden">
             {barWidths.map((w, i) => (
               <div
                 key={i}
-                className="rounded-[1px] opacity-70"
-                style={{ width: w, height: (barHeights[i] ?? 26) * 0.7, background: primaryShades[700] }}
+                className="rounded-[1px] opacity-70 shrink-0"
+                style={{
+                  width: exportMode ? w : Math.max(1, w * 0.7),
+                  height: (barHeights[i] ?? 26) * (exportMode ? 0.7 : 0.45),
+                  background: primaryShades[700],
+                }}
               />
             ))}
           </div>
           <div
-            className="text-[8px] opacity-50 uppercase tracking-wider"
+            className="text-[7px] sm:text-[8px] opacity-50 uppercase tracking-wider truncate max-w-full text-center"
             style={{ fontFamily: "'Courier New', monospace", color: primaryShades[600] }}
           >
             {organizationName}

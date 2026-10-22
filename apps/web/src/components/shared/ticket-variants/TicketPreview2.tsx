@@ -4,6 +4,7 @@ import { useState, useId } from "react";
 import Image from "next/image";
 import { QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
+import { cn } from "@/lib/utils";
 import { getEventImageUrl, getOrgImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades, type ColorShades } from "@/utils/theme/color-generator";
 
@@ -407,25 +408,31 @@ function BackFace({
       <TicketOutline color={primaryShades[700]} />
 
       {/* ── Left: QR / scan area ── */}
-      <div className="flex flex-col items-center justify-center gap-2 px-6 shrink-0" style={{ width: 160 }}>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center gap-1 sm:gap-2 px-2 sm:px-6 shrink-0",
+          exportMode ? "w-[160px]" : "w-[95px] xs:w-[110px] sm:w-[160px]"
+        )}
+      >
         <div
-          className="text-[8px] font-black tracking-[0.3em] uppercase text-center"
+          className="text-[7px] sm:text-[8px] font-black tracking-[0.15em] sm:tracking-[0.3em] uppercase text-center"
           style={{ fontFamily: "'Courier New', monospace", color: primaryShades[400] }}
         >
           Scan to Verify
         </div>
         <div
-          className="flex items-center justify-center p-2 rounded-md bg-white shadow-xs"
+          className="flex items-center justify-center p-1 sm:p-2 rounded-md bg-white shadow-xs shrink-0"
           style={{
             background: "#ffffff",
             border: `1px solid ${primaryShades[200] || primaryColor}`,
           }}
         >
           <div
-            style={{
-              width: exportMode ? 130 : 118,
-              height: exportMode ? 130 : 118,
-            }}
+            className={cn(
+              exportMode
+                ? "w-[130px] h-[130px]"
+                : "w-[68px] h-[68px] xs:w-[80px] xs:h-[80px] sm:w-[118px] sm:h-[118px]"
+            )}
           >
             {qrPayload ? (
               <QRCode
@@ -442,7 +449,7 @@ function BackFace({
           </div>
         </div>
         <div
-          className="text-[7px] tracking-[0.15em] uppercase opacity-25 text-center"
+          className="text-[6px] sm:text-[7px] tracking-[0.1em] sm:tracking-[0.15em] uppercase opacity-25 text-center truncate max-w-full"
           style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
         >
           {organizationName}
@@ -450,7 +457,7 @@ function BackFace({
       </div>
 
       {/* ── Vertical divider ── */}
-      <div className="flex flex-col items-center justify-center py-4 shrink-0">
+      <div className="flex flex-col items-center justify-center py-2 sm:py-4 shrink-0">
         <div className="flex flex-col items-center gap-1 h-full justify-center">
           <Lozenge color={primaryColor} />
           <div className="flex-1 w-px" style={{ background: primaryShades[800] }} />
@@ -459,17 +466,17 @@ function BackFace({
       </div>
 
       {/* ── Right: Ticket details ── */}
-      <div className="flex-1 flex flex-col justify-between py-4 px-5 min-w-0">
+      <div className="flex-1 flex flex-col justify-between py-2 sm:py-4 px-2 sm:px-5 min-w-0">
         {/* Buyer */}
         <div>
           <div
-            className="text-[8px] font-black tracking-[0.3em] uppercase"
+            className="text-[7px] sm:text-[8px] font-black tracking-[0.15em] sm:tracking-[0.3em] uppercase"
             style={{ fontFamily: "'Courier New', monospace", color: primaryShades[300] }}
           >
             Ticket Holder
           </div>
           <div
-            className="text-sm font-bold text-white/90 mt-0.5 truncate"
+            className="text-xs sm:text-sm font-bold text-white/90 mt-0.5 truncate"
             style={{ fontFamily: "'Georgia', serif" }}
           >
             {buyerName}
@@ -477,18 +484,22 @@ function BackFace({
         </div>
 
         {/* Barcode */}
-        <div className="flex flex-col items-start gap-1">
-          <div className="flex items-end gap-0.5">
+        <div className="flex flex-col items-start gap-0.5 sm:gap-1 max-w-full overflow-hidden">
+          <div className="flex items-end gap-[1px] sm:gap-0.5 max-w-full overflow-hidden">
             {barWidths.map((w, i) => (
               <div
                 key={i}
-                className="rounded-[1px] opacity-50"
-                style={{ width: w, height: (barHeights[i] ?? 26) * 0.72, background: primaryColor }}
+                className="rounded-[1px] opacity-50 shrink-0"
+                style={{
+                  width: exportMode ? w : Math.max(1, w * 0.75),
+                  height: (barHeights[i] ?? 26) * (exportMode ? 0.72 : 0.45),
+                  background: primaryColor,
+                }}
               />
             ))}
           </div>
           <div
-            className="text-[9px] font-black tracking-[0.18em] opacity-70"
+            className="text-[8px] sm:text-[9px] font-black tracking-normal sm:tracking-[0.18em] opacity-70 truncate max-w-full"
             style={{ fontFamily: "'Courier New', monospace", color: primaryColor }}
           >
             {ticketCode}
@@ -499,7 +510,7 @@ function BackFace({
         <div>
           <HRule color={primaryColor} />
           <div
-            className="mt-1.5 text-[7px] font-black tracking-[0.4em] uppercase "
+            className="mt-1 text-[6px] sm:text-[7px] font-black tracking-[0.2em] sm:tracking-[0.4em] uppercase truncate"
             style={{ fontFamily: "'Courier New', monospace", color: primaryShades[300] }}
           >
             Non-Transferable · Non-Refundable
