@@ -244,64 +244,68 @@ export default async function TicketViewPage({
 	const bgImageUrl = getEventImageUrl(event.flierImage || event.bannerImage);
 
 	return (
-		<div className="min-h-screen bg-slate-950 text-foreground flex flex-col relative overflow-x-hidden selection:bg-primary/20">
-			{/* Ambient Event Flier Backdrop */}
-			{bgImageUrl ? (
-				<div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-					<Image
-						src={bgImageUrl}
-						alt={event.title}
-						fill
-						className="object-cover object-center blur-3xl opacity-30 dark:opacity-25 scale-110"
-						priority
-						unoptimized
-					/>
-					<div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/85 to-slate-950/95" />
-				</div>
-			) : (
-				<div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950" />
-			)}
-
-			<header className="border-b border-white/10 bg-slate-950/40 backdrop-blur-md sticky top-0 z-40 print:hidden relative">
-				<div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between text-xs">
+		<div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
+			{/* Top Header without flier background */}
+			<header className="border-b border-border/60 bg-card/60 backdrop-blur-sm sticky top-0 z-40 print:hidden">
+				<div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
 					<Link
 						href={`/${organization.slug}/event/${event.slug}`}
-						className="font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
+						className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center gap-2"
 					>
-						<ArrowLeft className="size-3.5" /> Back to event
+						<ArrowLeft className="size-4 text-primary" />
+						Back to event
 					</Link>
-					<span className="text-slate-400">
-						{passes.length > 1 ? `${passes.length} passes` : "Your ticket"}
+					<span className="text-xs text-muted-foreground font-medium">
+						{passes.length > 1 ? `${passes.length} passes` : "Official Ticket"}
 					</span>
 				</div>
 			</header>
 
-			<main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 flex flex-col items-center gap-6 relative z-10">
+			{/* Content Area with Ambient Flier Backdrop */}
+			<div className="flex-1 relative flex flex-col items-center justify-center min-w-0">
+				{bgImageUrl ? (
+					<div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+						<Image
+							src={bgImageUrl}
+							alt={event.title}
+							fill
+							className="object-cover object-center scale-105 blur-sm opacity-60"
+							priority
+							unoptimized
+						/>
+						<div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]" />
+					</div>
+				) : (
+					<div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950" />
+				)}
 
-				<MultiTicketPassbook
-					passes={passes}
-					initialSelectedTicketId={ticket.id}
-					orderNumber={order?.orderNumber}
-					event={{
-						id: event.id,
-						title: event.title,
-						flierImage: event.flierImage,
-						bannerImage: event.bannerImage,
-						startDate: event.startDate ? String(event.startDate) : undefined,
-						venue: venueLabel,
-					}}
-					organization={{
-						name: organization.name,
-						logoUrl: organization.logoUrl,
-					}}
-				/>
+				<main className="max-w-4xl w-full mx-auto px-4 py-8 sm:py-10 flex flex-col items-center gap-6 relative z-10">
+					<MultiTicketPassbook
+						passes={passes}
+						initialSelectedTicketId={ticket.id}
+						orderNumber={order?.orderNumber}
+						event={{
+							id: event.id,
+							title: event.title,
+							flierImage: event.flierImage,
+							bannerImage: event.bannerImage,
+							startDate: event.startDate ? String(event.startDate) : undefined,
+							venue: venueLabel,
+						}}
+						organization={{
+							name: organization.name,
+							logoUrl: organization.logoUrl,
+						}}
+					/>
 
-				<p className="text-[11px] text-muted-foreground text-center max-w-sm print:hidden">
-					Keep this pass private — each QR admits one entry.
-				</p>
-			</main>
+					<p className="text-[11px] text-muted-foreground text-center max-w-sm print:hidden">
+						Keep this pass private — each QR admits one entry.
+					</p>
+				</main>
+			</div>
 
-			<footer className="py-6 border-t border-border/40 print:hidden mt-auto">
+			{/* Footer without flier background */}
+			<footer className="py-6 border-t border-border/40 mt-auto bg-background print:hidden relative z-10">
 				<PoweredByFooter />
 			</footer>
 		</div>

@@ -513,6 +513,7 @@ export function TicketTypeSheet({
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="classic">Classic Ticket</SelectItem>
+										<SelectItem value="receipt">Receipt Pass</SelectItem>
 										<SelectItem value="modern">Modern Pass</SelectItem>
 										<SelectItem value="geo">Geometric Style</SelectItem>
 										<SelectItem value="retro">Retro Vintage</SelectItem>

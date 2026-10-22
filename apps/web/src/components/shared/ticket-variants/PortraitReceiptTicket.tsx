@@ -9,6 +9,7 @@ import { getOrgImageUrl } from "@/lib/image-url-utils";
 import { generateColorShades } from "@/utils/theme/color-generator";
 
 export interface PortraitReceiptTicketProps {
+	readonly variant?: string | null;
 	readonly primaryColor?: string;
 	readonly secondaryColor?: string;
 	readonly logoUrl?: string | null;
@@ -59,9 +60,71 @@ function ReceiptSawtoothBottom({ className }: { className?: string }) {
 	);
 }
 
-function ReceiptDivider() {
+/**
+ * Circular perforated divider notch (Classic, Receipt & Retro)
+ */
+function CircularPerforatedDivider({ className }: { className?: string }) {
 	return (
-		<div className="w-full my-3 sm:my-4 border-b border-dashed border-slate-300" />
+		<div
+			className={cn(
+				"relative -mx-5 sm:-mx-6 w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] my-2.5 sm:my-3 flex items-center h-4 select-none pointer-events-none",
+				className,
+			)}
+		>
+			<svg
+				className="w-3 h-4 block text-white shrink-0 -mr-px"
+				viewBox="0 0 12 16"
+				fill="currentColor"
+				aria-hidden="true"
+			>
+				<path d="M 0 0 L 12 0 L 12 16 L 0 16 L 0 13 A 5 5 0 0 1 0 3 L 0 0 Z" />
+			</svg>
+			<div className="flex-1 h-4 bg-white flex items-center px-0.5">
+				<div className="w-full border-b border-dashed border-slate-300" />
+			</div>
+			<svg
+				className="w-3 h-4 block text-white shrink-0 -ml-px"
+				viewBox="0 0 12 16"
+				fill="currentColor"
+				aria-hidden="true"
+			>
+				<path d="M 0 0 L 12 0 L 12 3 A 5 5 0 0 0 12 13 L 12 16 L 0 16 Z" />
+			</svg>
+		</div>
+	);
+}
+
+/**
+ * Geometric triangular notch divider (Geo Variant)
+ */
+function GeoPerforatedDivider({ className }: { className?: string }) {
+	return (
+		<div
+			className={cn(
+				"relative -mx-5 sm:-mx-6 w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] my-2.5 sm:my-3 flex items-center h-4 select-none pointer-events-none",
+				className,
+			)}
+		>
+			<svg
+				className="w-3 h-4 block text-white shrink-0 -mr-px"
+				viewBox="0 0 12 16"
+				fill="currentColor"
+				aria-hidden="true"
+			>
+				<path d="M 0 0 L 12 0 L 12 16 L 0 16 L 0 13 L 6 8 L 0 3 Z" />
+			</svg>
+			<div className="flex-1 h-4 bg-white flex items-center px-0.5">
+				<div className="w-full border-b border-dashed border-slate-300" />
+			</div>
+			<svg
+				className="w-3 h-4 block text-white shrink-0 -ml-px"
+				viewBox="0 0 12 16"
+				fill="currentColor"
+				aria-hidden="true"
+			>
+				<path d="M 0 0 L 12 0 L 12 3 L 6 8 L 12 13 L 12 16 L 0 16 Z" />
+			</svg>
+		</div>
 	);
 }
 
@@ -90,6 +153,7 @@ function formatPassDateTime(val?: string) {
 }
 
 export function PortraitReceiptTicket({
+	variant = "classic",
 	primaryColor = "#CE1126",
 	secondaryColor = "#009A44",
 	logoUrl,
@@ -111,6 +175,30 @@ export function PortraitReceiptTicket({
 	const logoDisplayUrl = getOrgImageUrl(logoUrl);
 	const formattedDate = useMemo(() => formatPassDateTime(dateTime), [dateTime]);
 
+	const normalizedVariant = (variant || "classic").toLowerCase().trim();
+	const isRetro = normalizedVariant === "retro" || normalizedVariant === "vintage" || normalizedVariant === "roteract";
+	const isGeo = normalizedVariant === "geo" || normalizedVariant === "geometric";
+	const isModern = normalizedVariant === "modern" || normalizedVariant === "pass";
+	const isClassicOrReceipt = !isRetro && !isGeo && !isModern;
+
+	// Badge label
+	const badgeText = isRetro
+		? "RETRO PASS"
+		: isGeo
+			? "GEO PASS"
+			: isModern
+				? "MODERN PASS"
+				: "RECEIPT PASS";
+
+	// Outer card silhouette styling
+	const containerSilhouette = isGeo
+		? "[clip-path:polygon(16px_0,calc(100%-16px)_0,100%_16px,100%_calc(100%-16px),calc(100%-16px)_100%,16px_100%,0_calc(100%-16px),0_16px)]"
+		: isRetro
+			? "rounded-3xl border-2 border-dashed border-slate-300 overflow-hidden shadow-2xl"
+			: isModern
+				? "rounded-3xl border border-slate-200 overflow-hidden shadow-2xl"
+				: ""; // classic uses sawteeth top/bottom
+
 	return (
 		<div
 			className={cn(
@@ -118,11 +206,23 @@ export function PortraitReceiptTicket({
 				className,
 			)}
 		>
-			{/* Top Sawtooth Edge */}
-			<ReceiptSawtoothTop className="text-white" />
+			{/* Top Edge: Sawtooth for Classic/Receipt, rounded for others */}
+			{isClassicOrReceipt ? (
+				<ReceiptSawtoothTop className="text-white" />
+			) : null}
 
-			{/* Main Receipt Body */}
-			<div className="bg-white text-slate-900 px-5 sm:px-6 pt-3 pb-5 flex flex-col items-center relative overflow-hidden">
+			{/* Main Ticket Body */}
+			<div
+				className={cn(
+					"bg-white text-slate-900 px-5 sm:px-6 pt-3 pb-5 flex flex-col items-center relative overflow-hidden",
+					containerSilhouette,
+				)}
+			>
+				{/* Top Lanyard Slot for Modern Pass */}
+				{isModern ? (
+					<div className="w-12 h-1.5 rounded-full bg-slate-900/15 mb-2 -mt-1 mx-auto" />
+				) : null}
+
 				{/* Subtle thermal paper texture */}
 				<div
 					className="absolute inset-0 opacity-[0.025] pointer-events-none"
@@ -159,7 +259,7 @@ export function PortraitReceiptTicket({
 							fontFamily: "'Courier New', Courier, monospace",
 						}}
 					>
-						RECEIPT PASS
+						{badgeText}
 					</span>
 				</div>
 
@@ -182,8 +282,8 @@ export function PortraitReceiptTicket({
 					</span>
 				</div>
 
-				{/* Divider */}
-				<ReceiptDivider />
+				{/* Perforated Divider 1 */}
+				{isGeo ? <GeoPerforatedDivider /> : <CircularPerforatedDivider />}
 
 				{/* Details Table */}
 				<div className="w-full space-y-2.5 text-xs px-1">
@@ -263,8 +363,8 @@ export function PortraitReceiptTicket({
 					) : null}
 				</div>
 
-				{/* Divider */}
-				<ReceiptDivider />
+				{/* Perforated Divider 2 */}
+				{isGeo ? <GeoPerforatedDivider /> : <CircularPerforatedDivider />}
 
 				{/* BIG Prominent QR Code */}
 				<div className="flex flex-col items-center justify-center my-1.5">
@@ -318,8 +418,10 @@ export function PortraitReceiptTicket({
 				</div>
 			</div>
 
-			{/* Bottom Sawtooth Edge */}
-			<ReceiptSawtoothBottom className="text-white" />
+			{/* Bottom Edge: Sawtooth for Classic/Receipt */}
+			{isClassicOrReceipt ? (
+				<ReceiptSawtoothBottom className="text-white" />
+			) : null}
 		</div>
 	);
 }

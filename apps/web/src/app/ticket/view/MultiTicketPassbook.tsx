@@ -155,6 +155,7 @@ export function MultiTicketPassbook({
 			>
 				<PortraitReceiptTicket
 					key={activePass.id}
+					variant={activePass.designVariant}
 					primaryColor={activePass.primaryColor}
 					secondaryColor={activePass.secondaryColor}
 					ticketCode={activePass.ticketCode}
@@ -200,6 +201,7 @@ export function MultiTicketPassbook({
 					className="bg-transparent p-4 w-[390px] min-w-[390px]"
 				>
 					<PortraitReceiptTicket
+						variant={activePass.designVariant}
 						primaryColor={activePass.primaryColor}
 						secondaryColor={activePass.secondaryColor}
 						ticketCode={activePass.ticketCode}
@@ -220,6 +222,7 @@ export function MultiTicketPassbook({
 					className="bg-transparent p-4 w-[390px] min-w-[390px]"
 				>
 					<PortraitReceiptTicket
+						variant={activePass.designVariant}
 						primaryColor={activePass.primaryColor}
 						secondaryColor={activePass.secondaryColor}
 						ticketCode={activePass.ticketCode}
@@ -239,6 +242,7 @@ export function MultiTicketPassbook({
 					className="bg-transparent p-4 w-[390px] min-w-[390px]"
 				>
 					<PortraitReceiptTicket
+						variant={activePass.designVariant}
 						primaryColor={activePass.primaryColor}
 						secondaryColor={activePass.secondaryColor}
 						ticketCode={activePass.ticketCode}
