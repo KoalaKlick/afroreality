@@ -459,11 +459,11 @@ export function PublicTicketPaymentModal({
 										</p>
 									) : buyerPhoneInfo?.name ? (
 										<p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-											Name on MoMo: {buyerPhoneInfo.name}
+											{buyerPhoneInfo.name}
 										</p>
 									) : (
 										<p className="text-[10px] text-muted-foreground">
-											Used to send your ticket pass via WhatsApp. Not used for payment.
+											Used to send your ticket pass via WhatsApp/SMS. Not used for payment.
 										</p>
 									)}
 								</div>
@@ -581,7 +581,7 @@ export function PublicTicketPaymentModal({
 															</p>
 														) : attendeePhoneInfo[passNum - 1]?.name ? (
 															<p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-																Name on MoMo: {attendeePhoneInfo[passNum - 1]?.name}
+																{attendeePhoneInfo[passNum - 1]?.name}
 															</p>
 														) : (
 															<p className="text-[10px] text-muted-foreground">

@@ -277,14 +277,6 @@ export default async function TicketViewPage({
 			</header>
 
 			<main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 flex flex-col items-center gap-6 relative z-10">
-				<div className="text-center print:hidden space-y-1">
-					<h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-						{event.title}
-					</h1>
-					<p className="text-xs text-slate-400">
-						Official admission pass · download for offline entry
-					</p>
-				</div>
 
 				<MultiTicketPassbook
 					passes={passes}

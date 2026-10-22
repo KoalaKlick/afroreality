@@ -59,20 +59,34 @@ function ReceiptSawtoothBottom({ className }: { className?: string }) {
 	);
 }
 
-/**
- * Receipt Dashed Divider with side semi-circle punch holes
- */
 function ReceiptDivider() {
 	return (
-		<div className="relative w-full my-3 sm:my-4 flex items-center justify-center">
-			{/* Left punch notch */}
-			<div className="absolute -left-5 sm:-left-6 size-4 sm:size-5 rounded-full bg-slate-900/60 backdrop-blur-md shadow-inner" />
-			{/* Dashed line */}
-			<div className="w-full border-b border-dashed border-slate-300 dark:border-slate-300/80" />
-			{/* Right punch notch */}
-			<div className="absolute -right-5 sm:-right-6 size-4 sm:size-5 rounded-full bg-slate-900/60 backdrop-blur-md shadow-inner" />
-		</div>
+		<div className="w-full my-3 sm:my-4 border-b border-dashed border-slate-300" />
 	);
+}
+
+function formatPassDateTime(val?: string) {
+	if (!val) return "Date & Time TBA";
+	try {
+		const d = new Date(val);
+		if (!isNaN(d.getTime())) {
+			return (
+				d.toLocaleDateString("en-US", {
+					weekday: "short",
+					day: "numeric",
+					month: "short",
+					year: "numeric",
+				}) +
+				" · " +
+				d.toLocaleTimeString("en-US", {
+					hour: "numeric",
+					minute: "2-digit",
+					hour12: true,
+				})
+			);
+		}
+	} catch {}
+	return val;
 }
 
 export function PortraitReceiptTicket({
@@ -95,16 +109,7 @@ export function PortraitReceiptTicket({
 		[primaryColor],
 	);
 	const logoDisplayUrl = getOrgImageUrl(logoUrl);
-
-	// Barcode bar widths
-	const barWidths = [
-		3, 1.5, 1.5, 3, 1.5, 2, 1.5, 3, 1.5, 1.5, 3, 2, 1.5, 3, 1.5, 2, 3, 1.5, 3,
-		1.5, 2, 3, 1.5, 1.5, 3, 2, 3, 1.5, 1.5, 3, 1.5, 2.5, 1.5, 3,
-	];
-	const barHeights = [
-		38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 38,
-		26, 26, 38, 26, 26, 38, 26, 38, 26, 26, 38, 26, 38, 26, 38,
-	];
+	const formattedDate = useMemo(() => formatPassDateTime(dateTime), [dateTime]);
 
 	return (
 		<div
@@ -194,10 +199,10 @@ export function PortraitReceiptTicket({
 							</span>
 						</div>
 						<span
-							className="text-[11px] sm:text-xs font-bold text-slate-900 text-right truncate max-w-[200px]"
+							className="text-[11px] sm:text-xs font-bold text-slate-900 text-right max-w-[220px] leading-snug"
 							style={{ fontFamily: "'Courier New', Courier, monospace" }}
 						>
-							{dateTime}
+							{formattedDate}
 						</span>
 					</div>
 
@@ -213,7 +218,7 @@ export function PortraitReceiptTicket({
 							</span>
 						</div>
 						<span
-							className="text-[11px] sm:text-xs font-bold text-slate-900 text-right truncate max-w-[200px]"
+							className="text-[11px] sm:text-xs font-bold text-slate-900 text-right max-w-[220px] leading-snug"
 							style={{ fontFamily: "'Courier New', Courier, monospace" }}
 						>
 							{venue}
@@ -232,7 +237,7 @@ export function PortraitReceiptTicket({
 							</span>
 						</div>
 						<span
-							className="text-[11px] sm:text-xs font-black text-slate-950 text-right uppercase truncate max-w-[190px]"
+							className="text-[11px] sm:text-xs font-black text-slate-950 text-right uppercase max-w-[220px] leading-snug"
 							style={{ fontFamily: "'Courier New', Courier, monospace" }}
 						>
 							{buyerName}
@@ -295,7 +300,7 @@ export function PortraitReceiptTicket({
 				{/* Divider */}
 				<div className="w-full border-b border-dashed border-slate-300 my-3" />
 
-				{/* Ticket Code & Barcode */}
+				{/* Ticket Code */}
 				<div className="w-full flex flex-col items-center gap-1.5 pt-1">
 					<span
 						className="text-xs sm:text-sm font-black tracking-[0.2em] text-slate-900 font-mono"
@@ -303,20 +308,6 @@ export function PortraitReceiptTicket({
 					>
 						{ticketCode}
 					</span>
-
-					{/* Barcode Visual */}
-					<div className="flex items-end justify-center gap-[1.5px] max-w-full overflow-hidden opacity-85 py-1">
-						{barWidths.map((w, i) => (
-							<div
-								key={i}
-								className="bg-slate-900 rounded-[0.5px]"
-								style={{
-									width: `${w * 1.15}px`,
-									height: `${(barHeights[i] ?? 26) * 0.75}px`,
-								}}
-							/>
-						))}
-					</div>
 
 					<p
 						className="text-[8px] font-bold tracking-[0.15em] uppercase text-slate-400 text-center mt-0.5"
