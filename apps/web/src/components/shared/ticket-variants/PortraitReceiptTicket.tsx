@@ -785,33 +785,34 @@ export function PortraitReceiptTicket({
 
 					
 
-					{/* Sponsors Grid */}
+					{/* Sponsors Flex - Natural aspect ratio with logo on top and name below */}
 					{sponsors && sponsors.length > 0 ? (
-						<div className="grid grid-cols-2 gap-1.5 overflow-y-auto no-scrollbar flex-1 min-h-0 pr-0.5">
+						<div className="flex flex-wrap items-center justify-around gap-x-5 gap-y-4 overflow-y-auto no-scrollbar flex-1 min-h-0 py-2 px-1 content-start">
 							{sponsors.map((s) => {
 								const sLogo = getSponsorImageUrl(s.logo);
 								return (
 									<div
 										key={s.id}
-										className="flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200/90 bg-white shadow-2xs min-w-0"
+										className="flex flex-col items-center justify-center shrink-0 min-w-[70px] max-w-[130px] p-1 text-center"
 									>
-										<div className="relative size-6 rounded-md overflow-hidden shrink-0 bg-slate-50 border border-slate-200/60 flex items-center justify-center">
+										<div className="h-10 sm:h-11 flex items-center justify-center">
 											{sLogo ? (
-												<Image
+												/* eslint-disable-next-line @next/next/no-img-element */
+												<img
 													src={sLogo}
 													alt={s.name}
-													fill
-													unoptimized
-													className="object-contain p-0.5"
+													className="h-full w-auto max-w-[120px] object-contain"
 												/>
 											) : (
-												<span className="text-[9px] font-black text-slate-400 uppercase">
-													{s.name.charAt(0)}
-												</span>
+												<div className="size-9 rounded-full bg-slate-200/80 flex items-center justify-center">
+													<span className="text-xs font-black text-slate-500 uppercase">
+														{s.name.charAt(0)}
+													</span>
+												</div>
 											)}
 										</div>
 										<span
-											className="text-[10px] font-bold text-slate-800 truncate"
+											className="text-[11px] font-bold text-slate-800 text-center truncate max-w-full mt-1.5 leading-tight"
 											title={s.name}
 										>
 											{s.name}
