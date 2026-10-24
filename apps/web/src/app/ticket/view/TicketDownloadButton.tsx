@@ -9,6 +9,7 @@ import {
 	ImageIcon,
 	ChevronDown,
 	Layers,
+	MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,7 +60,7 @@ export function TicketDownloadButton({
 			target === "front"
 				? "Front Pass"
 				: target === "back"
-					? "QR Gate Pass (Back)"
+					? "Back Pass (Venue & Sponsors)"
 					: "Full Ticket";
 
 		const node = document.getElementById(elementId);
@@ -138,7 +139,7 @@ export function TicketDownloadButton({
 				variant="outline"
 				size="sm"
 				onClick={handlePrint}
-				className="text-xs gap-1.5 h-9 border-border/70 shadow-none"
+				className="text-xs gap-1.5 h-9 border-border/70 shadow-sm bg-card hover:bg-card/90 text-foreground"
 			>
 				<Printer className="size-3.5" />
 				Print
@@ -186,8 +187,8 @@ export function TicketDownloadButton({
 							disabled={isDownloading}
 							className="text-xs cursor-pointer gap-2"
 						>
-							<QrCode className="size-3.5 text-muted-foreground" />
-							QR gate pass
+							<MapPin className="size-3.5 text-muted-foreground" />
+							Back pass (Venue & Sponsors)
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() => handleDownload("front")}

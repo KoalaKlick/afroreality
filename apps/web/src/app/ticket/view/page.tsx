@@ -4,7 +4,6 @@ import { prisma } from "@repo/db";
 import { getFrontendBaseUrl } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { PoweredByFooter } from "@/components/shared/PoweredByFooter";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiTicketPassbook } from "./MultiTicketPassbook";
@@ -122,7 +121,7 @@ export default async function TicketViewPage({
 				},
 				include: {
 					event: {
-						include: { organization: true },
+						include: { organization: true, sponsors: true },
 					},
 					ticketType: true,
 					order: true,
@@ -138,7 +137,7 @@ export default async function TicketViewPage({
 			},
 			include: {
 				event: {
-					include: { organization: true },
+					include: { organization: true, sponsors: true },
 				},
 				ticketType: true,
 				order: true,
@@ -241,45 +240,21 @@ export default async function TicketViewPage({
 		: [event.venueName, event.venueCity].filter(Boolean).join(", ") ||
 		"Venue TBA";
 
-	const bgImageUrl = getEventImageUrl(event.flierImage || event.bannerImage);
-
 	return (
-		<div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
-			{/* Top Header without flier background */}
-			<header className="border-b border-border/60 bg-card/60 backdrop-blur-sm sticky top-0 z-40 print:hidden">
-				<div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-					<Link
-						href={`/${organization.slug}/event/${event.slug}`}
-						className="text-xs font-semibold text-foreground hover:text-primary transition-colors flex items-center gap-2"
-					>
-						<ArrowLeft className="size-4 text-primary" />
-						Back to event
-					</Link>
-					<span className="text-xs text-muted-foreground font-medium">
-						{passes.length > 1 ? `${passes.length} passes` : "Official Ticket"}
-					</span>
-				</div>
-			</header>
+		<div className="min-h-screen text-foreground flex flex-col selection:bg-primary/20 relative">
+			{/* Floating Back Link */}
+			<Link
+				href={`/${organization.slug}/event/${event.slug}`}
+				className="fixed top-4 left-4 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/95 backdrop-blur-md border border-border/60 text-xs font-semibold text-foreground hover:bg-card transition-all shadow-md print:hidden"
+			>
+				<ArrowLeft className="size-3.5 text-primary" />
+				Back to event
+			</Link>
 
-			{/* Content Area with Ambient Flier Backdrop */}
+			{/* Content Area */}
 			<div className="flex-1 relative flex flex-col items-center justify-center min-w-0 print:block">
-				{bgImageUrl ? (
-					<div className="absolute inset-0 pointer-events-none z-0 overflow-hidden print:hidden">
-						<Image
-							src={bgImageUrl}
-							alt={event.title}
-							fill
-							className="object-cover object-center scale-105 blur-sm opacity-60"
-							priority
-							unoptimized
-						/>
-						<div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]" />
-					</div>
-				) : (
-					<div className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 print:hidden" />
-				)}
 
-				<main className="max-w-4xl w-full mx-auto px-4 py-8 sm:py-10 flex flex-col items-center gap-6 relative z-10 print:py-0 print:px-0 print:m-0">
+				<main className="max-w-4xl w-full mx-auto px-4 py-10 sm:py-14 flex flex-col items-center gap-6 relative z-10 print:py-0 print:px-0 print:m-0">
 					<MultiTicketPassbook
 						passes={passes}
 						initialSelectedTicketId={ticket.id}
@@ -291,17 +266,31 @@ export default async function TicketViewPage({
 							bannerImage: event.bannerImage,
 							startDate: event.startDate ? String(event.startDate) : undefined,
 							venue: venueLabel,
+							venueName: event.venueName,
+							venueAddress: event.venueAddress,
+							venueCity: event.venueCity,
+							venueCountry: event.venueCountry,
+							latitude: event.latitude,
+							longitude: event.longitude,
+							isVirtual: event.isVirtual,
+							virtualLink: event.virtualLink,
+							sponsors: (event.sponsors as any[])?.map((s: any) => ({
+								id: s.id,
+								name: s.name,
+								logo: s.logo,
+							})) || [],
 						}}
 						organization={{
 							name: organization.name,
 							logoUrl: organization.logoUrl,
+							websiteUrl: organization.websiteUrl,
 						}}
 					/>
 				</main>
 			</div>
 
-			{/* Footer without flier background */}
-			<footer className="py-6 border-t border-border/40 mt-auto bg-background print:hidden relative z-10">
+			{/* Footer */}
+			<footer className="border-t border-border/60 bg-card py-6 mt-auto print:hidden relative z-10">
 				<PoweredByFooter />
 			</footer>
 		</div>

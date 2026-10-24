@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { TicketRenderer } from "@/components/shared/ticket-variants/TicketRenderer";
-import { PortraitReceiptTicket } from "@/components/shared/ticket-variants/PortraitReceiptTicket";
+import {
+	PortraitReceiptTicket,
+	type TicketSponsorItem,
+} from "@/components/shared/ticket-variants/PortraitReceiptTicket";
+import { WhatsAppDoodleBackground } from "@/components/shared/WhatsAppDoodleBackground";
 import { TicketDownloadButton } from "./TicketDownloadButton";
 import {
 	ChevronLeft,
@@ -13,6 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+export type { TicketSponsorItem };
 
 export interface TicketPassItem {
 	id: string;
@@ -42,10 +47,20 @@ interface MultiTicketPassbookProps {
 		bannerImage?: string | null;
 		startDate?: string | null;
 		venue?: string;
+		venueName?: string | null;
+		venueAddress?: string | null;
+		venueCity?: string | null;
+		venueCountry?: string | null;
+		latitude?: number | null;
+		longitude?: number | null;
+		isVirtual?: boolean;
+		virtualLink?: string | null;
+		sponsors?: TicketSponsorItem[];
 	};
 	organization: {
 		name: string;
 		logoUrl?: string | null;
+		websiteUrl?: string | null;
 	};
 }
 
@@ -62,6 +77,7 @@ export function MultiTicketPassbook({
 	const [activeIdx, setActiveIdx] = useState(
 		initialIndex >= 0 ? initialIndex : 0,
 	);
+	const [isFlipped, setIsFlipped] = useState(false);
 	const [copied, setCopied] = useState(false);
 
 	const activePass = passes[activeIdx] ?? passes[0];
@@ -70,11 +86,22 @@ export function MultiTicketPassbook({
 	const isMultiPass = passes.length > 1;
 
 	const handlePrev = () => {
-		if (activeIdx > 0) setActiveIdx(activeIdx - 1);
+		if (activeIdx > 0) {
+			setActiveIdx(activeIdx - 1);
+			setIsFlipped(false);
+		}
 	};
 
 	const handleNext = () => {
-		if (activeIdx < passes.length - 1) setActiveIdx(activeIdx + 1);
+		if (activeIdx < passes.length - 1) {
+			setActiveIdx(activeIdx + 1);
+			setIsFlipped(false);
+		}
+	};
+
+	const handleSelectPass = (idx: number) => {
+		setActiveIdx(idx);
+		setIsFlipped(false);
 	};
 
 	const handleCopyLink = async () => {
@@ -89,7 +116,12 @@ export function MultiTicketPassbook({
 	};
 
 	return (
-		<div className="w-full flex flex-col items-center gap-6 min-w-0">
+		<>
+			<WhatsAppDoodleBackground
+				primaryColor={activePass.primaryColor}
+				className="fixed inset-0 pointer-events-none"
+			/>
+			<div className="w-full flex flex-col items-center gap-6 min-w-0 relative z-10">
 			{isMultiPass && (
 				<div className="w-full max-w-xl rounded-xl border border-border/70 bg-card p-3 print:hidden min-w-0 space-y-3">
 					<div className="flex items-center justify-between gap-2 min-w-0">
@@ -108,7 +140,7 @@ export function MultiTicketPassbook({
 								size="icon"
 								onClick={handlePrev}
 								disabled={activeIdx === 0}
-								className="size-8 rounded-lg border-border/70 shadow-none"
+								className="size-8 rounded-lg border-border/70 shadow-none cursor-pointer"
 								aria-label="Previous pass"
 							>
 								<ChevronLeft className="size-4" />
@@ -118,7 +150,7 @@ export function MultiTicketPassbook({
 								size="icon"
 								onClick={handleNext}
 								disabled={activeIdx === passes.length - 1}
-								className="size-8 rounded-lg border-border/70 shadow-none"
+								className="size-8 rounded-lg border-border/70 shadow-none cursor-pointer"
 								aria-label="Next pass"
 							>
 								<ChevronRight className="size-4" />
@@ -133,7 +165,7 @@ export function MultiTicketPassbook({
 								<button
 									key={pass.id}
 									type="button"
-									onClick={() => setActiveIdx(idx)}
+									onClick={() => handleSelectPass(idx)}
 									className={cn(
 										"px-2.5 py-1.5 rounded-lg text-[11px] font-medium shrink-0 transition-colors border cursor-pointer",
 										isSelected
@@ -149,6 +181,7 @@ export function MultiTicketPassbook({
 				</div>
 			)}
 
+			{/* Main Flippable Ticket Render Card */}
 			<div
 				id="ticket-render-card"
 				className="w-full flex justify-center min-w-0"
@@ -163,22 +196,35 @@ export function MultiTicketPassbook({
 					ticketType={activePass.ticketType}
 					eventName={event.title}
 					organizationName={organization.name}
+					organizationWebsite={organization.websiteUrl}
 					logoUrl={organization.logoUrl}
 					flierImage={event.flierImage || event.bannerImage}
 					bannerImage={event.bannerImage}
 					dateTime={event.startDate ? String(event.startDate) : undefined}
 					venue={event.venue || "Venue TBA"}
+					venueName={event.venueName}
+					venueAddress={event.venueAddress}
+					venueCity={event.venueCity}
+					venueCountry={event.venueCountry}
+					latitude={event.latitude}
+					longitude={event.longitude}
+					isVirtual={event.isVirtual}
+					virtualLink={event.virtualLink}
+					sponsors={event.sponsors}
 					qrPayload={activePass.verifyUrl}
 					orderNumber={orderNumber}
+					flipped={isFlipped}
+					onFlipChange={setIsFlipped}
 				/>
 			</div>
 
+			{/* Pass Actions Bar */}
 			<div className="w-full max-w-xl flex flex-wrap items-center justify-center gap-2 print:hidden">
 				<Button
 					variant="outline"
 					size="sm"
 					onClick={handleCopyLink}
-					className="text-xs gap-1.5 h-9 border-border/70 shadow-none"
+					className="text-xs gap-1.5 h-9 border-border/70 shadow-sm cursor-pointer bg-card hover:bg-card/90 text-foreground"
 				>
 					{copied ? (
 						<Check className="size-3.5 text-emerald-600" />
@@ -194,10 +240,12 @@ export function MultiTicketPassbook({
 				/>
 			</div>
 
+			{/* Hidden Export Elements for html-to-image capture */}
 			<div
 				className="absolute top-[-9999px] left-[-9999px] pointer-events-none"
 				aria-hidden="true"
 			>
+				{/* Front Side Export Container */}
 				<div
 					id="ticket-export-front"
 					className="bg-transparent p-4 w-[390px] min-w-[390px]"
@@ -211,16 +259,29 @@ export function MultiTicketPassbook({
 						ticketType={activePass.ticketType}
 						eventName={event.title}
 						organizationName={organization.name}
+						organizationWebsite={organization.websiteUrl}
 						logoUrl={organization.logoUrl}
 						flierImage={event.flierImage || event.bannerImage}
 						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
+						venueName={event.venueName}
+						venueAddress={event.venueAddress}
+						venueCity={event.venueCity}
+						venueCountry={event.venueCountry}
+						latitude={event.latitude}
+						longitude={event.longitude}
+						isVirtual={event.isVirtual}
+						virtualLink={event.virtualLink}
+						sponsors={event.sponsors}
 						qrPayload={activePass.verifyUrl}
 						orderNumber={orderNumber}
+						exportMode={true}
+						exportSide="front"
 					/>
 				</div>
 
+				{/* Back Side Export Container */}
 				<div
 					id="ticket-export-back"
 					className="bg-transparent p-4 w-[390px] min-w-[390px]"
@@ -234,18 +295,32 @@ export function MultiTicketPassbook({
 						ticketType={activePass.ticketType}
 						eventName={event.title}
 						organizationName={organization.name}
+						organizationWebsite={organization.websiteUrl}
 						logoUrl={organization.logoUrl}
 						flierImage={event.flierImage || event.bannerImage}
 						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
+						venueName={event.venueName}
+						venueAddress={event.venueAddress}
+						venueCity={event.venueCity}
+						venueCountry={event.venueCountry}
+						latitude={event.latitude}
+						longitude={event.longitude}
+						isVirtual={event.isVirtual}
+						virtualLink={event.virtualLink}
+						sponsors={event.sponsors}
 						qrPayload={activePass.verifyUrl}
 						orderNumber={orderNumber}
+						exportMode={true}
+						exportSide="back"
 					/>
 				</div>
+
+				{/* Combined Both Sides Export Container */}
 				<div
 					id="ticket-export-both"
-					className="bg-transparent p-4 w-[390px] min-w-[390px]"
+					className="bg-transparent p-4 flex flex-col gap-6 w-[390px] min-w-[390px]"
 				>
 					<PortraitReceiptTicket
 						variant={activePass.designVariant}
@@ -256,16 +331,29 @@ export function MultiTicketPassbook({
 						ticketType={activePass.ticketType}
 						eventName={event.title}
 						organizationName={organization.name}
+						organizationWebsite={organization.websiteUrl}
 						logoUrl={organization.logoUrl}
 						flierImage={event.flierImage || event.bannerImage}
 						bannerImage={event.bannerImage}
 						dateTime={event.startDate ? String(event.startDate) : undefined}
 						venue={event.venue || "Venue TBA"}
+						venueName={event.venueName}
+						venueAddress={event.venueAddress}
+						venueCity={event.venueCity}
+						venueCountry={event.venueCountry}
+						latitude={event.latitude}
+						longitude={event.longitude}
+						isVirtual={event.isVirtual}
+						virtualLink={event.virtualLink}
+						sponsors={event.sponsors}
 						qrPayload={activePass.verifyUrl}
 						orderNumber={orderNumber}
+						exportMode={true}
+						exportSide="both"
 					/>
 				</div>
 			</div>
 		</div>
+		</>
 	);
 }
