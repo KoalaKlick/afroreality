@@ -81,6 +81,8 @@ async function dispatchTicketSms({
 	ticketCode,
 	ticketToken,
 	eventId,
+	eventStartDate,
+	ticketCount,
 	isBuyerReceipt = false,
 }: {
 	ticketIds: string[];
@@ -90,6 +92,8 @@ async function dispatchTicketSms({
 	ticketCode: string;
 	ticketToken?: string;
 	eventId?: string;
+	eventStartDate?: Date | string | null;
+	ticketCount?: number;
 	isBuyerReceipt?: boolean;
 }): Promise<boolean> {
 	try {
@@ -108,6 +112,8 @@ async function dispatchTicketSms({
 			ticketCode,
 			ticketToken,
 			eventId,
+			eventStartDate,
+			ticketCount: ticketCount || ticketIds.length,
 		});
 		return result.success;
 	} catch (err) {
@@ -134,6 +140,8 @@ export async function dispatchTicketChannelNotification({
 	bannerImageUrl,
 	attendeeNames,
 	eventId,
+	eventStartDate,
+	ticketCount,
 	channel,
 	isBuyerReceipt = false,
 }: {
@@ -146,6 +154,8 @@ export async function dispatchTicketChannelNotification({
 	bannerImageUrl?: string;
 	attendeeNames?: string[];
 	eventId?: string;
+	eventStartDate?: Date | string | null;
+	ticketCount?: number;
 	channel: string;
 	isBuyerReceipt?: boolean;
 }): Promise<void> {
@@ -157,7 +167,7 @@ export async function dispatchTicketChannelNotification({
 	}
 
 	if (channel === "sms") {
-		await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId, isBuyerReceipt });
+		await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId, eventStartDate, ticketCount, isBuyerReceipt });
 		return;
 	}
 
@@ -165,7 +175,7 @@ export async function dispatchTicketChannelNotification({
 		// Try WA first — if success, done. If fail, fallback to SMS.
 		const waSent = await dispatchTicketWhatsApp({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, bannerImageUrl, attendeeNames, eventId, isBuyerReceipt });
 		if (!waSent) {
-			await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId, isBuyerReceipt });
+			await dispatchTicketSms({ ticketIds, phone, attendeeName, eventTitle, ticketCode, ticketToken, eventId, eventStartDate, ticketCount, isBuyerReceipt });
 		}
 		return;
 	}
@@ -220,7 +230,7 @@ export async function dispatchPendingNotificationsIfAny({
 					eventId ? prisma.event.findUnique({
 						where: { id: eventId },
 						select: {
-							title: true, flierImage: true, bannerImage: true,
+							title: true, flierImage: true, bannerImage: true, startDate: true,
 							organization: { select: { name: true, primaryColor: true, secondaryColor: true, tertiaryColor: true } },
 						},
 					}) : Promise.resolve(null),
@@ -247,8 +257,10 @@ export async function dispatchPendingNotificationsIfAny({
 						phone: buyerPhone,
 						attendeeName: buyerName,
 						eventTitle: notifEvent.title || "Fextiva Event",
-						ticketCode: formattedTickets.map((t: any) => t.ticketCode).join(", "),
+						ticketCode: formattedTickets[0]?.ticketCode || "",
 						ticketToken: formattedTickets[0]?.token,
+						ticketCount: formattedTickets.length,
+						eventStartDate: notifEvent.startDate,
 						bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
 						attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 						eventId,

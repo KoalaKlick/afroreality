@@ -7,6 +7,7 @@ import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfil
 import { isPlaceholderName, resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
 import { isSamePhoneNumber } from "@/lib/utils/phone";
 import { getFrontendBaseUrl } from "@/lib/utils";
+import { generateTicketCode } from "@/lib/utils/ticket-code";
 
 function buildOrgColors(org: any) {
 	if (!org) return undefined;
@@ -24,6 +25,7 @@ async function fetchNotifEvent(eventId: string) {
 			title: true,
 			flierImage: true,
 			bannerImage: true,
+			startDate: true,
 			organization: {
 				select: {
 					name: true,
@@ -126,8 +128,7 @@ export async function fulfillTicketPurchase({
 		}
 
 		for (let i = 0; i < quantity; i++) {
-			const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
-			const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
+			const { ticketCode } = generateTicketCode(eventId);
 			const attendee = attendees[i];
 			const explicitAttendeeName =
 				attendee && typeof attendee.name === "string" && attendee.name.trim();
@@ -278,8 +279,10 @@ export async function sendTicketNotifications({
 				phone,
 				attendeeName: recipientDisplayName,
 				eventTitle: notifEvent.title,
-				ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
+				ticketCode: generatedTickets[0]?.ticketCode || "",
 				ticketToken: generatedTickets[0]?.token,
+				ticketCount: generatedTickets.length,
+				eventStartDate: notifEvent.startDate,
 				bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
 				attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 				eventId,
@@ -297,8 +300,10 @@ export async function sendTicketNotifications({
 				phone: payerNormalized,
 				attendeeName: buyerName,
 				eventTitle: notifEvent.title,
-				ticketCode: generatedTickets.map((t) => t.ticketCode).join(", "),
+				ticketCode: generatedTickets[0]?.ticketCode || "",
 				ticketToken: generatedTickets[0]?.token,
+				ticketCount: generatedTickets.length,
+				eventStartDate: notifEvent.startDate,
 				bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
 				attendeeNames: allAttendeeNames.length > 1 ? allAttendeeNames : undefined,
 				eventId,

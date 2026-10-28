@@ -32,6 +32,7 @@ import {
 import { getAuthState } from "@/lib/auth-guards";
 import { isPlatformAdmin } from "@/lib/admin/admin-auth";
 import { isPlaceholderName, resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
+import { generateTicketCode } from "@/lib/utils/ticket-code";
 
 export interface AttendeeInput {
 	name: string;
@@ -303,8 +304,7 @@ export async function initiatePublicTicketCheckout({
 			// Generate Free Tickets immediately
 			const tickets = [];
 			for (let i = 0; i < quantity; i++) {
-				const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
-				const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
+				const { ticketCode } = generateTicketCode(eventId);
 				const attendee = data.attendees?.[i];
 				const attendeeName = attendee?.name?.trim() || buyerName;
 				const attendeeEmail = attendee?.email?.trim() || buyerEmail?.trim() || null;

@@ -79,7 +79,7 @@ export function TicketCardReceipt({
 	ticketType = "General Admission",
 	dateTime = "Date & Time TBA",
 	venue = "Venue TBA",
-	ticketCode = "TIX-000000",
+	ticketCode = "XXXXX-YYYYYY",
 	qrPayload,
 	className = "",
 	exportMode = false,

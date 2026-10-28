@@ -4,13 +4,14 @@
 
 import { prisma } from "@repo/db";
 import { normalizePhoneNumber } from "@/lib/services/whatsapp";
+import { buildTicketSmsContent } from "@/lib/utils/ticket-sms-formatter";
 
 const ARKESEL_API_KEY = process.env.ARKESEL_API_KEY || "";
 const ARKESEL_API_URL = "https://sms.arkesel.com/api/v2/sms/send";
 const SMS_SENDER_ID = process.env.ARKESEL_SENDER_ID || "Fextiva";
 
-// SMS is capped at 160 chars per segment. We target single-segment messages.
-const SMS_CHAR_LIMIT = 155; // ~5 chars reserved for safety
+// SMS is capped at 160 chars per segment. We target up to 155 chars to maximize utility with 5 chars safety margin.
+const SMS_CHAR_LIMIT = 155;
 
 export interface SmsResponse {
 	success: boolean;
@@ -172,13 +173,8 @@ export async function sendSmsMessage({
 
 /**
  * Sends a ticket purchase confirmation SMS.
- * Designed to fit within a single 160-char SMS segment.
- *
- * Template (≤155 chars):
- * "Hi [name], ur ticket for [event] is confirmed!
- *  Code: [code]
- *  View: fextiva.com/t/[token]
- *  -Fextiva"
+ * Maximizes utility up to ~155 characters (single 160-char GSM-7 segment).
+ * Uses reusable buildTicketSmsContent utility to guarantee valid formatting.
  */
 export async function sendTicketSmsConfirmation({
 	phone,
@@ -187,6 +183,8 @@ export async function sendTicketSmsConfirmation({
 	ticketCode,
 	ticketToken,
 	eventId,
+	eventStartDate,
+	ticketCount = 1,
 }: {
 	phone: string;
 	attendeeName: string;
@@ -194,21 +192,16 @@ export async function sendTicketSmsConfirmation({
 	ticketCode: string;
 	ticketToken?: string;
 	eventId?: string | null;
+	eventStartDate?: Date | string | null;
+	ticketCount?: number;
 }): Promise<SmsResponse> {
-	const name = truncate(attendeeName.split(" ")[0] || attendeeName, 12);
-	const event = truncate(eventTitle, 30);
-	const code = ticketCode;
-
-	const viewUrl = `fextiva.com/ticket/view?code=${encodeURIComponent(code)}`;
-	let message = `Hi ${name}, ticket for ${event} confirmed!\nCode: ${code}\nView: ${viewUrl}\n-Fextiva`;
-
-	// Ensure under limit
-	if (message.length > SMS_CHAR_LIMIT) {
-		message = `Ticket confirmed for ${event}!\nCode: ${code}\nView: ${viewUrl}`;
-		if (message.length > SMS_CHAR_LIMIT) {
-			message = `Ticket confirmed: ${code}\nView: ${viewUrl}`;
-		}
-	}
+	const { message } = buildTicketSmsContent({
+		attendeeName,
+		eventTitle,
+		ticketCode,
+		eventStartDate,
+		ticketCount,
+	});
 
 	return sendSmsMessage({ to: phone, message, purpose: "ticket_confirmation", eventId });
 }

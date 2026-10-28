@@ -1,0 +1,17 @@
+{
+  "name": "fextiva-ticket-redirect",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lightning-fast edge redirect service for t.fextiva.com ticket links (Vercel & Cloudflare compatible)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "echo 'Redirect worker build complete'"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "typescript": "^5.9.3",
+    "wrangler": "^3.114.17"
+  }
+}
+

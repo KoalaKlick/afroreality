@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { verifyTicketToken, createTicketToken } from "@/lib/ticket-crypto";
+import { parseTicketCode } from "@/lib/utils/ticket-code";
 import { prisma } from "@repo/db";
 import { getFrontendBaseUrl } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
@@ -45,8 +46,10 @@ export async function generateMetadata({
 	}
 
 	if (!ticket && ticketCode) {
+		const parsed = parseTicketCode(ticketCode);
+		const lookupCodes = Array.from(new Set([ticketCode, parsed.normalizedCode, parsed.passCode]));
 		ticket = await prisma.ticket.findFirst({
-			where: { ticketCode },
+			where: { ticketCode: { in: lookupCodes } },
 			include: { event: { include: { organization: true } }, ticketType: true },
 		});
 	}
@@ -131,9 +134,11 @@ export default async function TicketViewPage({
 	}
 
 	if (!ticket && ticketCode) {
+		const parsed = parseTicketCode(ticketCode);
+		const lookupCodes = Array.from(new Set([ticketCode, parsed.normalizedCode, parsed.passCode]));
 		ticket = await prisma.ticket.findFirst({
 			where: {
-				ticketCode,
+				ticketCode: { in: lookupCodes },
 			},
 			include: {
 				event: {

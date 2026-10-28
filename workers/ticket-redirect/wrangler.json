@@ -1,0 +1,12 @@
+{
+  "name": "fextiva-ticket-redirect",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "APP_URL": "https://fextiva.com"
+  }
+}
+

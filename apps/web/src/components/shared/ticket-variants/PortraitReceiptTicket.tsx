@@ -256,7 +256,7 @@ export function PortraitReceiptTicket({
 	isVirtual = false,
 	virtualLink,
 	sponsors = [],
-	ticketCode = "TIX-000000",
+	ticketCode = "XXXXX-YYYYYY",
 	qrPayload,
 	buyerName = "Valued Guest",
 	orderNumber,

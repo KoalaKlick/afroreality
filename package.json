@@ -18,7 +18,8 @@
     "deploy:worker:ussd": "cd workers/ussd && wrangler deploy",
     "deploy:worker:paystack": "cd workers/paystack-webhook && wrangler deploy",
     "deploy:worker:whatsapp": "cd workers/whatsapp-webhook && wrangler deploy",
-    "deploy:worker:delivery": "cd workers/background-delivery && wrangler deploy"
+    "deploy:worker:delivery": "cd workers/background-delivery && wrangler deploy",
+    "deploy:worker:redirect": "cd workers/ticket-redirect && wrangler deploy"
   },
   "devDependencies": {
     "prettier": "3.9.6",

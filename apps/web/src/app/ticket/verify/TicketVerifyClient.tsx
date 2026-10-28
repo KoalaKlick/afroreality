@@ -196,7 +196,7 @@ export function TicketVerifyClient({
 		<div className="flex flex-col gap-6">
 			<form onSubmit={handleLookupCode} className="flex gap-2">
 				<Input
-					placeholder="Ticket code (e.g. TIX-…)"
+					placeholder="Ticket code or pass (e.g. E7K2M-9M4P10)"
 					value={ticketCodeInput}
 					onChange={(e) => setTicketCodeInput(e.target.value.toUpperCase())}
 					className="font-mono text-sm uppercase h-10 bg-card border-border/70"
