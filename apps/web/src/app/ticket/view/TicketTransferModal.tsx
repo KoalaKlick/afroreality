@@ -32,6 +32,7 @@ import { transferTicketPass } from "@/lib/server-functions/ticket-transfer";
 interface TicketTransferModalProps {
 	ticketId: string;
 	currentTicketCode: string;
+	token?: string;
 	attendeeName?: string;
 	eventTitle: string;
 	onTransferred?: (newTicketCode: string, newDirectUrl: string) => void;
@@ -42,6 +43,7 @@ type DeliveryChannel = "whatsapp" | "sms";
 export function TicketTransferModal({
 	ticketId,
 	currentTicketCode,
+	token,
 	attendeeName,
 	eventTitle,
 	onTransferred,
@@ -125,6 +127,7 @@ export function TicketTransferModal({
 				data: {
 					ticketId,
 					currentTicketCode,
+					token,
 					recipientPhone: phone.trim(),
 					recipientName: name.trim() || undefined,
 					channel,
@@ -188,15 +191,15 @@ export function TicketTransferModal({
 									type="button"
 									onClick={() => setChannel("whatsapp")}
 									className={cn(
-										"flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all cursor-pointer",
+										"flex items-center gap-2.5 p-3 rounded-md text-left transition-all cursor-pointer",
 										channel === "whatsapp"
-											? "border-emerald-500 bg-emerald-500/[0.08] text-foreground ring-1 ring-emerald-500"
-											: "border-border/70 bg-muted/20 text-muted-foreground hover:bg-muted/40",
+											? " bg-emerald-500/[0.08] text-foreground ring-[1px] ring-emerald-500"
+											: " bg-muted/20 text-muted-foreground hover:bg-muted/40",
 									)}
 								>
 									<div
 										className={cn(
-											"size-8 rounded-lg flex items-center justify-center shrink-0",
+											"size-8 rounded-md flex items-center justify-center shrink-0",
 											channel === "whatsapp"
 												? "bg-emerald-500 text-white"
 												: "bg-muted text-muted-foreground",
@@ -295,7 +298,7 @@ export function TicketTransferModal({
 						</div>
 
 						{/* Security / Deactivation Warning */}
-						<div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] p-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
+						<div className="rounded-xl  bg-amber-500/[0.06] p-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
 							<AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
 							<div className="text-[11px] leading-relaxed">
 								<strong className="font-semibold block text-amber-900 dark:text-amber-200">

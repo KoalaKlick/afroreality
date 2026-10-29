@@ -2,7 +2,7 @@
 
 import { prisma } from "@repo/db";
 import { generateTicketCode } from "@/lib/utils/ticket-code";
-import { createTicketToken } from "@/lib/ticket-crypto";
+import { createTicketToken, verifyTicketToken } from "@/lib/ticket-crypto";
 import { normalizePhoneNumber } from "@/lib/services/whatsapp";
 import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfillment/notifications";
 import { getFrontendBaseUrl } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { logEventActivity } from "@/lib/audit/audit-logger";
 export interface TransferTicketInput {
 	ticketId: string;
 	currentTicketCode: string;
+	token?: string;
 	recipientPhone: string;
 	recipientName?: string;
 	channel: "whatsapp" | "sms";
@@ -28,16 +29,16 @@ export interface TransferTicketResult {
 
 /**
  * Transfers an existing ticket to a new recipient phone number.
- * Generates a brand-new Crockford base-32 ticket code and cryptographic token,
- * immediately invalidating the previous ticket code. Reuses the official SMS/WhatsApp
- * notification template to dispatch the pass to the new owner.
+ * Validates cryptographic ownership, generates a brand-new Crockford base-32 ticket code
+ * and cryptographic token, invalidating the previous ticket code immediately.
+ * Reuses the official SMS/WhatsApp notification template to dispatch the pass to the new owner.
  */
 export async function transferTicketPass({
 	data,
 }: {
 	data: TransferTicketInput;
 }): Promise<TransferTicketResult> {
-	const { ticketId, currentTicketCode, recipientPhone, recipientName, channel } = data;
+	const { ticketId, currentTicketCode, token, recipientPhone, recipientName, channel } = data;
 
 	if (!ticketId || !currentTicketCode) {
 		throw new Error("Missing ticket identification.");
@@ -49,6 +50,14 @@ export async function transferTicketPass({
 
 	if (channel !== "whatsapp" && channel !== "sms") {
 		throw new Error("Please select a valid delivery channel (WhatsApp or SMS).");
+	}
+
+	// Verify cryptographic token if supplied (prevents forged / guessed transfer requests)
+	if (token) {
+		const verified = verifyTicketToken(token);
+		if (!verified || verified.ticketId !== ticketId || verified.ticketCode.trim().toUpperCase() !== currentTicketCode.trim().toUpperCase()) {
+			throw new Error("Invalid or expired ticket authorization token.");
+		}
 	}
 
 	// Clean & normalize recipient phone
@@ -76,6 +85,11 @@ export async function transferTicketPass({
 		throw new Error("Ticket code mismatch or this pass has already been transferred.");
 	}
 
+	// Prevent self-transfer
+	if (ticket.attendeePhone && normalizePhoneNumber(ticket.attendeePhone) === normalizedPhone) {
+		throw new Error("This ticket is already registered to this phone number.");
+	}
+
 	if (ticket.checkInStatus === "checked_in") {
 		throw new Error("This ticket has already been used for event entry and cannot be transferred.");
 	}
@@ -84,7 +98,19 @@ export async function transferTicketPass({
 		throw new Error("Cannot transfer tickets for events that have ended or been cancelled.");
 	}
 
-	// Generate NEW 5-6 ticket code format
+	// Rate/abuse limiting: Maximum 3 transfers per pass to prevent SMS/spam abuse
+	const previousTransfers = await prisma.activityLog.count({
+		where: {
+			action: "ticket_transferred",
+			entityId: ticket.id,
+		},
+	});
+
+	if (previousTransfers >= 3) {
+		throw new Error("This ticket has reached the maximum transfer limit (3 transfers).");
+	}
+
+	// Generate NEW 5-6 Crockford Base-32 ticket code format
 	const { ticketCode: newTicketCode } = generateTicketCode(ticket.eventId);
 	const newToken = createTicketToken(ticket.id, newTicketCode);
 	const targetAttendeeName = recipientName?.trim() || ticket.attendeeName || "Attendee";
@@ -124,7 +150,7 @@ export async function transferTicketPass({
 		console.error(`[TICKET-TRANSFER-${channel.toUpperCase()}-ERR]`, err);
 	}
 
-	// Audit trail log
+	// Audit trail log for security, organizer transparency, and gate lookup
 	try {
 		await logEventActivity({
 			eventId: notifEvent.id,
@@ -138,7 +164,9 @@ export async function transferTicketPass({
 				newTicketCode,
 				previousPhone: ticket.attendeePhone,
 				newPhone: normalizedPhone,
+				recipientName: targetAttendeeName,
 				channel,
+				transferredAt: new Date().toISOString(),
 			},
 		});
 	} catch (auditErr) {

@@ -64,6 +64,7 @@ export function TicketVerifyClient({
 
 				if (!result.isValid || !result.ticket) {
 					setValid(false);
+					setStatus(result.status || "invalid");
 					setMessage(result.message || "Invalid ticket code.");
 					setTicket(null);
 				} else {
@@ -115,36 +116,6 @@ export function TicketVerifyClient({
 				}
 			} catch (err: any) {
 				toast.error(err.message || "Check-in failed.");
-			}
-		});
-	}
-
-	async function handleCheckOut() {
-		if (!ticket) return;
-
-		startTransition(async () => {
-			try {
-				const result = await verifyAndCheckInTicket({
-					data: {
-						token: initialToken,
-						ticketCode: ticket.ticketCode,
-						action: "check_out",
-					},
-				});
-
-				if (result.status === "login_required" || result.status === "unauthorized") {
-					setAuthState(result.status);
-					return;
-				}
-
-				if (result.isValid && result.ticket) {
-					setTicket(result.ticket);
-					setStatus("not_checked_in");
-					setMessage("Check-in undone.");
-					toast.success("Check-in undone.");
-				}
-			} catch (err: any) {
-				toast.error(err.message || "Check-out failed.");
 			}
 		});
 	}
@@ -216,7 +187,11 @@ export function TicketVerifyClient({
 				<div className="rounded-xl border border-border/70 bg-card px-6 py-10 text-center space-y-3">
 					<StatusIllustration variant="invalid" alt="Invalid ticket" />
 					<div className="space-y-1">
-						<h2 className="text-base font-semibold text-destructive">Invalid ticket</h2>
+						<h2 className="text-base font-semibold text-destructive">
+							{status === "transferred"
+								? "Ticket Pass Void (Transferred)"
+								: "Invalid ticket"}
+						</h2>
 						<p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
 							{message || "This ticket could not be verified. Do not grant entry."}
 						</p>
@@ -261,7 +236,7 @@ export function TicketVerifyClient({
 								</p>
 							</div>
 							<span className="font-mono text-[11px] font-semibold px-2.5 py-1 rounded-md bg-muted/60 text-foreground shrink-0">
-								{ticket.ticketCode}
+								{ticket.orderNumber || "PASS"}
 							</span>
 						</div>
 
@@ -281,28 +256,23 @@ export function TicketVerifyClient({
 						</div>
 
 						{checkedIn ? (
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={handleCheckOut}
-								disabled={isPending}
-								className="w-full h-10 text-xs font-semibold border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 shadow-none"
-							>
-								{isPending ? (
-									<Loader2 className="size-4 animate-spin" />
-								) : (
-									"Undo check-in"
-								)}
-							</Button>
+							<div className="w-full h-10 rounded-lg bg-muted/60 border border-border/80 flex items-center justify-center text-xs font-semibold text-muted-foreground">
+								Pass Consumed · Already Admitted
+							</div>
 						) : (
 							<Button
 								size="sm"
 								onClick={handleCheckIn}
 								disabled={isPending}
-								className="w-full h-10 text-xs font-semibold shadow-none"
+								className="w-full h-10 text-xs font-semibold shadow-none cursor-pointer"
 							>
 								{isPending ? (
 									<Loader2 className="size-4 animate-spin" />
+								) : (
+									"Confirm Check-In"
+								)}
+							</Button>
+						)}
 								) : (
 									"Confirm check-in"
 								)}

@@ -34,7 +34,7 @@ import {
 import { getAuthState } from "@/lib/auth-guards";
 import { isPlatformAdmin } from "@/lib/admin/admin-auth";
 import { isPlaceholderName, resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
-import { generateTicketCode } from "@/lib/utils/ticket-code";
+import { generateTicketCode, parseTicketCode, maskTicketCode } from "@/lib/utils/ticket-code";
 
 export interface AttendeeInput {
 	name: string;
@@ -1392,13 +1392,26 @@ export async function verifyAndCheckInTicket({
 		}
 	}
 
+	let lookupWhere: any;
+	if (ticketId && code) {
+		lookupWhere = { id: ticketId, ticketCode: code };
+	} else if (ticketId) {
+		lookupWhere = { id: ticketId };
+	} else if (code) {
+		const parsed = parseTicketCode(code);
+		const lookupCodes = Array.from(new Set([code, parsed.normalizedCode, parsed.passCode]));
+		lookupWhere = {
+			OR: [
+				{ ticketCode: { in: lookupCodes } },
+				{ ticketCode: { endsWith: `-${parsed.passCode}` } },
+			],
+		};
+	} else {
+		lookupWhere = { ticketCode: "" };
+	}
+
 	const ticket = await prisma.ticket.findFirst({
-		where:
-			ticketId && code
-				? { id: ticketId, ticketCode: code }
-				: ticketId
-					? { id: ticketId }
-					: { ticketCode: code || "" },
+		where: lookupWhere,
 		include: {
 			event: {
 				include: { organization: true },
@@ -1411,6 +1424,51 @@ export async function verifyAndCheckInTicket({
 	});
 
 	if (!ticket) {
+		// Transparency & Security: Check if this code belonged to a transferred ticket
+		if (code) {
+			try {
+				const transferLog = await prisma.activityLog.findFirst({
+					where: {
+						action: "ticket_transferred",
+						metadata: {
+							path: ["oldTicketCode"],
+							equals: code,
+						},
+					},
+					orderBy: { createdAt: "desc" },
+				});
+
+				if (transferLog) {
+					const dateStr = transferLog.createdAt
+						? new Date(transferLog.createdAt).toLocaleString("en-GB", {
+								dateStyle: "medium",
+								timeStyle: "short",
+							})
+						: "earlier";
+					return {
+						isValid: false,
+						status: "transferred",
+						message: `This pass (${code}) was transferred on ${dateStr} to another recipient. The old code is void. Do not admit.`,
+					};
+				}
+			} catch {
+				// Fallthrough if activity log query fails
+			}
+		}
+
+		if (ticketId) {
+			const existingTicket = await prisma.ticket.findUnique({
+				where: { id: ticketId },
+			});
+			if (existingTicket && existingTicket.ticketCode !== code) {
+				return {
+					isValid: false,
+					status: "transferred",
+					message: "This pass has been transferred and regenerated. The old pass is void. Do not admit.",
+				};
+			}
+		}
+
 		return {
 			isValid: false,
 			status: "not_found",
@@ -1526,10 +1584,10 @@ export async function verifyAndCheckInTicket({
 			"Guest";
 		return {
 			id: t.id,
-			ticketCode: t.ticketCode,
 			checkInStatus: t.checkInStatus,
 			checkedInAt: t.checkedInAt,
 			attendeeName: name,
+			orderNumber: t.order?.orderNumber || `ORD-${t.id.slice(0, 8).toUpperCase()}`,
 			ticketType: t.ticketType ? { id: t.ticketType.id, name: t.ticketType.name } : null,
 			event: t.event ? {
 				id: t.event.id,
@@ -1593,6 +1651,15 @@ export async function verifyAndCheckInTicket({
 	}
 
 	if (action === "check_out") {
+		if (ticket.checkInStatus !== "checked_in") {
+			return {
+				isValid: true,
+				status: "not_checked_in",
+				message: "This pass has not been checked in yet.",
+				ticket: sanitizeTicketForVerifier(ticket),
+			};
+		}
+
 		const updated = await prisma.ticket.update({
 			where: { id: ticket.id },
 			data: {
@@ -1610,7 +1677,7 @@ export async function verifyAndCheckInTicket({
 		return {
 			isValid: true,
 			status: "not_checked_in",
-			message: "Check-in undone.",
+			message: "Check-out recorded successfully.",
 			ticket: sanitizeTicketForVerifier(updated),
 		};
 	}

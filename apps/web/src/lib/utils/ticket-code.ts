@@ -116,3 +116,22 @@ export function parseTicketCode(rawCode: string): {
 	};
 }
 
+/**
+ * Masks a ticket code for dashboard and roster privacy.
+ * Replaces the secret entry pass entropy with bullets so unauthorized admins
+ * or dashboard viewers cannot steal or copy passes.
+ * e.g. "E7K2M-9M4P10" -> "E7K2M-••••••"
+ */
+export function maskTicketCode(rawCode?: string | null): string {
+	if (!rawCode) return "••••••";
+	const cleaned = rawCode.trim().toUpperCase();
+	const parts = cleaned.split("-");
+	if (parts.length === 2 && parts[0] && parts[1]) {
+		return `${parts[0]}-••••••`;
+	}
+	if (cleaned.length >= 8) {
+		return `${cleaned.slice(0, 4)}••••${cleaned.slice(-2)}`;
+	}
+	return "••••••";
+}
+

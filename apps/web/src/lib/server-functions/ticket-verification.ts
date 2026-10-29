@@ -5,6 +5,7 @@ import { serializeJsonSafe } from "../utils";
 import { getAuthState } from "@/lib/auth-guards";
 import { isPlatformAdmin } from "@/lib/admin/admin-auth";
 import { isPlaceholderName } from "@/lib/server-functions/fulfillment/payer-name";
+import { maskTicketCode } from "@/lib/utils/ticket-code";
 
 async function verifyEventOrganizerAccess(
 	userId: string,
@@ -66,11 +67,13 @@ export async function getEventTicketAttendees({
 
 	if (data.search) {
 		where.OR = [
-			{ ticketCode: { contains: data.search, mode: "insensitive" } },
 			{ attendeeName: { contains: data.search, mode: "insensitive" } },
 			{ attendeeEmail: { contains: data.search, mode: "insensitive" } },
+			{ attendeePhone: { contains: data.search, mode: "insensitive" } },
+			{ order: { orderNumber: { contains: data.search, mode: "insensitive" } } },
 			{ order: { buyerName: { contains: data.search, mode: "insensitive" } } },
 			{ order: { buyerEmail: { contains: data.search, mode: "insensitive" } } },
+			{ order: { buyerPhone: { contains: data.search, mode: "insensitive" } } },
 		];
 	}
 
@@ -89,14 +92,23 @@ export async function getEventTicketAttendees({
 		}),
 	]);
 
+	// Security: NEVER return the raw or partial ticketCode in the attendee roster.
+	// Organizers and sub-admins only receive the public orderNumber and attendee profile.
 	const sanitizedTickets = tickets.map((t: any) => {
 		const name =
 			(!isPlaceholderName(t.attendeeName) ? t.attendeeName : null) ||
 			(!isPlaceholderName(t.order?.buyerName) ? t.order.buyerName : null) ||
 			t.attendeeName;
 		return {
-			...t,
+			id: t.id,
+			orderNumber: t.order?.orderNumber || `ORD-${t.id.slice(0, 8).toUpperCase()}`,
 			attendeeName: name,
+			attendeeEmail: t.attendeeEmail || t.order?.buyerEmail || null,
+			attendeePhone: t.attendeePhone || t.order?.buyerPhone || null,
+			checkInStatus: t.checkInStatus,
+			checkedInAt: t.checkedInAt,
+			createdAt: t.createdAt,
+			ticketType: t.ticketType ? { id: t.ticketType.id, name: t.ticketType.name } : null,
 		};
 	});
 
@@ -136,6 +148,12 @@ export async function toggleTicketCheckInStatus({
 		throw new Error("You are not authorized to check in tickets for this event.");
 	}
 
+	if (data.action === "check_out") {
+		throw new Error(
+			"Admission is final and cannot be undone from the dashboard. Re-entry must be managed via physical wristbands or hand-stamps to prevent duplicate ticket entry.",
+		);
+	}
+
 	const isCheckIn = data.action === "check_in";
 
 	const updated = await prisma.ticket.update({
@@ -159,8 +177,14 @@ export async function toggleTicketCheckInStatus({
 	return {
 		success: true,
 		ticket: serializeJsonSafe({
-			...updated,
+			id: updated.id,
+			orderNumber: updated.order?.orderNumber || `ORD-${updated.id.slice(0, 8).toUpperCase()}`,
 			attendeeName: resolvedName,
+			attendeeEmail: updated.attendeeEmail,
+			attendeePhone: updated.attendeePhone,
+			checkInStatus: updated.checkInStatus,
+			checkedInAt: updated.checkedInAt,
+			ticketType: updated.ticketType,
 		}),
 	};
 }

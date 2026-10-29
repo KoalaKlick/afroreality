@@ -151,6 +151,57 @@ export default async function TicketViewPage({
 	}
 
 	if (!ticket) {
+		let isTransferred = false;
+		if (token) {
+			const verified = verifyTicketToken(token);
+			if (verified) {
+				const existing = await prisma.ticket.findUnique({
+					where: { id: verified.ticketId },
+				});
+				if (existing && existing.ticketCode !== verified.ticketCode) {
+					isTransferred = true;
+				}
+			}
+		}
+
+		if (!isTransferred && ticketCode) {
+			try {
+				const parsed = parseTicketCode(ticketCode);
+				const lookupCodes = Array.from(
+					new Set([ticketCode, parsed.normalizedCode, parsed.passCode]),
+				);
+				const transferLog = await prisma.activityLog.findFirst({
+					where: {
+						action: "ticket_transferred",
+						metadata: {
+							path: ["oldTicketCode"],
+							in: lookupCodes,
+						},
+					},
+				});
+				if (transferLog) {
+					isTransferred = true;
+				}
+			} catch {
+				// Fallthrough
+			}
+		}
+
+		if (isTransferred) {
+			return (
+				<div className="min-h-[70vh] flex items-center justify-center p-6">
+					<div className="w-full max-w-md rounded-xl border border-border/70 bg-card">
+						<EmptyState
+							variant="invalid"
+							title="Ticket Pass Transferred"
+							description="This ticket was transferred to another recipient. The original pass and QR code have been invalidated."
+							className="py-12"
+						/>
+					</div>
+				</div>
+			);
+		}
+
 		return (
 			<div className="min-h-[70vh] flex items-center justify-center p-6">
 				<div className="w-full max-w-md rounded-xl border border-border/70 bg-card">

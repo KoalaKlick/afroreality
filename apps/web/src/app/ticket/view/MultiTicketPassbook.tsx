@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
 	PortraitReceiptTicket,
 	type TicketSponsorItem,
@@ -13,7 +13,19 @@ import {
 	ChevronRight,
 	Copy,
 	Check,
+	HelpCircle,
+	Ticket,
+	Info,
+	CheckCircle2,
 } from "lucide-react";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -81,11 +93,30 @@ export function MultiTicketPassbook({
 	);
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [copied, setCopied] = useState(false);
+	const [showMultiPassGuide, setShowMultiPassGuide] = useState(false);
 
 	const activePass = passesList[activeIdx] ?? passesList[0];
 	if (!activePass) return null;
 
 	const isMultiPass = passesList.length > 1;
+
+	useEffect(() => {
+		if (isMultiPass && typeof window !== "undefined") {
+			const storageKey = `fextiva_pass_guide_${orderNumber || passesList[0]?.id}`;
+			const hasSeen = sessionStorage.getItem(storageKey);
+			if (!hasSeen) {
+				setShowMultiPassGuide(true);
+			}
+		}
+	}, [isMultiPass, orderNumber, passesList]);
+
+	const handleDismissGuide = () => {
+		setShowMultiPassGuide(false);
+		if (typeof window !== "undefined") {
+			const storageKey = `fextiva_pass_guide_${orderNumber || passesList[0]?.id}`;
+			sessionStorage.setItem(storageKey, "true");
+		}
+	};
 
 	const handlePrev = () => {
 		if (activeIdx > 0) {
@@ -142,11 +173,22 @@ export function MultiTicketPassbook({
 				<div className="w-full max-w-xl rounded-xl border border-border/70 bg-card p-3 print:hidden min-w-0 space-y-3">
 					<div className="flex items-center justify-between gap-2 min-w-0">
 						<div className="min-w-0">
-							<p className="text-xs font-semibold text-foreground truncate">
-								{orderNumber ? `Order #${orderNumber}` : "Your passes"}
-							</p>
+							<div className="flex items-center gap-1.5">
+								<p className="text-xs font-semibold text-foreground truncate">
+									{orderNumber ? `Order #${orderNumber}` : "Your passes"}
+								</p>
+								<button
+									type="button"
+									onClick={() => setShowMultiPassGuide(true)}
+									className="text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded cursor-pointer"
+									title="How to share group passes"
+								>
+									<HelpCircle className="size-3.5 text-primary" />
+								</button>
+							</div>
 							<p className="text-[11px] text-muted-foreground">
 								Pass {activeIdx + 1} of {passesList.length}
+								{activeIdx === 0 ? " · (Your personal pass)" : ""}
 							</p>
 						</div>
 
@@ -177,19 +219,34 @@ export function MultiTicketPassbook({
 					<div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
 						{passesList.map((pass, idx) => {
 							const isSelected = idx === activeIdx;
+							const isBuyer = idx === 0;
 							return (
 								<button
 									key={pass.id}
 									type="button"
 									onClick={() => handleSelectPass(idx)}
 									className={cn(
-										"px-2.5 py-1.5 rounded-lg text-[11px] font-medium shrink-0 transition-colors border cursor-pointer",
+										"px-2.5 py-1.5 rounded-lg text-[11px] font-medium shrink-0 transition-colors border cursor-pointer flex items-center gap-1.5",
 										isSelected
 											? "bg-primary text-primary-foreground border-primary"
 											: "bg-muted/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted",
 									)}
 								>
-									<span className="truncate max-w-24">{pass.attendeeName}</span>
+									<span className="truncate max-w-28">
+										{isBuyer ? `${pass.attendeeName} (You)` : pass.attendeeName}
+									</span>
+									{isBuyer && (
+										<span
+											className={cn(
+												"text-[9px] px-1 rounded uppercase tracking-wider font-bold",
+												isSelected
+													? "bg-primary-foreground/20 text-primary-foreground"
+													: "bg-muted text-muted-foreground",
+											)}
+										>
+											Buyer
+										</span>
+									)}
 								</button>
 							);
 						})}
@@ -259,6 +316,7 @@ export function MultiTicketPassbook({
 					<TicketTransferModal
 						ticketId={activePass.id}
 						currentTicketCode={activePass.ticketCode}
+						token={activePass.token}
 						attendeeName={activePass.attendeeName}
 						eventTitle={event.title}
 						onTransferred={handlePassTransferred}
@@ -380,6 +438,70 @@ export function MultiTicketPassbook({
 				</div>
 			</div>
 		</div>
+
+		{/* Group Passbook Orientation Guide Dialog */}
+		<Dialog open={showMultiPassGuide} onOpenChange={setShowMultiPassGuide}>
+			<DialogContent className="sm:max-w-md p-6 bg-background border-border/80 shadow-none">
+				<DialogHeader className="text-left space-y-1.5">
+					<div className="size-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center mb-1">
+						<Ticket className="size-5" />
+					</div>
+					<DialogTitle className="text-base font-bold text-foreground">
+						Managing Your Group Passes
+					</DialogTitle>
+					<DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+						You have {passesList.length} tickets in this order. Here is how to share them without giving away your personal pass:
+					</DialogDescription>
+				</DialogHeader>
+
+				<div className="space-y-2.5 py-2 text-xs">
+					<div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex gap-3 items-start">
+						<div className="size-6 rounded-md bg-primary text-primary-foreground font-bold flex items-center justify-center shrink-0 text-[11px] mt-0.5">
+							1
+						</div>
+						<div className="space-y-0.5 min-w-0">
+							<p className="font-bold text-foreground">Pass #1 belongs to YOU</p>
+							<p className="text-muted-foreground text-[11px] leading-relaxed">
+								The first tab is your personal admission pass. Keep it for your own entry at the gate.
+							</p>
+						</div>
+					</div>
+
+					<div className="p-3 rounded-xl bg-muted/40 border border-border/70 flex gap-3 items-start">
+						<div className="size-6 rounded-md bg-muted text-foreground font-bold flex items-center justify-center shrink-0 text-[11px] mt-0.5 border border-border/80">
+							2
+						</div>
+						<div className="space-y-0.5 min-w-0">
+							<p className="font-bold text-foreground">Switch tabs before sharing</p>
+							<p className="text-muted-foreground text-[11px] leading-relaxed">
+								To share a ticket with a guest, first tap their specific pass tab (e.g. <strong>Pass 2</strong> or <strong>Pass 3</strong>) at the top.
+							</p>
+						</div>
+					</div>
+
+					<div className="p-3 rounded-xl bg-muted/40 border border-border/70 flex gap-3 items-start">
+						<div className="size-6 rounded-md bg-muted text-foreground font-bold flex items-center justify-center shrink-0 text-[11px] mt-0.5 border border-border/80">
+							3
+						</div>
+						<div className="space-y-0.5 min-w-0">
+							<p className="font-bold text-foreground">Copy or transfer that specific pass</p>
+							<p className="text-muted-foreground text-[11px] leading-relaxed">
+								Once on their tab, click <strong>Copy link</strong> or <strong>Transfer pass</strong>. Each pass has its own unique QR code that can only be admitted once.
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<DialogFooter className="pt-2">
+					<Button
+						onClick={handleDismissGuide}
+						className="w-full text-xs font-semibold h-9 cursor-pointer"
+					>
+						Got it, view my passes
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 		</>
 	);
 }
