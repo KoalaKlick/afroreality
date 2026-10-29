@@ -1384,15 +1384,16 @@ async function processFreeTicket(
 
 		const ticketChannel = messagingConfig?.ticketConfirmChannel || "sms";
 		const normalizedRecipient = normalizePhoneNumber(recipientPhone);
+		const primaryTicket = createdTickets[0];
 
-		if (notifEvent && normalizedRecipient && createdTickets.length > 0) {
+		if (notifEvent && normalizedRecipient && primaryTicket) {
 			await dispatchTicketChannelNotification({
 				ticketIds: createdTickets.map((t) => t.id),
 				phone: normalizedRecipient,
 				attendeeName: resolvedBuyerName,
 				eventTitle: notifEvent.title,
-				ticketCode: createdTickets[0].ticketCode,
-				ticketToken: createdTickets[0].token,
+				ticketCode: primaryTicket.ticketCode,
+				ticketToken: primaryTicket.token,
 				ticketCount: createdTickets.length,
 				eventStartDate: notifEvent.startDate,
 				bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,

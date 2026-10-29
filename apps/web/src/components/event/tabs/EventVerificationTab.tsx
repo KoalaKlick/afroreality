@@ -134,16 +134,19 @@ export function EventVerificationTab({ event }: EventVerificationTabProps) {
 					return;
 				}
 
+				const checkedInTime = res.ticket.checkedInAt || new Date().toISOString();
+				const targetId = selectedTicketForVerify.id;
+
 				toast.success(
 					`Attendee ${selectedTicketForVerify.attendeeName} checked in successfully!`,
 				);
 				setTickets((prev) =>
 					prev.map((t) =>
-						t.id === selectedTicketForVerify.id
+						t.id === targetId
 							? {
 									...t,
 									checkInStatus: "checked_in",
-									checkedInAt: res.ticket.checkedInAt || new Date().toISOString(),
+									checkedInAt: checkedInTime,
 								}
 							: t,
 					),
@@ -207,16 +210,17 @@ export function EventVerificationTab({ event }: EventVerificationTabProps) {
 						: `${targetAttendeeName} checked out successfully.`,
 				);
 
+				const targetTicketId = res.ticket.id;
+				const checkedInTime = res.ticket.checkedInAt || new Date().toISOString();
+
 				// Update table state
 				setTickets((prev) =>
 					prev.map((t) =>
-						t.id === res.ticket.id
+						t.id === targetTicketId
 							? {
 									...t,
 									checkInStatus: updatedStatus,
-									checkedInAt: isCheckIn
-										? res.ticket.checkedInAt || new Date().toISOString()
-										: null,
+									checkedInAt: isCheckIn ? checkedInTime : null,
 								}
 							: t,
 					),
