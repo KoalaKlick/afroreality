@@ -358,7 +358,7 @@ export function MultiTicketPassbook({
 					</div>
 
 					{isMultiPass && (
-						<p className="text-[11px] text-muted-foreground text-center px-4 leading-relaxed">
+						<p className="text-[11px] bg-background text-muted-foreground text-center px-4 leading-relaxed">
 							Link above is unique to{" "}
 							<span className="font-semibold text-foreground">
 								Pass #{activeIdx + 1} ({activePass.attendeeName})
@@ -530,7 +530,7 @@ export function MultiTicketPassbook({
 							<div className="space-y-0.5 min-w-0">
 								<p className="font-bold text-foreground">Copy or transfer that specific pass</p>
 								<p className="text-muted-foreground text-[11px] leading-relaxed">
-									Once on their tab, click <strong>Copy link</strong> or <strong>Transfer</strong>. Each pass has its own unique QR code that can only be admitted once.
+									Once on their tab, click <strong>Copy link</strong> . Each pass has its own unique QR code that can only be admitted once.
 								</p>
 							</div>
 						</div>
