@@ -10,7 +10,6 @@ import {
 import {
 	QrCode,
 	Search,
-	Users,
 	ExternalLink,
 	Loader2,
 	RefreshCw,

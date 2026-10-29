@@ -34,7 +34,7 @@ import {
 import { getAuthState } from "@/lib/auth-guards";
 import { isPlatformAdmin } from "@/lib/admin/admin-auth";
 import { isPlaceholderName, resolvePayerName } from "@/lib/server-functions/fulfillment/payer-name";
-import { generateTicketCode, parseTicketCode, maskTicketCode } from "@/lib/utils/ticket-code";
+import { generateTicketCode, parseTicketCode } from "@/lib/utils/ticket-code";
 
 export interface AttendeeInput {
 	name: string;
@@ -1427,13 +1427,19 @@ export async function verifyAndCheckInTicket({
 		// Transparency & Security: Check if this code belonged to a transferred ticket
 		if (code) {
 			try {
+				const parsedCode = parseTicketCode(code);
+				const candidateCodes = Array.from(
+					new Set([code, parsedCode.normalizedCode, parsedCode.passCode]),
+				);
 				const transferLog = await prisma.activityLog.findFirst({
 					where: {
 						action: "ticket_transferred",
-						metadata: {
-							path: ["oldTicketCode"],
-							equals: code,
-						},
+						OR: candidateCodes.map((c) => ({
+							metadata: {
+								path: ["oldTicketCode"],
+								equals: c,
+							},
+						})),
 					},
 					orderBy: { createdAt: "desc" },
 				});

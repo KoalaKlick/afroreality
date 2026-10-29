@@ -173,10 +173,12 @@ export default async function TicketViewPage({
 				const transferLog = await prisma.activityLog.findFirst({
 					where: {
 						action: "ticket_transferred",
-						metadata: {
-							path: ["oldTicketCode"],
-							in: lookupCodes,
-						},
+						OR: lookupCodes.map((code) => ({
+							metadata: {
+								path: ["oldTicketCode"],
+								equals: code,
+							},
+						})),
 					},
 				});
 				if (transferLog) {
