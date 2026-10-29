@@ -115,6 +115,7 @@ export function PublicTicketDetailSheet({
   else if (isSalesEnded) buttonLabel = "Ticket Sales Ended";
   else if (ticket.status !== "available") buttonLabel = "Currently Unavailable";
   else if (isSoldOut) buttonLabel = "Sold Out";
+  else if (Number(ticket.price) === 0) buttonLabel = "Get Free Ticket";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

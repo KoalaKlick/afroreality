@@ -21,6 +21,11 @@ import {
 import { resolvePayerNameFromPaystack } from "@/lib/server-functions/fulfillment/payer-name";
 import { isSamePhoneNumber } from "@/lib/utils/phone";
 import { getUssdBaseCode } from "@/lib/utils/ussd";
+import { generateTicketCode } from "@/lib/utils/ticket-code";
+import { createTicketToken } from "@/lib/ticket-crypto";
+import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfillment/notifications";
+import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
+import { normalizePhoneNumber } from "@/lib/services/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -1163,7 +1168,7 @@ async function handleTicketFlow(
 			`${event.title}\nSelect Ticket:`,
 			tickets,
 			tktSelection.page,
-			(tkt, idx) => `${idx}. ${tkt.name} - GHS ${Number(tkt.price).toFixed(2)}\n`,
+			(tkt, idx) => `${idx}. ${tkt.name} - ${Number(tkt.price) === 0 ? "Free" : `GHS ${Number(tkt.price).toFixed(2)}`}\n`,
 		);
 	}
 
@@ -1181,7 +1186,8 @@ async function handleTicketFlow(
 	if (!isSingleQuantity) {
 		const quantityStr = tokens.shift();
 		if (!quantityStr) {
-			return `CON Enter quantity for ${selectedTicket.name}:\nPrice: GHS ${ticketPrice.toFixed(2)} each\n0. Back`;
+			const priceLabel = ticketPrice === 0 ? "Free" : `GHS ${ticketPrice.toFixed(2)} each`;
+			return `CON Enter quantity for ${selectedTicket.name}:\nPrice: ${priceLabel}\n0. Back`;
 		}
 
 		quantity = Number.parseInt(quantityStr, 10);
@@ -1203,7 +1209,7 @@ async function handleTicketFlow(
 	if (!recipientChoice) {
 		const headerPrefix =
 			isSingleTier && isSingleQuantity
-				? `${selectedTicket.name} (GHS ${ticketPrice.toFixed(2)})\n`
+				? `${selectedTicket.name} (${ticketPrice === 0 ? "Free" : `GHS ${ticketPrice.toFixed(2)}`})\n`
 				: "";
 		return `CON ${headerPrefix}Buy ticket for:\n1. Myself\n2. Someone else\n0. Back`;
 	}
@@ -1235,6 +1241,7 @@ async function handleTicketFlow(
 	const confirmToken = tokens.shift();
 	if (!confirmToken) {
 		const baseAmount = ticketPrice * quantity;
+		const isFree = ticketPrice === 0 || baseAmount === 0;
 		let recipientLabel = "Myself";
 		if (recipientPhone !== phoneNumber && !isSamePhoneNumber(recipientPhone, phoneNumber)) {
 			let resolvedName: string | null = null;
@@ -1245,11 +1252,28 @@ async function handleTicketFlow(
 			}
 			recipientLabel = resolvedName ? `${resolvedName} (${recipientPhone})` : recipientPhone;
 		}
+
+		if (isFree) {
+			return `CON Confirm Ticket Registration\nTicket: ${selectedTicket.name}\nQty: ${quantity} (Free)\nFor: ${recipientLabel}\nTotal: Free\n1. Confirm & Get Ticket\n0. Back`;
+		}
+
 		return `CON Confirm Ticket Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nFor: ${recipientLabel}\nTotal: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`;
 	}
 
 	if (confirmToken !== "1") {
-		return "CON Invalid choice.\n1. Confirm & Pay\n0. Back";
+		const isFree = ticketPrice === 0;
+		return `CON Invalid choice.\n1. ${isFree ? "Confirm & Get Ticket" : "Confirm & Pay"}\n0. Back`;
+	}
+
+	if (ticketPrice === 0) {
+		return await processFreeTicket(
+			event,
+			selectedTicket,
+			quantity,
+			phoneNumber,
+			recipientPhone,
+			isSimulation,
+		);
 	}
 
 	const otpStr = tokens.shift();
@@ -1264,6 +1288,125 @@ async function handleTicketFlow(
 		isSimulation,
 		recipientPhone,
 	);
+}
+
+async function processFreeTicket(
+	event: any,
+	selectedTicket: any,
+	quantity: number,
+	phoneNumber: string,
+	recipientPhone: string,
+	isSimulation: boolean = false,
+): Promise<string> {
+	if (Number.isNaN(quantity) || quantity <= 0) {
+		return "END Invalid quantity. Try again.";
+	}
+
+	// Check ticket capacity
+	if (selectedTicket.quantityTotal != null) {
+		const remaining = selectedTicket.quantityTotal - (selectedTicket.quantitySold ?? 0);
+		if (quantity > remaining) {
+			return remaining > 0
+				? `END Only ${remaining} ticket(s) remaining for ${selectedTicket.name}.`
+				: "END This ticket tier is sold out.";
+		}
+	}
+
+	if (isSimulation) {
+		return `END [Simulator] Free ticket registration confirmed! ${quantity} ticket(s) issued for "${event.title}". Pass sent to ${recipientPhone}.`;
+	}
+
+	try {
+		const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+		let resolvedBuyerName = "USSD Attendee";
+		try {
+			const payerName = await resolvePayerNameFromPaystack(recipientPhone);
+			if (payerName) resolvedBuyerName = payerName;
+		} catch (e) {
+			console.warn("[USSD-FREE-TICKET] Payer name lookup skipped:", e);
+		}
+
+		// Create completed order
+		const order = await prisma.ticketOrder.create({
+			data: {
+				eventId: event.id,
+				orderNumber,
+				buyerName: resolvedBuyerName,
+				buyerPhone: recipientPhone,
+				subtotal: 0,
+				discountAmount: 0,
+				fees: 0,
+				status: "completed",
+			},
+		});
+
+		// Create tickets
+		const createdTickets: { id: string; ticketCode: string; token: string }[] = [];
+		for (let i = 0; i < quantity; i++) {
+			const { ticketCode } = generateTicketCode(event.id);
+			const ticket = await prisma.ticket.create({
+				data: {
+					orderId: order.id,
+					ticketTypeId: selectedTicket.id,
+					eventId: event.id,
+					ticketCode,
+					attendeeName: quantity > 1 && i > 0 ? `${resolvedBuyerName} (Guest #${i + 1})` : resolvedBuyerName,
+					attendeePhone: recipientPhone,
+					checkInStatus: "not_checked_in",
+				},
+			});
+			const token = createTicketToken(ticket.id, ticket.ticketCode);
+			createdTickets.push({ id: ticket.id, ticketCode: ticket.ticketCode, token });
+		}
+
+		// Increment sold count
+		await prisma.ticketType.update({
+			where: { id: selectedTicket.id },
+			data: {
+				quantitySold: { increment: quantity },
+			},
+		});
+
+		// Send ticket delivery notification (WhatsApp / SMS)
+		const [notifEvent, messagingConfig] = await Promise.all([
+			prisma.event.findUnique({
+				where: { id: event.id },
+				select: {
+					title: true,
+					startDate: true,
+					flierImage: true,
+					bannerImage: true,
+				},
+			}),
+			getEventMessagingConfig(event.id).catch(() => null),
+		]);
+
+		const ticketChannel = messagingConfig?.ticketConfirmChannel || "sms";
+		const normalizedRecipient = normalizePhoneNumber(recipientPhone);
+
+		if (notifEvent && normalizedRecipient && createdTickets.length > 0) {
+			await dispatchTicketChannelNotification({
+				ticketIds: createdTickets.map((t) => t.id),
+				phone: normalizedRecipient,
+				attendeeName: resolvedBuyerName,
+				eventTitle: notifEvent.title,
+				ticketCode: createdTickets[0].ticketCode,
+				ticketToken: createdTickets[0].token,
+				ticketCount: createdTickets.length,
+				eventStartDate: notifEvent.startDate,
+				bannerImageUrl: notifEvent.flierImage || notifEvent.bannerImage || undefined,
+				eventId: event.id,
+				channel: ticketChannel === "none" ? "sms" : ticketChannel,
+			}).catch((err) => console.error("[USSD-FREE-TICKET-NOTIF-ERR]", err));
+		}
+
+		const forOther = !isSamePhoneNumber(recipientPhone, phoneNumber);
+		return `END Free ticket confirmed! Pass sent via SMS to ${recipientPhone}.${forOther ? ` (Ordered by ${phoneNumber})` : ""}`;
+	} catch (err: any) {
+		console.error("[USSD-FREE-TICKET-ERR]", err);
+		return "END Unable to complete free ticket registration. Please try again later.";
+	}
 }
 
 async function submitPaystackOtp(

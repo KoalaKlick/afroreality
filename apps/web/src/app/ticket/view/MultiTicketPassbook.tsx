@@ -7,6 +7,7 @@ import {
 } from "@/components/shared/ticket-variants/PortraitReceiptTicket";
 import { WhatsAppDoodleBackground } from "@/components/shared/WhatsAppDoodleBackground";
 import { TicketDownloadButton } from "./TicketDownloadButton";
+import { TicketTransferModal } from "./TicketTransferModal";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -71,7 +72,8 @@ export function MultiTicketPassbook({
 	event,
 	organization,
 }: MultiTicketPassbookProps) {
-	const initialIndex = passes.findIndex(
+	const [passesList, setPassesList] = useState(passes);
+	const initialIndex = passesList.findIndex(
 		(p) => p.id === initialSelectedTicketId,
 	);
 	const [activeIdx, setActiveIdx] = useState(
@@ -80,10 +82,10 @@ export function MultiTicketPassbook({
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [copied, setCopied] = useState(false);
 
-	const activePass = passes[activeIdx] ?? passes[0];
+	const activePass = passesList[activeIdx] ?? passesList[0];
 	if (!activePass) return null;
 
-	const isMultiPass = passes.length > 1;
+	const isMultiPass = passesList.length > 1;
 
 	const handlePrev = () => {
 		if (activeIdx > 0) {
@@ -93,7 +95,7 @@ export function MultiTicketPassbook({
 	};
 
 	const handleNext = () => {
-		if (activeIdx < passes.length - 1) {
+		if (activeIdx < passesList.length - 1) {
 			setActiveIdx(activeIdx + 1);
 			setIsFlipped(false);
 		}
@@ -102,6 +104,20 @@ export function MultiTicketPassbook({
 	const handleSelectPass = (idx: number) => {
 		setActiveIdx(idx);
 		setIsFlipped(false);
+	};
+
+	const handlePassTransferred = (newCode: string, newUrl: string) => {
+		setPassesList((prev) => {
+			const copy = [...prev];
+			if (copy[activeIdx]) {
+				copy[activeIdx] = {
+					...copy[activeIdx],
+					ticketCode: newCode,
+					directUrl: newUrl,
+				};
+			}
+			return copy;
+		});
 	};
 
 	const handleCopyLink = async () => {
@@ -130,7 +146,7 @@ export function MultiTicketPassbook({
 								{orderNumber ? `Order #${orderNumber}` : "Your passes"}
 							</p>
 							<p className="text-[11px] text-muted-foreground">
-								Pass {activeIdx + 1} of {passes.length}
+								Pass {activeIdx + 1} of {passesList.length}
 							</p>
 						</div>
 
@@ -149,7 +165,7 @@ export function MultiTicketPassbook({
 								variant="outline"
 								size="icon"
 								onClick={handleNext}
-								disabled={activeIdx === passes.length - 1}
+								disabled={activeIdx === passesList.length - 1}
 								className="size-8 rounded-lg border-border/70 shadow-none cursor-pointer"
 								aria-label="Next pass"
 							>
@@ -159,7 +175,7 @@ export function MultiTicketPassbook({
 					</div>
 
 					<div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-						{passes.map((pass, idx) => {
+						{passesList.map((pass, idx) => {
 							const isSelected = idx === activeIdx;
 							return (
 								<button
@@ -238,6 +254,16 @@ export function MultiTicketPassbook({
 					ticketCode={activePass.ticketCode}
 					eventTitle={event.title}
 				/>
+
+				{activePass.checkInStatus !== "checked_in" && (
+					<TicketTransferModal
+						ticketId={activePass.id}
+						currentTicketCode={activePass.ticketCode}
+						attendeeName={activePass.attendeeName}
+						eventTitle={event.title}
+						onTransferred={handlePassTransferred}
+					/>
+				)}
 			</div>
 
 			{/* Hidden Export Elements for html-to-image capture */}

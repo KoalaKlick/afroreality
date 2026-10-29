@@ -1758,7 +1758,7 @@ export async function handleTicketFlow(
 				`${event.title}\nSelect Ticket:`,
 				tickets,
 				tktSelection.page,
-				(tkt, idx) => `${idx}. ${tkt.name} - GHS ${Number(tkt.price).toFixed(2)}\n`,
+				(tkt, idx) => `${idx}. ${tkt.name} - ${Number(tkt.price) === 0 ? "Free" : `GHS ${Number(tkt.price).toFixed(2)}`}\n`,
 			),
 		);
 	}
@@ -1772,8 +1772,9 @@ export async function handleTicketFlow(
 
 	const quantityStr = tokens.shift();
 	if (!quantityStr) {
+		const priceLabel = ticketPrice === 0 ? "Free" : `GHS ${ticketPrice.toFixed(2)} each`;
 		return textResponse(
-			`CON Enter quantity for ${selectedTicket.name}:\nPrice: GHS ${ticketPrice.toFixed(2)} each\n0. Back`,
+			`CON Enter quantity for ${selectedTicket.name}:\nPrice: ${priceLabel}\n0. Back`,
 		);
 	}
 
@@ -1796,15 +1797,89 @@ export async function handleTicketFlow(
 
 	// Order Summary & Confirmation Screen
 	const confirmToken = tokens.shift();
+	const baseAmount = ticketPrice * quantity;
+	const isFree = ticketPrice === 0 || baseAmount === 0;
+
 	if (!confirmToken) {
-		const baseAmount = ticketPrice * quantity;
 		return textResponse(
-			`CON Confirm Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} @ GHS ${ticketPrice.toFixed(2)}\nTotal to Pay: GHS ${baseAmount.toFixed(2)}\n1. Confirm & Pay\n0. Back`,
+			`CON Confirm Purchase\nTicket: ${selectedTicket.name}\nQty: ${quantity} ${isFree ? "(Free)" : `@ GHS ${ticketPrice.toFixed(2)}`}\nTotal: ${isFree ? "Free" : `GHS ${baseAmount.toFixed(2)}`}\n1. ${isFree ? "Confirm & Get Ticket" : "Confirm & Pay"}\n0. Back`,
 		);
 	}
 
 	if (confirmToken !== "1") {
-		return textResponse("CON Invalid choice.\n1. Confirm & Pay\n0. Back");
+		return textResponse(`CON Invalid choice.\n1. ${isFree ? "Confirm & Get Ticket" : "Confirm & Pay"}\n0. Back`);
+	}
+
+	if (isFree) {
+		if (selectedTicket.quantity_total != null) {
+			const remaining = selectedTicket.quantity_total - (selectedTicket.quantity_sold ?? 0);
+			if (quantity > remaining) {
+				return textResponse(
+					remaining > 0
+						? `END Only ${remaining} ticket(s) remaining for ${selectedTicket.name}.`
+						: "END This ticket tier is sold out."
+				);
+			}
+		}
+
+		if (isSimulation) {
+			return textResponse(`END [Simulator] Free ticket registration confirmed! ${quantity} ticket(s) issued for "${event.title}".`);
+		}
+
+		try {
+			const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+			const buyerName = "USSD Attendee";
+
+			const orderRows = await sql`
+				INSERT INTO ticket_orders (event_id, order_number, buyer_name, buyer_phone, subtotal, status, created_at, updated_at)
+				VALUES (${event.id}, ${orderNumber}, ${buyerName}, ${phoneNumber}, 0, 'completed', NOW(), NOW())
+				RETURNING id
+			`;
+			const orderId = orderRows[0]?.id;
+
+			if (orderId) {
+				const ticketCodes: string[] = [];
+				for (let i = 0; i < quantity; i++) {
+					const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+					const ticketCode = `TIX-${Date.now().toString().slice(-6)}-${randomSuffix}-${i + 1}`;
+					ticketCodes.push(ticketCode);
+					await sql`
+						INSERT INTO tickets (order_id, ticket_type_id, event_id, ticket_code, attendee_name, attendee_phone, check_in_status, created_at, updated_at)
+						VALUES (${orderId}, ${selectedTicket.id}, ${event.id}, ${ticketCode}, ${buyerName}, ${phoneNumber}, 'not_checked_in', NOW(), NOW())
+					`;
+				}
+
+				await sql`
+					UPDATE ticket_types 
+					SET quantity_sold = quantity_sold + ${quantity}, updated_at = NOW() 
+					WHERE id = ${selectedTicket.id}
+				`;
+
+				if (env?.ARKESEL_API_KEY) {
+					try {
+						await fetch("https://sms.arkesel.com/api/v2/sms/send", {
+							method: "POST",
+							headers: {
+								"api-key": env.ARKESEL_API_KEY,
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								sender: env.ARKESEL_SENDER_ID || "Fextiva",
+								message: `Pass: ${ticketCodes.join(", ")}\nEvent: ${event.title}\nShow this at entry.`,
+								recipients: [toArkeselPhone(phoneNumber)],
+							}),
+						});
+					} catch (smsErr) {
+						console.error("[USSD-FREE-SMS-ERR]", smsErr);
+					}
+				}
+			}
+
+			return textResponse("END Free ticket confirmed! Check your SMS for your pass.");
+		} catch (err) {
+			console.error("[USSD-FREE-TICKET-ERR]", err);
+			return textResponse("END Unable to complete registration. Please try again.");
+		}
 	}
 
 	const otpStr = tokens.shift();

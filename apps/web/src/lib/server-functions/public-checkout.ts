@@ -9,7 +9,9 @@ import { computeDynamicChargeAmount } from "@/lib/server-functions/fee-service";
 import { fulfillSuccessfulPayment } from "@/lib/server-functions/fulfillment";
 import { submitPublicNomination } from "@/lib/server-functions/voting-options";
 import { sendTicketConfirmationEmail } from "@/lib/email/ticket";
-import { sendTicketWhatsAppNotification } from "@/lib/services/whatsapp";
+import { sendTicketWhatsAppNotification, normalizePhoneNumber } from "@/lib/services/whatsapp";
+import { getEventMessagingConfig } from "@/lib/server-functions/event-messaging-config";
+import { dispatchTicketChannelNotification } from "@/lib/server-functions/fulfillment/notifications";
 import {
 	getJunipayConfig,
 	initiateJunipayCollection,
@@ -350,20 +352,31 @@ export async function initiatePublicTicketCheckout({
 				}
 			}
 
-			// Send buyer WhatsApp notification with all ticket codes
+			// Send buyer ticket notification (WhatsApp / SMS per event messaging config)
+			const messagingConfig = await getEventMessagingConfig(eventId).catch(() => null);
+			const ticketChannel = messagingConfig?.ticketConfirmChannel || "whatsapp";
+
 			if (buyerPhone && tickets.length > 0) {
 				try {
-					await sendTicketWhatsAppNotification({
-						phone: buyerPhone,
-						attendeeName: buyerName,
-						eventTitle: ticketType.event.title,
-						ticketCode: tickets.map((t) => t.ticketCode).join(", "),
-						ticketToken: tickets[0]?.token || undefined,
-						bannerImageUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage || undefined,
-						attendeeNames: freeAttendeeNames.length > 1 ? freeAttendeeNames : undefined,
-					});
-				} catch (waErr) {
-					console.error("[WhatsApp] Error sending free ticket buyer confirmation:", waErr);
+					const normBuyerPhone = normalizePhoneNumber(buyerPhone);
+					if (normBuyerPhone) {
+						await dispatchTicketChannelNotification({
+							ticketIds: tickets.map((t) => t.id),
+							phone: normBuyerPhone,
+							attendeeName: buyerName,
+							eventTitle: ticketType.event.title,
+							ticketCode: tickets[0]?.ticketCode || "",
+							ticketToken: tickets[0]?.token,
+							ticketCount: tickets.length,
+							eventStartDate: (ticketType.event as any).startDate,
+							bannerImageUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage || undefined,
+							attendeeNames: freeAttendeeNames.length > 1 ? freeAttendeeNames : undefined,
+							eventId,
+							channel: ticketChannel,
+						});
+					}
+				} catch (notifErr) {
+					console.error("[Notification] Error sending free ticket buyer confirmation:", notifErr);
 				}
 			}
 
@@ -427,19 +440,27 @@ export async function initiatePublicTicketCheckout({
 					);
 				}
 
-				// WhatsApp — send to each attendee who has their own phone (skip if same as buyer, buyer already got theirs)
+				// Deliver ticket pass to each attendee who has their own phone (skip if same as buyer)
 				const attendeePhoneVal = ticketRecord?.attendeePhone;
 				if (attendeePhoneVal && attendeePhoneVal !== buyerPhone) {
-					sendTicketWhatsAppNotification({
-						phone: attendeePhoneVal,
-						attendeeName: ticketRecord?.attendeeName || "Attendee",
-						eventTitle: ticketType.event.title,
-						ticketCode: tkt.ticketCode,
-						ticketToken: tkt.token,
-						bannerImageUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage || undefined,
-					}).catch((waErr) =>
-						console.error(`[WhatsApp] Error sending attendee ticket for ${tkt.ticketCode}:`, waErr),
-					);
+					const normAttendeePhone = normalizePhoneNumber(attendeePhoneVal);
+					if (normAttendeePhone) {
+						dispatchTicketChannelNotification({
+							ticketIds: [tkt.id],
+							phone: normAttendeePhone,
+							attendeeName: ticketRecord?.attendeeName || "Attendee",
+							eventTitle: ticketType.event.title,
+							ticketCode: tkt.ticketCode,
+							ticketToken: tkt.token,
+							ticketCount: 1,
+							eventStartDate: (ticketType.event as any).startDate,
+							bannerImageUrl: (ticketType.event as any).flierImage || (ticketType.event as any).bannerImage || undefined,
+							eventId,
+							channel: ticketChannel,
+						}).catch((notifErr) =>
+							console.error(`[Notification] Error sending attendee ticket for ${tkt.ticketCode}:`, notifErr),
+						);
+					}
 				}
 			}
 

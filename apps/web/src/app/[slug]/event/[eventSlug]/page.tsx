@@ -121,7 +121,7 @@ export default async function PublicEventPage({
 							Get Tickets
 						</h2>
 						<p className="text-xs text-muted-foreground">
-							Select your ticket tier below and complete payment securely.
+							Select your ticket tier below to secure your pass.
 						</p>
 					</div>
 

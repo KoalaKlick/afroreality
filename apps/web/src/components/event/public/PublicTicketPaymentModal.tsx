@@ -645,7 +645,11 @@ export function PublicTicketPaymentModal({
 								className="w-full font-bold gap-2 cursor-pointer"
 								disabled={loading || !isFormValid}
 							>
-								<Lock className="size-3.5" />
+								{isFree ? (
+									<Ticket className="size-3.5" />
+								) : (
+									<Lock className="size-3.5" />
+								)}
 								{isUpcoming
 									? "Sales Not Started Yet"
 									: isSalesEnded

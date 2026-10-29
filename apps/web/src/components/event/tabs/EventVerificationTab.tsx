@@ -10,8 +10,6 @@ import {
 import {
 	QrCode,
 	Search,
-	CheckCircle2,
-	Clock,
 	Users,
 	ExternalLink,
 	Loader2,
@@ -22,6 +20,11 @@ import {
 	Ticket,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	StatCard,
+	StatsGrid,
+	statIcons,
+} from "@/components/event/core/EventStats";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -237,68 +240,55 @@ export function EventVerificationTab({ event }: EventVerificationTabProps) {
 		totalCount > 0 ? Math.round((checkedInCount / totalCount) * 100) : 0;
 
 	return (
-		<div className="space-y-5">
-			{/* Clean Minimal Stat Counters */}
-			<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-				<div className="p-4 rounded-lg border border-border/70 bg-card/50 flex items-center justify-between">
-					<div>
-						<span className="text-[11px] font-medium text-muted-foreground block">
-							Total Issued
-						</span>
-						<p className="text-xl font-bold text-foreground mt-0.5">{totalCount}</p>
-					</div>
-					<div className="size-8 rounded-md bg-muted/60 border border-border/50 flex items-center justify-center text-muted-foreground">
-						<Ticket className="size-4" />
-					</div>
-				</div>
+		<div className="space-y-6">
+			{/* Overview-Style Stat Cards */}
+			<StatsGrid columns={3}>
+				<StatCard
+					label="Total Issued"
+					value={totalCount}
+					iconSrc={statIcons.ticket}
+					description="All passes generated for this event"
+				/>
 
-				<div className="p-4 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.03] flex items-center justify-between">
-					<div>
-						<span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400 block">
-							Checked In ({checkInRate}%)
-						</span>
-						<p className="text-xl font-bold text-foreground mt-0.5">{checkedInCount}</p>
-					</div>
-					<div className="size-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-						<CheckCircle2 className="size-4" />
-					</div>
-				</div>
+				<StatCard
+					label="Checked In"
+					value={checkedInCount}
+					iconSrc={statIcons.high}
+					description={`${checkInRate}% attendance rate`}
+				/>
 
-				<div className="p-4 rounded-lg border border-amber-500/30 bg-amber-500/[0.03] flex items-center justify-between">
-					<div>
-						<span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 block">
-							Pending Entry
-						</span>
-						<p className="text-xl font-bold text-foreground mt-0.5">{remainingCount}</p>
-					</div>
-					<div className="size-8 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-						<Clock className="size-4" />
-					</div>
-				</div>
-			</div>
+				<StatCard
+					label="Pending Entry"
+					value={remainingCount}
+					iconSrc={statIcons.ongoing}
+					description="Tickets awaiting gate verification"
+				/>
+			</StatsGrid>
 
-			{/* Scanner Bar */}
-			<div className="rounded-lg border border-border/70 bg-muted/20 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-				<div className="flex items-center gap-3">
-					<div className="size-8 rounded-md bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
-						<QrCode className="size-4" />
+			{/* Gate Verification Scanner Card */}
+			<Card className="bg-card">
+				<CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+					<div className="flex items-center gap-3.5">
+						<div className="size-9 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+							<QrCode className="size-4.5" />
+						</div>
+						<div>
+							<h4 className="font-bold text-sm text-foreground">
+								Gate Verification Scanner
+							</h4>
+							<p className="text-xs text-muted-foreground mt-0.5">
+								Scan QR passes or look up ticket numbers at entry points.
+							</p>
+						</div>
 					</div>
-					<div>
-						<h4 className="font-semibold text-xs text-foreground">
-							Gate Verification Scanner
-						</h4>
-						<p className="text-[11px] text-muted-foreground">
-							Scan QR passes or look up ticket numbers at entry points.
-						</p>
-					</div>
-				</div>
 
-				<Button asChild size="sm" className="h-8 text-xs font-semibold gap-1.5 shrink-0">
-					<Link href="/ticket/verify" target="_blank">
-						<ExternalLink className="size-3.5" /> Launch Gate Scanner
-					</Link>
-				</Button>
-			</div>
+					<Button asChild size="sm" className="h-9 text-xs font-semibold gap-1.5 shrink-0 w-full sm:w-auto">
+						<Link href="/ticket/verify" target="_blank">
+							<ExternalLink className="size-3.5" /> Launch Gate Scanner
+						</Link>
+					</Button>
+				</CardContent>
+			</Card>
 
 			{/* Attendee Roster Card with Reused Search Bar, DataTable and DataTablePagination */}
 			<Card className="bg-card">
