@@ -9,7 +9,6 @@ import {
 	DEFAULT_NOMINATION_PRICE,
 	DEFAULT_VOTE_PRICE,
 	MIN_NOMINATION_PRICE,
-	MIN_VOTE_PRICE,
 } from "@/lib/constants/pricing";
 
 export const votingCategoryNameSchema = z
@@ -41,7 +40,7 @@ export const nominationPriceSchema = z
 
 export const votePriceSchema = z
 	.number()
-	.min(MIN_VOTE_PRICE, `Vote price must be at least ${MIN_VOTE_PRICE}`)
+	.min(0, "Vote price cannot be negative")
 	.max(10000, "Vote price is too high")
 	.default(DEFAULT_VOTE_PRICE);
 

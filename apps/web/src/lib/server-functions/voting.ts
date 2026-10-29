@@ -30,11 +30,11 @@ export async function createVotingCategory({ data }: { data: any }): Promise<any
   // Enforce minimum vote price for general (non-internal) voting
   const isInternal = data.votingMode === 'internal';
   const votePriceNum = Number(data.votePrice) || 0;
+  if (votePriceNum < 0) {
+    throw new Error('Vote price cannot be negative');
+  }
   if (!isInternal && votePriceNum < MIN_VOTE_PRICE) {
     throw new Error(`General voting requires a minimum vote price of ${MIN_VOTE_PRICE} GHS`);
-  }
-  if (votePriceNum > 0 && votePriceNum < MIN_VOTE_PRICE) {
-    throw new Error(`Vote price must be at least ${MIN_VOTE_PRICE} GHS`);
   }
 
   const category = await prisma.votingCategory.create({
@@ -93,11 +93,11 @@ export async function updateVotingCategory({ data }: { data: any }): Promise<any
   if (rest.votePrice !== undefined) {
     const votePriceNum = Number(rest.votePrice) || 0;
     const isInternal = votingMode === 'internal';
+    if (votePriceNum < 0) {
+      throw new Error('Vote price cannot be negative');
+    }
     if (!isInternal && votePriceNum < MIN_VOTE_PRICE) {
       throw new Error(`General voting requires a minimum vote price of ${MIN_VOTE_PRICE} GHS`);
-    }
-    if (votePriceNum > 0 && votePriceNum < MIN_VOTE_PRICE) {
-      throw new Error(`Vote price must be at least ${MIN_VOTE_PRICE} GHS`);
     }
   }
 

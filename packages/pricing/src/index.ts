@@ -216,9 +216,9 @@ export interface PricingDefaults {
 }
 
 export const MIN_PRICING: PricingDefaults = {
-	vote: 0.5,
+	vote: 0,
 	nomination: 0.0,
-	ticket: 1,
+	ticket: 0,
 	paidTicket: 1.0,
 };
 

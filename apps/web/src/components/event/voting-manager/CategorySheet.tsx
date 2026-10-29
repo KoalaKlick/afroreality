@@ -407,7 +407,7 @@ function sanitizeNumberInput(value: string): string {
 										}
 									/>
 									<p className="text-xs text-muted-foreground">
-										Minimum {MIN_VOTE_PRICE.toFixed(2)} GHS for general/public voting.
+										Set to 0 for free voting.
 									</p>
 								</div>
 							)}

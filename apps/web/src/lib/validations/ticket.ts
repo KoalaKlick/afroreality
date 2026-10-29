@@ -4,7 +4,6 @@
 
 import { z } from "zod";
 import { CurrencyCode, TicketStatus } from "@/lib/constants/enums";
-import { MIN_TICKET_PRICE } from "@/lib/constants/pricing";
 
 export const ticketTypeNameSchema = z
 	.string()
@@ -19,10 +18,7 @@ export const ticketTypeDescriptionSchema = z
 
 export const ticketTypePriceSchema = z
 	.number()
-	.min(
-		MIN_TICKET_PRICE,
-		`Price must be at least ${MIN_TICKET_PRICE}`,
-	)
+	.min(0, "Price cannot be negative")
 	.max(1000000, "Price must be at most 1,000,000")
 	.multipleOf(0.1, { message: "Price must be in increments of 0.10" });
 
