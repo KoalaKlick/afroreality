@@ -273,11 +273,6 @@ export function TicketVerifyClient({
 								)}
 							</Button>
 						)}
-								) : (
-									"Confirm check-in"
-								)}
-							</Button>
-						)}
 
 						{verifierName && (
 							<p className="text-[11px] text-center text-muted-foreground">

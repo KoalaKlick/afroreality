@@ -5,7 +5,6 @@ import { serializeJsonSafe } from "../utils";
 import { getAuthState } from "@/lib/auth-guards";
 import { isPlatformAdmin } from "@/lib/admin/admin-auth";
 import { isPlaceholderName } from "@/lib/server-functions/fulfillment/payer-name";
-import { maskTicketCode } from "@/lib/utils/ticket-code";
 
 async function verifyEventOrganizerAccess(
 	userId: string,

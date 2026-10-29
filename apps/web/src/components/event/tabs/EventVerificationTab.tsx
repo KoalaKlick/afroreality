@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useTransition } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -71,7 +71,6 @@ export function EventVerificationTab({ event }: EventVerificationTabProps) {
 	const [searchQuery, setSearchQuery] = useState<string>("");
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [isPending, startTransition] = useTransition();
 
 	const [selectedTicketForVerify, setSelectedTicketForVerify] = useState<any | null>(null);
 	const [verifyCodeInput, setVerifyCodeInput] = useState<string>("");
