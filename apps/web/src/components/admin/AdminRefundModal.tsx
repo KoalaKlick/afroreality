@@ -214,8 +214,31 @@ export function AdminRefundModal({
 
 	const organizerBalance = currentOrg?.wallet?.balance ?? 0;
 	const parsedAmount = parseFloat(amount) || 0;
-	const isInsufficientBalance =
-		deductFromOrganizer && parsedAmount > 0 && parsedAmount > organizerBalance;
+
+	// Fairness refund calculations:
+	// If linked to an order, max allowable refund is full order total (organizer share + platform fee).
+	const isExceedingOrderTotal = Boolean(
+		selectedOrder && parsedAmount > selectedOrder.totalAmount + 0.009,
+	);
+
+	// Target organizer liability:
+	// If linked to an order, organizer is only liable up to their share (subtotal).
+	// If not linked to an order, target is the full parsedAmount.
+	const targetOrgShare = selectedOrder
+		? Math.min(parsedAmount, selectedOrder.subtotal)
+		: parsedAmount;
+
+	// Actual organizer deduction cannot exceed what's currently available in their wallet:
+	const actualOrgDeduction = deductFromOrganizer
+		? Math.min(targetOrgShare, Math.max(0, organizerBalance))
+		: 0;
+
+	// Platform absorbed portion (platform fee portion + any balance deficit if organizer left):
+	const platformAbsorbed = deductFromOrganizer
+		? Math.max(0, Math.round((parsedAmount - actualOrgDeduction) * 100) / 100)
+		: parsedAmount;
+
+	const isFairnessRefund = deductFromOrganizer && parsedAmount > 0 && platformAbsorbed > 0;
 
 	// Handle Order Quick-search
 	const handleSearchOrders = () => {
@@ -320,9 +343,9 @@ export function AdminRefundModal({
 			return;
 		}
 
-		if (isInsufficientBalance) {
+		if (isExceedingOrderTotal && selectedOrder) {
 			toast.error(
-				`Cannot deduct GH₵${parsedAmount.toFixed(2)}. Organizer available balance is only GH₵${organizerBalance.toFixed(2)}.`,
+				`Cannot refund GH₵${parsedAmount.toFixed(2)}. Amount exceeds order total of GH₵${selectedOrder.totalAmount.toFixed(2)} (Organizer share GH₵${selectedOrder.subtotal.toFixed(2)} + Platform fee GH₵${selectedOrder.fees.toFixed(2)}).`,
 			);
 			return;
 		}
@@ -434,6 +457,9 @@ export function AdminRefundModal({
 											Buyer: {selectedOrder.buyerName} ({selectedOrder.buyerPhone}) • Total:{" "}
 											<span className="font-semibold text-foreground font-mono">
 												GH₵{selectedOrder.totalAmount.toFixed(2)}
+											</span>
+											<span className="text-[10px] text-muted-foreground ml-1">
+												(Org Share: GH₵{selectedOrder.subtotal.toFixed(2)} + Platform Fee: GH₵{selectedOrder.fees.toFixed(2)})
 											</span>
 										</p>
 									</div>
@@ -627,19 +653,69 @@ export function AdminRefundModal({
 									</Select>
 								</div>
 
-								{/* Warning if refund amount exceeds organizer balance */}
-								{isInsufficientBalance && (
+								{/* Warning if refund amount exceeds total order amount */}
+								{isExceedingOrderTotal && selectedOrder && (
 									<div className="p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-start gap-2">
 										<AlertCircle className="size-4 shrink-0 mt-0.5" />
-										<p className="text-[11px] leading-relaxed">
-											<strong>Insufficient Balance:</strong> The refund amount (GH₵
-											{parsedAmount.toFixed(2)}) exceeds the organizer&apos;s available balance
-											(GH₵{organizerBalance.toFixed(2)}). You cannot debit more than available.
-										</p>
+										<div className="text-[11px] leading-relaxed space-y-0.5">
+											<p className="font-bold">Exceeds Maximum Order Total</p>
+											<p>
+												The refund amount (GH₵{parsedAmount.toFixed(2)}) cannot exceed the
+												order total of <strong>GH₵{selectedOrder.totalAmount.toFixed(2)}</strong>{" "}
+												(Organizer share: GH₵{selectedOrder.subtotal.toFixed(2)} + Platform fee: GH₵
+												{selectedOrder.fees.toFixed(2)}).
+											</p>
+										</div>
 									</div>
 								)}
 
-								{currentEvent && !isInsufficientBalance && (
+								{/* Fairness Refund Settlement breakdown */}
+								{!isExceedingOrderTotal && isFairnessRefund && (
+									<div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs space-y-2">
+										<div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-semibold text-[11px]">
+											<ShieldCheck className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+											<span>Fairness Refund Policy Active</span>
+											<Badge
+												variant="outline"
+												className="text-[9px] px-1 py-0 h-4 border-amber-500/30 text-amber-700 dark:text-amber-400"
+											>
+												Split Settlement
+											</Badge>
+										</div>
+										<p className="text-[11px] text-muted-foreground leading-relaxed">
+											For organizer departure or fairness settlement, the customer receives the full
+											refund while the platform absorbs its fee or balance deficit:
+										</p>
+										<div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+											<div className="p-2 rounded-lg bg-background/80 border border-border/60">
+												<span className="text-[10px] text-muted-foreground block font-sans">
+													Organizer Debited:
+												</span>
+												<strong className="text-foreground">
+													GH₵{actualOrgDeduction.toFixed(2)}
+												</strong>
+												{organizerBalance < targetOrgShare && (
+													<span className="text-[9px] text-amber-600 dark:text-amber-400 block font-sans">
+														(capped at balance)
+													</span>
+												)}
+											</div>
+											<div className="p-2 rounded-lg bg-background/80 border border-border/60">
+												<span className="text-[10px] text-muted-foreground block font-sans">
+													Platform Absorbed:
+												</span>
+												<strong className="text-emerald-600 dark:text-emerald-400">
+													GH₵{platformAbsorbed.toFixed(2)}
+												</strong>
+												<span className="text-[9px] text-muted-foreground block font-sans">
+													(fee &amp; platform subsidy)
+												</span>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{currentEvent && !isExceedingOrderTotal && !isFairnessRefund && parsedAmount > 0 && (
 									<p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
 										<Info className="size-3.5 text-primary shrink-0" />
 										This refund will reflect as an outflow on{" "}
@@ -966,7 +1042,13 @@ export function AdminRefundModal({
 						<Button
 							type="submit"
 							size="sm"
-							disabled={isSubmitting || parsedAmount <= 0 || isInsufficientBalance}
+							disabled={
+								isSubmitting ||
+								parsedAmount <= 0 ||
+								Boolean(isExceedingOrderTotal) ||
+								(deductFromOrganizer && !selectedEventId && !selectedOrgId) ||
+								(processPaystackRefund && !paystackTransactionRef.trim() && !selectedOrder?.payment)
+							}
 							className="text-xs font-semibold gap-1.5 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
 						>
 							{isSubmitting ? (

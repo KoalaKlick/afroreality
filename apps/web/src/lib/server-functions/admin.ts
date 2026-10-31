@@ -1826,6 +1826,8 @@ export interface AdminRefundOrderSearchResult {
 	buyerName: string | null;
 	buyerPhone: string | null;
 	buyerEmail: string | null;
+	subtotal: number;
+	fees: number;
 	totalAmount: number;
 	status: string;
 	createdAt: string;
@@ -1912,7 +1914,9 @@ export async function searchOrdersForRefund(
 
 	return orders.map((o) => {
 		const org = o.event.organization;
-		const total = Number(o.subtotal || 0) + Number(o.fees || 0);
+		const subtotal = Number(o.subtotal || 0);
+		const fees = Number(o.fees || 0);
+		const total = subtotal + fees;
 		const walletBal = Number(org.wallets[0]?.balance || 0);
 		const isPaystackPayment = Boolean(
 			o.payment &&
@@ -1926,6 +1930,8 @@ export async function searchOrdersForRefund(
 			buyerName: o.buyerName,
 			buyerPhone: o.buyerPhone,
 			buyerEmail: o.buyer?.email || null,
+			subtotal,
+			fees,
 			totalAmount: total,
 			status: o.status,
 			createdAt: o.createdAt.toISOString(),
@@ -1985,6 +1991,8 @@ export interface AdminProcessUserRefundResult {
 	newOrganizerBalance?: number;
 	paystackRefundId?: string;
 	paystackRefundSuccess?: boolean;
+	organizerDeduction?: number;
+	platformAbsorbed?: number;
 }
 
 /**
@@ -2029,6 +2037,31 @@ export async function adminProcessUserRefund(
 				eventTitle = event.title;
 				if (!resolvedOrgId) {
 					resolvedOrgId = event.organizationId;
+				}
+			}
+		}
+
+		// ── Validate linked order limits (Fairness Refund Policy) ─────────────
+		let linkedOrderSubtotal: number | null = null;
+		let linkedOrderFees: number | null = null;
+		let linkedOrderTotal: number | null = null;
+
+		if (data.ticketOrderId) {
+			const linkedOrder = await prisma.ticketOrder.findUnique({
+				where: { id: data.ticketOrderId },
+				select: { id: true, subtotal: true, fees: true },
+			});
+			if (linkedOrder) {
+				linkedOrderSubtotal = Number(linkedOrder.subtotal || 0);
+				linkedOrderFees = Number(linkedOrder.fees || 0);
+				linkedOrderTotal = Math.round((linkedOrderSubtotal + linkedOrderFees) * 100) / 100;
+
+				// Allow refund up to full order amount (organizer's share + platform fee), but not higher
+				if (refundAmount > linkedOrderTotal + 0.01) {
+					return {
+						success: false,
+						error: `Refund amount (GHS ${refundAmount.toFixed(2)}) exceeds the maximum order total of GHS ${linkedOrderTotal.toFixed(2)} (Organizer share GHS ${linkedOrderSubtotal.toFixed(2)} + Platform fee GHS ${linkedOrderFees.toFixed(2)}).`,
+					};
 				}
 			}
 		}
@@ -2128,6 +2161,8 @@ export async function adminProcessUserRefund(
 		}
 
 		let newOrgBalance: number | undefined;
+		let actualOrgDeduction = 0;
+		let platformAbsorbed = 0;
 
 		// ── 1. DEDUCT FROM ORGANIZER BALANCE (IF ENABLED) ──────────────────────
 		if (data.deductFromOrganizer) {
@@ -2154,44 +2189,61 @@ export async function adminProcessUserRefund(
 
 			const currentOrgBal = Number(orgWallet.balance || 0);
 
-			if (currentOrgBal < refundAmount) {
-				return {
-					success: false,
-					error: `Insufficient organizer balance. Current balance is GHS ${currentOrgBal.toFixed(2)}, cannot deduct GHS ${refundAmount.toFixed(2)}.`,
-				};
+			// Fairness Refund Policy:
+			// The organizer is only liable up to their share (subtotal) of the ticket order.
+			// Any amount beyond their share (i.e. the platform fee) is absorbed by the platform.
+			// Furthermore, if an organizer has left or has an insufficient balance (< organizer share),
+			// we deduct whatever remains in their wallet (down to 0) and the platform absorbs the difference
+			// to guarantee the customer is fully refunded without blocking.
+			const targetOrgShare =
+				linkedOrderSubtotal !== null
+					? Math.min(refundAmount, linkedOrderSubtotal)
+					: refundAmount;
+
+			actualOrgDeduction = Math.min(targetOrgShare, Math.max(0, currentOrgBal));
+			platformAbsorbed = Math.round((refundAmount - actualOrgDeduction) * 100) / 100;
+			newOrgBalance = Math.round((currentOrgBal - actualOrgDeduction) * 100) / 100;
+
+			if (actualOrgDeduction > 0) {
+				await prisma.wallet.update({
+					where: { id: orgWallet.id },
+					data: {
+						balance: newOrgBalance,
+						lastTransactionAt: new Date(),
+					},
+				});
+
+				const fairnessTag =
+					platformAbsorbed > 0
+						? ` [Fairness Split: Org GH₵${actualOrgDeduction.toFixed(2)} + Platform GH₵${platformAbsorbed.toFixed(2)}]`
+						: "";
+
+				await prisma.transaction.create({
+					data: {
+						reference: refundRef,
+						walletId: orgWallet.id,
+						type: "debit",
+						category: "refund",
+						status: "completed",
+						amount: actualOrgDeduction,
+						currency: orgWallet.currency || "GHS",
+						feeAmount: 0,
+						balanceBefore: currentOrgBal,
+						balanceAfter: newOrgBalance,
+						description: `Refund: ${cleanName} • ${eventTitle ? `${eventTitle} • ` : ""}${cleanReason}${data.processPaystackRefund ? " (Paystack Gateway)" : ""}${fairnessTag}`,
+						notes: data.adminNotes
+							? `${data.adminNotes} (Refunded to ${cleanName} • ${cleanPhone}${paystackRefundId ? ` • Paystack ID: ${paystackRefundId}` : ""}${platformAbsorbed > 0 ? ` • Platform absorbed fee portion GH₵${platformAbsorbed.toFixed(2)}` : ""})`
+							: `Admin refund for ${cleanName} (${cleanPhone})${paystackRefundId ? ` • Paystack ID: ${paystackRefundId}` : ""}${platformAbsorbed > 0 ? ` • Platform absorbed fee portion GH₵${platformAbsorbed.toFixed(2)}` : ""}`,
+						providerReference: paystackRefundId || undefined,
+						providerResponse: paystackRefundData || undefined,
+						completedAt: new Date(),
+					},
+				});
+			} else {
+				newOrgBalance = currentOrgBal;
 			}
-
-			newOrgBalance = Math.round((currentOrgBal - refundAmount) * 100) / 100;
-
-			await prisma.wallet.update({
-				where: { id: orgWallet.id },
-				data: {
-					balance: newOrgBalance,
-					lastTransactionAt: new Date(),
-				},
-			});
-
-			await prisma.transaction.create({
-				data: {
-					reference: refundRef,
-					walletId: orgWallet.id,
-					type: "debit",
-					category: "refund",
-					status: "completed",
-					amount: refundAmount,
-					currency: orgWallet.currency || "GHS",
-					feeAmount: 0,
-					balanceBefore: currentOrgBal,
-					balanceAfter: newOrgBalance,
-					description: `Refund: ${cleanName} • ${eventTitle ? `${eventTitle} • ` : ""}${cleanReason}${data.processPaystackRefund ? " (Paystack Gateway)" : ""}`,
-					notes: data.adminNotes
-						? `${data.adminNotes} (Refunded to ${cleanName} • ${cleanPhone}${paystackRefundId ? ` • Paystack ID: ${paystackRefundId}` : ""})`
-						: `Admin refund for ${cleanName} (${cleanPhone})${paystackRefundId ? ` • Paystack ID: ${paystackRefundId}` : ""}`,
-					providerReference: paystackRefundId || undefined,
-					providerResponse: paystackRefundData || undefined,
-					completedAt: new Date(),
-				},
-			});
+		} else {
+			platformAbsorbed = refundAmount;
 		}
 
 		// ── 2. RECORD IN RECIPIENT'S ACCOUNT / BALANCE IF REGISTERED ─────────
@@ -2285,6 +2337,9 @@ export async function adminProcessUserRefund(
 					description: `Super Admin issued refund of GHS ${refundAmount.toFixed(2)} to ${cleanName} (${cleanPhone}) via ${data.processPaystackRefund ? "Paystack Gateway" : "In-App Wallet"}. Deducted from organizer: ${data.deductFromOrganizer ? "Yes" : "No"}. Reason: ${cleanReason}`,
 					metadata: {
 						amount: refundAmount,
+						organizerDeduction: actualOrgDeduction,
+						platformAbsorbed,
+						isFairnessRefund: platformAbsorbed > 0,
 						currency: "GHS",
 						recipientName: cleanName,
 						recipientPhone: cleanPhone,
@@ -2336,6 +2391,17 @@ export async function adminProcessUserRefund(
 			? " via Paystack (disbursed directly to customer's MoMo / Card)"
 			: " to customer account";
 
+		let splitSummary = "";
+		if (data.deductFromOrganizer) {
+			if (platformAbsorbed > 0) {
+				splitSummary = ` (Fairness Split: Organizer debited GH₵${actualOrgDeduction.toFixed(2)}, Platform absorbed GH₵${platformAbsorbed.toFixed(2)})`;
+			} else {
+				splitSummary = ` (Organizer balance debited: GH₵${actualOrgDeduction.toFixed(2)})`;
+			}
+		} else {
+			splitSummary = " (100% Platform-funded)";
+		}
+
 		return {
 			success: true,
 			reference: refundRef,
@@ -2343,7 +2409,9 @@ export async function adminProcessUserRefund(
 			newOrganizerBalance: newOrgBalance,
 			paystackRefundId,
 			paystackRefundSuccess: Boolean(data.processPaystackRefund),
-			message: `Refund of GHS ${refundAmount.toFixed(2)} processed successfully${methodNote}!${data.deductFromOrganizer ? " Organizer balance was deducted." : " (Platform-funded)"}${smsSent ? " SMS notification delivered to recipient." : ""}`,
+			organizerDeduction: actualOrgDeduction,
+			platformAbsorbed,
+			message: `Refund of GHS ${refundAmount.toFixed(2)} processed successfully${methodNote}!${splitSummary}${smsSent ? " SMS notification delivered to recipient." : ""}`,
 		};
 	} catch (err: any) {
 		console.error("[ADMIN_PROCESS_USER_REFUND_ERROR]", err);
