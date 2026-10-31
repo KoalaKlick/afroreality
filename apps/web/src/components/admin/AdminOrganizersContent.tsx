@@ -17,6 +17,7 @@ import {
 	TrendingUp,
 	Percent,
 	Send,
+	RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -42,6 +43,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatAmount } from "@/lib/utils";
 import type { AdminOrganizerItem } from "@/lib/dal/admin";
+import { AdminRefundModal } from "@/components/admin/AdminRefundModal";
 import { adminLockWallet, adminToggleAutoPayout } from "@/lib/server-functions/admin";
 
 interface AdminOrganizersContentProps {
@@ -57,6 +59,10 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 	const [lockDialogOrg, setLockDialogOrg] = useState<AdminOrganizerItem | null>(null);
 	const [lockReason, setLockReason] = useState("");
 	const [isPending, startTransition] = useTransition();
+
+	// Refund modal state
+	const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+	const [refundTargetOrgId, setRefundTargetOrgId] = useState<string | null>(null);
 
 	const filteredOrganizers = organizers.filter((org) => {
 		const q = searchQuery.toLowerCase();
@@ -617,6 +623,20 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 															variant="outline"
 															size="sm"
 															disabled={isPending}
+															onClick={() => {
+																setRefundTargetOrgId(selectedOrg.id);
+																setIsRefundModalOpen(true);
+															}}
+															className="text-xs rounded-lg border-border"
+														>
+															<RotateCcw className="h-3.5 w-3.5 mr-1.5 text-primary" />
+															Issue Refund
+														</Button>
+
+														<Button
+															variant="outline"
+															size="sm"
+															disabled={isPending}
 															onClick={() => handleToggleAutoPayout(selectedOrg)}
 															className="text-xs rounded-lg border-border"
 														>
@@ -726,6 +746,16 @@ export function AdminOrganizersContent({ organizers }: AdminOrganizersContentPro
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* User / Attendee Refund Modal */}
+			<AdminRefundModal
+				isOpen={isRefundModalOpen}
+				onClose={() => {
+					setIsRefundModalOpen(false);
+					setRefundTargetOrgId(null);
+				}}
+				preselectedOrgId={refundTargetOrgId}
+			/>
 		</div>
 	);
 }

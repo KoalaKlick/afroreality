@@ -13,6 +13,7 @@ import {
 	Shield,
 	KeyRound,
 	RotateCw,
+	RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { formatAmount } from "@/lib/utils";
 import type { AdminWalletItem, AdminPayoutItem } from "@/lib/dal/admin";
+import { AdminRefundModal } from "@/components/admin/AdminRefundModal";
 import {
 	adminLockWallet,
 	adminToggleAutoPayout,
@@ -75,6 +77,10 @@ export function AdminWalletsContent({
 	// Reject flow state
 	const [rejectTarget, setRejectTarget] = useState<AdminPayoutItem | null>(null);
 	const [rejectReason, setRejectReason] = useState("");
+
+	// Refund flow state
+	const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+	const [refundTargetOrgId, setRefundTargetOrgId] = useState<string | null>(null);
 
 	const filteredWallets = wallets.filter((w) => {
 		const q = searchQuery.toLowerCase();
@@ -313,14 +319,27 @@ export function AdminWalletsContent({
 						</TabsTrigger>
 					</TabsList>
 
-					<div className="relative min-w-[240px] max-w-sm">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-						<Input
-							placeholder="Search by organizer or account..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-9 bg-background text-xs rounded-lg border-border"
-						/>
+					<div className="flex items-center gap-2">
+						<div className="relative min-w-[200px] max-w-sm">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+							<Input
+								placeholder="Search by organizer or account..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="pl-9 bg-background text-xs rounded-lg border-border"
+							/>
+						</div>
+						<Button
+							size="sm"
+							onClick={() => {
+								setRefundTargetOrgId(null);
+								setIsRefundModalOpen(true);
+							}}
+							className="h-8 text-xs font-semibold gap-1.5 shrink-0 rounded-lg cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+						>
+							<RotateCcw className="h-3.5 w-3.5" />
+							Issue Refund
+						</Button>
 					</div>
 				</div>
 
@@ -398,7 +417,7 @@ export function AdminWalletsContent({
 											</div>
 										)}
 
-										<div className="flex items-center gap-2 pt-1">
+										<div className="flex items-center gap-1.5 pt-1">
 											<Button
 												variant="outline"
 												size="sm"
@@ -408,6 +427,20 @@ export function AdminWalletsContent({
 											>
 												<SlidersHorizontal className="h-3 w-3 mr-1" />
 												{w.autoPayout ? "Disable Auto" : "Enable Auto"}
+											</Button>
+
+											<Button
+												variant="outline"
+												size="sm"
+												disabled={isPending}
+												onClick={() => {
+													setRefundTargetOrgId(w.organizationId);
+													setIsRefundModalOpen(true);
+												}}
+												className="flex-1 text-xs rounded-lg border-border"
+											>
+												<RotateCcw className="h-3 w-3 mr-1 text-primary" />
+												Refund
 											</Button>
 
 											<Button
@@ -954,6 +987,16 @@ export function AdminWalletsContent({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* User / Attendee Refund Modal */}
+			<AdminRefundModal
+				isOpen={isRefundModalOpen}
+				onClose={() => {
+					setIsRefundModalOpen(false);
+					setRefundTargetOrgId(null);
+				}}
+				preselectedOrgId={refundTargetOrgId}
+			/>
 		</div>
 	);
 }

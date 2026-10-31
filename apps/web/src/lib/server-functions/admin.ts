@@ -6,6 +6,8 @@ import { requirePlatformAdmin } from "@/lib/admin/admin-auth";
 import { WITHDRAWAL_CONFIG } from "@repo/pricing";
 import { generateAvailableUssdCode } from "@/lib/server-functions/ussd";
 import { processResidualAutoPayouts } from "@/lib/server-functions/wallet";
+import { normalizePhoneNumber } from "@/lib/services/whatsapp";
+import { sendRefundSmsNotification } from "@/lib/services/sms";
 
 /**
  * Super Admin action to lock or unlock an organization wallet.
@@ -1733,6 +1735,468 @@ export async function adminProcessSecurityDepositRefund(data: {
 	} catch (err: any) {
 		console.error("[ADMIN_PROCESS_DEPOSIT_REFUND_ERROR]", err);
 		return { success: false, error: err?.message || "Failed to process security deposit refund." };
+	}
+}
+
+export interface AdminRefundContextData {
+	organizations: Array<{
+		id: string;
+		name: string;
+		slug: string;
+		logoUrl: string | null;
+		contactEmail: string | null;
+		phone: string | null;
+		wallet: {
+			id: string;
+			balance: number;
+			currency: string;
+			isLocked: boolean;
+		} | null;
+		events: Array<{
+			id: string;
+			title: string;
+			slug: string;
+			status: string;
+		}>;
+	}>;
+}
+
+/**
+ * Loads organizations, their active wallet balances, and hosted events for the admin refund selector.
+ */
+export async function getAdminRefundContext(): Promise<AdminRefundContextData> {
+	await requirePlatformAdmin();
+
+	const orgs = await prisma.organization.findMany({
+		include: {
+			wallets: {
+				select: {
+					id: true,
+					balance: true,
+					currency: true,
+					isLocked: true,
+				},
+				take: 1,
+			},
+			events: {
+				select: {
+					id: true,
+					title: true,
+					slug: true,
+					status: true,
+				},
+				orderBy: { createdAt: "desc" },
+			},
+		},
+		orderBy: { name: "asc" },
+	});
+
+	return {
+		organizations: orgs.map((org) => {
+			const w = org.wallets[0];
+			return {
+				id: org.id,
+				name: org.name,
+				slug: org.slug,
+				logoUrl: org.logoUrl,
+				contactEmail: org.contactEmail,
+				phone: org.phone,
+				wallet: w
+					? {
+							id: w.id,
+							balance: Number(w.balance || 0),
+							currency: w.currency,
+							isLocked: w.isLocked,
+						}
+					: null,
+				events: org.events.map((e) => ({
+					id: e.id,
+					title: e.title,
+					slug: e.slug,
+					status: e.status,
+				})),
+			};
+		}),
+	};
+}
+
+export interface AdminRefundOrderSearchResult {
+	id: string;
+	orderNumber: string;
+	buyerName: string | null;
+	buyerPhone: string | null;
+	buyerEmail: string | null;
+	totalAmount: number;
+	status: string;
+	createdAt: string;
+	event: {
+		id: string;
+		title: string;
+		slug: string;
+		organization: {
+			id: string;
+			name: string;
+			slug: string;
+			walletBalance: number;
+		};
+	};
+	ticketCount: number;
+}
+
+/**
+ * Searches orders by order number, buyer name, or buyer phone for quick 1-click refund filling.
+ */
+export async function searchOrdersForRefund(
+	query: string,
+): Promise<AdminRefundOrderSearchResult[]> {
+	await requirePlatformAdmin();
+	const trimmed = query.trim();
+	if (!trimmed || trimmed.length < 2) return [];
+
+	const orders = await prisma.ticketOrder.findMany({
+		where: {
+			OR: [
+				{ orderNumber: { contains: trimmed, mode: "insensitive" } },
+				{ buyerPhone: { contains: trimmed, mode: "insensitive" } },
+				{ buyerName: { contains: trimmed, mode: "insensitive" } },
+				{
+					tickets: {
+						some: {
+							OR: [
+								{ ticketCode: { contains: trimmed, mode: "insensitive" } },
+								{ attendeePhone: { contains: trimmed, mode: "insensitive" } },
+								{ attendeeName: { contains: trimmed, mode: "insensitive" } },
+							],
+						},
+					},
+				},
+			],
+		},
+		include: {
+			event: {
+				include: {
+					organization: {
+						include: {
+							wallets: { take: 1, select: { balance: true } },
+						},
+					},
+				},
+			},
+			tickets: { select: { id: true } },
+			buyer: { select: { email: true } },
+		},
+		take: 8,
+		orderBy: { createdAt: "desc" },
+	});
+
+	return orders.map((o) => {
+		const org = o.event.organization;
+		const total = Number(o.subtotal || 0) + Number(o.fees || 0);
+		const walletBal = Number(org.wallets[0]?.balance || 0);
+
+		return {
+			id: o.id,
+			orderNumber: o.orderNumber,
+			buyerName: o.buyerName,
+			buyerPhone: o.buyerPhone,
+			buyerEmail: o.buyer?.email || null,
+			totalAmount: total,
+			status: o.status,
+			createdAt: o.createdAt.toISOString(),
+			event: {
+				id: o.event.id,
+				title: o.event.title,
+				slug: o.event.slug,
+				organization: {
+					id: org.id,
+					name: org.name,
+					slug: org.slug,
+					walletBalance: walletBal,
+				},
+			},
+			ticketCount: o.tickets.length,
+		};
+	});
+}
+
+export interface AdminProcessUserRefundInput {
+	recipientName: string;
+	recipientPhone: string;
+	recipientEmail?: string;
+	amount: number;
+	reason: string;
+	adminNotes?: string;
+	deductFromOrganizer: boolean;
+	organizationId?: string;
+	eventId?: string;
+	ticketOrderId?: string;
+	sendSms: boolean;
+	customSmsMessage?: string;
+}
+
+export interface AdminProcessUserRefundResult {
+	success: boolean;
+	message?: string;
+	error?: string;
+	reference?: string;
+	smsSent?: boolean;
+	newOrganizerBalance?: number;
+}
+
+/**
+ * Processes a comprehensive refund from Super Admin:
+ * - Optionally debits the organizer's wallet balance tied to the selected event
+ * - Records a ledger transaction with reason and event tag
+ * - Credits recipient user's balance if they have a Fextiva account
+ * - Updates ticket order status if fully refunded
+ * - Dispatches intuitive SMS notification with dynamic merge tags
+ * - Records audit trail in ActivityLog
+ */
+export async function adminProcessUserRefund(
+	data: AdminProcessUserRefundInput,
+): Promise<AdminProcessUserRefundResult> {
+	try {
+		const adminState = await requirePlatformAdmin();
+
+		if (!data.recipientPhone || data.recipientPhone.trim().length < 8) {
+			return { success: false, error: "A valid recipient phone number is required." };
+		}
+
+		if (typeof data.amount !== "number" || isNaN(data.amount) || data.amount <= 0) {
+			return { success: false, error: "Refund amount must be greater than zero." };
+		}
+
+		const cleanPhone = data.recipientPhone.trim();
+		const cleanName = data.recipientName.trim() || "Customer";
+		const cleanReason = data.reason.trim() || "Administrative Refund";
+		const refundAmount = Math.round(data.amount * 100) / 100;
+		const refundRef = `TXN-REF-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+		let resolvedOrgId = data.organizationId;
+		let eventTitle: string | null = null;
+
+		if (data.eventId) {
+			const event = await prisma.event.findUnique({
+				where: { id: data.eventId },
+				select: { id: true, title: true, organizationId: true },
+			});
+			if (event) {
+				eventTitle = event.title;
+				if (!resolvedOrgId) {
+					resolvedOrgId = event.organizationId;
+				}
+			}
+		}
+
+		let newOrgBalance: number | undefined;
+
+		// ── 1. DEDUCT FROM ORGANIZER BALANCE (IF ENABLED) ──────────────────────
+		if (data.deductFromOrganizer) {
+			if (!resolvedOrgId) {
+				return {
+					success: false,
+					error: "Please select an event or organization to deduct this refund from.",
+				};
+			}
+
+			let orgWallet = await prisma.wallet.findFirst({
+				where: { organizationId: resolvedOrgId },
+			});
+
+			if (!orgWallet) {
+				orgWallet = await prisma.wallet.create({
+					data: {
+						organizationId: resolvedOrgId,
+						currency: "GHS",
+						balance: 0,
+					},
+				});
+			}
+
+			const currentOrgBal = Number(orgWallet.balance || 0);
+
+			if (currentOrgBal < refundAmount) {
+				return {
+					success: false,
+					error: `Insufficient organizer balance. Current balance is GHS ${currentOrgBal.toFixed(2)}, cannot deduct GHS ${refundAmount.toFixed(2)}.`,
+				};
+			}
+
+			newOrgBalance = Math.round((currentOrgBal - refundAmount) * 100) / 100;
+
+			await prisma.wallet.update({
+				where: { id: orgWallet.id },
+				data: {
+					balance: newOrgBalance,
+					lastTransactionAt: new Date(),
+				},
+			});
+
+			await prisma.transaction.create({
+				data: {
+					reference: refundRef,
+					walletId: orgWallet.id,
+					type: "debit",
+					category: "refund",
+					status: "completed",
+					amount: refundAmount,
+					currency: orgWallet.currency || "GHS",
+					feeAmount: 0,
+					balanceBefore: currentOrgBal,
+					balanceAfter: newOrgBalance,
+					description: `Refund: ${cleanName} • ${eventTitle ? `${eventTitle} • ` : ""}${cleanReason}`,
+					notes: data.adminNotes
+						? `${data.adminNotes} (Refunded to ${cleanName} • ${cleanPhone})`
+						: `Admin refund for ${cleanName} (${cleanPhone})`,
+					completedAt: new Date(),
+				},
+			});
+		}
+
+		// ── 2. RECORD IN RECIPIENT'S ACCOUNT / BALANCE IF REGISTERED ─────────
+		const normalizedPhone = normalizePhoneNumber(cleanPhone);
+		const userProfile = await prisma.profile.findFirst({
+			where: {
+				OR: [
+					...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+					...(data.recipientEmail
+						? [{ email: data.recipientEmail.trim().toLowerCase() }]
+						: []),
+				],
+			},
+		});
+
+		if (userProfile) {
+			let userWallet = await prisma.wallet.findFirst({
+				where: { userId: userProfile.id, organizationId: null },
+			});
+
+			if (!userWallet) {
+				userWallet = await prisma.wallet.create({
+					data: {
+						userId: userProfile.id,
+						currency: "GHS",
+						balance: 0,
+					},
+				});
+			}
+
+			const currentUserBal = Number(userWallet.balance || 0);
+			const updatedUserBal = Math.round((currentUserBal + refundAmount) * 100) / 100;
+
+			await prisma.wallet.update({
+				where: { id: userWallet.id },
+				data: {
+					balance: updatedUserBal,
+					lastTransactionAt: new Date(),
+				},
+			});
+
+			await prisma.transaction.create({
+				data: {
+					reference: `TXN-CR-${refundRef}`,
+					walletId: userWallet.id,
+					type: "credit",
+					category: "refund",
+					status: "completed",
+					amount: refundAmount,
+					currency: userWallet.currency || "GHS",
+					feeAmount: 0,
+					balanceBefore: currentUserBal,
+					balanceAfter: updatedUserBal,
+					description: `Refund credited • ${eventTitle ? `${eventTitle} • ` : ""}${cleanReason}`,
+					notes: `Refund processed by Fextiva Admin (Ref: ${refundRef})`,
+					completedAt: new Date(),
+				},
+			});
+		}
+
+		// ── 3. UPDATE TICKET ORDER STATUS (IF LINKED) ──────────────────────────
+		if (data.ticketOrderId) {
+			try {
+				const order = await prisma.ticketOrder.findUnique({
+					where: { id: data.ticketOrderId },
+				});
+				if (order) {
+					const orderTotal = Number(order.subtotal || 0) + Number(order.fees || 0);
+					if (refundAmount >= orderTotal) {
+						await prisma.ticketOrder.update({
+							where: { id: order.id },
+							data: { status: "refunded" },
+						});
+					}
+				}
+			} catch (orderErr) {
+				console.warn("[ADMIN-REFUND-ORDER-UPDATE-WARN]", orderErr);
+			}
+		}
+
+		// ── 4. AUDIT ACTIVITY LOG ──────────────────────────────────────────────
+		await prisma.activityLog
+			.create({
+				data: {
+					organizationId: resolvedOrgId || null,
+					userId: adminState.userId,
+					action: "wallet.refund_issued_by_super_admin",
+					entityType: "wallet",
+					description: `Super Admin issued refund of GHS ${refundAmount.toFixed(2)} to ${cleanName} (${cleanPhone}). Deducted from organizer: ${data.deductFromOrganizer ? "Yes" : "No"}. Reason: ${cleanReason}`,
+					metadata: {
+						amount: refundAmount,
+						currency: "GHS",
+						recipientName: cleanName,
+						recipientPhone: cleanPhone,
+						recipientEmail: data.recipientEmail || null,
+						reason: cleanReason,
+						adminNotes: data.adminNotes || null,
+						deductFromOrganizer: data.deductFromOrganizer,
+						organizationId: resolvedOrgId || null,
+						eventId: data.eventId || null,
+						eventTitle,
+						ticketOrderId: data.ticketOrderId || null,
+						reference: refundRef,
+						adminEmail: adminState.email,
+					},
+				},
+			})
+			.catch(() => {});
+
+		// ── 5. INTUITIVE SMS NOTIFICATION (IF ENABLED) ─────────────────────────
+		let smsSent = false;
+		if (data.sendSms && cleanPhone) {
+			try {
+				const smsRes = await sendRefundSmsNotification({
+					phone: cleanPhone,
+					recipientName: cleanName,
+					amount: refundAmount,
+					currency: "GHS",
+					reference: refundRef,
+					eventTitle,
+					reason: cleanReason,
+					customMessage: data.customSmsMessage,
+					eventId: data.eventId,
+				});
+				smsSent = Boolean(smsRes.success);
+			} catch (smsErr) {
+				console.warn("[ADMIN-REFUND-SMS-ERROR]", smsErr);
+			}
+		}
+
+		// ── 6. REVALIDATE PATHS ────────────────────────────────────────────────
+		revalidatePath("/super");
+		revalidatePath("/super/wallets");
+		revalidatePath("/super/organizers");
+		revalidatePath("/organization/wallet");
+
+		return {
+			success: true,
+			reference: refundRef,
+			smsSent,
+			newOrganizerBalance: newOrgBalance,
+			message: `Refund of GHS ${refundAmount.toFixed(2)} issued successfully!${data.deductFromOrganizer ? " Organizer balance was deducted." : " (Platform-funded)"}${smsSent ? " SMS notification delivered to recipient." : ""}`,
+		};
+	} catch (err: any) {
+		console.error("[ADMIN_PROCESS_USER_REFUND_ERROR]", err);
+		return { success: false, error: err?.message || "Failed to process refund." };
 	}
 }
 

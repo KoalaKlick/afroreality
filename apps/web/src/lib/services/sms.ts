@@ -172,6 +172,57 @@ export async function sendSmsMessage({
 }
 
 /**
+ * Sends an administrative refund confirmation SMS.
+ */
+export async function sendRefundSmsNotification({
+	phone,
+	recipientName,
+	amount,
+	currency = "GHS",
+	reference,
+	eventTitle,
+	reason,
+	customMessage,
+	eventId,
+}: {
+	phone: string;
+	recipientName: string;
+	amount: number;
+	currency?: string;
+	reference: string;
+	eventTitle?: string | null;
+	reason?: string;
+	customMessage?: string;
+	eventId?: string | null;
+}): Promise<SmsResponse> {
+	let message = customMessage?.trim();
+	if (!message) {
+		const shortRef = reference.length > 12 ? reference.slice(-10) : reference;
+		const eventPart = eventTitle ? ` for ${truncate(eventTitle, 25)}` : "";
+		const shortName = truncate(recipientName.split(" ")[0] || recipientName, 14);
+		message = truncate(
+			`Hello ${shortName}, your refund of ${currency} ${amount.toFixed(2)}${eventPart} has been processed. Ref: ${shortRef}. - Fextiva`,
+			SMS_CHAR_LIMIT,
+		);
+	} else {
+		message = message
+			.replace(/\{\{name\}\}/gi, recipientName)
+			.replace(/\{\{amount\}\}/gi, amount.toFixed(2))
+			.replace(/\{\{currency\}\}/gi, currency)
+			.replace(/\{\{event\}\}/gi, eventTitle || "your event")
+			.replace(/\{\{reference\}\}/gi, reference)
+			.replace(/\{\{reason\}\}/gi, reason || "Refund");
+	}
+
+	return sendSmsMessage({
+		to: phone,
+		message,
+		purpose: "wallet_refund",
+		eventId: eventId || null,
+	});
+}
+
+/**
  * Sends a ticket purchase confirmation SMS.
  * Maximizes utility up to ~155 characters (single 160-char GSM-7 segment).
  * Uses reusable buildTicketSmsContent utility to guarantee valid formatting.
