@@ -21,6 +21,9 @@ import {
 	X,
 	Info,
 	Check,
+	CreditCard,
+	ShieldCheck,
+	Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -117,6 +120,10 @@ export function AdminRefundModal({
 	const [smsMessage, setSmsMessage] = useState(DEFAULT_SMS_TEMPLATE);
 	const smsTextareaRef = useRef<HTMLTextAreaElement>(null);
 
+	// Paystack Gateway configuration
+	const [processPaystackRefund, setProcessPaystackRefund] = useState(false);
+	const [paystackTransactionRef, setPaystackTransactionRef] = useState("");
+
 	// Load refund context (organizations, wallets, and events) when modal opens
 	useEffect(() => {
 		if (isOpen) {
@@ -155,6 +162,8 @@ export function AdminRefundModal({
 			setSelectedEventId(preselectedEventId || "");
 			setSendSms(true);
 			setSmsMessage(DEFAULT_SMS_TEMPLATE);
+			setProcessPaystackRefund(false);
+			setPaystackTransactionRef("");
 		}
 	}, [isOpen, preselectedOrgId, preselectedEventId]);
 
@@ -241,7 +250,18 @@ export function AdminRefundModal({
 		setDeductFromOrganizer(true);
 		setCustomReason(`Order #${order.orderNumber} refund (${order.ticketCount} tickets)`);
 		setSearchResults([]);
-		toast.success(`Loaded details for Order #${order.orderNumber}`);
+
+		if (order.canRefundViaPaystack) {
+			setProcessPaystackRefund(true);
+			setPaystackTransactionRef(
+				order.payment?.providerReference || order.payment?.reference || "",
+			);
+			toast.success(`Loaded Order #${order.orderNumber} (⚡ Paystack Payment Linked)`);
+		} else {
+			setProcessPaystackRefund(false);
+			setPaystackTransactionRef("");
+			toast.success(`Loaded details for Order #${order.orderNumber}`);
+		}
 	};
 
 	// Insert variable tag into SMS
@@ -307,6 +327,17 @@ export function AdminRefundModal({
 			return;
 		}
 
+		if (
+			processPaystackRefund &&
+			!paystackTransactionRef.trim() &&
+			!selectedOrder?.payment
+		) {
+			toast.error(
+				"Please provide a Paystack transaction reference for automated gateway refund.",
+			);
+			return;
+		}
+
 		startSubmittingTransition(async () => {
 			const res = await adminProcessUserRefund({
 				recipientName: recipientName.trim() || "Customer",
@@ -321,6 +352,8 @@ export function AdminRefundModal({
 				ticketOrderId: selectedOrder?.id || undefined,
 				sendSms,
 				customSmsMessage: sendSms ? smsMessage : undefined,
+				processPaystackRefund,
+				paystackTransactionRef: paystackTransactionRef.trim() || undefined,
 			});
 
 			if (res.success) {
@@ -384,9 +417,19 @@ export function AdminRefundModal({
 								<div className="flex items-center gap-2 min-w-0">
 									<Ticket className="size-4 text-primary shrink-0" />
 									<div className="min-w-0">
-										<p className="font-bold text-foreground truncate">
-											Order #{selectedOrder.orderNumber} • {selectedOrder.event.title}
-										</p>
+										<div className="flex items-center gap-1.5 flex-wrap">
+											<p className="font-bold text-foreground truncate">
+												Order #{selectedOrder.orderNumber} • {selectedOrder.event.title}
+											</p>
+											{selectedOrder.canRefundViaPaystack && (
+												<Badge
+													variant="outline"
+													className="text-[9px] px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-semibold flex items-center gap-0.5"
+												>
+													<Zap className="size-2.5" /> Paystack Paid
+												</Badge>
+											)}
+										</div>
 										<p className="text-[11px] text-muted-foreground">
 											Buyer: {selectedOrder.buyerName} ({selectedOrder.buyerPhone}) • Total:{" "}
 											<span className="font-semibold text-foreground font-mono">
@@ -397,7 +440,7 @@ export function AdminRefundModal({
 								</div>
 								<Badge
 									variant="outline"
-									className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+									className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shrink-0"
 								>
 									Linked
 								</Badge>
@@ -444,9 +487,19 @@ export function AdminRefundModal({
 										className="w-full p-2.5 text-left hover:bg-muted/50 transition-colors flex items-center justify-between gap-3 text-xs cursor-pointer"
 									>
 										<div className="min-w-0">
-											<p className="font-bold text-foreground truncate">
-												#{res.orderNumber} — {res.buyerName || "Guest"} ({res.buyerPhone})
-											</p>
+											<div className="flex items-center gap-1.5 flex-wrap">
+												<p className="font-bold text-foreground truncate">
+													#{res.orderNumber} — {res.buyerName || "Guest"} ({res.buyerPhone})
+												</p>
+												{res.canRefundViaPaystack && (
+													<Badge
+														variant="outline"
+														className="text-[9px] px-1 py-0 h-3.5 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-medium"
+													>
+														Paystack
+													</Badge>
+												)}
+											</div>
 											<p className="text-[11px] text-muted-foreground truncate">
 												{res.event.title} • {res.event.organization.name}
 											</p>
@@ -675,7 +728,98 @@ export function AdminRefundModal({
 						</div>
 					</div>
 
-					{/* ── 5. REASON & ADMIN NOTES ───────────────────────────────────── */}
+					{/* ── 5. PAYSTACK GATEWAY DISBURSEMENT ─────────────────────────── */}
+					<div className="p-4 rounded-xl border border-border/70 bg-card space-y-3.5">
+						<div className="flex items-center justify-between gap-3">
+							<div className="space-y-0.5">
+								<div className="flex items-center gap-2">
+									<CreditCard className="size-4 text-emerald-500" />
+									<Label className="text-xs font-bold text-foreground">
+										Process Gateway Refund via Paystack
+									</Label>
+									<Badge
+										variant="outline"
+										className={cn(
+											"text-[10px] h-4 px-1.5 font-medium",
+											processPaystackRefund
+												? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+												: "bg-muted text-muted-foreground border-border",
+										)}
+									>
+										{processPaystackRefund ? "Automated MoMo/Card Reversal" : "In-App Wallet Credit"}
+									</Badge>
+								</div>
+								<p className="text-[11px] text-muted-foreground leading-relaxed">
+									When enabled, funds are sent directly back to the customer&apos;s Mobile Money (MTN, Telecel, AT)
+									or Bank Card via Paystack API (just like event security deposit refunds).
+								</p>
+							</div>
+							<Switch
+								checked={processPaystackRefund}
+								onCheckedChange={setProcessPaystackRefund}
+								className="cursor-pointer shrink-0"
+							/>
+						</div>
+
+						{processPaystackRefund ? (
+							<div className="space-y-2.5 pt-2 border-t border-border/60">
+								{selectedOrder?.payment ? (
+									<div className="p-2.5 rounded-lg border border-emerald-500/25 bg-emerald-500/5 text-xs space-y-1">
+										<div className="flex items-center justify-between">
+											<span className="font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+												<ShieldCheck className="size-3.5" />
+												Verified Paystack Transaction Found
+											</span>
+											<span className="font-mono text-[10px] text-muted-foreground">
+												{selectedOrder.payment.currency} {selectedOrder.payment.amount.toFixed(2)}
+											</span>
+										</div>
+										<p className="text-[11px] text-muted-foreground font-mono truncate">
+											Ref: {selectedOrder.payment.providerReference || selectedOrder.payment.reference}
+										</p>
+									</div>
+								) : (
+									<div className="space-y-1">
+										<Label
+											htmlFor="paystack-ref"
+											className="text-xs font-semibold text-foreground flex items-center justify-between"
+										>
+											<span>Paystack Transaction Reference / ID *</span>
+											<span className="text-[10px] font-normal text-muted-foreground">
+												From Paystack Dashboard
+											</span>
+										</Label>
+										<Input
+											id="paystack-ref"
+											placeholder="e.g. T123456789 or ref_abc123"
+											value={paystackTransactionRef}
+											onChange={(e) => setPaystackTransactionRef(e.target.value)}
+											className="h-8 text-xs font-mono bg-background border-border/80"
+										/>
+									</div>
+								)}
+
+								<div className="p-2 rounded-lg bg-muted/40 border border-border/60 text-[11px] text-muted-foreground flex items-center gap-1.5">
+									<Info className="size-3.5 text-primary shrink-0" />
+									<span>
+										Customer receives money back into their original payment source (MoMo/Card).
+										Their in-app platform balance will not be duplicate-credited.
+									</span>
+								</div>
+							</div>
+						) : (
+							<div className="p-2.5 rounded-lg border border-border/60 bg-muted/30 text-xs text-muted-foreground flex items-center justify-between">
+								<span className="text-[11px]">
+									Customer will receive an internal wallet credit on Fextiva if they hold a profile.
+								</span>
+								<Badge variant="outline" className="text-[10px]">
+									Manual / Wallet
+								</Badge>
+							</div>
+						)}
+					</div>
+
+					{/* ── 6. REASON & ADMIN NOTES ───────────────────────────────────── */}
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						<div className="space-y-1.5">
 							<Label className="text-xs font-semibold">Refund Category *</Label>
@@ -729,7 +873,7 @@ export function AdminRefundModal({
 						/>
 					</div>
 
-					{/* ── 6. SMS NOTIFICATION CONFIGURATION & LIVE PREVIEW ──────────── */}
+					{/* ── 7. SMS NOTIFICATION CONFIGURATION & LIVE PREVIEW ──────────── */}
 					<div className="p-4 rounded-xl border border-border/70 bg-card/60 space-y-3.5">
 						<div className="flex items-center justify-between">
 							<div className="flex items-center gap-2">
@@ -807,7 +951,7 @@ export function AdminRefundModal({
 						)}
 					</div>
 
-					{/* ── 7. DIALOG FOOTER & ACTIONS ───────────────────────────────── */}
+					{/* ── 8. DIALOG FOOTER & ACTIONS ───────────────────────────────── */}
 					<DialogFooter className="pt-2 gap-2 sm:gap-0">
 						<Button
 							type="button"
@@ -828,12 +972,13 @@ export function AdminRefundModal({
 							{isSubmitting ? (
 								<>
 									<Loader2 className="size-3.5 animate-spin" />
-									Processing Refund...
+									Processing {processPaystackRefund ? "Paystack " : ""}Refund...
 								</>
 							) : (
 								<>
 									<RotateCcw className="size-3.5" />
-									Issue GH₵{parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"} Refund
+									Issue GH₵{parsedAmount > 0 ? parsedAmount.toFixed(2) : "0.00"}{" "}
+									{processPaystackRefund ? "via Paystack" : "Refund"}
 								</>
 							)}
 						</Button>

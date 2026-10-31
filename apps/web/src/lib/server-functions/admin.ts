@@ -1841,6 +1841,16 @@ export interface AdminRefundOrderSearchResult {
 		};
 	};
 	ticketCount: number;
+	payment?: {
+		id: string;
+		reference: string;
+		providerReference: string | null;
+		provider: string;
+		status: string;
+		amount: number;
+		currency: string;
+	} | null;
+	canRefundViaPaystack: boolean;
 }
 
 /**
@@ -1884,6 +1894,17 @@ export async function searchOrdersForRefund(
 			},
 			tickets: { select: { id: true } },
 			buyer: { select: { email: true } },
+			payment: {
+				select: {
+					id: true,
+					reference: true,
+					providerReference: true,
+					provider: true,
+					status: true,
+					amount: true,
+					currency: true,
+				},
+			},
 		},
 		take: 8,
 		orderBy: { createdAt: "desc" },
@@ -1893,6 +1914,11 @@ export async function searchOrdersForRefund(
 		const org = o.event.organization;
 		const total = Number(o.subtotal || 0) + Number(o.fees || 0);
 		const walletBal = Number(org.wallets[0]?.balance || 0);
+		const isPaystackPayment = Boolean(
+			o.payment &&
+			o.payment.provider?.toLowerCase() === "paystack" &&
+			o.payment.status === "completed"
+		);
 
 		return {
 			id: o.id,
@@ -1915,6 +1941,18 @@ export async function searchOrdersForRefund(
 				},
 			},
 			ticketCount: o.tickets.length,
+			payment: o.payment
+				? {
+						id: o.payment.id,
+						reference: o.payment.reference,
+						providerReference: o.payment.providerReference,
+						provider: o.payment.provider,
+						status: o.payment.status,
+						amount: Number(o.payment.amount || 0),
+						currency: o.payment.currency,
+					}
+				: null,
+			canRefundViaPaystack: isPaystackPayment,
 		};
 	});
 }
@@ -1932,6 +1970,10 @@ export interface AdminProcessUserRefundInput {
 	ticketOrderId?: string;
 	sendSms: boolean;
 	customSmsMessage?: string;
+	/** Whether to trigger an automated Paystack refund back to the customer's MoMo/Card */
+	processPaystackRefund?: boolean;
+	/** Optional Paystack transaction reference override if not linked to a TicketOrder */
+	paystackTransactionRef?: string;
 }
 
 export interface AdminProcessUserRefundResult {
@@ -1941,13 +1983,16 @@ export interface AdminProcessUserRefundResult {
 	reference?: string;
 	smsSent?: boolean;
 	newOrganizerBalance?: number;
+	paystackRefundId?: string;
+	paystackRefundSuccess?: boolean;
 }
 
 /**
  * Processes a comprehensive refund from Super Admin:
+ * - Optionally triggers an automated Paystack Gateway refund directly to customer's MoMo / Bank Card
  * - Optionally debits the organizer's wallet balance tied to the selected event
  * - Records a ledger transaction with reason and event tag
- * - Credits recipient user's balance if they have a Fextiva account
+ * - If not refunded via Paystack gateway, credits recipient user's balance if registered on Fextiva
  * - Updates ticket order status if fully refunded
  * - Dispatches intuitive SMS notification with dynamic merge tags
  * - Records audit trail in ActivityLog
@@ -1985,6 +2030,100 @@ export async function adminProcessUserRefund(
 				if (!resolvedOrgId) {
 					resolvedOrgId = event.organizationId;
 				}
+			}
+		}
+
+		// ── 0. EXECUTE PAYSTACK REFUND (IF ENABLED) ───────────────────────────
+		let paystackRefundId: string | undefined;
+		let paystackRefundData: any = null;
+
+		if (data.processPaystackRefund) {
+			let txRef = data.paystackTransactionRef?.trim();
+
+			// If not provided, fetch from linked ticket order's payment
+			if (!txRef && data.ticketOrderId) {
+				const order = await prisma.ticketOrder.findUnique({
+					where: { id: data.ticketOrderId },
+					include: { payment: true },
+				});
+				if (order?.payment) {
+					txRef = order.payment.providerReference || order.payment.reference;
+				}
+			}
+
+			if (!txRef) {
+				return {
+					success: false,
+					error:
+						"Cannot initiate Paystack refund: No Paystack payment transaction reference was found for this order. Please provide a transaction reference or disable the Paystack Gateway Refund option.",
+				};
+			}
+
+			const { createPaystackRefund } = await import("./paystack");
+			const refundRes = await createPaystackRefund({
+				transactionReference: txRef,
+				amount: refundAmount,
+				currency: "GHS",
+				merchantNote: `Fextiva ticket refund: ${eventTitle || "Event"} - ${cleanReason} (${cleanName})`,
+			});
+
+			if (!refundRes.success) {
+				return {
+					success: false,
+					error:
+						refundRes.error ||
+						refundRes.message ||
+						"Failed to process refund on Paystack. Check your Paystack account balance.",
+				};
+			}
+
+			paystackRefundData = refundRes.data;
+			if (refundRes.data?.id) {
+				paystackRefundId = String(refundRes.data.id);
+			}
+
+			// Record refund on payment record if matched
+			try {
+				const matchedPayment = await prisma.payment.findFirst({
+					where: {
+						OR: [
+							{ providerReference: txRef },
+							{ reference: txRef },
+							{ paystackTransactionId: txRef },
+						],
+					},
+				});
+
+				if (matchedPayment) {
+					const meta = (matchedPayment.metadata as any) || {};
+					const refundsList = Array.isArray(meta.refunds) ? meta.refunds : [];
+					refundsList.push({
+						refundId: paystackRefundId,
+						amount: refundAmount,
+						currency: "GHS",
+						date: new Date().toISOString(),
+						reason: cleanReason,
+						adminEmail: adminState.email,
+						recipientName: cleanName,
+						recipientPhone: cleanPhone,
+						paystackData: paystackRefundData,
+					});
+
+					await prisma.payment.update({
+						where: { id: matchedPayment.id },
+						data: {
+							metadata: {
+								...meta,
+								hasRefund: true,
+								refunds: refundsList,
+								lastRefundAt: new Date().toISOString(),
+								lastPaystackRefundId: paystackRefundId,
+							},
+						},
+					});
+				}
+			} catch (payMetaErr) {
+				console.warn("[ADMIN-REFUND-PAYMENT-UPDATE-WARN]", payMetaErr);
 			}
 		}
 
@@ -2044,16 +2183,20 @@ export async function adminProcessUserRefund(
 					feeAmount: 0,
 					balanceBefore: currentOrgBal,
 					balanceAfter: newOrgBalance,
-					description: `Refund: ${cleanName} • ${eventTitle ? `${eventTitle} • ` : ""}${cleanReason}`,
+					description: `Refund: ${cleanName} • ${eventTitle ? `${eventTitle} • ` : ""}${cleanReason}${data.processPaystackRefund ? " (Paystack Gateway)" : ""}`,
 					notes: data.adminNotes
-						? `${data.adminNotes} (Refunded to ${cleanName} • ${cleanPhone})`
-						: `Admin refund for ${cleanName} (${cleanPhone})`,
+						? `${data.adminNotes} (Refunded to ${cleanName} • ${cleanPhone}${paystackRefundId ? ` • Paystack ID: ${paystackRefundId}` : ""})`
+						: `Admin refund for ${cleanName} (${cleanPhone})${paystackRefundId ? ` • Paystack ID: ${paystackRefundId}` : ""}`,
+					providerReference: paystackRefundId || undefined,
+					providerResponse: paystackRefundData || undefined,
 					completedAt: new Date(),
 				},
 			});
 		}
 
 		// ── 2. RECORD IN RECIPIENT'S ACCOUNT / BALANCE IF REGISTERED ─────────
+		// Note: If Paystack was used, real funds were sent directly to customer's MoMo/Card,
+		// so we do NOT credit their internal platform wallet balance to prevent double-disbursement.
 		const normalizedPhone = normalizePhoneNumber(cleanPhone);
 		const userProfile = await prisma.profile.findFirst({
 			where: {
@@ -2066,7 +2209,7 @@ export async function adminProcessUserRefund(
 			},
 		});
 
-		if (userProfile) {
+		if (userProfile && !data.processPaystackRefund) {
 			let userWallet = await prisma.wallet.findFirst({
 				where: { userId: userProfile.id, organizationId: null },
 			});
@@ -2139,7 +2282,7 @@ export async function adminProcessUserRefund(
 					userId: adminState.userId,
 					action: "wallet.refund_issued_by_super_admin",
 					entityType: "wallet",
-					description: `Super Admin issued refund of GHS ${refundAmount.toFixed(2)} to ${cleanName} (${cleanPhone}). Deducted from organizer: ${data.deductFromOrganizer ? "Yes" : "No"}. Reason: ${cleanReason}`,
+					description: `Super Admin issued refund of GHS ${refundAmount.toFixed(2)} to ${cleanName} (${cleanPhone}) via ${data.processPaystackRefund ? "Paystack Gateway" : "In-App Wallet"}. Deducted from organizer: ${data.deductFromOrganizer ? "Yes" : "No"}. Reason: ${cleanReason}`,
 					metadata: {
 						amount: refundAmount,
 						currency: "GHS",
@@ -2155,6 +2298,8 @@ export async function adminProcessUserRefund(
 						ticketOrderId: data.ticketOrderId || null,
 						reference: refundRef,
 						adminEmail: adminState.email,
+						processPaystackRefund: Boolean(data.processPaystackRefund),
+						paystackRefundId: paystackRefundId || null,
 					},
 				},
 			})
@@ -2169,7 +2314,7 @@ export async function adminProcessUserRefund(
 					recipientName: cleanName,
 					amount: refundAmount,
 					currency: "GHS",
-					reference: refundRef,
+					reference: paystackRefundId ? `PAYSTACK-${paystackRefundId}` : refundRef,
 					eventTitle,
 					reason: cleanReason,
 					customMessage: data.customSmsMessage,
@@ -2187,12 +2332,18 @@ export async function adminProcessUserRefund(
 		revalidatePath("/super/organizers");
 		revalidatePath("/organization/wallet");
 
+		const methodNote = data.processPaystackRefund
+			? " via Paystack (disbursed directly to customer's MoMo / Card)"
+			: " to customer account";
+
 		return {
 			success: true,
 			reference: refundRef,
 			smsSent,
 			newOrganizerBalance: newOrgBalance,
-			message: `Refund of GHS ${refundAmount.toFixed(2)} issued successfully!${data.deductFromOrganizer ? " Organizer balance was deducted." : " (Platform-funded)"}${smsSent ? " SMS notification delivered to recipient." : ""}`,
+			paystackRefundId,
+			paystackRefundSuccess: Boolean(data.processPaystackRefund),
+			message: `Refund of GHS ${refundAmount.toFixed(2)} processed successfully${methodNote}!${data.deductFromOrganizer ? " Organizer balance was deducted." : " (Platform-funded)"}${smsSent ? " SMS notification delivered to recipient." : ""}`,
 		};
 	} catch (err: any) {
 		console.error("[ADMIN_PROCESS_USER_REFUND_ERROR]", err);
